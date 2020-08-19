@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.model.bot.api.method.updatemessages.EditMes
 import ru.gadjini.telegram.converter.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.converter.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.converter.model.bot.api.object.Message;
+import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.util.ArrayList;
@@ -27,6 +28,11 @@ public class TgLimitsMessageService implements MessageService {
     @Autowired
     public void setMessageService(@Qualifier("asyncmessage") MessageService messageService) {
         this.messageService = messageService;
+    }
+
+    @Override
+    public void editReplyMarkup(long chatId, int messageId, InlineKeyboardMarkup replyMarkup) {
+        messageService.editReplyMarkup(chatId, messageId, replyMarkup);
     }
 
     @Override

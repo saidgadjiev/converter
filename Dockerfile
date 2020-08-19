@@ -73,7 +73,6 @@ RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf 
 
 USER bot
 
-COPY ./api.json .
 COPY ./license/license-19.lic ./license/
 COPY ./target/app.jar .
 

@@ -7,10 +7,10 @@ import ru.gadjini.telegram.converter.bot.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.telegram.converter.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.converter.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.converter.request.Arg;
 import ru.gadjini.telegram.converter.request.RequestParams;
-import ru.gadjini.telegram.converter.service.KeyboardCustomizer;
 import ru.gadjini.telegram.converter.service.LocalisationService;
 import ru.gadjini.telegram.converter.service.UserService;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
@@ -46,18 +46,17 @@ public class CancelQueryCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
-        convertionService.cancel(queryItemId);
+        boolean cancel = convertionService.cancel(queryItemId);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
 
-        String actionFrom = requestParams.getString(Arg.ACTION_FROM.getKey());
-        if (actionFrom.equals(CommandNames.QUERY_ITEM_DETAILS_COMMAND)) {
-            messageService.editMessage(
-                    new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale))
-                            .setReplyMarkup(new KeyboardCustomizer(callbackQuery.getMessage().getReplyMarkup()).removeExclude(CommandNames.GO_BACK_CALLBACK_COMMAND_NAME).getKeyboardMarkup())
-            );
-        } else {
-            messageService.editMessage(
-                    new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
+        messageService.editMessage(
+                new EditMessageText(callbackQuery.getMessage().getChatId(),
+                        callbackQuery.getMessage().getMessageId(),
+                        localisationService.getMessage(cancel ? MessagesProperties.MESSAGE_QUERY_CANCELED : MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale)));
+        if (!cancel) {
+            messageService.sendAnswerCallbackQuery(
+                    new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                            .setShowAlert(true));
         }
     }
 }

@@ -54,8 +54,10 @@ public class AnswerCallbackQuery {
         return showAlert;
     }
 
-    public void setShowAlert(Boolean showAlert) {
+    public AnswerCallbackQuery setShowAlert(Boolean showAlert) {
         this.showAlert = showAlert;
+
+        return this;
     }
 
     @Override

@@ -12,7 +12,7 @@ import ru.gadjini.telegram.converter.filter.*;
 public class BotConfiguration implements Jackson2ObjectMapperBuilderCustomizer {
 
     @Bean
-    public BotFilter botFilter(Any2AnyBotFilter any2AnyBotFilter,
+    public BotFilter botFilter(ConverterBotFilter any2AnyBotFilter,
                                UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
                                MediaFilter mediaFilter, LastActivityFilter activityFilter,
                                SubscriptionFilter subscriptionFilter) {

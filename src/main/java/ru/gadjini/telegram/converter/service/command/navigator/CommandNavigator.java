@@ -10,7 +10,7 @@ import ru.gadjini.telegram.converter.bot.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.dao.command.navigator.keyboard.CommandNavigatorDao;
 import ru.gadjini.telegram.converter.model.TgMessage;
-import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.converter.utils.ReflectionUtils;
 
 import java.util.Collection;
@@ -133,13 +133,13 @@ public class CommandNavigator {
         navigatorDao.set(chatId, navigableBotCommand.getHistoryName());
     }
 
-    public class SilentPop {
+    public static class SilentPop {
 
-        private ReplyKeyboardMarkup replyKeyboardMarkup;
+        private ReplyKeyboard replyKeyboardMarkup;
 
         private String message;
 
-        public SilentPop(ReplyKeyboardMarkup replyKeyboardMarkup, String message) {
+        public SilentPop(ReplyKeyboard replyKeyboardMarkup, String message) {
             this.replyKeyboardMarkup = replyKeyboardMarkup;
             this.message = message;
         }
@@ -148,7 +148,7 @@ public class CommandNavigator {
             return message;
         }
 
-        public ReplyKeyboardMarkup getReplyKeyboardMarkup() {
+        public ReplyKeyboard getReplyKeyboardMarkup() {
             return replyKeyboardMarkup;
         }
     }

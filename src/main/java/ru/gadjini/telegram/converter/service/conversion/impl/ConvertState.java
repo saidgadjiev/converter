@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.converter.bot.command.convert;
+package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.gadjini.telegram.converter.service.conversion.api.Format;

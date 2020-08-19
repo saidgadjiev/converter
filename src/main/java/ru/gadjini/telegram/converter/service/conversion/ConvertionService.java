@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.bot.command.convert.ConvertState;
+import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
@@ -127,10 +127,11 @@ public class ConvertionService {
         return queueItem;
     }
 
-    public void cancel(int jobId) {
-        if (!executor.cancelAndComplete(jobId, true)) {
-            queueService.delete(jobId);
-        }
+    public boolean cancel(int jobId) {
+        ConversionQueueItem item = queueService.delete(jobId);
+        executor.cancelAndComplete(jobId, true);
+
+        return item != null && item.getStatus() != ConversionQueueItem.Status.COMPLETED;
     }
 
     public void shutdown() {

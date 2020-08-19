@@ -5,12 +5,15 @@ import ru.gadjini.telegram.converter.model.bot.api.method.updatemessages.EditMes
 import ru.gadjini.telegram.converter.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.converter.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.converter.model.bot.api.object.Message;
+import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.util.Locale;
 import java.util.function.Consumer;
 
 public interface MessageService {
+
+    void editReplyMarkup(long chatId, int messageId, InlineKeyboardMarkup replyMarkup);
 
     void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery);
 

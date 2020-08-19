@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.bot.command.api.BotCommand;
-import ru.gadjini.telegram.converter.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.converter.bot.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
@@ -16,14 +15,10 @@ import ru.gadjini.telegram.converter.service.command.navigator.CommandNavigator;
 import ru.gadjini.telegram.converter.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.message.MessageService;
 
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 @Component
-public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
-
-    private Set<String> names = new HashSet<>();
+public class LanguageCommand implements NavigableBotCommand, BotCommand {
 
     private final LocalisationService localisationService;
 
@@ -42,9 +37,6 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
         this.messageService = messageService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
-        for (Locale locale : localisationService.getSupportedLocales()) {
-            this.names.add(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_NAME, locale));
-        }
     }
 
     @Autowired
@@ -53,25 +45,13 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
     }
 
     @Override
-    public boolean canHandle(long chatId, String command) {
-        return names.contains(command);
-    }
-
-    @Override
     public void processMessage(Message message) {
-        processMessage(message, null);
+        processMessage0(message.getChatId(), message.getFrom().getId());
     }
 
     @Override
     public String getCommandIdentifier() {
         return CommandNames.LANGUAGE_COMMAND_NAME;
-    }
-
-    @Override
-    public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
-
-        return true;
     }
 
     private void processMessage0(long chatId, int userId) {

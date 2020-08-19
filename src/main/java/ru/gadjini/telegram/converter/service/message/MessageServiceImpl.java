@@ -19,6 +19,7 @@ import ru.gadjini.telegram.converter.model.bot.api.method.updatemessages.EditMes
 import ru.gadjini.telegram.converter.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.converter.model.bot.api.object.Message;
 import ru.gadjini.telegram.converter.model.bot.api.object.ParseMode;
+import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.converter.service.LocalisationService;
 import ru.gadjini.telegram.converter.service.telegram.TelegramBotApiService;
@@ -41,6 +42,20 @@ public class MessageServiceImpl implements MessageService {
                               TelegramBotApiService telegramService) {
         this.localisationService = localisationService;
         this.telegramService = telegramService;
+    }
+
+    @Override
+    public void editReplyMarkup(long chatId, int messageId, InlineKeyboardMarkup replyMarkup) {
+        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+        editMessageReplyMarkup.setChatId(chatId);
+        editMessageReplyMarkup.setMessageId(messageId);
+        editMessageReplyMarkup.setReplyMarkup(replyMarkup);
+
+        try {
+            telegramService.editReplyMarkup(editMessageReplyMarkup);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        }
     }
 
     @Override
@@ -143,7 +158,7 @@ public class MessageServiceImpl implements MessageService {
                 callback.accept(message);
             }
         } catch (TelegramApiRequestException ex) {
-            LOGGER.error("Error send message({})", sendMessage);
+            LOGGER.error("Error send message({}, {}, {}, {})", ex.getChatId(), ex.getErrorCode(), ex.getApiResponse(), sendMessage);
             throw ex;
         }
     }

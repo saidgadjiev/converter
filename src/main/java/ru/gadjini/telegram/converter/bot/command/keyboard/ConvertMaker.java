@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.bot.command.convert.ConvertState;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.UserException;
 import ru.gadjini.telegram.converter.io.SmartTempFile;
 import ru.gadjini.telegram.converter.model.TgMessage;
 import ru.gadjini.telegram.converter.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.converter.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.converter.model.bot.api.object.Message;
 import ru.gadjini.telegram.converter.model.bot.api.object.PhotoSize;
 import ru.gadjini.telegram.converter.model.bot.api.object.Sticker;
@@ -26,8 +26,10 @@ import ru.gadjini.telegram.converter.service.command.CommandStateService;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.FormatCategory;
+import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.service.conversion.impl.FormatService;
 import ru.gadjini.telegram.converter.service.file.FileManager;
+import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.message.MessageService;
 import ru.gadjini.telegram.converter.service.queue.conversion.ConversionQueueMessageBuilder;
@@ -60,6 +62,8 @@ public class ConvertMaker {
 
     private ReplyKeyboardService replyKeyboardService;
 
+    private InlineKeyboardService inlineKeyboardService;
+
     private FormatService formatService;
 
     private FileManager fileManager;
@@ -70,7 +74,7 @@ public class ConvertMaker {
     public ConvertMaker(CommandStateService commandStateService, UserService userService,
                         ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("messagelimits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                        FormatService formatService, FileManager fileManager, TempFileService fileService) {
+                        InlineKeyboardService inlineKeyboardService, FormatService formatService, FileManager fileManager, TempFileService fileService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.conversionService = conversionService;
@@ -78,6 +82,7 @@ public class ConvertMaker {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
+        this.inlineKeyboardService = inlineKeyboardService;
         this.formatService = formatService;
         this.fileManager = fileManager;
         this.fileService = fileService;
@@ -107,7 +112,8 @@ public class ConvertMaker {
             }
             ConversionQueueItem queueItem = conversionService.convert(message.getFrom(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
-            messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
+            messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale)));
+            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale)).setReplyMarkup(replyKeyboard.get()));
             commandStateService.deleteState(message.getChatId(), controllerName);
         }
     }

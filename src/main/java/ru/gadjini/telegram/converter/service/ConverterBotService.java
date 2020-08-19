@@ -21,7 +21,7 @@ import ru.gadjini.telegram.converter.service.message.MessageService;
 import java.util.Locale;
 
 @Service
-public class Any2AnyBotService {
+public class ConverterBotService {
 
     private MessageService messageService;
 
@@ -36,9 +36,9 @@ public class Any2AnyBotService {
     private CurrReplyKeyboard replyKeyboardService;
 
     @Autowired
-    public Any2AnyBotService(@Qualifier("messagelimits") MessageService messageService, CommandExecutor commandExecutor,
-                             LocalisationService localisationService, UserService userService,
-                             CommandNavigator commandNavigator, CurrReplyKeyboard replyKeyboardService) {
+    public ConverterBotService(@Qualifier("messagelimits") MessageService messageService, CommandExecutor commandExecutor,
+                               LocalisationService localisationService, UserService userService,
+                               CommandNavigator commandNavigator, CurrReplyKeyboard replyKeyboardService) {
         this.messageService = messageService;
         this.commandExecutor = commandExecutor;
         this.localisationService = localisationService;

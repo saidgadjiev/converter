@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.bot.command.api;
 
 import ru.gadjini.telegram.converter.model.TgMessage;
-import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 public interface NavigableBotCommand extends MyBotCommand {
 
@@ -13,7 +13,7 @@ public interface NavigableBotCommand extends MyBotCommand {
 
     }
 
-    default ReplyKeyboardMarkup getKeyboard(long chatId) {
+    default ReplyKeyboard getKeyboard(long chatId) {
         throw new UnsupportedOperationException();
     }
 
