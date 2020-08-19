@@ -1,0 +1,63 @@
+version: '3'
+services:
+  app:
+    container_name: app
+    restart: always
+    build: ../../../
+    volumes:
+      - ${PWD}/data/logs:/home/bot/app/logs
+        - ../../../data/shr:/tmp/shr
+    ports:
+      - 5005:5005
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - url2api
+      - rest
+  db:
+    container_name: db
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - ${PWD}/data/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    env_file:
+      - .db.env
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    command:
+      - 'redis-server'
+      - '--save 900 1'
+      - '--save 300 10'
+      - '--save 60 10000'
+    volumes:
+      - ${PWD}/data/redis:/data
+  url2api:
+    container_name: url2api
+    restart: always
+    build: ../../../../url-to-pdf-api/
+  rest:
+    container_name: rest
+    restart: always
+    build: ../../../../fileutils-rest/
+    env_file:
+      - ../../../../fileutils-rest/.env
+    volumes:
+      - ../../../data/gram:/home/bot/app/gram
+      - ../../../data/shr:/tmp/shr
+  bot:
+    container_name: bot
+    restart: always
+    build: ../../../../fileutils-bot/
+    env_file:
+      - ../../../../fileutils-bot/.env
+    volumes:
+      - ../../../data/gram:/home/bot/app/gram
+    depends_on:
+      - app
+

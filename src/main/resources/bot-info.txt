@@ -1,0 +1,12 @@
+Description:
+I can converting files, stickers, links, text to other formats
+
+AboutText:
+I can converting files, stickers, links, text to other formats
+
+Commands:
+start - restart the bot
+language - change language
+formats - conversion formats
+help - help
+goback- Go back

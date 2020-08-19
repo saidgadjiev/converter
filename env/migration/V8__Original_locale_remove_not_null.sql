@@ -1,0 +1,1 @@
+ALTER TABLE tg_user ALTER COLUMN original_locale DROP NOT NULL;

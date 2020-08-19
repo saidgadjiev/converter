@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="TIME_BASED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/converter.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>logs/converter.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{"MM-dd HH:mm:ss"} [%thread] %-5level %logger{35} \(%file:%line\) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{"MM-dd HH:mm:ss"} [%thread] %-5level %logger{35} \(%file:%line\) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ru" level="DEBUG">
+        <appender-ref ref="TIME_BASED_FILE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="net.iakovlev.timeshape" level="ERROR">
+        <appender-ref ref="TIME_BASED_FILE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+</configuration>
