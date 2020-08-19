@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.converter.filter.MediaFilter;
+import ru.gadjini.telegram.converter.common.TgConstants;
 import ru.gadjini.telegram.converter.model.EditMediaResult;
 import ru.gadjini.telegram.converter.model.SendFileResult;
 import ru.gadjini.telegram.converter.model.bot.api.MediaType;
@@ -114,7 +114,7 @@ public class TgLimitsMediaMessageService implements MediaMessageService {
 
             return false;
         }
-        if (file.length() > MediaFilter.LARGE_FILE_SIZE) {
+        if (file.length() > TgConstants.LARGE_FILE_SIZE) {
             LOGGER.debug("Large out file({}, {})", sendDocument.getChatId(), MemoryUtils.humanReadableByteCount(file.length()));
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
                     new Object[]{file.getName(), MemoryUtils.humanReadableByteCount(file.length())},

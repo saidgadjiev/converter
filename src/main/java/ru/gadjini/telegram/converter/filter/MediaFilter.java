@@ -18,14 +18,13 @@ import ru.gadjini.telegram.converter.utils.MemoryUtils;
 
 import java.util.Locale;
 
+import static ru.gadjini.telegram.converter.common.TgConstants.LARGE_FILE_SIZE;
+
 @Component
 @Qualifier("messagelimits")
 public class MediaFilter extends BaseBotFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaFilter.class);
-
-    //2 GB
-    public static final long LARGE_FILE_SIZE = 2147483648L;
 
     private UserService userService;
 
