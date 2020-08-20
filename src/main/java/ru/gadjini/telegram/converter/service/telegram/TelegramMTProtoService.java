@@ -253,7 +253,7 @@ public class TelegramMTProtoService implements TelegramMediaService {
                         });
 
                         if (!apiResponse.getOk()) {
-                            throw new DownloadCanceledException();
+                            throw new DownloadCanceledException("Download canceled");
                         }
                     } catch (IOException e) {
                         throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);
@@ -271,7 +271,7 @@ public class TelegramMTProtoService implements TelegramMediaService {
                 submit.get();
             } catch (Exception e) {
                 LOGGER.error(e.getMessage());
-                throw new DownloadCanceledException();
+                throw new DownloadCanceledException("Download canceled");
             }
         } finally {
             downloadingFuture.remove(fileId);
@@ -329,7 +329,7 @@ public class TelegramMTProtoService implements TelegramMediaService {
                 return true;
             }
             Future<?> future = downloadingFuture.get(fileId);
-            if (!future.isDone()) {
+            if (future != null && !future.isDone()) {
                 future.cancel(true);
             }
 

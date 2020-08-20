@@ -336,7 +336,7 @@ public class TelegramBotApiService implements TelegramMediaService {
                 });
 
                 if (!apiResponse.getOk()) {
-                    throw new DownloadCanceledException();
+                    throw new DownloadCanceledException("Download canceled");
                 }
             } catch (IOException e) {
                 throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);

@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.model;
 
 import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.converter.utils.MemoryUtils;
 
 public class Any2AnyFile {
 
@@ -81,6 +82,9 @@ public class Any2AnyFile {
                 ", fileName='" + fileName + '\'' +
                 ", mimeType='" + mimeType + '\'' +
                 ", format=" + format +
+                ", fileSize=" + MemoryUtils.humanReadableByteCount(fileSize) +
+                ", thumb='" + thumb + '\'' +
+                ", cachedFileId='" + cachedFileId + '\'' +
                 '}';
     }
 }

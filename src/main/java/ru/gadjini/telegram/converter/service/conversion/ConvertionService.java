@@ -131,7 +131,15 @@ public class ConvertionService {
         ConversionQueueItem item = queueService.delete(jobId);
         executor.cancelAndComplete(jobId, true);
 
-        return item != null && item.getStatus() != ConversionQueueItem.Status.COMPLETED;
+        if (item == null) {
+            return false;
+        }
+
+        if (item.getStatus() == ConversionQueueItem.Status.WAITING) {
+            fileManager.fileWorkObject(item.getId(), item.getSize()).stop();
+        }
+
+        return item.getStatus() != ConversionQueueItem.Status.COMPLETED;
     }
 
     public void shutdown() {
