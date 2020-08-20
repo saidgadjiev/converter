@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.dao.queue;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -167,6 +168,16 @@ public class ConversionQueueDao {
                     return null;
                 }
         );
+    }
+
+    public boolean exists(int id) {
+        return BooleanUtils.toBoolean(jdbcTemplate.query(
+                "SELECT TRUE FROM conversion_queue WHERE id =?",
+                ps -> {
+                    ps.setInt(1, id);
+                },
+                ResultSet::next
+        ));
     }
 
     public List<ConversionQueueItem> getActiveQueries(int userId) {

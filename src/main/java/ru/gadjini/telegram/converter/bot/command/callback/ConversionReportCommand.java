@@ -6,8 +6,9 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.bot.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.converter.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.converter.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.converter.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.telegram.converter.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.converter.request.Arg;
 import ru.gadjini.telegram.converter.request.RequestParams;
 import ru.gadjini.telegram.converter.service.ConversinoReportService;
@@ -45,13 +46,18 @@ public class ConversionReportCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int itemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
-
-        fileReportService.createReport(callbackQuery.getFrom().getId(), itemId);
-
-        messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-        messageService.sendMessage(
-                new HtmlMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
-        );
+
+        if (fileReportService.createReport(callbackQuery.getFrom().getId(), itemId)) {
+            messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
+            messageService.sendMessage(
+                    new HtmlMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
+            );
+        } else {
+            messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
+            messageService.sendAnswerCallbackQuery(
+                    new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                            .setShowAlert(true));
+        }
     }
 }
