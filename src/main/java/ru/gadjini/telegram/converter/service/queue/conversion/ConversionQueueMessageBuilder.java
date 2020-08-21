@@ -6,13 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.LocalisationService;
-import ru.gadjini.telegram.converter.service.Time2TextService;
-import ru.gadjini.telegram.converter.service.TimeCreator;
 import ru.gadjini.telegram.converter.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.utils.MemoryUtils;
 
-import java.time.Duration;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -25,59 +21,9 @@ public class ConversionQueueMessageBuilder {
 
     private LocalisationService localisationService;
 
-    private TimeCreator timeCreator;
-
-    private Time2TextService time2TextService;
-
     @Autowired
-    public ConversionQueueMessageBuilder(LocalisationService localisationService, TimeCreator timeCreator, Time2TextService time2TextService) {
+    public ConversionQueueMessageBuilder(LocalisationService localisationService) {
         this.localisationService = localisationService;
-        this.timeCreator = timeCreator;
-        this.time2TextService = time2TextService;
-    }
-
-    public String getItems(List<ConversionQueueItem> queueItems, Locale locale) {
-        if (queueItems.isEmpty()) {
-            return localisationService.getMessage(MessagesProperties.MESSAGE_QUERIES_EMPTY, locale);
-        }
-        StringBuilder message = new StringBuilder();
-        int i = 1;
-        for (ConversionQueueItem fileQueueItem : queueItems) {
-            if (message.length() > 0) {
-                message.append("\n");
-            }
-            message
-                    .append(i++).append(") ").append(getFileName(fileQueueItem)).append(" ")
-                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_TARGET_FORMAT, new Object[]{fileQueueItem.getTargetFormat().name()}, locale))
-                    .append("\n")
-                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_STATUS, new Object[]{getStatus(fileQueueItem, locale)}, locale));
-        }
-
-        return message.toString();
-    }
-
-    public String queryItemNotFound(Locale locale) {
-        return localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale);
-    }
-
-    public String getItem(ConversionQueueItem fileQueueItem, Locale locale) {
-        StringBuilder message = new StringBuilder();
-        message
-                .append(getFileName(fileQueueItem)).append(" ")
-                .append(localisationService.getMessage(MessagesProperties.MESSAGE_TARGET_FORMAT, new Object[]{fileQueueItem.getTargetFormat().name()}, locale))
-                .append("\n")
-                .append(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_STATUS, new Object[]{getStatus(fileQueueItem, locale)}, locale));
-
-        if (!NON_DISPLAY_FORMATS.contains(fileQueueItem.getFormat())) {
-            message.append("\n")
-                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{fileQueueItem.getFormat()}, locale));
-        }
-        if (!NON_SIZEABLE_FORMATS.contains(fileQueueItem.getFormat())) {
-            message.append("\n")
-                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_SIZE, new Object[]{MemoryUtils.humanReadableByteCount(fileQueueItem.getSize())}, locale));
-        }
-
-        return message.toString();
     }
 
     public String getChooseFormat(Set<String> warns, Locale locale) {
@@ -128,34 +74,5 @@ public class ConversionQueueMessageBuilder {
         }
 
         return null;
-    }
-
-    private String getFileName(ConversionQueueItem fileQueueItem) {
-        switch (fileQueueItem.getFormat()) {
-            case TEXT:
-            case URL:
-                if (fileQueueItem.getFileId().length() > 11) {
-                    return fileQueueItem.getFileId().substring(0, 11) + "...";
-                } else {
-                    return fileQueueItem.getFileId();
-                }
-            default:
-                return fileQueueItem.getFileName();
-        }
-    }
-
-    private String getStatus(ConversionQueueItem fileQueueItem, Locale locale) {
-        switch (fileQueueItem.getStatus()) {
-            case WAITING:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_STATUS_WAITING, new Object[]{fileQueueItem.getPlaceInQueue()}, locale);
-            case PROCESSING:
-                Duration between = Duration.between(fileQueueItem.getLastRunAt(), timeCreator.now());
-                String time = time2TextService.time(between, locale);
-                return localisationService.getMessage(MessagesProperties.MESSAGE_STATUS_PROCESSING, new Object[]{time}, locale);
-            case EXCEPTION:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_STATUS_EXCEPTION, locale);
-        }
-
-        return "";
     }
 }

@@ -36,7 +36,7 @@ public class HelpCommand implements BotCommand {
     }
 
     @Override
-    public void processMessage(Message message) {
+    public void processMessage(Message message, String[] params) {
         sendHelpMessage(message.getFrom().getId(), userService.getLocaleOrDefault(message.getFrom().getId()));
     }
 

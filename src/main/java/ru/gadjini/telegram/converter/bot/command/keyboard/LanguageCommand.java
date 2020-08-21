@@ -45,7 +45,7 @@ public class LanguageCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
-    public void processMessage(Message message) {
+    public void processMessage(Message message, String[] params) {
         processMessage0(message.getChatId(), message.getFrom().getId());
     }
 
@@ -85,7 +85,7 @@ public class LanguageCommand implements NavigableBotCommand, BotCommand {
         userService.changeLocale(message.getFrom().getId(), locale);
         messageService.sendMessage(
                 new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_LANGUAGE_SELECTED, locale))
-                        .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale))
+                        .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId()))
         );
         commandNavigator.silentPop(message.getChatId());
     }

@@ -73,7 +73,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
+            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
             htmlDevice.processUrl(fileQueueItem.getFileId(), file.getAbsolutePath());
 
             stopWatch.stop();

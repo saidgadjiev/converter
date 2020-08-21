@@ -253,7 +253,7 @@ public class TelegramMTProtoService implements TelegramMediaService {
                         });
 
                         if (!apiResponse.getOk()) {
-                            throw new DownloadCanceledException("Download canceled");
+                            throw new DownloadCanceledException("Download canceled " + fileId);
                         }
                     } catch (IOException e) {
                         throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);
@@ -261,7 +261,9 @@ public class TelegramMTProtoService implements TelegramMediaService {
 
                     stopWatch.stop();
                     LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
-                } catch (RestClientException e) {
+                } catch (Exception e) {
+                    LOGGER.error("Error download({}, {})", fileId, MemoryUtils.humanReadableByteCount(fileSize));
+
                     throw new TelegramApiException(e);
                 }
             });
@@ -271,7 +273,7 @@ public class TelegramMTProtoService implements TelegramMediaService {
                 submit.get();
             } catch (Exception e) {
                 LOGGER.error(e.getMessage());
-                throw new DownloadCanceledException("Download canceled");
+                throw new DownloadCanceledException("Download canceled " + fileId);
             }
         } finally {
             downloadingFuture.remove(fileId);
