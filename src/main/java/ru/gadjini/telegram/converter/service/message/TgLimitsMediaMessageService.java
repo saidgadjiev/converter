@@ -117,7 +117,7 @@ public class TgLimitsMediaMessageService implements MediaMessageService {
         if (file.length() > TgConstants.LARGE_FILE_SIZE) {
             LOGGER.debug("Large out file({}, {})", sendDocument.getChatId(), MemoryUtils.humanReadableByteCount(file.length()));
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
-                    new Object[]{file.getName(), MemoryUtils.humanReadableByteCount(file.length())},
+                    new Object[]{sendDocument.getDocument().getFileName(), MemoryUtils.humanReadableByteCount(file.length())},
                     userService.getLocaleOrDefault((int) sendDocument.getOrigChatId()));
 
             messageService.sendMessage(new SendMessage(sendDocument.getChatId(), text)
