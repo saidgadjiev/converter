@@ -18,6 +18,8 @@ public class Url2PdfApiDevice implements HtmlDevice {
 
     public static final String SCREENSHOT_OUTPUT = "screenshot";
 
+    public static final String HTML_OUTPUT = "html";
+
     private ConversionProperties conversionProperties;
 
     @Autowired

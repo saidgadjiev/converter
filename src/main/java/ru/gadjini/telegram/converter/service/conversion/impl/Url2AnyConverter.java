@@ -11,7 +11,6 @@ import ru.gadjini.telegram.converter.service.TempFileService;
 import ru.gadjini.telegram.converter.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.file.FileManager;
 import ru.gadjini.telegram.converter.service.html.HtmlDevice;
 import ru.gadjini.telegram.converter.service.html.Url2PdfApiDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -20,48 +19,39 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
+public class Url2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    public static final String TAG = "html2";
-
-    private FileManager fileManager;
+    public static final String TAG = "url2";
 
     private TempFileService fileService;
 
     private HtmlDevice htmlDevice;
 
     @Autowired
-    public Html2AnyConverter(FormatService formatService, FileManager fileManager,
-                             TempFileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
-        super(Set.of(Format.HTML), formatService);
-        this.fileManager = fileManager;
+    public Url2AnyConverter(FormatService formatService, TempFileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
+        super(Set.of(Format.URL), formatService);
         this.fileService = fileService;
         this.htmlDevice = htmlDevice;
     }
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        return htmlToPdf(fileQueueItem);
+        return convertUrl(fileQueueItem);
     }
 
-    private FileResult htmlToPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile html = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
-
+    private FileResult convertUrl(ConversionQueueItem fileQueueItem) {
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), html);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            htmlDevice.convertHtml(html.getAbsolutePath(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
+            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            htmlDevice.convertUrl(fileQueueItem.getFileId(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 
             stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            html.smartDelete();
         }
     }
 
