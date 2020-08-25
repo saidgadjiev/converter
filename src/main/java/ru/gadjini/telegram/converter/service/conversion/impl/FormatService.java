@@ -18,6 +18,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ru.gadjini.telegram.converter.service.conversion.api.Format.*;
+
 @Service
 public class FormatService {
 
@@ -27,30 +29,53 @@ public class FormatService {
 
     static {
         Map<List<Format>, List<Format>> documents = new LinkedHashMap<>();
-        documents.put(List.of(Format.DOC), List.of(Format.PDF, Format.DOCX, Format.TXT, Format.EPUB, Format.RTF, Format.TIFF));
-        documents.put(List.of(Format.DOCX), List.of(Format.PDF, Format.DOC, Format.TXT, Format.EPUB, Format.RTF, Format.TIFF));
-        documents.put(List.of(Format.PDF), List.of(Format.DOC, Format.DOCX, Format.EPUB, Format.TIFF));
-        documents.put(List.of(Format.TEXT), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.TXT));
-        documents.put(List.of(Format.TXT), List.of(Format.PDF, Format.DOC, Format.DOCX));
-        documents.put(List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.RTF));
-        documents.put(List.of(Format.URL), List.of(Format.PDF, Format.PNG, Format.HTML));
-        documents.put(List.of(Format.HTML), List.of(Format.PDF, Format.PNG));
-        documents.put(List.of(Format.XLS, Format.XLSX), List.of(Format.PDF));
-        documents.put(List.of(Format.PPTX, Format.PPT, Format.PPTM, Format.POTX, Format.POT, Format.POTM, Format.PPS, Format.PPSX, Format.PPSM), List.of(Format.PDF));
+        documents.put(List.of(DOC), List.of(PDF, DOCX, TXT, EPUB, RTF, TIFF));
+        documents.put(List.of(DOCX), List.of(PDF, DOC, TXT, EPUB, RTF, TIFF));
+        documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
+        documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT));
+        documents.put(List.of(TXT), List.of(PDF, DOC, DOCX));
+        documents.put(List.of(URL), List.of(PDF, PNG, HTML));
+        documents.put(List.of(HTML), List.of(PDF, PNG));
+        documents.put(List.of(XLS, XLSX), List.of(PDF));
+        documents.put(List.of(PPTX, PPT, PPTM, POTX, POT, POTM, PPS, PPSX, PPSM), List.of(PDF));
+        documents.put(List.of(AZW), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(AZW3), List.of(EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(AZW4), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(CBZ), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(CBR), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(CBC), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(CHM), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(DJVU), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(EPUB), List.of(AZW3, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(FB2), List.of(AZW3, EPUB, DOCX, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(FBZ), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(HTMLZ), List.of(AZW3, EPUB, DOCX, FB2, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(LIT), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(LRF), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(MOBI), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(ODT), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(PRC), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(PDB), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(PML), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(RB), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(SNB), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, TCR, TXT, TXTZ, ZIP));
+        documents.put(List.of(TCR), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TXT, TXTZ, ZIP));
+        documents.put(List.of(TXTZ), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, ZIP));
+
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
-        images.put(List.of(Format.PNG), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.JPG, Format.JP2, Format.BMP, Format.WEBP, Format.TIFF, Format.ICO, Format.HEIC, Format.HEIF, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.PHOTO), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.PNG, Format.JPG, Format.JP2, Format.BMP, Format.WEBP, Format.TIFF, Format.ICO, Format.HEIC, Format.HEIF, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.JPG), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.PNG, Format.JP2, Format.BMP, Format.WEBP, Format.TIFF, Format.ICO, Format.HEIC, Format.HEIF, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.TIFF), List.of(Format.PDF, Format.DOCX, Format.DOC));
-        images.put(List.of(Format.BMP), List.of(Format.PDF, Format.PNG, Format.JPG, Format.JP2, Format.WEBP, Format.TIFF, Format.ICO, Format.HEIC, Format.HEIF, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.WEBP), List.of(Format.PDF, Format.PNG, Format.JPG, Format.JP2, Format.BMP, Format.TIFF, Format.ICO, Format.HEIC, Format.HEIF, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.SVG), List.of(Format.PDF, Format.PNG, Format.JPG, Format.JP2, Format.BMP, Format.WEBP, Format.TIFF, Format.ICO, Format.HEIC, Format.HEIF, Format.STICKER));
-        images.put(List.of(Format.HEIC, Format.HEIF), List.of(Format.PDF, Format.PNG, Format.JPG, Format.JP2, Format.BMP, Format.WEBP, Format.TIFF, Format.ICO, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.ICO), List.of(Format.PDF, Format.PNG, Format.JPG, Format.JP2, Format.BMP, Format.WEBP, Format.TIFF, Format.HEIC, Format.HEIF, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.JP2), List.of(Format.PDF, Format.PNG, Format.JPG, Format.BMP, Format.WEBP, Format.TIFF, Format.ICO, Format.HEIC, Format.HEIF, Format.SVG, Format.STICKER));
-        images.put(List.of(Format.TGS), List.of(Format.GIF));
+        images.put(List.of(PNG), List.of(PDF, DOC, DOCX, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(PHOTO), List.of(PDF, DOC, DOCX, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(JPG), List.of(PDF, DOC, DOCX, PNG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
+        images.put(List.of(BMP), List.of(PDF, PNG, JPG, JP2, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(WEBP), List.of(PDF, PNG, JPG, JP2, BMP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(SVG), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, STICKER));
+        images.put(List.of(HEIC, HEIF), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, SVG, STICKER));
+        images.put(List.of(ICO), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(JP2), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(TGS), List.of(GIF));
         FORMATS.put(FormatCategory.IMAGES, images);
     }
 
@@ -70,10 +95,10 @@ public class FormatService {
 
     public Format getAssociatedFormat(String format) {
         if ("jpeg".equals(format)) {
-            return Format.JPG;
+            return JPG;
         }
         format = format.toUpperCase();
-        for (Format f : Format.values()) {
+        for (Format f : values()) {
             if (f.name().equals(format)) {
                 return f;
             }
@@ -84,10 +109,10 @@ public class FormatService {
 
     public Format getFormat(String text) {
         if (UrlUtils.isUrl(text)) {
-            return Format.URL;
+            return URL;
         }
 
-        return Format.TEXT;
+        return TEXT;
     }
 
     public String getExt(String mimeType) {
@@ -119,7 +144,7 @@ public class FormatService {
             return null;
         }
 
-        for (Format format : Format.values()) {
+        for (Format format : values()) {
             if (format.getExt().equals(extension)) {
                 return format;
             }
@@ -145,17 +170,17 @@ public class FormatService {
 
     private Format getImageFormat(long format) {
         if (format == FileFormat.Bmp) {
-            return Format.BMP;
+            return BMP;
         } else if (format == FileFormat.Png) {
-            return Format.PNG;
+            return PNG;
         } else if (format == FileFormat.Jpeg) {
-            return Format.JPG;
+            return JPG;
         } else if (format == FileFormat.Tiff) {
-            return Format.TIFF;
+            return TIFF;
         } else if (format == FileFormat.Webp) {
-            return Format.WEBP;
+            return WEBP;
         } else if (format == FileFormat.Svg) {
-            return Format.SVG;
+            return SVG;
         } else {
             return null;
         }

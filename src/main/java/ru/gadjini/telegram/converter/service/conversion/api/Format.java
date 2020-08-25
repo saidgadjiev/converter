@@ -39,10 +39,34 @@ public enum Format {
         }
     },
     HTML(FormatCategory.WEB),
+    HTMLZ(FormatCategory.WEB),
     URL(FormatCategory.WEB),
     TEXT(FormatCategory.DOCUMENTS),
     ZIP(FormatCategory.ARCHIVE),
-    RAR(FormatCategory.ARCHIVE);
+    RAR(FormatCategory.ARCHIVE),
+    AZW(FormatCategory.DOCUMENTS),
+    AZW3(FormatCategory.DOCUMENTS),
+    AZW4(FormatCategory.DOCUMENTS),
+    CBZ(FormatCategory.DOCUMENTS),
+    CBR(FormatCategory.DOCUMENTS),
+    CBC(FormatCategory.DOCUMENTS),
+    CHM(FormatCategory.DOCUMENTS),
+    DJVU(FormatCategory.DOCUMENTS),
+    FB2(FormatCategory.DOCUMENTS),
+    FBZ(FormatCategory.DOCUMENTS),
+    LIT(FormatCategory.DOCUMENTS),
+    LRF(FormatCategory.DOCUMENTS),
+    MOBI(FormatCategory.DOCUMENTS),
+    ODT(FormatCategory.DOCUMENTS),
+    PRC(FormatCategory.DOCUMENTS),
+    PDB(FormatCategory.DOCUMENTS),
+    PML(FormatCategory.DOCUMENTS),
+    RB(FormatCategory.DOCUMENTS),
+    SNB(FormatCategory.DOCUMENTS),
+    TCR(FormatCategory.DOCUMENTS),
+    TXTZ(FormatCategory.DOCUMENTS),
+    OEB(FormatCategory.DOCUMENTS),
+    PMLZ(FormatCategory.DOCUMENTS);
 
     private FormatCategory category;
 
