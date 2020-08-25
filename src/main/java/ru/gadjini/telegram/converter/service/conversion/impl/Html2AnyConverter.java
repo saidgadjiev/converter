@@ -11,8 +11,9 @@ import ru.gadjini.telegram.converter.service.TempFileService;
 import ru.gadjini.telegram.converter.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.html.HtmlDevice;
 import ru.gadjini.telegram.converter.service.file.FileManager;
+import ru.gadjini.telegram.converter.service.html.HtmlDevice;
+import ru.gadjini.telegram.converter.service.html.Url2PdfApiDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -41,7 +42,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFormat() == Format.URL) {
-            return urlToPdf(fileQueueItem);
+            return convertUrl(fileQueueItem);
         }
 
         return htmlToPdf(fileQueueItem);
@@ -55,11 +56,11 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
-            htmlDevice.processHtml(html.getAbsolutePath(), file.getAbsolutePath());
+            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            htmlDevice.convertHtml(html.getAbsolutePath(), file.getAbsolutePath(), fileQueueItem.getTargetFormat().equals(Format.PDF) ? Url2PdfApiDevice.PDF_OUTPUT : Url2PdfApiDevice.SCREENSHOT_OUTPUT);
 
             stopWatch.stop();
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
@@ -68,16 +69,16 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult urlToPdf(ConversionQueueItem fileQueueItem) {
+    private FileResult convertUrl(ConversionQueueItem fileQueueItem) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
-            htmlDevice.processUrl(fileQueueItem.getFileId(), file.getAbsolutePath());
+            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            htmlDevice.convertUrl(fileQueueItem.getFileId(), file.getAbsolutePath(), fileQueueItem.getTargetFormat().equals(Format.PDF) ? Url2PdfApiDevice.PDF_OUTPUT : Url2PdfApiDevice.SCREENSHOT_OUTPUT);
 
             stopWatch.stop();
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
