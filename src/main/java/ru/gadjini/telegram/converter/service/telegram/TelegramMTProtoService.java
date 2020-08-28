@@ -229,6 +229,41 @@ public class TelegramMTProtoService implements TelegramMediaService {
         downloadFileByFileId(fileId, fileSize, null, outputFile);
     }
 
+    public void downloadLightFileByFileId(String fileId, long fileSize, SmartTempFile outputFile) {
+
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            LOGGER.debug("Start downloadFileByFileId({})", fileId);
+
+            GetFile getFile = new GetFile();
+            getFile.setFileId(fileId);
+            getFile.setFileSize(fileSize);
+            getFile.setPath(outputFile.getAbsolutePath());
+            getFile.setRemoveParentDirOnCancel(false);
+            HttpEntity<GetFile> request = new HttpEntity<>(getFile);
+            String result = restTemplate.postForObject(getUrl(GetFile.METHOD), request, String.class);
+            try {
+                ApiResponse<Void> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
+                });
+
+                if (!apiResponse.getOk()) {
+                    throw new DownloadCanceledException("Download canceled " + fileId);
+                }
+            } catch (IOException e) {
+                throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);
+            }
+
+            stopWatch.stop();
+            LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (DownloadCanceledException e) {
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("Error download({}, {})", fileId, MemoryUtils.humanReadableByteCount(fileSize));
+
+            throw new TelegramApiException(e);
+        }
+    }
 
     @Override
     public void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile) {

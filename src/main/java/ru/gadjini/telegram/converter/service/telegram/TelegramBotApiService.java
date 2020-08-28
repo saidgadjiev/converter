@@ -39,10 +39,13 @@ public class TelegramBotApiService implements TelegramMediaService {
 
     private ObjectMapper objectMapper;
 
+    private TelegramMTProtoService telegramMTProtoService;
+
     @Autowired
-    public TelegramBotApiService(BotApiProperties botApiProperties, ObjectMapper objectMapper) {
+    public TelegramBotApiService(BotApiProperties botApiProperties, ObjectMapper objectMapper, TelegramMTProtoService telegramMTProtoService) {
         this.botApiProperties = botApiProperties;
         this.objectMapper = objectMapper;
+        this.telegramMTProtoService = telegramMTProtoService;
         this.restTemplate = new RestTemplate();
 
         LOGGER.debug("Bot api: " + botApiProperties.getEndpoint());
@@ -336,7 +339,8 @@ public class TelegramBotApiService implements TelegramMediaService {
                 });
 
                 if (!apiResponse.getOk()) {
-                    throw new DownloadCanceledException("Download canceled " + fileId);
+                    LOGGER.debug("Download failed({})", fileId);
+                    telegramMTProtoService.downloadLightFileByFileId(fileId, fileSize, outputFile);
                 }
             } catch (IOException e) {
                 throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);
@@ -344,6 +348,8 @@ public class TelegramBotApiService implements TelegramMediaService {
 
             stopWatch.stop();
             LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (DownloadCanceledException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.error("Error download({})", fileId);
 
