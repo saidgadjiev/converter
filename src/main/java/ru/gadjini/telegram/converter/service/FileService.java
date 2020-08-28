@@ -54,7 +54,9 @@ public class FileService {
             any2AnyFile.setFileName(message.getDocument().getFileName());
             any2AnyFile.setFileId(message.getDocument().getFileId());
             any2AnyFile.setMimeType(message.getDocument().getMimeType());
-            any2AnyFile.setFileSize(message.getDocument().getFileSize());
+            if (message.getDocument().getFileSize() != null) {
+                any2AnyFile.setFileSize(message.getDocument().getFileSize());
+            }
             any2AnyFile.setThumb(message.getDocument().hasThumb() ? message.getDocument().getThumb().getFileId() : null);
             any2AnyFile.setFormat(formatService.getFormat(any2AnyFile.getFileName(), any2AnyFile.getMimeType()));
 
@@ -64,7 +66,9 @@ public class FileService {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             any2AnyFile.setFileId(photoSize.getFileId());
             any2AnyFile.setMimeType("image/jpeg");
-            any2AnyFile.setFileSize(photoSize.getFileSize());
+            if (photoSize.getFileSize() != null) {
+                any2AnyFile.setFileSize(photoSize.getFileSize());
+            }
             any2AnyFile.setFormat(Format.JPG);
 
             return any2AnyFile;
@@ -78,7 +82,9 @@ public class FileService {
             }
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setFileId(message.getVideo().getFileId());
-            any2AnyFile.setFileSize(message.getVideo().getFileSize());
+            if (message.getVideo().getFileSize() != null) {
+                any2AnyFile.setFileSize(message.getVideo().getFileSize());
+            }
             any2AnyFile.setFileName(message.getVideo().getFileName());
             any2AnyFile.setThumb(message.getVideo().hasThumb() ? message.getVideo().getThumb().getFileId() : null);
             any2AnyFile.setMimeType(message.getVideo().getMimeType());
@@ -96,7 +102,9 @@ public class FileService {
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setFileId(message.getAudio().getFileId());
             any2AnyFile.setMimeType(message.getAudio().getMimeType());
-            any2AnyFile.setFileSize(message.getAudio().getFileSize());
+            if (message.getAudio().getFileSize() != null) {
+                any2AnyFile.setFileSize(message.getAudio().getFileSize());
+            }
             any2AnyFile.setFileName(message.getAudio().getFileName());
             any2AnyFile.setThumb(message.getAudio().hasThumb() ? message.getAudio().getThumb().getFileId() : null);
             any2AnyFile.setFormat(format);
@@ -109,7 +117,9 @@ public class FileService {
             fileName += sticker.getAnimated() ? "tgs" : "webp";
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setMimeType(sticker.getAnimated() ? null : "image/webp");
-            any2AnyFile.setFileSize(message.getSticker().getFileSize());
+            if (message.getSticker().getFileSize() != null) {
+                any2AnyFile.setFileSize(message.getSticker().getFileSize());
+            }
             any2AnyFile.setFormat(sticker.getAnimated() ? Format.TGS : Format.WEBP);
 
             return any2AnyFile;
