@@ -4,7 +4,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.condition.WindowsCondition;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 
 import java.util.List;
 import java.util.Set;

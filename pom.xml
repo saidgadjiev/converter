@@ -215,5 +215,11 @@
             <artifactId>commons-io</artifactId>
             <version>2.7</version>
         </dependency>
+
+        <dependency>
+            <groupId>ru.gadjini.telegram</groupId>
+            <artifactId>smart-bot-commons</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

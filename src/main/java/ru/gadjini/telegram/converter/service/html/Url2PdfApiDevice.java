@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.property.ConversionProperties;
-import ru.gadjini.telegram.converter.service.ProcessExecutor;
-import ru.gadjini.telegram.converter.utils.UrlUtils;
+import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.utils.UrlUtils;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

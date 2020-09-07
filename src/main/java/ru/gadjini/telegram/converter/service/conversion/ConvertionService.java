@@ -11,25 +11,25 @@ import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
-import ru.gadjini.telegram.converter.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.telegram.converter.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.converter.model.bot.api.method.send.SendDocument;
-import ru.gadjini.telegram.converter.model.bot.api.method.send.SendSticker;
-import ru.gadjini.telegram.converter.model.bot.api.object.User;
-import ru.gadjini.telegram.converter.service.LocalisationService;
-import ru.gadjini.telegram.converter.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.converter.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.file.FileManager;
-import ru.gadjini.telegram.converter.service.file.FileWorkObject;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
-import ru.gadjini.telegram.converter.service.message.MediaMessageService;
-import ru.gadjini.telegram.converter.service.message.MessageService;
-import ru.gadjini.telegram.converter.service.queue.conversion.ConversionQueueService;
-import ru.gadjini.telegram.converter.utils.MemoryUtils;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.LinkedHashSet;
@@ -64,9 +64,9 @@ public class ConvertionService {
     private FileManager fileManager;
 
     @Autowired
-    public ConvertionService(@Qualifier("messagelimits") MessageService messageService,
+    public ConvertionService(@Qualifier("messageLimits") MessageService messageService,
                              LocalisationService localisationService, UserService userService, InlineKeyboardService inlineKeyboardService,
-                             @Qualifier("medialimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
+                             @Qualifier("messageLimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;

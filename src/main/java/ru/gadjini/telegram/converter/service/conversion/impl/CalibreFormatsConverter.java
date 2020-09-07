@@ -4,17 +4,17 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.io.SmartTempFile;
-import ru.gadjini.telegram.converter.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.ConvertDevice;
-import ru.gadjini.telegram.converter.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static ru.gadjini.telegram.converter.service.conversion.api.Format.*;
+import static ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format.*;
 
 @Component
 public class CalibreFormatsConverter extends BaseAny2AnyConverter<FileResult> {
@@ -28,7 +28,7 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter<FileResult> {
     private TempFileService tempFileService;
 
     @Autowired
-    public CalibreFormatsConverter(FormatService formatService, ConvertDevice convertDevice, FileManager fileManager,
+    public CalibreFormatsConverter(ConversionFormatService formatService, ConvertDevice convertDevice, FileManager fileManager,
                                    TempFileService tempFileService) {
         super(Set.of(AZW, AZW3, AZW4, CBZ, CBR, CBC, CHM, DJVU, EPUB, FB2, FBZ, HTMLZ, LIT, LRF, MOBI, ODT,
                 PRC, PDB, PML, RB, RTF, SNB, TCR, TXTZ), formatService);

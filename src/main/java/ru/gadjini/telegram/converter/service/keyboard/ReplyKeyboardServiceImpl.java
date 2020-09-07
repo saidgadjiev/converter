@@ -6,12 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
-import ru.gadjini.telegram.converter.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
-import ru.gadjini.telegram.converter.service.LocalisationService;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
-import ru.gadjini.telegram.converter.service.conversion.impl.FormatService;
+import ru.gadjini.telegram.converter.service.conversion.impl.ConversionFormatService;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,16 +21,21 @@ import java.util.Locale;
 
 @Service
 @Qualifier("keyboard")
-public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
+public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
-    private FormatService formatMapService;
+    private ConversionFormatService formatMapService;
 
     private LocalisationService localisationService;
 
     @Autowired
-    public ReplyKeyboardServiceImpl(FormatService formatMapService, LocalisationService localisationService) {
+    public ReplyKeyboardServiceImpl(ConversionFormatService formatMapService, LocalisationService localisationService) {
         this.formatMapService = formatMapService;
         this.localisationService = localisationService;
+    }
+
+    @Override
+    public ReplyKeyboard getMainMenu(long chatId, Locale locale) {
+        return removeKeyboard(chatId);
     }
 
     @Override

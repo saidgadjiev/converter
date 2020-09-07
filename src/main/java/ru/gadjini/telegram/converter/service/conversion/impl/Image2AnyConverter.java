@@ -7,14 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.io.SmartTempFile;
-import ru.gadjini.telegram.converter.service.TempFileService;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.StickerResult;
 import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
 import ru.gadjini.telegram.converter.service.image.trace.ImageTracer;
-import ru.gadjini.telegram.converter.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
@@ -39,7 +39,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Autowired
     public Image2AnyConverter(FileManager fileManager, TempFileService fileService,
-                              FormatService formatService, ImageConvertDevice imageDevice, ImageTracer imageTracer) {
+                              ConversionFormatService formatService, ImageConvertDevice imageDevice, ImageTracer imageTracer) {
         super(ACCEPT_FORMATS, formatService);
         this.fileManager = fileManager;
         this.fileService = fileService;

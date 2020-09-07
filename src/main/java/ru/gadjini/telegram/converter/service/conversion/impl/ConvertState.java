@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

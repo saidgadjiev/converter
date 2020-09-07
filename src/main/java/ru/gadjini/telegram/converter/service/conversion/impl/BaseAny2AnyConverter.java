@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 
 import java.util.Set;
@@ -10,9 +10,9 @@ public abstract class BaseAny2AnyConverter<T extends ConvertResult> implements A
 
     private final Set<Format> availableFormats;
 
-    FormatService formatService;
+    ConversionFormatService formatService;
 
-    protected BaseAny2AnyConverter(Set<Format> availableFormats, FormatService formatService) {
+    protected BaseAny2AnyConverter(Set<Format> availableFormats, ConversionFormatService formatService) {
         this.availableFormats = availableFormats;
         this.formatService = formatService;
     }

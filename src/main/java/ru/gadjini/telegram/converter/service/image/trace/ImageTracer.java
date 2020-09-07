@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.service.image.trace;
 
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 @Component
 public class ImageTracer {

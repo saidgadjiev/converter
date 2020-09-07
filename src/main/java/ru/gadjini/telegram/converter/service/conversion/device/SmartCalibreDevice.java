@@ -5,11 +5,11 @@ import com.aspose.words.SaveFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.exception.ProcessException;
-import ru.gadjini.telegram.converter.io.SmartTempFile;
-import ru.gadjini.telegram.converter.service.ProcessExecutor;
-import ru.gadjini.telegram.converter.service.TempFileService;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 
 @Component
 @Qualifier("calibre")

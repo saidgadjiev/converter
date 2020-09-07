@@ -2,8 +2,8 @@ package ru.gadjini.telegram.converter.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.dao.queue.ConversionQueueDao;
-import ru.gadjini.telegram.converter.dao.queue.ConversionReportDao;
+import ru.gadjini.telegram.converter.dao.ConversionQueueDao;
+import ru.gadjini.telegram.converter.dao.ConversionReportDao;
 import ru.gadjini.telegram.converter.domain.ConversionReport;
 
 @Service

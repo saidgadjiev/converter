@@ -9,14 +9,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
-import ru.gadjini.telegram.converter.io.SmartTempFile;
-import ru.gadjini.telegram.converter.service.TempFileService;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.ConvertDevice;
 import ru.gadjini.telegram.converter.service.conversion.file.FileValidator;
-import ru.gadjini.telegram.converter.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -36,7 +36,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private FileValidator fileValidator;
 
     @Autowired
-    public Pdf2AnyConverter(FormatService formatService, TempFileService fileService,
+    public Pdf2AnyConverter(ConversionFormatService formatService, TempFileService fileService,
                             FileManager fileManager, @Qualifier("calibre") ConvertDevice convertDevice,
                             FileValidator fileValidator) {
         super(Set.of(Format.PDF), formatService);

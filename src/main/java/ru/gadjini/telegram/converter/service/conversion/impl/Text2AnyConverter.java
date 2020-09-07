@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.io.SmartTempFile;
-import ru.gadjini.telegram.converter.service.TempFileService;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.text.TextDetector;
 import ru.gadjini.telegram.converter.service.text.TextDirection;
@@ -38,7 +38,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private TextDetector textDetector;
 
     @Autowired
-    public Text2AnyConverter(FormatService formatService, TempFileService fileService, TextDetector textDetector) {
+    public Text2AnyConverter(ConversionFormatService formatService, TempFileService fileService, TextDetector textDetector) {
         super(Set.of(Format.TEXT), formatService);
         this.fileService = fileService;
         this.textDetector = textDetector;

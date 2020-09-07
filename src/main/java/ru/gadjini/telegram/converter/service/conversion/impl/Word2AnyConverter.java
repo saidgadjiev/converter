@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.io.SmartTempFile;
-import ru.gadjini.telegram.converter.service.TempFileService;
-import ru.gadjini.telegram.converter.service.conversion.api.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.ConvertDevice;
-import ru.gadjini.telegram.converter.service.file.FileManager;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +35,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Autowired
     public Word2AnyConverter(FileManager fileManager, TempFileService fileService,
-                             FormatService formatService, @Qualifier("calibre") ConvertDevice convertDevice) {
+                             ConversionFormatService formatService, @Qualifier("calibre") ConvertDevice convertDevice) {
         super(ACCEPT_FORMATS, formatService);
         this.fileManager = fileManager;
         this.fileService = fileService;

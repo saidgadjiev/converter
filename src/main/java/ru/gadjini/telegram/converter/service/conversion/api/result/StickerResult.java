@@ -1,6 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.api.result;
 
-import ru.gadjini.telegram.converter.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 
 public class StickerResult extends FileResult {
 

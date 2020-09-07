@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
-import ru.gadjini.telegram.converter.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 
 @Component
 public class ContextCloseListener implements ApplicationListener<ContextClosedEvent> {

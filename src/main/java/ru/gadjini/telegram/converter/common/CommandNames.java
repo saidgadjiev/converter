@@ -6,8 +6,6 @@ public class CommandNames {
 
     }
 
-    public static final String GO_BACK = "goback";
-
     public static final String START_COMMAND = "start";
 
     public static final String HELP_COMMAND = "help";
@@ -18,15 +16,11 @@ public class CommandNames {
 
     public static final String CANCEL_QUERY_COMMAND_NAME = "c";
 
-    public static final String GO_BACK_CALLBACK_COMMAND_NAME = "d";
-
     public static final String FORMATS_COMMAND = "formats";
 
     public static final String REPORT_COMMAND_NAME = "e";
 
     public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
-
-    public static final String CANCEL_COMMAND_NAME = "o";
 
     public static final String GET_FILE_COMMAND = "getfile";
 
