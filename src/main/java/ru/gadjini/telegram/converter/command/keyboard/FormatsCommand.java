@@ -23,7 +23,7 @@ public class FormatsCommand implements BotCommand {
     private UserService userService;
 
     @Autowired
-    public FormatsCommand(@Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService, UserService userService) {
+    public FormatsCommand(@Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService, UserService userService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;

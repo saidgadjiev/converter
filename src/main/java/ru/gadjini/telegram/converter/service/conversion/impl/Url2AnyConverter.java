@@ -13,7 +13,7 @@ import ru.gadjini.telegram.converter.service.html.Url2PdfApiDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;

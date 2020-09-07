@@ -13,9 +13,9 @@ import ru.gadjini.telegram.converter.dao.ConversionQueueDao;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.converter.service.concurrent.SmartExecutorService;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.TimeCreator;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Locale;

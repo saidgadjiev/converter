@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.condition.LinuxMacCondition;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.ArrayList;
 import java.util.List;

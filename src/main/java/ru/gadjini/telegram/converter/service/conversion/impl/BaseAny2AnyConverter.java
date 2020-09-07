@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 
 import java.util.Set;

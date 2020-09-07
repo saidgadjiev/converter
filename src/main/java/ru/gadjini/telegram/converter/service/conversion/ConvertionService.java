@@ -18,9 +18,9 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendStick
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.converter.service.concurrent.SmartExecutorService;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
@@ -66,7 +66,7 @@ public class ConvertionService {
     @Autowired
     public ConvertionService(@Qualifier("messageLimits") MessageService messageService,
                              LocalisationService localisationService, UserService userService, InlineKeyboardService inlineKeyboardService,
-                             @Qualifier("messageLimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
+                             @Qualifier("mediaLimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;

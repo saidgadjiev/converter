@@ -14,7 +14,7 @@ import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format.*;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
 public class CalibreFormatsConverter extends BaseAny2AnyConverter<FileResult> {
