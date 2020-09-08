@@ -16,27 +16,6 @@ services:
       - redis
       - url2api
       - rest
-  db:
-    container_name: db
-    image: postgres:alpine
-    restart: always
-    volumes:
-      - ${PWD}/data/postgres:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
-    env_file:
-      - .db.env
-  redis:
-    container_name: redis
-    image: redis:alpine
-    restart: always
-    command:
-      - 'redis-server'
-      - '--save 900 1'
-      - '--save 300 10'
-      - '--save 60 10000'
-    volumes:
-      - ${PWD}/data/redis:/data
   url2api:
     container_name: url2api
     restart: always

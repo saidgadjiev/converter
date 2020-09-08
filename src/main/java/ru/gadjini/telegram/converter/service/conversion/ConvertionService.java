@@ -129,13 +129,11 @@ public class ConvertionService {
 
     public boolean cancel(int jobId) {
         ConversionQueueItem item = queueService.delete(jobId);
-        executor.cancelAndComplete(jobId, true);
 
         if (item == null) {
             return false;
         }
-
-        if (item.getStatus() == ConversionQueueItem.Status.WAITING) {
+        if (!executor.cancelAndComplete(jobId, true)) {
             fileManager.fileWorkObject(item.getId(), item.getSize()).stop();
         }
 

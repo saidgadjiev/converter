@@ -12,32 +12,9 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
-      - converterredis
       - url2api
       - convertermtproto
       - converterbotapi
-  db:
-    container_name: db
-    image: postgres:alpine
-    restart: always
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - 5431:5432
-    env_file:
-      - .db.env
-  converterredis:
-    container_name: converterredis
-    image: redis:alpine
-    restart: always
-    command:
-      - 'redis-server'
-      - '--save 900 1'
-      - '--save 300 10'
-      - '--save 60 10000'
-    volumes:
-      - ../../../data/converter/redis:/data
   url2api:
     container_name: url2api
     restart: always
@@ -72,6 +49,8 @@ services:
     volumes:
       - ../../../data/converter/logs:/app/logs
       - ../../../data/shr:/tmp/shr
-volumes:
-  pgdata:
-    external: true
+
+networks:
+  default:
+    external:
+      name: fileutils

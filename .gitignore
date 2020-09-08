@@ -276,9 +276,6 @@ api.json
 
 tessdata/
 **/prod/
-*.env
-*.env.renamer
-*.env.fileutils
 *.lic
 rasterize.js
 tgs-2-pdf/
