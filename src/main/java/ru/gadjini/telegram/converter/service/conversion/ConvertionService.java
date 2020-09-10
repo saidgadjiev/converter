@@ -7,28 +7,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
+import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
+import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
-import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
-import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
@@ -49,13 +46,9 @@ public class ConvertionService {
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private MessageService messageService;
-
     private MediaMessageService mediaMessageService;
 
     private ConversionQueueService queueService;
-
-    private LocalisationService localisationService;
 
     private UserService userService;
 
@@ -64,11 +57,8 @@ public class ConvertionService {
     private FileManager fileManager;
 
     @Autowired
-    public ConvertionService(@Qualifier("messageLimits") MessageService messageService,
-                             LocalisationService localisationService, UserService userService, InlineKeyboardService inlineKeyboardService,
+    public ConvertionService(UserService userService, InlineKeyboardService inlineKeyboardService,
                              @Qualifier("mediaLimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
-        this.messageService = messageService;
-        this.localisationService = localisationService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.mediaMessageService = mediaMessageService;
@@ -192,7 +182,7 @@ public class ConvertionService {
         }
 
         @Override
-        public void run() {
+        public void execute() throws Exception {
             try {
                 fileWorkObject.start();
                 Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
@@ -206,21 +196,13 @@ public class ConvertionService {
                         LOGGER.debug("Finish({}, {}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId(), convertResult.time());
                     } catch (CorruptedFileException ex) {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
-                        LOGGER.error(ex.getMessage());
-                        Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                        messageService.sendMessage(
-                                new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
-                                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
-                        );
+
+                        throw ex;
                     } catch (Exception ex) {
                         if (checker == null || !checker.get()) {
                             queueService.exception(fileQueueItem.getId(), ex);
-                            LOGGER.error(ex.getMessage(), ex);
-                            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                            messageService.sendMessage(
-                                    new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
-                                            .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
-                            );
+
+                            throw ex;
                         }
                     }
                 } else {
@@ -258,6 +240,11 @@ public class ConvertionService {
         }
 
         @Override
+        public Supplier<Boolean> getCancelChecker() {
+            return checker;
+        }
+
+        @Override
         public void setCanceledByUser(boolean canceledByUser) {
             this.canceledByUser = canceledByUser;
         }
@@ -265,6 +252,24 @@ public class ConvertionService {
         @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileQueueItem.getSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        @Override
+        public long getChatId() {
+            return fileQueueItem.getUserId();
+        }
+
+        @Override
+        public int getProgressMessageId() {
+            return fileQueueItem.getReplyToMessageId();
+        }
+
+        @Override
+        public String getErrorCode(Exception e) {
+            if (e instanceof CorruptedFileException) {
+                return MessagesProperties.MESSAGE_DAMAGED_FILE;
+            }
+            return MessagesProperties.MESSAGE_CONVERSION_FAILED;
         }
 
         private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {
