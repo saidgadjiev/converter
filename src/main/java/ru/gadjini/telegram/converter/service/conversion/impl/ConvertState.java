@@ -93,6 +93,11 @@ public class ConvertState {
         warnings.clear();
     }
 
+    public enum State {
+
+        FORMAT
+    }
+
     @Override
     public String toString() {
         return "ConvertState{" +
