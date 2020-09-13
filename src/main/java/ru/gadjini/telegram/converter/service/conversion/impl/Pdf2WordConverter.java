@@ -9,7 +9,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.file.FileValidator;
+import ru.gadjini.telegram.converter.service.conversion.validator.PdfValidator;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -31,10 +31,10 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private FileManager fileManager;
 
-    private FileValidator fileValidator;
+    private PdfValidator fileValidator;
 
     @Autowired
-    public Pdf2WordConverter(TempFileService fileService, FileManager fileManager, FileValidator fileValidator) {
+    public Pdf2WordConverter(TempFileService fileService, FileManager fileManager, PdfValidator fileValidator) {
         super(MAP);
         this.fileService = fileService;
         this.fileManager = fileManager;

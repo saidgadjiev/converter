@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.converter.service.conversion.impl;
+package ru.gadjini.telegram.converter.service.conversion.format;
 
 import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;
@@ -73,6 +73,12 @@ public class ConversionFormatService {
         images.put(List.of(JP2), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
         images.put(List.of(TGS), List.of(GIF));
         FORMATS.put(FormatCategory.IMAGES, images);
+
+        Map<List<Format>, List<Format>> videos = new LinkedHashMap<>();
+        videos.put(List.of(MP4), List.of(_3GP));
+        videos.put(List.of(_3GP), List.of(MP4));
+
+        FORMATS.put(FormatCategory.VIDEO, videos);
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFormatService.class);

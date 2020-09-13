@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.LinkedHashSet;
@@ -93,9 +94,12 @@ public class ConvertState {
         warnings.clear();
     }
 
-    public enum State {
-
-        FORMAT
+    public void setMedia(MessageMedia media) {
+        setFileId(media.getFileId());
+        setFileSize(media.getFileSize());
+        setFileName(media.getFileName());
+        setMimeType(media.getMimeType());
+        setFormat(media.getFormat());
     }
 
     @Override

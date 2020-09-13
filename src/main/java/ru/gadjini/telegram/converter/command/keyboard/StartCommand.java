@@ -12,7 +12,7 @@ import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
-import ru.gadjini.telegram.converter.service.conversion.impl.ConversionFormatService;
+import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
@@ -21,14 +21,14 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.PhotoSize;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Sticker;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -40,7 +40,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -73,6 +72,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private FileManager fileManager;
 
+    private MessageMediaService messageMediaService;
+
     private ConversionFormatService conversionFormatService;
 
     @Autowired
@@ -81,7 +82,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                         FormatService formatService, ConvertionService convertionService,
                         ConversionQueueMessageBuilder queueMessageBuilder, InlineKeyboardService inlineKeyboardService,
-                        TempFileService fileService, FileManager fileManager, ConversionFormatService conversionFormatService) {
+                        TempFileService fileService, FileManager fileManager, MessageMediaService messageMediaService,
+                        ConversionFormatService conversionFormatService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -93,6 +95,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         this.inlineKeyboardService = inlineKeyboardService;
         this.fileService = fileService;
         this.fileManager = fileManager;
+        this.messageMediaService = messageMediaService;
         this.conversionFormatService = conversionFormatService;
     }
 
@@ -211,26 +214,14 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         convertState.setUserLanguage(locale.getLanguage());
 
         LOGGER.debug("Convert state({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
-        if (message.hasDocument()) {
-            convertState.setFileId(message.getDocument().getFileId());
-            convertState.setFileSize(message.getDocument().getFileSize());
-            convertState.setFileName(message.getDocument().getFileName());
-            convertState.setMimeType(message.getDocument().getMimeType());
-            Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            convertState.setFormat(checkFormat(message.getFrom().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
-            if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getChatId(), message.getDocument().getFileId(), message.getDocument().getFileSize())) {
+
+        MessageMedia media = messageMediaService.getMedia(message, locale);
+        if (media != null) {
+            checkFormat(message.getFrom().getId(), media.getFormat(), media.getMimeType(), media.getFileName(), locale);
+            if (media.getFormat() == Format.HTML && isBaseUrlMissed(message.getChatId(), media.getFileId(), media.getFileSize())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }
-        } else if (message.hasPhoto()) {
-            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
-            convertState.setFileId(photoSize.getFileId());
-            convertState.setFileSize(photoSize.getFileSize());
-            convertState.setFormat(Format.PHOTO);
-        } else if (message.hasSticker()) {
-            Sticker sticker = message.getSticker();
-            convertState.setFileId(sticker.getFileId());
-            convertState.setFileSize(sticker.getFileSize());
-            convertState.setFormat(sticker.getAnimated() ? Format.TGS : Format.WEBP);
+            convertState.setMedia(media);
         } else if (message.hasText()) {
             convertState.setFileId(message.getText());
             convertState.setFileSize((long) message.getText().length());
@@ -261,7 +252,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private void check(Message message, Locale locale) {
         if (message.hasDocument() || message.hasText() || message.hasPhoto()
-                || message.hasSticker()) {
+                || message.hasSticker() || message.hasVideo()) {
             return;
         }
 
