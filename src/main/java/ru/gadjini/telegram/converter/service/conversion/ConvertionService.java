@@ -42,7 +42,7 @@ public class ConvertionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConvertionService.class);
 
-    private Set<Any2AnyConverter<ConvertResult>> any2AnyConverters = new LinkedHashSet<>();
+    private Set<Any2AnyConverter> any2AnyConverters = new LinkedHashSet<>();
 
     private InlineKeyboardService inlineKeyboardService;
 
@@ -185,7 +185,7 @@ public class ConvertionService {
         public void execute() throws Exception {
             try {
                 fileWorkObject.start();
-                Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
+                Any2AnyConverter candidate = getCandidate(fileQueueItem);
                 if (candidate != null) {
                     String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
                     LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
@@ -272,8 +272,8 @@ public class ConvertionService {
             return MessagesProperties.MESSAGE_CONVERSION_FAILED;
         }
 
-        private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {
-            for (Any2AnyConverter<ConvertResult> any2AnyConverter : any2AnyConverters) {
+        private Any2AnyConverter getCandidate(ConversionQueueItem fileQueueItem) {
+            for (Any2AnyConverter any2AnyConverter : any2AnyConverters) {
                 if (any2AnyConverter.accept(fileQueueItem.getFormat(), fileQueueItem.getTargetFormat())) {
                     return any2AnyConverter;
                 }

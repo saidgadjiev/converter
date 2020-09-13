@@ -10,42 +10,38 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
+public class Tiff2WordConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "tiff2";
+
+    private static final Map<List<Format>, List<Format>> MAP = Map.of(
+            List.of(Format.TIFF), List.of(Format.DOC, Format.DOCX)
+    );
 
     private FileManager fileManager;
 
     private TempFileService fileService;
 
-    private ImageConvertDevice imageDevice;
-
     @Autowired
-    public Tiff2AnyConverter(ConversionFormatService formatService, FileManager fileManager,
-                             TempFileService fileService, ImageConvertDevice imageDevice) {
-        super(Set.of(Format.TIFF), formatService);
+    public Tiff2WordConverter(FileManager fileManager, TempFileService fileService) {
+        super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
-        this.imageDevice = imageDevice;
     }
 
     @Override
     public FileResult convert(ConversionQueueItem fileQueueItem) {
-        if (fileQueueItem.getTargetFormat() == Format.PDF) {
-            return toPdf(fileQueueItem);
-        }
-
         return toWord(fileQueueItem);
     }
 
@@ -74,24 +70,6 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             } catch (Exception ex) {
                 throw new ConvertException(ex);
             }
-        } finally {
-            tiff.smartDelete();
-        }
-    }
-
-    private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
-       try {
-           fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), tiff);
-
-           StopWatch stopWatch = new StopWatch();
-           stopWatch.start();
-           SmartTempFile pdf = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
-            imageDevice.convert(tiff.getAbsolutePath(), pdf.getAbsolutePath());
-
-            stopWatch.stop();
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
-            return new FileResult(fileName, pdf, stopWatch.getTime(TimeUnit.SECONDS));
         } finally {
             tiff.smartDelete();
         }

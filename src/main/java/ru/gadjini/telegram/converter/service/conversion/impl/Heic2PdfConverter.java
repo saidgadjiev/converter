@@ -1,13 +1,12 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.aspose.slides.Presentation;
-import com.aspose.slides.SaveFormat;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -19,54 +18,49 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
+public class Heic2PdfConverter extends BaseAny2AnyConverter {
 
-    public static final String TAG = "pp2";
+    public static final String TAG = "image2";
 
-    private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.PPTX,
-            Format.PPT,
-            Format.PPTM,
-            Format.POTX,
-            Format.POT,
-            Format.POTM,
-            Format.PPS,
-            Format.PPSX,
-            Format.PPSM), List.of(Format.PDF));
+    private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.HEIC, Format.HEIF), List.of(Format.PDF));
 
     private FileManager fileManager;
 
     private TempFileService fileService;
 
+    private ImageConvertDevice imageDevice;
+
     @Autowired
-    public PowerPoint2AnyConverter(FileManager fileManager, TempFileService fileService) {
+    public Heic2PdfConverter(FileManager fileManager, TempFileService fileService, ImageConvertDevice imageDevice) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
+        this.imageDevice = imageDevice;
     }
 
     @Override
     public FileResult convert(ConversionQueueItem fileQueueItem) {
-        return toPdf(fileQueueItem);
+        return doConvertHeicToPdf(fileQueueItem);
     }
 
-    private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+    private FileResult doConvertHeicToPdf(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
             fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-
-            Presentation presentation = new Presentation(file.getAbsolutePath());
+            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PNG.getExt());
             try {
-                SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
-                presentation.save(tempFile.getAbsolutePath(), SaveFormat.Pdf);
+                imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
+                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
+                imageDevice.convert(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                 stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
-                return new FileResult(fileName, tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
-                presentation.dispose();
+                tempFile.smartDelete();
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);

@@ -11,17 +11,21 @@ import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
+public class Tgs2GifConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "tgs2";
+
+    private static final Map<List<Format>, List<Format>> MAP = Map.of(
+            List.of(Format.TGS), List.of(Format.GIF)
+    );
 
     private FileManager fileManager;
 
@@ -30,9 +34,8 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private ArchiveService archiveService;
 
     @Autowired
-    public Tgs2AnyConverter(ConversionFormatService formatService, FileManager fileManager,
-                            TempFileService fileService) {
-        super(Set.of(Format.TGS), formatService);
+    public Tgs2GifConverter(FileManager fileManager, TempFileService fileService) {
+        super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
     }

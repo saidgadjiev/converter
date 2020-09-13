@@ -6,23 +6,26 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.converter.service.html.HtmlDevice;
 import ru.gadjini.telegram.converter.service.html.Url2PdfApiDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
+public class Html2AnyConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "html2";
+
+    private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.HTML), List.of(Format.PDF));
 
     private FileManager fileManager;
 
@@ -31,9 +34,8 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private HtmlDevice htmlDevice;
 
     @Autowired
-    public Html2AnyConverter(ConversionFormatService formatService, FileManager fileManager,
-                             TempFileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
-        super(Set.of(Format.HTML), formatService);
+    public Html2AnyConverter(FileManager fileManager, TempFileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
+        super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
         this.htmlDevice = htmlDevice;

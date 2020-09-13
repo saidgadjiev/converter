@@ -4,9 +4,9 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-public interface Any2AnyConverter<T extends ConvertResult> {
+public interface Any2AnyConverter {
 
-    T convert(ConversionQueueItem fileQueueItem);
+    ConvertResult convert(ConversionQueueItem fileQueueItem);
 
     boolean accept(Format format, Format targetFormat);
 }

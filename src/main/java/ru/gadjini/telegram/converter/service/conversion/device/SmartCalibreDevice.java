@@ -42,6 +42,22 @@ public class SmartCalibreDevice implements ConvertDevice {
             } finally {
                 tempFile.smartDelete();
             }
+        } else if (in.endsWith("doc")) {
+            SmartTempFile tempFile = tempFileService.createTempFile(TAG, Format.DOCX.getExt());
+            try {
+                Document document = new Document(in);
+                try {
+                    document.save(tempFile.getAbsolutePath(), SaveFormat.DOCX);
+                } finally {
+                    document.cleanup();
+                }
+
+                new ProcessExecutor().execute(buildCommand(tempFile.getAbsolutePath(), out));
+            } catch (Exception e) {
+                throw new ProcessException(e);
+            } finally {
+                tempFile.smartDelete();
+            }
         } else {
             new ProcessExecutor().execute(buildCommand(in, out));
         }

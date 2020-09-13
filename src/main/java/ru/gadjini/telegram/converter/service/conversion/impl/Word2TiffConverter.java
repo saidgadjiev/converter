@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import com.aspose.pdf.devices.TiffDevice;
 import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
 import org.apache.commons.lang3.time.StopWatch;
@@ -16,16 +17,14 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
-public class Word2AnyConverter extends BaseAny2AnyConverter {
+public class Word2TiffConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "word2";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.DOC), List.of(Format.DOCX, Format.RTF, Format.PDF, Format.TXT),
-            List.of(Format.DOCX), List.of(Format.DOC, Format.RTF, Format.PDF, Format.TXT)
+            List.of(Format.DOC, Format.DOCX), List.of(Format.TIFF)
     );
 
     private FileManager fileManager;
@@ -33,7 +32,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
     private TempFileService fileService;
 
     @Autowired
-    public Word2AnyConverter(FileManager fileManager, TempFileService fileService) {
+    public Word2TiffConverter(FileManager fileManager, TempFileService fileService) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
@@ -41,10 +40,10 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
 
     @Override
     public FileResult convert(ConversionQueueItem queueItem) {
-        return doConvert(queueItem);
+        return toTiff(queueItem);
     }
 
-    private FileResult doConvert(ConversionQueueItem fileQueueItem) {
+    private FileResult toTiff(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
@@ -52,38 +51,30 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            Document asposeDocument = new Document(file.getAbsolutePath());
+            Document word = new Document(file.getAbsolutePath());
+            SmartTempFile pdfFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), "any2any", Format.PDF.getExt());
             try {
-                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                asposeDocument.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
-
-                stopWatch.stop();
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+                word.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
             } finally {
-                asposeDocument.cleanup();
+                word.cleanup();
             }
+            com.aspose.pdf.Document pdf = new com.aspose.pdf.Document(pdfFile.getAbsolutePath());
+            SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.TIFF.getExt());
+            try {
+                TiffDevice tiffDevice = new TiffDevice();
+                tiffDevice.process(pdf, tiff.getAbsolutePath());
+            } finally {
+                pdf.dispose();
+                pdfFile.smartDelete();
+            }
+
+            stopWatch.stop();
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.TIFF.getExt());
+            return new FileResult(fileName, tiff, stopWatch.getTime());
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
             file.smartDelete();
         }
-    }
-
-    private int getSaveFormat(Format format) {
-        switch (format) {
-            case PDF:
-                return SaveFormat.PDF;
-            case RTF:
-                return SaveFormat.RTF;
-            case DOCX:
-                return SaveFormat.DOCX;
-            case DOC:
-                return SaveFormat.DOC;
-            case TXT:
-                return SaveFormat.TEXT;
-        }
-
-        throw new UnsupportedOperationException();
     }
 }
