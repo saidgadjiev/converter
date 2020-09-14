@@ -57,14 +57,14 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.SVG.getExt());
-            if (fileQueueItem.getTargetFormat() != Format.PNG) {
+            if (fileQueueItem.getFormat() != Format.PNG) {
                 SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PNG.getExt());
                 try {
                     imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
                     imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                     stopWatch.stop();
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PNG.getExt());
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.SVG.getExt());
                     return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
                 } finally {
                     tempFile.smartDelete();
