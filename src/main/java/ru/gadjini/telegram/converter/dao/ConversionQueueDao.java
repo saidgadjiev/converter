@@ -199,6 +199,14 @@ public class ConversionQueueDao {
                 ps -> ps.setInt(1, id));
     }
 
+    public void setProgressMessageId(int id, int progressMessageId) {
+        jdbcTemplate.update("UPDATE conversion_queue SET progress_message_id = ? WHERE id = ?",
+                ps -> {
+                    ps.setInt(1, progressMessageId);
+                    ps.setInt(2, id);
+                });
+    }
+
     public ConversionQueueItem poll(int id) {
         return jdbcTemplate.query(
                 "WITH queue_item AS (\n" +
@@ -227,6 +235,7 @@ public class ConversionQueueDao {
         fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(ConversionQueueItem.TARGET_FORMAT)));
         fileQueueItem.setSize(rs.getLong(ConversionQueueItem.SIZE));
         fileQueueItem.setMessage(rs.getString(ConversionQueueItem.MESSAGE));
+        fileQueueItem.setProgressMessageId(rs.getInt(ConversionQueueItem.PROGRESS_MESSAGE_ID));
         Timestamp lastRunAt = rs.getTimestamp(ConversionQueueItem.LAST_RUN_AT);
         if (lastRunAt != null) {
             ZonedDateTime zonedDateTime = ZonedDateTime.of(lastRunAt.toLocalDateTime(), ZoneOffset.UTC);

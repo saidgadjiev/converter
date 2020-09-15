@@ -10,13 +10,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
-import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueMessageBuilder;
+import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -24,7 +22,6 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -64,9 +61,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private ConvertionService conversionService;
 
-    private ConversionQueueMessageBuilder queueMessageBuilder;
-
-    private InlineKeyboardService inlineKeyboardService;
+    private ConversionMessageBuilder queueMessageBuilder;
 
     private TempFileService fileService;
 
@@ -81,7 +76,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         @Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService,
                         @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                         FormatService formatService, ConvertionService convertionService,
-                        ConversionQueueMessageBuilder queueMessageBuilder, InlineKeyboardService inlineKeyboardService,
+                        ConversionMessageBuilder queueMessageBuilder,
                         TempFileService fileService, FileManager fileManager, MessageMediaService messageMediaService,
                         ConversionFormatService conversionFormatService) {
         this.commandStateService = commandStateService;
@@ -92,7 +87,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         this.formatService = formatService;
         this.conversionService = convertionService;
         this.queueMessageBuilder = queueMessageBuilder;
-        this.inlineKeyboardService = inlineKeyboardService;
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.messageMediaService = messageMediaService;
@@ -127,10 +121,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
-            ConversionQueueItem queueItem = conversionService.convert(message.getFrom(), convertState, targetFormat);
-            String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
-            messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale)));
-            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale)).setReplyMarkup(getKeyboard(message.getChatId())));
+            conversionService.convert(message.getFrom(), convertState, targetFormat, locale);
             commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND);
         } else {
             messageService.sendMessage(

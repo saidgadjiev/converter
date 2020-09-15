@@ -37,6 +37,8 @@ public class ConversionQueueItem {
 
     public static final String MESSAGE = "message";
 
+    public static final String PROGRESS_MESSAGE_ID = "progress_message_id";
+
     private int id;
 
     private ZonedDateTime createdAt;
@@ -48,6 +50,8 @@ public class ConversionQueueItem {
     private ZonedDateTime completedAt;
 
     private int userId;
+
+    private int progressMessageId;
 
     private TgUser user;
 
@@ -205,6 +209,14 @@ public class ConversionQueueItem {
 
     public void setUser(TgUser user) {
         this.user = user;
+    }
+
+    public int getProgressMessageId() {
+        return progressMessageId;
+    }
+
+    public void setProgressMessageId(int progressMessageId) {
+        this.progressMessageId = progressMessageId;
     }
 
     public enum Status {

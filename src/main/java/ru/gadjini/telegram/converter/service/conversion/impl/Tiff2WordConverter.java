@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -49,7 +50,8 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
         SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), tiff);
+            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), progress, tiff);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
