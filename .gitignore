@@ -276,6 +276,7 @@ api.json
 
 tessdata/
 **/prod/
+fonts
 *.lic
 rasterize.js
 tgs-2-pdf/

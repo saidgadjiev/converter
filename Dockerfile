@@ -56,21 +56,18 @@ tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \
 make install && \
 make distclean && ldconfig
 
-RUN apt-get install -y -qq tesseract-ocr
-
-RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
-RUN apt-get install -y -qq ttf-mscorefonts-installer
-COPY ./fonts/ /usr/share/fonts/
-RUN fc-cache -f -v
-
 USER bot
 
 RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin install_dir=/home/bot isolated=y
 ENV PATH="/home/bot/calibre/:${PATH}"
 
 USER root
+
 RUN apt-get update -y
 RUN apt-get install -y ffmpeg
+
+COPY ./fonts/ /usr/share/fonts/
+RUN fc-cache -f -v
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 

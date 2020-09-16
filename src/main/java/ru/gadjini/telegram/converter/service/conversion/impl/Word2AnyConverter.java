@@ -26,7 +26,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(Format.DOC), List.of(Format.DOCX, Format.RTF, Format.PDF, Format.TXT),
-            List.of(Format.DOCX), List.of(Format.DOC, Format.RTF, Format.PDF, Format.TXT)
+            List.of(Format.DOCX), List.of(Format.DOC, Format.RTF, Format.TXT)
     );
 
     private FileManager fileManager;
