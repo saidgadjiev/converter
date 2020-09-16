@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
@@ -271,6 +272,7 @@ public class ConvertionService {
                 } else {
                     queueService.converterNotFound(fileQueueItem.getId());
                     LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
+                    throw new ConvertException("Candidate not found src " + fileQueueItem.getFormat() + " target " + fileQueueItem.getTargetFormat());
                 }
             } finally {
                 if (checker == null || !checker.get()) {
