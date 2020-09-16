@@ -69,6 +69,9 @@ RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev
 ENV PATH="/home/bot/calibre/:${PATH}"
 
 USER root
+RUN apt-get update -y
+RUN apt-get install -y ffmpeg
+
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
 USER bot
