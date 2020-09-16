@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -116,8 +117,16 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
             messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES, locale))
                     .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale)));
         } else if (message.hasText()) {
-            convertState = commandStateService.getState(message.getChatId(), CommandNames.START_COMMAND, true, ConvertState.class);
-            Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
+            Format associatedFormat = formatService.getAssociatedFormat(text);
+
+            if (isMultiTextMessage(associatedFormat, convertState)) {
+                convertState.setFileId(convertState.getFileId() + " " + text);
+                commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND, convertState);
+                messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
+                        .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale)));
+                return;
+            }
+            Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFormat(), associatedFormat, text, locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
@@ -282,7 +291,11 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
+    private boolean isMultiTextMessage(Format associatedFormat, ConvertState convertState) {
+        return associatedFormat == null && convertState.getFormat() == Format.TEXT;
+    }
+
     private boolean isMediaMessage(Message message) {
-        return message.hasDocument() || message.hasPhoto();
+        return message.hasDocument() || message.hasPhoto() || message.hasVideo();
     }
 }

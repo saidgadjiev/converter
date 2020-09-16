@@ -49,6 +49,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_DAMAGED_FILE = "message.damaged.file";
 
+    public static final String MESSAGE_TEXT_APPENDED = "message.text.appended";
+
     public static final String CONVERT_COMMAND_DESCRIPTION = "convert.command.description";
 
     public static final String LANGUAGE_COMMAND_DESCRIPTION = "language.command.description";
