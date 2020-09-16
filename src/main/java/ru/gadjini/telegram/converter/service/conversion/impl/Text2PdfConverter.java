@@ -35,7 +35,7 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Text2PdfConverter.class);
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            of(Format.TEXT), of(Format.PDF)
+            of(Format.TEXT), of(Format.PDF, Format.DOC, Format.DOCX)
     );
 
     private TempFileService fileService;
