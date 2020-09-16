@@ -11,6 +11,6 @@ public class FFmpegDevice {
     }
 
     private String[] getConvertCommand(String in, String out) {
-        return new String[]{"ffmpeg", "-hide_banner", "-loglevel", "panic", "-y", "-i", in, "-codec", "copy", out};
+        return new String[]{"ffmpeg", "-hide_banner", "-loglevel", "panic", "-y", "-i", in, out};
     }
 }
