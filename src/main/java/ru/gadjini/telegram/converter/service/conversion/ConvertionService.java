@@ -21,6 +21,7 @@ import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
@@ -328,9 +329,10 @@ public class ConvertionService {
 
         @Override
         public String getErrorCode(Exception e) {
-            if (e instanceof CorruptedFileException) {
+            if (e instanceof CorruptedFileException || e instanceof ProcessException) {
                 return MessagesProperties.MESSAGE_DAMAGED_FILE;
             }
+
             return MessagesProperties.MESSAGE_CONVERSION_FAILED;
         }
 

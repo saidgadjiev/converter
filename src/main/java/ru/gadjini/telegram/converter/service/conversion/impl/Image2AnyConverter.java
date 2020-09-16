@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.StickerResult
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -82,6 +83,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
             return fileQueueItem.getTargetFormat() == STICKER
                     ? new StickerResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS))
                     : new FileResult(fileName, tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (ProcessException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
