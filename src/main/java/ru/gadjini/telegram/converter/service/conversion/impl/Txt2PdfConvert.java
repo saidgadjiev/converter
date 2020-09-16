@@ -13,6 +13,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -51,7 +52,8 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
         SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), txt);
+            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), progress, txt);
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);

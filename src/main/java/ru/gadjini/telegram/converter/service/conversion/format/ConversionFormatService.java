@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.converter.service.conversion.impl;
+package ru.gadjini.telegram.converter.service.conversion.format;
 
 import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;
@@ -73,6 +73,23 @@ public class ConversionFormatService {
         images.put(List.of(JP2), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
         images.put(List.of(TGS), List.of(GIF));
         FORMATS.put(FormatCategory.IMAGES, images);
+
+        Map<List<Format>, List<Format>> videos = new LinkedHashMap<>();
+        videos.put(List.of(MP4), List.of(_3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(_3GP), List.of(MP4, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(AVI), List.of(MP4, _3GP, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(FLV), List.of(MP4, _3GP, AVI, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(M4V), List.of(MP4, _3GP, AVI, FLV, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(MKV), List.of(MP4, _3GP, AVI, FLV, M4V, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(MOV), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MPEG, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(MPEG), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(MPG), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MTS, VOB, WEBM, WMV));
+        videos.put(List.of(MTS), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, VOB, WEBM, WMV));
+        videos.put(List.of(VOB), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, WEBM, WMV));
+        videos.put(List.of(WEBM), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WMV));
+        videos.put(List.of(WMV), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WMV));
+
+        FORMATS.put(FormatCategory.VIDEO, videos);
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionFormatService.class);

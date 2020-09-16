@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
@@ -14,25 +15,34 @@ import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
+import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.converter.service.progress.Lang;
+import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
+import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Service
@@ -48,7 +58,11 @@ public class ConvertionService {
 
     private MediaMessageService mediaMessageService;
 
+    private MessageService messageService;
+
     private ConversionQueueService queueService;
+
+    private LocalisationService localisationService;
 
     private UserService userService;
 
@@ -56,14 +70,28 @@ public class ConvertionService {
 
     private FileManager fileManager;
 
+    private ConversionMessageBuilder messageBuilder;
+
+    private CommandStateService commandStateService;
+
+    private ConverterReplyKeyboardService replyKeyboardService;
+
     @Autowired
     public ConvertionService(UserService userService, InlineKeyboardService inlineKeyboardService,
-                             @Qualifier("mediaLimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
+                             @Qualifier("mediaLimits") MediaMessageService mediaMessageService, @Qualifier("messageLimits") MessageService messageService,
+                             ConversionQueueService queueService, LocalisationService localisationService,
+                             FileManager fileManager, ConversionMessageBuilder messageBuilder,
+                             CommandStateService commandStateService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService) {
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.mediaMessageService = mediaMessageService;
+        this.messageService = messageService;
         this.queueService = queueService;
+        this.localisationService = localisationService;
         this.fileManager = fileManager;
+        this.messageBuilder = messageBuilder;
+        this.commandStateService = commandStateService;
+        this.replyKeyboardService = replyKeyboardService;
     }
 
     @PostConstruct
@@ -108,13 +136,23 @@ public class ConvertionService {
         }
     }
 
-    public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {
+    public void setProgressMessageId(int itemId, int progressMessageId) {
+        queueService.setProgressMessageId(itemId, progressMessageId);
+    }
+
+    public void convert(User user, ConvertState convertState, Format targetFormat, Locale locale) {
         ConversionQueueItem queueItem = queueService.createProcessingItem(user, convertState, targetFormat);
 
-        fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), convertState.getFileId(), convertState.getFileSize(), TAG);
-        executor.execute(new ConversionTask(queueItem));
+        sendConversionQueuedMessage(queueItem, convertState, message -> {
+            queueItem.setProgressMessageId(message.getMessageId());
+            queueService.setProgressMessageId(queueItem.getId(), message.getMessageId());
+            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+                    .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
+            commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND);
 
-        return queueItem;
+            fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), convertState.getFileId(), convertState.getFileSize(), TAG);
+            executor.execute(new ConversionTask(queueItem));
+        }, locale);
     }
 
     public boolean cancel(int jobId) {
@@ -139,6 +177,30 @@ public class ConvertionService {
         for (ConversionQueueItem item : tasks) {
             executor.execute(new ConversionTask(item));
         }
+    }
+
+    private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
+        String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
+        messageService.sendMessage(new HtmlMessage((long) queueItem.getUserId(), queuedMessage)
+                .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale)), callback);
+    }
+
+    private Progress progress(long chatId, ConversionQueueItem queueItem) {
+        Progress progress = new Progress();
+        progress.setChatId(chatId);
+
+        Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
+
+        progress.setLocale(locale.getLanguage());
+        progress.setProgressMessageId(queueItem.getProgressMessageId());
+        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.UPLOADING, Lang.PYTHON, locale);
+        progress.setProgressMessage(progressMessage);
+        progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+
+        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.COMPLETED, Lang.PYTHON, locale);
+        progress.setAfterProgressCompletionMessage(completionMessage);
+
+        return progress;
     }
 
     private void initFonts() {
@@ -261,7 +323,7 @@ public class ConvertionService {
 
         @Override
         public int getProgressMessageId() {
-            return fileQueueItem.getReplyToMessageId();
+            return fileQueueItem.getProgressMessageId();
         }
 
         @Override
@@ -287,6 +349,7 @@ public class ConvertionService {
             switch (convertResult.resultType()) {
                 case FILE: {
                     SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFileName(), ((FileResult) convertResult).getFile())
+                            .setProgress(progress(fileQueueItem.getUserId(), fileQueueItem))
                             .setCaption(fileQueueItem.getMessage())
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));

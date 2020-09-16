@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.converter.service.conversion.impl.ConversionFormatService;
+import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
@@ -55,13 +55,13 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     @Override
     public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
         List<Format> targetFormats = new ArrayList<>(formatMapService.getTargetFormats(format));
-        targetFormats.sort(Comparator.comparing(Enum::name));
+        targetFormats.sort(Comparator.comparing(Format::getName));
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();
         List<List<Format>> lists = Lists.partition(targetFormats, 3);
         for (List<Format> list : lists) {
-            keyboard.add(keyboardRow(list.stream().map(Enum::name).toArray(String[]::new)));
+            keyboard.add(keyboardRow(list.stream().map(Format::getName).toArray(String[]::new)));
         }
         keyboard.add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 

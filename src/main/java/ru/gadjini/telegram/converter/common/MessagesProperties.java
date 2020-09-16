@@ -59,4 +59,17 @@ public class MessagesProperties {
 
     public static final String FORMATS_COMMAND_DESCRIPTION = "formats.command.description";
 
+    public static final String WAITING_STEP = "waiting.step";
+
+    public static final String DOWNLOADING_STEP = "downloading.step";
+
+    public static final String CONVERTING_STEP = "converting.step";
+
+    public static final String UPLOADING_STEP = "uploading.step";
+
+    public static final String ICON_CHECK = "icon.check";
+
+    public static final String MESSAGE_ETA = "message.eta";
+
+    public static final String MESSAGE_SPEED = "message.speed";
 }

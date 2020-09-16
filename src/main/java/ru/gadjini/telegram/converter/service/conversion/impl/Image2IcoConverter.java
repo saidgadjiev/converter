@@ -9,7 +9,9 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -28,11 +30,14 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
 
     private ImageConvertDevice imageDevice;
 
+    private FileManager fileManager;
+
     @Autowired
-    public Image2IcoConverter(TempFileService fileService, ImageConvertDevice imageDevice) {
+    public Image2IcoConverter(TempFileService fileService, ImageConvertDevice imageDevice, FileManager fileManager) {
         super(MAP);
         this.fileService = fileService;
         this.imageDevice = imageDevice;
+        this.fileManager = fileManager;
     }
 
     @Override
@@ -43,9 +48,12 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
     private FileResult doConvertToIco(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
         try {
+            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), progress, file);
+
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath(),
