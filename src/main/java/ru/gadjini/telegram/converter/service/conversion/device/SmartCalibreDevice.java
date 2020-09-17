@@ -11,6 +11,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.stream.Stream;
+
 @Component
 @Qualifier("calibre")
 public class SmartCalibreDevice implements ConvertDevice {
@@ -25,11 +27,11 @@ public class SmartCalibreDevice implements ConvertDevice {
     }
 
     @Override
-    public void convert(String in, String out) {
+    public void convert(String in, String out, String... options) {
         if (out.endsWith("doc")) {
             SmartTempFile tempFile = tempFileService.createTempFile(TAG, Format.DOCX.getExt());
             try {
-                new ProcessExecutor().execute(buildCommand(in, tempFile.getAbsolutePath()));
+                new ProcessExecutor().execute(buildCommand(in, tempFile.getAbsolutePath(), options));
 
                 Document document = new Document(tempFile.getAbsolutePath());
                 try {
@@ -52,23 +54,25 @@ public class SmartCalibreDevice implements ConvertDevice {
                     document.cleanup();
                 }
 
-                new ProcessExecutor().execute(buildCommand(tempFile.getAbsolutePath(), out));
+                new ProcessExecutor().execute(buildCommand(tempFile.getAbsolutePath(), out, options));
             } catch (Exception e) {
                 throw new ProcessException(e);
             } finally {
                 tempFile.smartDelete();
             }
         } else {
-            new ProcessExecutor().execute(buildCommand(in, out));
+            new ProcessExecutor().execute(buildCommand(in, out, options));
         }
     }
 
-    private String[] buildCommand(String in, String out) {
-        return new String[]{
-                "ebook-convert",
-                in,
-                out,
-                "--dont-grayscale"
-        };
+    private String[] buildCommand(String in, String out, String... options) {
+        return Stream.concat(
+                Stream.of(
+                        "ebook-convert",
+                        in,
+                        out
+                ),
+                Stream.of(options)
+        ).toArray(String[]::new);
     }
 }
