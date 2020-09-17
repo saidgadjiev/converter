@@ -11,7 +11,6 @@ import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.dao.ConversionQueueDao;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
-import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TimeCreator;
@@ -44,22 +43,14 @@ public class ConversionQueueService {
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
 
         convertState.getFiles().forEach(media -> {
-            TgFile tgFile = new TgFile();
-            tgFile.setFileId(media.getFileId());
-
             if (StringUtils.isBlank(media.getFileName())) {
                 LOGGER.debug("Empty file name({}, {}, {})", user.getId(), targetFormat, convertState);
-                tgFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, new Locale(convertState.getUserLanguage())));
-            } else {
-                tgFile.setFileName(media.getFileName());
+                media.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, new Locale(convertState.getUserLanguage())));
             }
-            tgFile.setSize(media.getFileSize());
             if (media.getFileSize() == 0) {
                 LOGGER.warn("File size null({}, {}, {})", user.getId(), targetFormat, convertState);
             }
-            tgFile.setFormat(media.getFormat());
-            tgFile.setMimeType(media.getMimeType());
-            tgFile.setThumb(media.getThumb());
+            fileQueueItem.addFile(media.toTgFile());
         });
         fileQueueItem.setUserId(user.getId());
         fileQueueItem.setReplyToMessageId(convertState.getMessageId());
