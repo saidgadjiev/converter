@@ -1,9 +1,12 @@
 package ru.gadjini.telegram.converter.domain;
 
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgUser;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConversionQueueItem {
 
@@ -14,16 +17,6 @@ public class ConversionQueueItem {
     public static final String USER_ID = "user_id";
 
     public static final String REPLY_TO_MESSAGE_ID = "reply_to_message_id";
-
-    public static final String FILE_ID = "file_id";
-
-    public static final String FILE_NAME = "file_name";
-
-    public static final String MIME_TYPE = "mime_type";
-
-    public static final String FORMAT = "format";
-
-    public static final String SIZE = "size";
 
     public static final String CREATED_AT = "created_at";
 
@@ -38,6 +31,8 @@ public class ConversionQueueItem {
     public static final String MESSAGE = "message";
 
     public static final String PROGRESS_MESSAGE_ID = "progress_message_id";
+
+    public static final String FILES = "files";
 
     private int id;
 
@@ -57,15 +52,7 @@ public class ConversionQueueItem {
 
     private int replyToMessageId;
 
-    private String fileId;
-
-    private String fileName;
-
-    private String mimeType;
-
-    private Format format;
-
-    private long size;
+    private List<TgFile> files = new ArrayList<>();
 
     private int placeInQueue;
 
@@ -131,44 +118,24 @@ public class ConversionQueueItem {
         this.replyToMessageId = replyToMessageId;
     }
 
-    public String getFileId() {
-        return fileId;
+    public String getFirstFileId() {
+        return files.iterator().next().getFileId();
     }
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
+    public String getFirstFileName() {
+        return files.iterator().next().getFileName();
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getFirstFileMimeType() {
+        return files.iterator().next().getMimeType();
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public Format getFirstFileFormat() {
+        return files.iterator().next().getFormat();
     }
 
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
-    }
-
-    public Format getFormat() {
-        return format;
-    }
-
-    public void setFormat(Format format) {
-        this.format = format;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public void setSize(long size) {
-        this.size = size;
+    public long getFirstSize() {
+        return files.iterator().next().getSize();
     }
 
     public int getPlaceInQueue() {
@@ -219,6 +186,23 @@ public class ConversionQueueItem {
         this.progressMessageId = progressMessageId;
     }
 
+    public List<TgFile> getFiles() {
+        return files;
+    }
+
+    public void addFile(TgFile file) {
+        this.files.add(file);
+    }
+
+    public void setFiles(List<TgFile> files) {
+        this.files = files;
+    }
+
+
+    public TgFile getFirstFile() {
+        return files.iterator().next();
+    }
+
     public enum Status {
 
         WAITING(0),
@@ -242,7 +226,7 @@ public class ConversionQueueItem {
         }
 
         public static Status fromCode(int code) {
-            for (Status status: values()) {
+            for (Status status : values()) {
                 if (status.code == code) {
                     return status;
                 }

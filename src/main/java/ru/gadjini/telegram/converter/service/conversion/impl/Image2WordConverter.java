@@ -51,11 +51,11 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult doConvertToWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat() != Format.PHOTO ? fileQueueItem.getFirstFileFormat().getExt() : "tmp");
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), progress, file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getFirstSize(), progress, file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
@@ -65,11 +65,11 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 documentBuilder.insertImage(file.getAbsolutePath());
-                SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 documentBuilder.getDocument().save(out.getAbsolutePath());
 
                 stopWatch.stop();
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return new FileResult(fileName, out, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 document.cleanup();
@@ -82,10 +82,10 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
     }
 
     private void normalize(File file, ConversionQueueItem fileQueueItem) {
-        if (fileQueueItem.getFormat() == Format.PHOTO) {
-            Format format = formatService.getImageFormat(file, fileQueueItem.getFileId());
+        if (fileQueueItem.getFirstFileFormat() == Format.PHOTO) {
+            Format format = formatService.getImageFormat(file, fileQueueItem.getFirstFileId());
             format = format == null ? Format.JPG : format;
-            fileQueueItem.setFormat(format);
+            fileQueueItem.getFirstFile().setFormat(format);
         }
     }
 }

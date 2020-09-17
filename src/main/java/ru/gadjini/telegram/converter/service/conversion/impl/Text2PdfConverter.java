@@ -64,9 +64,9 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
                 Font font = documentBuilder.getFont();
                 font.setColor(Color.BLACK);
 
-                TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
+                TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
                 LOGGER.debug("Text info({})", textInfo);
-                String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
+                String text = TextUtils.removeAllEmojis(fileQueueItem.getFirstFileId(), textInfo.getDirection());
                 if (textInfo.getDirection() == TextDirection.LR) {
                     font.setSize(textInfo.getFont().getPrimarySize());
                     font.setName(textInfo.getFont().getFontName());
@@ -82,7 +82,7 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                 stopWatch.stop();
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 document.cleanup();

@@ -109,24 +109,24 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
             convertState = createState(message, locale);
             messageService.sendMessage(
                     new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
+                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
             );
             convertState.deleteWarns();
             commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND, convertState);
         } else if (isMediaMessage(message)) {
             messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES, locale))
-                    .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale)));
+                    .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale)));
         } else if (message.hasText()) {
             Format associatedFormat = formatService.getAssociatedFormat(text);
 
             if (isMultiTextMessage(associatedFormat, convertState)) {
-                convertState.setFileId(convertState.getFileId() + " " + text);
+                convertState.getFirstFile().setFileId(convertState.getFirstFile().getFileId() + " " + text);
                 commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND, convertState);
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
-                        .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale)));
+                        .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale)));
                 return;
             }
-            Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFormat(), associatedFormat, text, locale);
+            Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFirstFormat(), associatedFormat, text, locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
@@ -135,7 +135,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         } else {
             messageService.sendMessage(
                     new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
+                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
             );
         }
     }
@@ -182,7 +182,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         } else {
             messageService.sendMessage(
                     new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
+                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
             );
         }
     }
@@ -221,11 +221,14 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
             if (media.getFormat() == Format.HTML && isBaseUrlMissed(message.getChatId(), media.getFileId(), media.getFileSize())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }
-            convertState.setMedia(media);
+            convertState.addMedia(media);
         } else if (message.hasText()) {
-            convertState.setFileId(message.getText());
-            convertState.setFileSize((long) message.getText().length());
-            convertState.setFormat(formatService.getFormat(message.getText()));
+            MessageMedia messageMedia = new MessageMedia();
+            messageMedia.setFileId(message.getText());
+            messageMedia.setFileSize(message.getText().length());
+            messageMedia.setFormat(formatService.getFormat(message.getText()));
+
+            convertState.addMedia(messageMedia);
         } else {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale));
         }
@@ -292,7 +295,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     private boolean isMultiTextMessage(Format associatedFormat, ConvertState convertState) {
-        return associatedFormat == null && convertState.getFormat() == Format.TEXT;
+        return associatedFormat == null && convertState.getFirstFormat() == Format.TEXT;
     }
 
     private boolean isMediaMessage(Message message) {

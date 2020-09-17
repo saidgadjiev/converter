@@ -7,14 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.dao.ConversionQueueDao;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.TimeCreator;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -42,21 +43,27 @@ public class ConversionQueueService {
     public ConversionQueueItem createProcessingItem(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
 
-        fileQueueItem.setFileId(convertState.getFileId());
-        if (convertState.getFileSize() == null) {
-            LOGGER.warn("File size null({}, {}, {})", user.getId(), targetFormat, convertState);
-            convertState.setFileSize(0L);
-        }
-        fileQueueItem.setSize(convertState.getFileSize());
-        fileQueueItem.setFormat(convertState.getFormat());
+        convertState.getFiles().forEach(media -> {
+            TgFile tgFile = new TgFile();
+            tgFile.setFileId(media.getFileId());
+
+            if (StringUtils.isBlank(media.getFileName())) {
+                LOGGER.debug("Empty file name({}, {}, {})", user.getId(), targetFormat, convertState);
+                tgFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, new Locale(convertState.getUserLanguage())));
+            } else {
+                tgFile.setFileName(media.getFileName());
+            }
+            tgFile.setSize(media.getFileSize());
+            if (media.getFileSize() == 0) {
+                LOGGER.warn("File size null({}, {}, {})", user.getId(), targetFormat, convertState);
+            }
+            tgFile.setFormat(media.getFormat());
+            tgFile.setMimeType(media.getMimeType());
+            tgFile.setThumb(media.getThumb());
+        });
         fileQueueItem.setUserId(user.getId());
         fileQueueItem.setReplyToMessageId(convertState.getMessageId());
-        fileQueueItem.setFileName(convertState.getFileName());
-        fileQueueItem.setMimeType(convertState.getMimeType());
         fileQueueItem.setStatus(ConversionQueueItem.Status.PROCESSING);
-        if (StringUtils.isBlank(fileQueueItem.getFileName())) {
-            fileQueueItem.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, new Locale(convertState.getUserLanguage())));
-        }
         fileQueueItem.setTargetFormat(targetFormat);
 
         fileQueueItem.setLastRunAt(timeCreator.now());

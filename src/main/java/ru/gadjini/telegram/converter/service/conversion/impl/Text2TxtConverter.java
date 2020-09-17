@@ -54,13 +54,13 @@ public class Text2TxtConverter extends BaseAny2AnyConverter {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.TXT.getExt());
-            TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
+            TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
             LOGGER.debug("Text info({})", textInfo);
-            String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
+            String text = TextUtils.removeAllEmojis(fileQueueItem.getFirstFileId(), textInfo.getDirection());
             FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
             stopWatch.stop();
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.TXT.getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TXT.getExt());
             return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);

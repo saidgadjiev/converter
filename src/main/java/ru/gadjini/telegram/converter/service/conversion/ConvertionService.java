@@ -138,10 +138,6 @@ public class ConvertionService {
         }
     }
 
-    public void setProgressMessageId(int itemId, int progressMessageId) {
-        queueService.setProgressMessageId(itemId, progressMessageId);
-    }
-
     public void convert(User user, ConvertState convertState, Format targetFormat, Locale locale) {
         ConversionQueueItem queueItem = queueService.createProcessingItem(user, convertState, targetFormat);
 
@@ -152,7 +148,7 @@ public class ConvertionService {
                     .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
             commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND);
 
-            fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), convertState.getFileId(), convertState.getFileSize(), TAG);
+            fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), queueItem.getFirstFileId(), queueItem.getFirstSize(), TAG);
             executor.execute(new ConversionTask(queueItem));
         }, locale);
     }
@@ -164,7 +160,7 @@ public class ConvertionService {
             return false;
         }
         if (!executor.cancelAndComplete(jobId, true)) {
-            fileManager.fileWorkObject(item.getId(), item.getSize()).stop();
+            fileManager.fileWorkObject(item.getId(), item.getFirstSize()).stop();
         }
 
         return item.getStatus() != ConversionQueueItem.Status.COMPLETED;
@@ -242,7 +238,7 @@ public class ConvertionService {
 
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
-            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId(), fileQueueItem.getSize());
+            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId(), fileQueueItem.getFirstSize());
         }
 
         @Override
@@ -251,7 +247,7 @@ public class ConvertionService {
                 fileWorkObject.start();
                 Any2AnyConverter candidate = getCandidate(fileQueueItem);
                 if (candidate != null) {
-                    String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
+                    String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getFirstSize());
                     LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
 
                     try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
@@ -271,8 +267,8 @@ public class ConvertionService {
                     }
                 } else {
                     queueService.converterNotFound(fileQueueItem.getId());
-                    LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
-                    throw new ConvertException("Candidate not found src " + fileQueueItem.getFormat() + " target " + fileQueueItem.getTargetFormat());
+                    LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFirstFileFormat());
+                    throw new ConvertException("Candidate not found src " + fileQueueItem.getFirstFileFormat() + " target " + fileQueueItem.getTargetFormat());
                 }
             } finally {
                 if (checker == null || !checker.get()) {
@@ -289,11 +285,11 @@ public class ConvertionService {
 
         @Override
         public void cancel() {
-            fileManager.cancelDownloading(fileQueueItem.getFileId());
+            fileManager.cancelDownloading(fileQueueItem.getFirstFileId());
             if (canceledByUser) {
                 queueService.delete(fileQueueItem.getId());
-                LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat(),
-                        fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), fileQueueItem.getFileId());
+                LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFirstFileFormat(),
+                        fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getFirstSize()), fileQueueItem.getFirstFileId());
             }
             executor.complete(fileQueueItem.getId());
             fileWorkObject.stop();
@@ -316,7 +312,7 @@ public class ConvertionService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return fileQueueItem.getSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return fileQueueItem.getFirstSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         @Override
@@ -340,7 +336,7 @@ public class ConvertionService {
 
         private Any2AnyConverter getCandidate(ConversionQueueItem fileQueueItem) {
             for (Any2AnyConverter any2AnyConverter : any2AnyConverters) {
-                if (any2AnyConverter.accept(fileQueueItem.getFormat(), fileQueueItem.getTargetFormat())) {
+                if (any2AnyConverter.accept(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat())) {
                     return any2AnyConverter;
                 }
             }

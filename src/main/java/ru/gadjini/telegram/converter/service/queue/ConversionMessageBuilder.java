@@ -82,13 +82,13 @@ public class ConversionMessageBuilder {
         StringBuilder text = new StringBuilder();
         text.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getTargetFormat().name(), queueItem.getPlaceInQueue()}, locale));
 
-        if (!NON_DISPLAY_FORMATS.contains(queueItem.getFormat())) {
+        if (!NON_DISPLAY_FORMATS.contains(queueItem.getFirstFileFormat())) {
             text.append("\n")
-                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{queueItem.getFormat().name()}, locale));
+                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{queueItem.getFirstFileFormat().name()}, locale));
         }
-        if (!NON_SIZEABLE_FORMATS.contains(queueItem.getFormat())) {
+        if (!NON_SIZEABLE_FORMATS.contains(queueItem.getFirstFileFormat())) {
             text.append("\n")
-                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_SIZE, new Object[]{MemoryUtils.humanReadableByteCount(queueItem.getSize())}, locale));
+                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_SIZE, new Object[]{MemoryUtils.humanReadableByteCount(queueItem.getFirstSize())}, locale));
         }
 
         String w = warns(warns, locale);
@@ -96,7 +96,7 @@ public class ConversionMessageBuilder {
         if (StringUtils.isNotBlank(w)) {
             text.append("\n\n").append(w);
         }
-        text.append("\n\n").append(getProgressMessage(queueItem.getSize(), conversionStep, lang, locale));
+        text.append("\n\n").append(getProgressMessage(queueItem.getFirstSize(), conversionStep, lang, locale));
 
         return text.toString();
     }

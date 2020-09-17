@@ -64,22 +64,22 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat() != PHOTO ? fileQueueItem.getFirstFileFormat().getExt() : "tmp");
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getSize(), progress, file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getFirstSize(), progress, file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
 
             stopWatch.stop();
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return fileQueueItem.getTargetFormat() == STICKER
                     ? new StickerResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS))
                     : new FileResult(fileName, tempFile, stopWatch.getTime(TimeUnit.SECONDS));
@@ -93,10 +93,10 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
     }
 
     private void normalize(File file, ConversionQueueItem fileQueueItem) {
-        if (fileQueueItem.getFormat() == PHOTO) {
-            Format format = formatService.getImageFormat(file, fileQueueItem.getFileId());
+        if (fileQueueItem.getFirstFileFormat() == PHOTO) {
+            Format format = formatService.getImageFormat(file, fileQueueItem.getFirstFileId());
             format = format == null ? JPG : format;
-            fileQueueItem.setFormat(format);
+            fileQueueItem.getFirstFile().setFormat(format);
         }
     }
 }

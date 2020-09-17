@@ -50,10 +50,10 @@ public class Url2AnyConverter extends BaseAny2AnyConverter {
             stopWatch.start();
 
             SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            htmlDevice.convertUrl(fileQueueItem.getFileId(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
+            htmlDevice.convertUrl(fileQueueItem.getFirstFileId(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 
             stopWatch.stop();
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);

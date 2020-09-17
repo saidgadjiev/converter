@@ -2,29 +2,35 @@ package ru.gadjini.telegram.converter.dao;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.postgresql.jdbc.PgArray;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgUser;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
 
 @Repository
 public class ConversionQueueDao {
+
+    private static final Pattern PG_TYPE_PATTERN = Pattern.compile("[^,]*,?");
 
     private JdbcTemplate jdbcTemplate;
 
@@ -34,47 +40,38 @@ public class ConversionQueueDao {
     }
 
     public void create(ConversionQueueItem queueItem) {
-        jdbcTemplate.query(
-                "INSERT INTO " + TYPE + " (user_id, file_id, format, size, reply_to_message_id, file_name, target_format, " +
-                        "mime_type, status, last_run_at, started_at)\n" +
-                        "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
-                ps -> {
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(
+                con -> {
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE + " (user_id, files, reply_to_message_id, target_format, status, last_run_at, started_at)\n" +
+                            "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
                     ps.setInt(1, queueItem.getUserId());
-                    ps.setString(2, queueItem.getFileId());
-                    ps.setString(3, queueItem.getFormat().name());
-                    ps.setLong(4, queueItem.getSize());
-                    ps.setInt(5, queueItem.getReplyToMessageId());
-                    if (queueItem.getFileName() != null) {
-                        ps.setString(6, queueItem.getFileName());
-                    } else {
-                        ps.setNull(6, Types.VARCHAR);
-                    }
-                    ps.setString(7, queueItem.getTargetFormat().name());
-                    if (StringUtils.isNotBlank(queueItem.getMimeType())) {
-                        ps.setString(8, queueItem.getMimeType());
-                    } else {
-                        ps.setNull(8, Types.VARCHAR);
-                    }
-                    ps.setInt(9, queueItem.getStatus().getCode());
+
+                    Object[] files = queueItem.getFiles().stream().map(TgFile::sqlObject).toArray();
+                    Array array = con.createArrayOf(TgFile.TYPE, files);
+                    ps.setArray(2, array);
+
+                    ps.setInt(3, queueItem.getReplyToMessageId());
+                    ps.setString(4, queueItem.getTargetFormat().name());
+                    ps.setInt(5, queueItem.getStatus().getCode());
                     if (queueItem.getLastRunAt() != null) {
-                        ps.setTimestamp(10, Timestamp.valueOf(queueItem.getLastRunAt().toLocalDateTime()));
+                        ps.setTimestamp(6, Timestamp.valueOf(queueItem.getLastRunAt().toLocalDateTime()));
                     } else {
-                        ps.setNull(10, Types.TIMESTAMP);
+                        ps.setNull(6, Types.TIMESTAMP);
                     }
                     if (queueItem.getStatedAt() != null) {
-                        ps.setTimestamp(11, Timestamp.valueOf(queueItem.getStatedAt().toLocalDateTime()));
+                        ps.setTimestamp(7, Timestamp.valueOf(queueItem.getStatedAt().toLocalDateTime()));
                     } else {
-                        ps.setNull(11, Types.TIMESTAMP);
-                    }
-                },
-                rs -> {
-                    if (rs.next()) {
-                        queueItem.setId(rs.getInt(ConversionQueueItem.ID));
+                        ps.setNull(7, Types.TIMESTAMP);
                     }
 
-                    return null;
-                }
+                    return ps;
+                },
+                keyHolder
         );
+
+        int id = ((Number) keyHolder.getKeys().get(ConversionQueueItem.ID)).intValue();
+        queueItem.setId(id);
     }
 
     public Integer getPlaceInQueue(int id) {
@@ -223,17 +220,15 @@ public class ConversionQueueDao {
 
         fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
         fileQueueItem.setReplyToMessageId(rs.getInt(ConversionQueueItem.REPLY_TO_MESSAGE_ID));
-        fileQueueItem.setFileName(rs.getString(ConversionQueueItem.FILE_NAME));
-        fileQueueItem.setFileId(rs.getString(ConversionQueueItem.FILE_ID));
         fileQueueItem.setUserId(rs.getInt(ConversionQueueItem.USER_ID));
 
         TgUser user = new TgUser();
         user.setUserId(fileQueueItem.getUserId());
         fileQueueItem.setUser(user);
 
-        fileQueueItem.setFormat(Format.valueOf(rs.getString(ConversionQueueItem.FORMAT)));
+        fileQueueItem.setFiles(mapFiles(rs));
+
         fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(ConversionQueueItem.TARGET_FORMAT)));
-        fileQueueItem.setSize(rs.getLong(ConversionQueueItem.SIZE));
         fileQueueItem.setMessage(rs.getString(ConversionQueueItem.MESSAGE));
         fileQueueItem.setProgressMessageId(rs.getInt(ConversionQueueItem.PROGRESS_MESSAGE_ID));
         Timestamp lastRunAt = rs.getTimestamp(ConversionQueueItem.LAST_RUN_AT);
@@ -247,5 +242,55 @@ public class ConversionQueueDao {
         }
 
         return fileQueueItem;
+    }
+
+    private List<TgFile> mapFiles(ResultSet rs) throws SQLException {
+        List<TgFile> repeatTimes = new ArrayList<>();
+        PgArray arr = (PgArray) rs.getArray(ConversionQueueItem.FILES);
+        Object[] unparsedRepeatTimes = (Object[]) arr.getArray();
+
+        for (Object object : unparsedRepeatTimes) {
+            if (object == null) {
+                continue;
+            }
+            String t = ((PGobject) object).getValue().replace("\"", "");
+            t = t.substring(1, t.length() - 1);
+            Matcher argMatcher = PG_TYPE_PATTERN.matcher(t);
+
+            TgFile file = new TgFile();
+            if (argMatcher.find()) {
+                String fileId = t.substring(argMatcher.start(), argMatcher.end() - 1);
+                if (StringUtils.isNotBlank(fileId)) {
+                    file.setFileId(fileId);
+                }
+            }
+            if (argMatcher.find()) {
+                String mimeType = t.substring(argMatcher.start(), argMatcher.end() - 1);
+                if (StringUtils.isNotBlank(mimeType)) {
+                    file.setMimeType(mimeType);
+                }
+            }
+            if (argMatcher.find()) {
+                String fileName = t.substring(argMatcher.start(), argMatcher.end() - 1);
+                if (StringUtils.isNotBlank(fileName)) {
+                    file.setFileName(fileName);
+                }
+            }
+            if (argMatcher.find()) {
+                String size = t.substring(argMatcher.start(), argMatcher.end() - 1);
+                if (StringUtils.isNotBlank(size)) {
+                    file.setSize(Integer.parseInt(size));
+                }
+            }
+            if (argMatcher.find()) {
+                String format = t.substring(argMatcher.start(), argMatcher.end() - 1);
+                if (StringUtils.isNotBlank(format)) {
+                    file.setFormat(Format.valueOf(format));
+                }
+            }
+            repeatTimes.add(file);
+        }
+
+        return repeatTimes;
     }
 }
