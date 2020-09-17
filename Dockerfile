@@ -68,9 +68,6 @@ RUN apt-get install -y ffmpeg
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
-RUN echo "Fonts-1.0"
-RUN fc-cache -f -v
-
 USER bot
 
 COPY ./license/license-19.lic ./license/
