@@ -7,6 +7,7 @@ services:
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/shr:/tmp/shr
+      - ../../../../fonts:/usr/share/fonts/converter
     ports:
       - 5005:5005
     env_file:

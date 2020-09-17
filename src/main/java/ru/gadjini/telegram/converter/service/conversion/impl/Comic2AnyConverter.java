@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,7 @@ public class Comic2AnyConverter extends BaseAny2AnyConverter {
             stopWatch.start();
             SmartTempFile file = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
-            convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), "--dont-grayscale", "--landscape", "--no-sort", "--disable-trim");
+            convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFileName()), "--dont-grayscale", "--landscape", "--no-sort", "--disable-trim");
 
             stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());

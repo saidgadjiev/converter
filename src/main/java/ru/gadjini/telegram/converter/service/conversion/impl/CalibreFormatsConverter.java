@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -76,7 +77,7 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
             stopWatch.start();
             SmartTempFile file = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
-            convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath());
+            convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFileName()));
 
             stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());

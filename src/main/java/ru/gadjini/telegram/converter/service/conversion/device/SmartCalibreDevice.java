@@ -27,11 +27,11 @@ public class SmartCalibreDevice implements ConvertDevice {
     }
 
     @Override
-    public void convert(String in, String out, String... options) {
+    public void convert(String in, String out, String title, String... options) {
         if (out.endsWith("doc")) {
             SmartTempFile tempFile = tempFileService.createTempFile(TAG, Format.DOCX.getExt());
             try {
-                new ProcessExecutor().execute(buildCommand(in, tempFile.getAbsolutePath(), options));
+                new ProcessExecutor().execute(buildCommand(in, tempFile.getAbsolutePath(), title, options));
 
                 Document document = new Document(tempFile.getAbsolutePath());
                 try {
@@ -54,23 +54,25 @@ public class SmartCalibreDevice implements ConvertDevice {
                     document.cleanup();
                 }
 
-                new ProcessExecutor().execute(buildCommand(tempFile.getAbsolutePath(), out, options));
+                new ProcessExecutor().execute(buildCommand(tempFile.getAbsolutePath(), out, title, options));
             } catch (Exception e) {
                 throw new ProcessException(e);
             } finally {
                 tempFile.smartDelete();
             }
         } else {
-            new ProcessExecutor().execute(buildCommand(in, out, options));
+            new ProcessExecutor().execute(buildCommand(in, out, title, options));
         }
     }
 
-    private String[] buildCommand(String in, String out, String... options) {
+    private String[] buildCommand(String in, String out, String title, String... options) {
         return Stream.concat(
                 Stream.of(
                         "ebook-convert",
                         in,
-                        out
+                        out,
+                        "--title",
+                        title
                 ),
                 Stream.of(options)
         ).toArray(String[]::new);
