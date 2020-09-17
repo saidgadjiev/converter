@@ -67,7 +67,8 @@ public class SmartCalibreDevice implements ConvertDevice {
         return new String[]{
                 "ebook-convert",
                 in,
-                out
+                out,
+                "--dont-grayscale"
         };
     }
 }
