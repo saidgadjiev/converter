@@ -38,6 +38,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorSer
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
@@ -335,13 +336,22 @@ public class ConvertionService {
         }
 
         private Any2AnyConverter getCandidate(ConversionQueueItem fileQueueItem) {
+            Format format = getCandidateFormat(fileQueueItem);
             for (Any2AnyConverter any2AnyConverter : any2AnyConverters) {
-                if (any2AnyConverter.accept(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat())) {
+                if (any2AnyConverter.accept(format, fileQueueItem.getTargetFormat())) {
                     return any2AnyConverter;
                 }
             }
 
             return null;
+        }
+
+        private Format getCandidateFormat(ConversionQueueItem queueItem) {
+            if (queueItem.getFiles().size() > 1 && queueItem.getFiles().stream().allMatch(m -> m.getFormat().getCategory() == FormatCategory.IMAGES)) {
+                return Format.IMAGES;
+            }
+
+            return queueItem.getFirstFileFormat();
         }
 
         private void sendResult(ConversionQueueItem fileQueueItem, ConvertResult convertResult) {

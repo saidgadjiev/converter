@@ -56,7 +56,7 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
             stopWatch.start();
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
-            imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath(),
+            imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(),
                     "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
 
             stopWatch.stop();

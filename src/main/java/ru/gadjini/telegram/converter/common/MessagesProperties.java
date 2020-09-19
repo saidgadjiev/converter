@@ -39,7 +39,7 @@ public class MessagesProperties {
 
     public static final String REPORT_COMMAND_DESCRIPTION = "report.command.description";
 
-    public static final String MESSAGE_TOO_MANY_FILES = "message.too.many.files";
+    public static final String MESSAGE_CHOOSE_TYPE = "message.choose.type";
 
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
@@ -74,4 +74,8 @@ public class MessagesProperties {
     public static final String MESSAGE_ETA = "message.eta";
 
     public static final String MESSAGE_SPEED = "message.speed";
+
+    public static final String MESSAGE_FILE_APPENDED = "message.file.appended";
+
+    public static final String MESSAGE_FILES_APPENDED = "message.files.appended";
 }

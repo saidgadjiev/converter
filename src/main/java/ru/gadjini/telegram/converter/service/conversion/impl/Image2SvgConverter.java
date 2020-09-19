@@ -62,7 +62,7 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
             if (fileQueueItem.getFirstFileFormat() != Format.PNG) {
                 SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PNG.getExt());
                 try {
-                    imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
+                    imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
                     imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                     stopWatch.stop();

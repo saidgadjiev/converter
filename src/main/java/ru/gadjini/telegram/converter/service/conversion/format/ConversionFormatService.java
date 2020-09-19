@@ -72,6 +72,7 @@ public class ConversionFormatService {
         images.put(List.of(ICO), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, HEIC, HEIF, SVG, STICKER));
         images.put(List.of(JP2), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
         images.put(List.of(TGS), List.of(GIF));
+        images.put(List.of(IMAGES), List.of(PDF));
         FORMATS.put(FormatCategory.IMAGES, images);
 
         Map<List<Format>, List<Format>> videos = new LinkedHashMap<>();

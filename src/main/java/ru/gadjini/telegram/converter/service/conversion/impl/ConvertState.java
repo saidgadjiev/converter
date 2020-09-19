@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -17,7 +16,6 @@ public class ConvertState {
 
     private String userLanguage;
 
-    @JsonIgnore
     private Set<String> warnings = new LinkedHashSet<>();
 
     public int getMessageId() {

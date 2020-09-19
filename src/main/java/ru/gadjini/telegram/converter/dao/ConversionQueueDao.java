@@ -97,8 +97,10 @@ public class ConversionQueueDao {
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +
                         "started_at = COALESCE(started_at, now()) WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " WHERE status = 0 AND size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
-                        "        ORDER BY created_at\n" +
+                        "        FROM " + TYPE + " c, unnest(c.files) cf WHERE c.status = 0 " +
+                        "        GROUP BY c.id, c.created_at\n" +
+                        "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
+                        "        ORDER BY c.created_at\n" +
                         "        LIMIT ?)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
@@ -245,7 +247,7 @@ public class ConversionQueueDao {
     }
 
     private List<TgFile> mapFiles(ResultSet rs) throws SQLException {
-        List<TgFile> repeatTimes = new ArrayList<>();
+        List<TgFile> files = new ArrayList<>();
         PgArray arr = (PgArray) rs.getArray(ConversionQueueItem.FILES);
         Object[] unparsedRepeatTimes = (Object[]) arr.getArray();
 
@@ -283,14 +285,20 @@ public class ConversionQueueDao {
                 }
             }
             if (argMatcher.find()) {
-                String format = t.substring(argMatcher.start(), argMatcher.end() - 1);
+                String thumb = t.substring(argMatcher.start(), argMatcher.end() - 1);
+                if (StringUtils.isNotBlank(thumb)) {
+                    file.setThumb(thumb);
+                }
+            }
+            if (argMatcher.find()) {
+                String format = t.substring(argMatcher.start(), argMatcher.end());
                 if (StringUtils.isNotBlank(format)) {
                     file.setFormat(Format.valueOf(format));
                 }
             }
-            repeatTimes.add(file);
+            files.add(file);
         }
 
-        return repeatTimes;
+        return files;
     }
 }
