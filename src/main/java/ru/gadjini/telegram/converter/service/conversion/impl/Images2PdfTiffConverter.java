@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,12 +25,12 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class Images2PdfConverter extends BaseAny2AnyConverter {
+public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private static final String TAG = "images2pdf";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.IMAGES), List.of(Format.PDF)
+            List.of(Format.IMAGES), List.of(Format.PDF, Format.TIFF)
     );
 
     private TempFileService fileService;
@@ -45,8 +44,8 @@ public class Images2PdfConverter extends BaseAny2AnyConverter {
     private UserService userService;
 
     @Autowired
-    public Images2PdfConverter(TempFileService fileService, FileManager fileManager,
-                               ImageConvertDevice imageConvertDevice, LocalisationService localisationService, UserService userService) {
+    public Images2PdfTiffConverter(TempFileService fileService, FileManager fileManager,
+                                   ImageConvertDevice imageConvertDevice, LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fileService = fileService;
         this.fileManager = fileManager;
@@ -65,14 +64,19 @@ public class Images2PdfConverter extends BaseAny2AnyConverter {
             String parentDir = images.iterator().next().getParent() + File.separator;
             imageConvertDevice.convert2Format(parentDir + "*", Format.PNG.getExt());
 
-            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
-            imageConvertDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
+            if (fileQueueItem.getTargetFormat() == Format.PDF) {
+                imageConvertDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
+            } else {
+                imageConvertDevice.convertImages(parentDir + "*.png", result.getAbsolutePath());
+            }
 
             stopWatch.stop();
-            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + "." + Format.PDF.getExt();
 
-            return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+            return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {

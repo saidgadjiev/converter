@@ -8,4 +8,5 @@ public interface ImageConvertDevice {
 
     void convert2Pdf(String in, String out, String pdfTitle);
 
+    void convertImages(String in, String out);
 }

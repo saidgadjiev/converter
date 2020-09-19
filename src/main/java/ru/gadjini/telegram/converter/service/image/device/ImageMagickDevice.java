@@ -35,6 +35,21 @@ public class ImageMagickDevice implements ImageConvertDevice {
         asposePdfService.setPdfTitle(out, pdfTitle);
     }
 
+    @Override
+    public void convertImages(String in, String out) {
+        new ProcessExecutor().execute(getImagesConvertCommand(List.of(in), out));
+    }
+
+    private String[] getImagesConvertCommand(List<String> in, String out) {
+        List<String> command = new ArrayList<>(convertCommandName());
+        command.add(String.join(" ", in));
+        command.add("-resize");
+        command.add("595x843>");
+        command.add(out);
+
+        return command.toArray(new String[0]);
+    }
+
     private String[] get2PdfConvertCommand(List<String> in, String out) {
         List<String> command = new ArrayList<>(convertCommandName());
         command.add(String.join(" ", in));
