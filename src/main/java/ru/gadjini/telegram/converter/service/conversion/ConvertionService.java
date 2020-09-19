@@ -149,7 +149,7 @@ public class ConvertionService {
                     .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
             commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND);
 
-            fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), queueItem.getFirstFileId(), queueItem.getFirstSize(), TAG);
+            fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), queueItem.getFirstFileId(), queueItem.getSize(), TAG);
             executor.execute(new ConversionTask(queueItem));
         }, locale);
     }
@@ -161,7 +161,7 @@ public class ConvertionService {
             return false;
         }
         if (!executor.cancelAndComplete(jobId, true)) {
-            fileManager.fileWorkObject(item.getId(), item.getFirstSize()).stop();
+            fileManager.fileWorkObject(item.getId(), item.getSize()).stop();
         }
 
         return item.getStatus() != ConversionQueueItem.Status.COMPLETED;
@@ -179,7 +179,7 @@ public class ConvertionService {
     }
 
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
-        String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
+        String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(new HtmlMessage((long) queueItem.getUserId(), queuedMessage)
                 .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale)), callback);
     }
@@ -192,11 +192,11 @@ public class ConvertionService {
 
         progress.setLocale(locale.getLanguage());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.UPLOADING, Lang.PYTHON, locale);
+        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.UPLOADING, Lang.PYTHON, locale);
         progress.setProgressMessage(progressMessage);
         progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
 
-        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.COMPLETED, Lang.PYTHON, locale);
+        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.COMPLETED, Lang.PYTHON, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
 
         return progress;
@@ -239,7 +239,7 @@ public class ConvertionService {
 
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
-            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId(), fileQueueItem.getFirstSize());
+            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId(), fileQueueItem.getSize());
         }
 
         @Override
@@ -248,7 +248,7 @@ public class ConvertionService {
                 fileWorkObject.start();
                 Any2AnyConverter candidate = getCandidate(fileQueueItem);
                 if (candidate != null) {
-                    String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getFirstSize());
+                    String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
                     LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
 
                     try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
@@ -290,7 +290,7 @@ public class ConvertionService {
             if (canceledByUser) {
                 queueService.delete(fileQueueItem.getId());
                 LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFirstFileFormat(),
-                        fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getFirstSize()), fileQueueItem.getFirstFileId());
+                        fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), fileQueueItem.getFirstFileId());
             }
             executor.complete(fileQueueItem.getId());
             fileWorkObject.stop();
@@ -313,7 +313,7 @@ public class ConvertionService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return fileQueueItem.getFirstSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return fileQueueItem.getSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         @Override

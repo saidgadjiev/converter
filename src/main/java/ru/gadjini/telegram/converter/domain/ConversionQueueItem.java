@@ -134,8 +134,8 @@ public class ConversionQueueItem {
         return files.iterator().next().getFormat();
     }
 
-    public long getFirstSize() {
-        return files.iterator().next().getSize();
+    public long getSize() {
+        return files.stream().mapToLong(TgFile::getSize).sum();
     }
 
     public int getPlaceInQueue() {

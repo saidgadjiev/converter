@@ -48,7 +48,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getFirstSize(), progress, file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             boolean validPdf = fileValidator.isValidPdf(file.getFile().getAbsolutePath());
             if (!validPdf) {
                 throw new CorruptedFileException("Damaged pdf file");

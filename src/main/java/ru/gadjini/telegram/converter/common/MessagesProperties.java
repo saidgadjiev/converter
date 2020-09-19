@@ -7,6 +7,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
 
+    public static final String MESSAGE_FILES_QUEUED = "message.file.queued";
+
     public static final String MESSAGE_FILE_FORMAT = "message.file.format";
 
     public static final String MESSAGE_FILE_SIZE = "message.file.size";

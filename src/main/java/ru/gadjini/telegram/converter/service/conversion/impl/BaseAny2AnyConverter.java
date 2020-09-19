@@ -58,11 +58,11 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
         progress.setLocale(locale.getLanguage());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.DOWNLOADING, Lang.PYTHON, locale);
+        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.DOWNLOADING, Lang.PYTHON, locale);
         progress.setProgressMessage(progressMessage);
         progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
 
-        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.CONVERTING, Lang.PYTHON, locale);
+        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.CONVERTING, Lang.PYTHON, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
         progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
 
