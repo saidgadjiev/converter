@@ -18,6 +18,8 @@ public class ConvertState {
 
     private Set<String> warnings = new LinkedHashSet<>();
 
+    private String mediaGroupId;
+
     public int getMessageId() {
         return messageId;
     }
@@ -60,6 +62,14 @@ public class ConvertState {
 
     public Format getFirstFormat() {
         return files.isEmpty() ? null : getFirstFile().getFormat();
+    }
+
+    public String getMediaGroupId() {
+        return mediaGroupId;
+    }
+
+    public void setMediaGroupId(String mediaGroupId) {
+        this.mediaGroupId = mediaGroupId;
     }
 
     @Override

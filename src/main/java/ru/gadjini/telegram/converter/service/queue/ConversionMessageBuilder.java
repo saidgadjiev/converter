@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.progress.Lang;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -88,7 +89,12 @@ public class ConversionMessageBuilder {
         }
         if (!NON_SIZEABLE_FORMATS.contains(queueItem.getFirstFileFormat())) {
             text.append("\n")
-                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_SIZE, new Object[]{MemoryUtils.humanReadableByteCount(queueItem.getFirstSize())}, locale));
+                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_SIZE, new Object[]{MemoryUtils.humanReadableByteCount(queueItem.getFiles().stream()
+                            .map(TgFile::getSize).mapToLong(l -> l).sum())}, locale));
+        }
+        if (queueItem.getFiles().size() > 1) {
+            text.append("\n")
+                    .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_COUNT, new Object[]{queueItem.getFiles().size()}, locale));
         }
 
         String w = warns(warns, locale);

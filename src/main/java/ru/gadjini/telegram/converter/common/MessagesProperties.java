@@ -11,6 +11,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_FILE_SIZE = "message.file.size";
 
+    public static final String MESSAGE_FILES_COUNT = "message.files.count";
+
     public static final String MESSAGE_UNKNOWN_COMMAND = "message.unknown.command";
 
     public static final String MESSAGE_EMPTY_FILE_NAME = "message.empty.file.name";
@@ -76,4 +78,6 @@ public class MessagesProperties {
     public static final String MESSAGE_SPEED = "message.speed";
 
     public static final String MESSAGE_FILE_APPENDED = "message.file.appended";
+
+    public static final String MESSAGE_FILES_APPENDED = "message.files.appended";
 }
