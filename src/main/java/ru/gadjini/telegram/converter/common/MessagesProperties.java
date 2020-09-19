@@ -7,7 +7,7 @@ public class MessagesProperties {
 
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
 
-    public static final String MESSAGE_FILES_QUEUED = "message.file.queued";
+    public static final String MESSAGE_FILES_QUEUED = "message.files.queued";
 
     public static final String MESSAGE_FILE_FORMAT = "message.file.format";
 
@@ -69,6 +69,8 @@ public class MessagesProperties {
 
     public static final String DOWNLOADING_STEP = "downloading.step";
 
+    public static final String DOWNLOADING_FILES_STEP = "downloading.files.step";
+
     public static final String CONVERTING_STEP = "converting.step";
 
     public static final String UPLOADING_STEP = "uploading.step";
@@ -82,4 +84,6 @@ public class MessagesProperties {
     public static final String MESSAGE_FILE_APPENDED = "message.file.appended";
 
     public static final String MESSAGE_FILES_APPENDED = "message.files.appended";
+
+    public static final String MESSAGE_CALCULATED = "message.calculated";
 }

@@ -12,6 +12,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 
@@ -30,6 +31,19 @@ public class ConversionMessageBuilder {
     public ConversionMessageBuilder(LocalisationService localisationService, ProgressManager progressManager) {
         this.localisationService = localisationService;
         this.progressManager = progressManager;
+    }
+
+    public String getFilesDownloadingProgressMessage(long fileSize, int current, int total, Lang lang, Locale locale) {
+        String formatter = lang == Lang.JAVA ? "%s" : "{}";
+        String percentage = lang == Lang.JAVA ? "%%" : "%";
+        boolean progress = isShowingProgress(fileSize, ConversionStep.DOWNLOADING);
+        String percentageFormatter = progress ? "(" + formatter + percentage + ")..." : "...";
+
+        return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_FILES_STEP, new Object[]{current, total}, locale) + " " + percentageFormatter + "</b>\n" +
+                (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" : "") +
+                (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" : "") +
+                "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b>\n" +
+                "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
     }
 
     public String getProgressMessage(long fileSize, ConversionStep conversionStep, Lang lang, Locale locale) {
@@ -78,8 +92,7 @@ public class ConversionMessageBuilder {
         return message.toString();
     }
 
-    public String getConversionProcessingMessage(ConversionQueueItem queueItem, long fileSize, Set<String> warns,
-                                                 ConversionStep conversionStep, Lang lang, Locale locale) {
+    public String getConversionProgressingMessage(ConversionQueueItem queueItem, Set<String> warns, Locale locale) {
         StringBuilder text = new StringBuilder();
         String queuedMessageCode = queueItem.getFiles().size() > 1 ? MessagesProperties.MESSAGE_FILES_QUEUED : MessagesProperties.MESSAGE_FILE_QUEUED;
         text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().name(), queueItem.getPlaceInQueue()}, locale));
@@ -103,9 +116,21 @@ public class ConversionMessageBuilder {
         if (StringUtils.isNotBlank(w)) {
             text.append("\n\n").append(w);
         }
-        text.append("\n\n").append(getProgressMessage(fileSize, conversionStep, lang, locale));
 
         return text.toString();
+    }
+
+    public String getFilesDownloadingProgressMessage(ConversionQueueItem queueItem, long fileSize, int current, int total, Lang lang, Locale locale) {
+        String progressingMessage = getConversionProgressingMessage(queueItem, Collections.emptySet(), locale);
+
+        return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(fileSize, current, total, lang, locale);
+    }
+
+    public String getConversionProcessingMessage(ConversionQueueItem queueItem, long fileSize, Set<String> warns,
+                                                 ConversionStep conversionStep, Lang lang, Locale locale) {
+        String progressingMessage = getConversionProgressingMessage(queueItem, warns, locale);
+
+        return progressingMessage + "\n\n" + getProgressMessage(fileSize, conversionStep, lang, locale);
     }
 
     public String warns(Set<String> warns, Locale locale) {

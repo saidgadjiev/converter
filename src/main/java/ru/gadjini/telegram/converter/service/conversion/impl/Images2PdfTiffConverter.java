@@ -19,6 +19,7 @@ import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -30,6 +31,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static ru.gadjini.telegram.converter.common.MessagesProperties.MESSAGE_CALCULATED;
 
 @Component
 public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
@@ -109,37 +112,80 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         List<SmartTempFile> images = new ArrayList<>();
         SmartTempFile tempDir = fileService.createTempDir(queueItem.getUserId(), TAG);
 
+        downloadingStartProgress(queueItem, locale);
         try {
-            try {
-                String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, 0, Collections.emptySet(),
-                        ConversionStep.DOWNLOADING, Lang.JAVA, locale);
-                InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
-                messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
-                        .setReplyMarkup(conversionKeyboard));
-            } catch (Exception ex) {
-                LOGGER.error(ex.getMessage(), ex);
-            }
-            int i = 1;
+            int i = 0;
             for (TgFile imageFile : queueItem.getFiles()) {
-                SmartTempFile downloadedImage = fileService.createTempFile(tempDir, queueItem.getUserId(), "File-" + i++ + "." + imageFile.getFormat().getExt());
+                SmartTempFile downloadedImage = fileService.createTempFile(tempDir, queueItem.getUserId(), "File-" + i + "." + imageFile.getFormat().getExt());
                 images.add(downloadedImage);
-                fileManager.downloadFileByFileId(imageFile.getFileId(), imageFile.getSize(), downloadedImage);
+                Progress downloadProgress = progress(queueItem, i, queueItem.getFiles().size(), locale);
+                fileManager.downloadFileByFileId(imageFile.getFileId(), imageFile.getSize(), downloadProgress, downloadedImage);
+                ++i;
             }
         } catch (Exception ex) {
             images.forEach(SmartTempFile::smartDelete);
             tempDir.smartDelete();
             throw ex;
         }
-        try {
-            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, 0, Collections.emptySet(),
-                    ConversionStep.CONVERTING, Lang.JAVA, locale);
-            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
-            messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
-                    .setReplyMarkup(conversionKeyboard));
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
+        downloadingFinishedProgress(queueItem, locale);
 
         return images;
+    }
+
+    private Progress progress(ConversionQueueItem queueItem, int current, int total, Locale locale) {
+        Progress progress = new Progress();
+        progress.setChatId(queueItem.getUserId());
+        progress.setProgressMessageId(queueItem.getProgressMessageId());
+        progress.setLocale(locale.getLanguage());
+        progress.setProgressMessage(messageBuilder.getFilesDownloadingProgressMessage(queueItem, queueItem.getFiles().get(current).getSize(), current, total, Lang.PYTHON, locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+
+        if (current + 1 < total) {
+            String completionMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, queueItem.getFiles().get(current + 1).getSize(), current + 1, total, Lang.JAVA, locale);
+            String calculated = localisationService.getMessage(MESSAGE_CALCULATED, locale);
+            completionMessage = String.format(completionMessage, 0, calculated, calculated);
+            progress.setAfterProgressCompletionMessage(completionMessage);
+            progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+        } else {
+            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, 0, Collections.emptySet(),
+                    ConversionStep.CONVERTING, Lang.JAVA, locale);
+            progress.setAfterProgressCompletionMessage(completionMessage);
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+        }
+
+        return progress;
+    }
+
+    private void downloadingFinishedProgress(ConversionQueueItem queueItem, Locale locale) {
+        long lastFileSize = queueItem.getFiles().get(queueItem.getFiles().size() - 1).getSize();
+        if (!isShowingProgress(lastFileSize)) {
+            try {
+                String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, 1, Collections.emptySet(),
+                        ConversionStep.CONVERTING, Lang.JAVA, locale);
+                InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
+                messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
+                        .setReplyMarkup(conversionKeyboard));
+            } catch (Exception ex) {
+                LOGGER.error(ex.getMessage(), ex);
+            }
+        }
+    }
+
+    private void downloadingStartProgress(ConversionQueueItem queueItem, Locale locale) {
+        long firstFileSize = queueItem.getFiles().iterator().next().getSize();
+        if (!isShowingProgress(firstFileSize)) {
+            try {
+                String progressMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, 1, 0, queueItem.getFiles().size(), Lang.JAVA, locale);
+                InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
+                messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
+                        .setReplyMarkup(conversionKeyboard));
+            } catch (Exception ex) {
+                LOGGER.error(ex.getMessage(), ex);
+            }
+        }
+    }
+
+    private boolean isShowingProgress(long fileSize) {
+        return fileSize > 5 * 1024 * 1024;
     }
 }
