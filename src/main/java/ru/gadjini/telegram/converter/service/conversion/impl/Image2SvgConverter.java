@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
+import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.service.image.trace.ImageTracer;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -31,13 +31,13 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
 
     private TempFileService fileService;
 
-    private ImageConvertDevice imageDevice;
+    private ImageMagickDevice imageDevice;
 
     private ImageTracer imageTracer;
 
     @Autowired
     public Image2SvgConverter(FileManager fileManager, TempFileService fileService,
-                              ImageConvertDevice imageDevice, ImageTracer imageTracer) {
+                              ImageMagickDevice imageDevice, ImageTracer imageTracer) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;

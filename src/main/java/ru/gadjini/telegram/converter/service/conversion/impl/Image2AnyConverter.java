@@ -8,7 +8,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.StickerResult;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
-import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
+import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -45,13 +45,13 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
 
     private TempFileService fileService;
 
-    private ImageConvertDevice imageDevice;
+    private ImageMagickDevice imageDevice;
 
     private ConversionFormatService formatService;
 
     @Autowired
     public Image2AnyConverter(FileManager fileManager, TempFileService fileService,
-                              ImageConvertDevice imageDevice, ConversionFormatService formatService) {
+                              ImageMagickDevice imageDevice, ConversionFormatService formatService) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;

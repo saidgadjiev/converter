@@ -8,7 +8,8 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
-import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
+import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
+import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -45,17 +46,22 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
 
     private TempFileService fileService;
 
-    private ImageConvertDevice imageDevice;
+    private ImageMagickDevice magickDevice;
+
+    private final Image2PdfDevice image2PdfDevice;
 
     private ConversionFormatService formatService;
 
     @Autowired
     public Image2PdfConverter(FileManager fileManager, TempFileService fileService,
-                              ImageConvertDevice imageDevice, ConversionFormatService formatService) {
+                              ImageMagickDevice magickDevice,
+                              Image2PdfDevice image2PdfDevice,
+                              ConversionFormatService formatService) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
-        this.imageDevice = imageDevice;
+        this.magickDevice = magickDevice;
+        this.image2PdfDevice = image2PdfDevice;
         this.formatService = formatService;
     }
 
@@ -79,15 +85,15 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
             if (fileQueueItem.getFirstFileFormat() != PNG) {
                 SmartTempFile png = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
                 try {
-                    imageDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath());
+                    magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath());
                     src = png;
                 } finally {
                     file.smartDelete();
                 }
             }
-
+            magickDevice.changeFormatAndRemoveAlphaChannel(src.getAbsolutePath(), Format.PNG.getExt());
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
-            imageDevice.convert2Pdf(src.getAbsolutePath(), tempFile.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+            image2PdfDevice.convert2Pdf(src.getAbsolutePath(), tempFile.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
 
             stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());

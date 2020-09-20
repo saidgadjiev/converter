@@ -10,7 +10,8 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
+import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
+import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -49,7 +50,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private FileManager fileManager;
 
-    private ImageConvertDevice imageConvertDevice;
+    private ImageMagickDevice magickDevice;
 
     private LocalisationService localisationService;
 
@@ -57,23 +58,27 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private MessageService messageService;
 
+    private Image2PdfDevice image2PdfDevice;
+
     private ConversionMessageBuilder messageBuilder;
 
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
     public Images2PdfTiffConverter(TempFileService fileService, FileManager fileManager,
-                                   ImageConvertDevice imageConvertDevice,
+                                   ImageMagickDevice magickDevice,
                                    LocalisationService localisationService, UserService userService,
                                    @Qualifier("messageLimits") MessageService messageService,
-                                   ConversionMessageBuilder messageBuilder, InlineKeyboardService inlineKeyboardService) {
+                                   Image2PdfDevice image2PdfDevice, ConversionMessageBuilder messageBuilder,
+                                   InlineKeyboardService inlineKeyboardService) {
         super(MAP);
         this.fileService = fileService;
         this.fileManager = fileManager;
-        this.imageConvertDevice = imageConvertDevice;
+        this.magickDevice = magickDevice;
         this.localisationService = localisationService;
         this.userService = userService;
         this.messageService = messageService;
+        this.image2PdfDevice = image2PdfDevice;
         this.messageBuilder = messageBuilder;
         this.inlineKeyboardService = inlineKeyboardService;
     }
@@ -87,15 +92,15 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             String parentDir = images.iterator().next().getParent() + File.separator;
-            imageConvertDevice.convert2Format(parentDir + "*", Format.PNG.getExt());
+            magickDevice.changeFormatAndRemoveAlphaChannel(parentDir + "*", Format.PNG.getExt());
 
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
             if (fileQueueItem.getTargetFormat() == Format.PDF) {
-                imageConvertDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
+                image2PdfDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
             } else {
-                imageConvertDevice.convertImages(parentDir + "*.png", result.getAbsolutePath());
+                magickDevice.convert2Tiff(parentDir + "*.png", result.getAbsolutePath());
             }
 
             stopWatch.stop();

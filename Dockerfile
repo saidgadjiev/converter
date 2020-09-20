@@ -64,7 +64,7 @@ ENV PATH="/home/bot/calibre/:${PATH}"
 USER root
 
 RUN apt-get update -y
-RUN apt-get install -y ffmpeg
+RUN apt-get install -y ffmpeg img2pdf
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 

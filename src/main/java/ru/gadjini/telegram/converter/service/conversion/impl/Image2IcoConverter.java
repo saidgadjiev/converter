@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.image.device.ImageConvertDevice;
+import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
@@ -28,12 +28,12 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
 
     private TempFileService fileService;
 
-    private ImageConvertDevice imageDevice;
+    private ImageMagickDevice imageDevice;
 
     private FileManager fileManager;
 
     @Autowired
-    public Image2IcoConverter(TempFileService fileService, ImageConvertDevice imageDevice, FileManager fileManager) {
+    public Image2IcoConverter(TempFileService fileService, ImageMagickDevice imageDevice, FileManager fileManager) {
         super(MAP);
         this.fileService = fileService;
         this.imageDevice = imageDevice;
