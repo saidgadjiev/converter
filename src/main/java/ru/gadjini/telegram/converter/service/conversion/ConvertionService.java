@@ -101,14 +101,18 @@ public class ConvertionService {
     public void init() {
         initFonts();
         applyAsposeLicenses();
-        queueService.resetProcessing();
-        pushTasks(SmartExecutorService.JobWeight.LIGHT);
-        pushTasks(SmartExecutorService.JobWeight.HEAVY);
+        try {
+            queueService.resetProcessing();
+            pushTasks(SmartExecutorService.JobWeight.LIGHT);
+            pushTasks(SmartExecutorService.JobWeight.HEAVY);
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        }
     }
 
     @Autowired
     public void setAny2AnyConverters(Set<Any2AnyConverter> any2AnyConvertersSet) {
-        any2AnyConvertersSet.forEach(any2AnyConverters::add);
+        any2AnyConverters.addAll(any2AnyConvertersSet);
     }
 
     @Autowired
