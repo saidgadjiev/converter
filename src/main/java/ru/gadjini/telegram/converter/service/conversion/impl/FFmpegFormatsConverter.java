@@ -21,6 +21,10 @@ import java.util.concurrent.TimeUnit;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
+/**
+ * MP4 -> WEBM very slow
+ * WEBM -> MP4 very slow
+ */
 @Component
 public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
 
@@ -67,7 +71,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             stopWatch.start();
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath());
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
 
             stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
@@ -75,5 +79,45 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         } finally {
             file.smartDelete();
         }
+    }
+
+    private String[] getOptions(Format src, Format target) {
+        if (src == VOB) {
+            if (target == WEBM) {
+                return new String[]{
+                        "-af", "aformat=channel_layouts=\"7.1|5.1|stereo\""
+                };
+            } else if (target == WMV) {
+                return new String[] {
+                        "-acodec", "copy", "-vcodec", "wmv2"
+                };
+            }
+        }
+        if (target == _3GP) {
+            return new String[] {
+                    "-vcodec", "h263", "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
+            };
+        }
+        if (target == FLV) {
+            return new String[]{
+                    "-f", "flv", "-ar", "44100"
+            };
+        }
+        if (target == MPG || target == MPEG) {
+            return new String[]{
+                    "-f", "dvd"
+            };
+        }
+        if (target == MTS) {
+            return new String[] {
+                    "-vcodec", "libx264", "-r", "30000/1001", "-b:v", "21M", "-acodec", "ac3"
+            };
+        }
+        if (target == WMV) {
+            return new String[] {
+                    "-vcodec", "wmv2"
+            };
+        }
+        return new String[0];
     }
 }
