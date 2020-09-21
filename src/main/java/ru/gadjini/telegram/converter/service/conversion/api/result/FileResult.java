@@ -4,14 +4,13 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 
 import java.io.File;
 
-public class FileResult extends BaseConvertResult {
+public class FileResult implements ConvertResult {
 
     private final SmartTempFile file;
 
     private String fileName;
 
-    public FileResult(String fileName, SmartTempFile file, long time) {
-        super(time);
+    public FileResult(String fileName, SmartTempFile file) {
         this.fileName = fileName;
         this.file = file;
     }

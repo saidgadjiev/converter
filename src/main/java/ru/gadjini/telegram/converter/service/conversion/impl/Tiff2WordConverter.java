@@ -4,7 +4,6 @@ import com.aspose.imaging.Image;
 import com.aspose.imaging.fileformats.tiff.TiffFrame;
 import com.aspose.imaging.fileformats.tiff.TiffImage;
 import com.aspose.words.DocumentBuilder;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -19,7 +18,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Tiff2WordConverter extends BaseAny2AnyConverter {
@@ -52,8 +50,6 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, tiff);
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
                 DocumentBuilder documentBuilder = new DocumentBuilder();
                 try {
@@ -63,9 +59,8 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
                     SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                     documentBuilder.getDocument().save(result.getAbsolutePath());
 
-                    stopWatch.stop();
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+                    return new FileResult(fileName, result);
                 } finally {
                     documentBuilder.getDocument().cleanup();
                 }

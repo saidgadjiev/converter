@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -17,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -55,15 +53,11 @@ public class Comic2AnyConverter extends BaseAny2AnyConverter {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, in);
 
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             SmartTempFile file = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-
             convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()), "--dont-grayscale", "--landscape", "--no-sort", "--disable-trim");
 
-            stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
+            return new FileResult(fileName, file);
         } finally {
             in.smartDelete();
         }

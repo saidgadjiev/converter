@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -21,7 +20,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -78,9 +76,6 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             normalize(file.getFile(), fileQueueItem);
 
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-
             SmartTempFile src = file;
             if (fileQueueItem.getFirstFileFormat() != PNG) {
                 SmartTempFile png = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
@@ -95,9 +90,8 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
             image2PdfDevice.convert2Pdf(src.getAbsolutePath(), tempFile.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
 
-            stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+            return new FileResult(fileName, tempFile);
         } catch (ProcessException ex) {
             throw ex;
         } catch (Exception ex) {

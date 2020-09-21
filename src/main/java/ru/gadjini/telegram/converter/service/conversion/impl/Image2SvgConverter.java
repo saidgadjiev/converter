@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -17,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Image2SvgConverter extends BaseAny2AnyConverter {
@@ -56,8 +54,6 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.SVG.getExt());
             if (fileQueueItem.getFirstFileFormat() != Format.PNG) {
                 SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PNG.getExt());
@@ -65,18 +61,16 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
                     imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
                     imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
-                    stopWatch.stop();
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
-                    return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+                    return new FileResult(fileName, result);
                 } finally {
                     tempFile.smartDelete();
                 }
             } else {
                 imageTracer.trace(file.getAbsolutePath(), result.getAbsolutePath());
 
-                stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
-                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, result);
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);

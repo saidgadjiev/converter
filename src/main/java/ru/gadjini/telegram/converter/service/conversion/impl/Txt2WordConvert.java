@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.words.TxtLoadOptions;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -17,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Txt2WordConvert extends BaseAny2AnyConverter {
@@ -51,17 +49,13 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, txt);
 
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
             try {
                 SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath());
 
-                stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, result);
             } finally {
                 document.cleanup();
             }

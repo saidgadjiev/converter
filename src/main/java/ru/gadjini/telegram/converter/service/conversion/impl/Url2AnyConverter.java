@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -17,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Url2AnyConverter extends BaseAny2AnyConverter {
@@ -46,15 +44,11 @@ public class Url2AnyConverter extends BaseAny2AnyConverter {
 
     private FileResult convertUrl(ConversionQueueItem fileQueueItem) {
         try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-
             SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
             htmlDevice.convertUrl(fileQueueItem.getFirstFileId(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 
-            stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
+            return new FileResult(fileName, file);
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

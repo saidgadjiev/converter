@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.pdf.Document;
 import com.aspose.pdf.devices.TiffDevice;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -19,7 +18,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Pdf2TiffConverter extends BaseAny2AnyConverter {
@@ -62,18 +60,14 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
 
     private FileResult toTiff(ConversionQueueItem fileQueueItem, SmartTempFile pdfFile) {
         try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-
             Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
                 TiffDevice tiffDevice = new TiffDevice();
                 SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
                 tiffDevice.process(pdf, tiff.getAbsolutePath());
 
-                stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
-                return new FileResult(fileName, tiff, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, tiff);
             } finally {
                 pdf.dispose();
             }

@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.cells.SaveFormat;
 import com.aspose.cells.Workbook;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -17,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Excel2AnyConverter extends BaseAny2AnyConverter {
@@ -48,17 +46,14 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
 
             Workbook workbook = new Workbook(file.getAbsolutePath());
             try {
                 SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 workbook.save(tempFile.getAbsolutePath(), SaveFormat.PDF);
 
-                stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
-                return new FileResult(fileName, tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, tempFile);
             } finally {
                 workbook.dispose();
             }

@@ -258,7 +258,7 @@ public class ConvertionService {
                     try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                         sendResult(fileQueueItem, convertResult);
                         queueService.complete(fileQueueItem.getId());
-                        LOGGER.debug("Finish({}, {}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId(), convertResult.time());
+                        LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
                     } catch (CorruptedFileException ex) {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
 

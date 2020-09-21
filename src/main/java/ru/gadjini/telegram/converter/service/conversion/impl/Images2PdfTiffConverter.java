@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static ru.gadjini.telegram.converter.common.MessagesProperties.MESSAGE_CALCULATED;
 
@@ -89,8 +87,6 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         List<SmartTempFile> images = downloadImages(fileQueueItem, locale);
 
         try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             String parentDir = images.iterator().next().getParent() + File.separator;
             magickDevice.changeFormatAndRemoveAlphaChannel(parentDir + "*", Format.PNG.getExt());
 
@@ -103,9 +99,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
                 magickDevice.convert2Tiff(parentDir + "*.png", result.getAbsolutePath());
             }
 
-            stopWatch.stop();
-
-            return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result, stopWatch.getTime(TimeUnit.SECONDS));
+            return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result);
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {

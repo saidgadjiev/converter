@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.pdf.Document;
 import com.aspose.pdf.SaveFormat;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -16,7 +15,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Images2WordConverter extends BaseAny2AnyConverter {
@@ -42,8 +40,6 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         Format originalFormat = fileQueueItem.getTargetFormat();
         fileQueueItem.setTargetFormat(Format.PDF);
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
         try (FileResult fileResult = (FileResult) images2PdfTiffConverter.convert(fileQueueItem)) {
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, originalFormat.getExt());
             Document document = new Document(fileResult.getFile().getAbsolutePath());
@@ -52,10 +48,9 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
             } finally {
                 document.dispose();
             }
-            stopWatch.stop();
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileResult.getFileName(), originalFormat.getExt());
-            return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+            return new FileResult(fileName, result);
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import com.aspose.pdf.devices.TiffDevice;
 import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -50,8 +49,6 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
 
             Document word = new Document(file.getAbsolutePath());
             SmartTempFile pdfFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), "any2any", Format.PDF.getExt());
@@ -70,9 +67,8 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
                 pdfFile.smartDelete();
             }
 
-            stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
-            return new FileResult(fileName, tiff, stopWatch.getTime());
+            return new FileResult(fileName, tiff);
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {

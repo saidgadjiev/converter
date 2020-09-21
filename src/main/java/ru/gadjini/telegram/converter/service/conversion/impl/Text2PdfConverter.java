@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import com.aspose.words.DocumentBuilder;
 import com.aspose.words.Font;
 import com.aspose.words.SaveFormat;
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.List.of;
 
@@ -56,8 +54,6 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
 
     private FileResult toWordOrPdf(ConversionQueueItem fileQueueItem) {
         try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             com.aspose.words.Document document = new com.aspose.words.Document();
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
@@ -81,9 +77,8 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
                 SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
-                stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, result);
             } finally {
                 document.cleanup();
             }

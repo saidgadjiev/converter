@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.words.Document;
 import com.aspose.words.DocumentBuilder;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -19,7 +18,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Image2WordConverter extends BaseAny2AnyConverter {
@@ -58,9 +56,6 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             normalize(file.getFile(), fileQueueItem);
 
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-
             Document document = new Document();
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
@@ -68,9 +63,8 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
                 SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 documentBuilder.getDocument().save(out.getAbsolutePath());
 
-                stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, out, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, out);
             } finally {
                 document.cleanup();
             }

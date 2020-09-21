@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Text2TxtConverter extends BaseAny2AnyConverter {
@@ -51,17 +49,14 @@ public class Text2TxtConverter extends BaseAny2AnyConverter {
 
     private FileResult toTxt(ConversionQueueItem fileQueueItem) {
         try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.TXT.getExt());
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
             LOGGER.debug("Text info({})", textInfo);
             String text = TextUtils.removeAllEmojis(fileQueueItem.getFirstFileId(), textInfo.getDirection());
             FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
-            stopWatch.stop();
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TXT.getExt());
-            return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+            return new FileResult(fileName, result);
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

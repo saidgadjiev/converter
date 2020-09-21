@@ -4,7 +4,6 @@ import com.aspose.pdf.Document;
 import com.aspose.pdf.Page;
 import com.aspose.pdf.TextFragment;
 import com.google.common.io.Files;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -21,7 +20,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class Txt2PdfConvert extends BaseAny2AnyConverter {
@@ -58,8 +56,6 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);
 
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
             Document doc = new Document();
             try {
                 Page page = doc.getPages().add();
@@ -70,9 +66,8 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
                 SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 doc.save(result.getAbsolutePath());
 
-                stopWatch.stop();
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
-                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(fileName, result);
             } finally {
                 doc.dispose();
             }
