@@ -55,7 +55,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, MP4.getExt());
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-vcodec", "libx265");
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-vcodec", "libx264");
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, out);
