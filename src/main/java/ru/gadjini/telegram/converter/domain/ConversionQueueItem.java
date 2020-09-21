@@ -213,7 +213,9 @@ public class ConversionQueueItem {
 
         COMPLETED(3),
 
-        CANDIDATE_NOT_FOUND(4);
+        CANDIDATE_NOT_FOUND(4),
+
+        BLOCKED(5);
 
         private final int code;
 
