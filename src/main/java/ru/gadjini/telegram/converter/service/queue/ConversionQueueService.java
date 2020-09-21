@@ -71,6 +71,7 @@ public class ConversionQueueService {
         return poll.isEmpty() ? null : poll.iterator().next();
     }
 
+    @Transactional
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return fileQueueDao.poll(weight, limit);
     }
