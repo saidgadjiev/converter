@@ -122,7 +122,7 @@ public class ConvertionService {
 
     public void rejectTask(SmartExecutorService.Job job) {
         queueService.setWaiting(job.getId());
-        LOGGER.debug("Rejected({})", job.getWeight());
+        LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
     public ConversionTask getTask(SmartExecutorService.JobWeight weight) {

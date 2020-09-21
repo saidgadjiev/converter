@@ -95,7 +95,7 @@ public class ConversionMessageBuilder {
     public String getConversionProgressingMessage(ConversionQueueItem queueItem, Set<String> warns, Locale locale) {
         StringBuilder text = new StringBuilder();
         String queuedMessageCode = queueItem.getFiles().size() > 1 ? MessagesProperties.MESSAGE_FILES_QUEUED : MessagesProperties.MESSAGE_FILE_QUEUED;
-        text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().name(), queueItem.getPlaceInQueue()}, locale));
+        text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().getName(), queueItem.getPlaceInQueue()}, locale));
 
         if (!NON_DISPLAY_FORMATS.contains(queueItem.getFirstFileFormat())) {
             text.append("\n")

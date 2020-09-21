@@ -13,6 +13,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorSer
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -39,8 +40,9 @@ public class SchedulerConfiguration {
                 0, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(10),
                 (r, executor) -> {
-                    executorService.complete(((SmartExecutorService.Job) r).getId());
-                    conversionService.rejectTask((SmartExecutorService.Job) r);
+                    SmartExecutorService.Job job = getJob(r);
+                    executorService.complete(job.getId());
+                    conversionService.rejectTask(job);
                 }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
@@ -54,7 +56,8 @@ public class SchedulerConfiguration {
                 0, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(10),
                 (r, executor) -> {
-                    executorService.complete(((SmartExecutorService.Job) r).getId());
+                    SmartExecutorService.Job job = getJob(r);
+                    executorService.complete(job.getId());
                     conversionService.rejectTask((SmartExecutorService.Job) r);
                 }) {
             @Override
@@ -70,5 +73,19 @@ public class SchedulerConfiguration {
         LOGGER.debug("Conversion heavy thread pool({})", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(SmartExecutorService.JobWeight.LIGHT, lightTaskExecutor, SmartExecutorService.JobWeight.HEAVY, heavyTaskExecutor));
+    }
+
+    private SmartExecutorService.Job getJob(Runnable runnable) {
+        try {
+            Field field = runnable.getClass().getDeclaredField("callable");
+            field.setAccessible(true);
+            Object callbable = field.get(runnable);
+            Field task = callbable.getClass().getDeclaredField("task");
+            task.setAccessible(true);
+
+            return (SmartExecutorService.Job) task.get(callbable);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
