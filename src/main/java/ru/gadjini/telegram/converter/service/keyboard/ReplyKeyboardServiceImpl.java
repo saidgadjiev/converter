@@ -56,6 +56,10 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
         List<Format> targetFormats = new ArrayList<>(formatMapService.getTargetFormats(format));
         targetFormats.sort(Comparator.comparing(Format::getName));
+
+        if (targetFormats.remove(Format.COMPRESS)) {
+            targetFormats.add(0, Format.COMPRESS);
+        }
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();

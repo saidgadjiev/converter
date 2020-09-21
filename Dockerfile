@@ -64,7 +64,51 @@ ENV PATH="/home/bot/calibre/:${PATH}"
 USER root
 
 RUN apt-get update -y
-RUN apt-get install -y ffmpeg img2pdf
+RUN apt-get install -y libopus-dev libmp3lame-dev libfdk-aac-dev libvpx-dev libx264-dev yasm libass-dev libtheora-dev libvorbis-dev libopencore-amrnb-dev libopencore-amrwb-dev mercurial cmake
+RUN cd /usr/src && \
+wget https://github.com/videolan/x265/archive/master.zip | unzip && \
+unzip master.zip && \
+rm /usr/src/master.zip && \
+cd x265-master/build/linux && \
+cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/home/bot/ffmpeg_build" -DENABLE_SHARED:bool=off ../../source && \
+make && make install
+
+ENV PATH="/home/bot/ffmpeg_build/bin/:${PATH}"
+
+RUN rm /usr/src/ImageMagick.tar.bz2
+
+RUN cd /usr/src && \
+wget -O- http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj && \
+cd ffmpeg && \
+PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
+   ./configure \
+  --prefix="/home/bot/ffmpeg_build" \
+  --pkg-config-flags="--static" \
+  --extra-cflags="-I/home/bot/ffmpeg_build/include" \
+  --extra-ldflags="-L/home/bot/ffmpeg_build/lib" \
+  --extra-libs="-lpthread -lm" \
+  --bindir="/home/bot/ffmpeg" \
+  --enable-pthreads \
+  --enable-libopencore-amrnb \
+  --enable-libopencore-amrwb \
+  --enable-version3 \
+  --enable-gpl \
+  --enable-libass \
+  --enable-libfdk-aac \
+  --enable-libfreetype \
+  --enable-libmp3lame \
+  --enable-libopus \
+  --enable-libtheora \
+  --enable-libvorbis \
+  --enable-libvpx \
+  --enable-libx264 \
+  --enable-libx265 \
+  --enable-nonfree && \
+make -j 4 && make install
+
+ENV PATH="/home/bot/ffmpeg/:${PATH}"
+
+RUN apt-get install -y img2pdf
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 

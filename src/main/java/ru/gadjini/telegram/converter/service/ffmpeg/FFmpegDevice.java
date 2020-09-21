@@ -18,12 +18,10 @@ public class FFmpegDevice {
         List<String> cmd = new ArrayList<>();
         cmd.add("ffmpeg");
         cmd.add("-hide_banner");
-        cmd.add("-loglevel");
-        cmd.add("panic");
         cmd.add("-y");
         cmd.add("-i");
-        cmd.addAll(Arrays.asList(options));
         cmd.add(in);
+        cmd.addAll(Arrays.asList(options));
         cmd.add(out);
 
         return cmd.toArray(String[]::new);
