@@ -15,7 +15,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.lang.reflect.Field;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +38,7 @@ public class SchedulerConfiguration {
         SmartExecutorService executorService = new SmartExecutorService(messageService, localisationService, fileManager, userService);
         ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(4, 4,
                 0, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(10),
+                new SynchronousQueue<>(),
                 (r, executor) -> {
                     SmartExecutorService.Job job = getJob(r);
                     executorService.complete(job.getId());
@@ -54,7 +54,7 @@ public class SchedulerConfiguration {
         };
         ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(2, 2,
                 0, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(10),
+                new SynchronousQueue<>(),
                 (r, executor) -> {
                     SmartExecutorService.Job job = getJob(r);
                     executorService.complete(job.getId());
