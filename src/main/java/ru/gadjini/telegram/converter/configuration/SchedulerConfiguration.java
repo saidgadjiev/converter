@@ -58,7 +58,7 @@ public class SchedulerConfiguration {
                 (r, executor) -> {
                     SmartExecutorService.Job job = getJob(r);
                     executorService.complete(job.getId());
-                    conversionService.rejectTask((SmartExecutorService.Job) r);
+                    conversionService.rejectTask(job);
                 }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
