@@ -28,6 +28,7 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessa
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
@@ -362,6 +363,7 @@ public class ConvertionService {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             switch (convertResult.resultType()) {
                 case FILE: {
+                    sendUploadingProgress(fileQueueItem, (FileResult) convertResult, locale);
                     SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFileName(), ((FileResult) convertResult).getFile())
                             .setProgress(progress(fileQueueItem.getUserId(), fileQueueItem))
                             .setCaption(fileQueueItem.getMessage())
@@ -399,5 +401,18 @@ public class ConvertionService {
                 }
             }
         }
+    }
+
+    private void sendUploadingProgress(ConversionQueueItem conversionQueueItem, FileResult result, Locale locale) {
+        if (!isShowingProgress(result.getFile().length())) {
+            String uploadingProgressMessage = messageBuilder.getUploadingProgressMessage(conversionQueueItem, locale);
+            messageService.editMessage(
+                    new EditMessageText(conversionQueueItem.getUserId(), conversionQueueItem.getProgressMessageId(), uploadingProgressMessage)
+                            .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale)));
+        }
+    }
+
+    private boolean isShowingProgress(long fileSize) {
+        return fileSize > 5 * 1024 * 1024;
     }
 }

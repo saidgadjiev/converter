@@ -133,6 +133,16 @@ public class ConversionMessageBuilder {
         return progressingMessage + "\n\n" + getProgressMessage(fileSize, conversionStep, lang, locale);
     }
 
+    public String getUploadingProgressMessage(ConversionQueueItem queueItem, Locale locale) {
+        String progressingMessage = getConversionProgressingMessage(queueItem, Collections.emptySet(), locale);
+        String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
+
+        return progressingMessage + "\n\n" +
+                "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "...</b>\n";
+    }
+
     public String warns(Set<String> warns, Locale locale) {
         StringBuilder warnsText = new StringBuilder();
         int i = 1;
