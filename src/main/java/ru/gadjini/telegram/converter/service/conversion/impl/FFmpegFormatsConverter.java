@@ -18,6 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             String videoCodecStr = StringUtils.defaultIfBlank(fFprobeDevice.getVideoCodec(file.getAbsolutePath()), "").replace("\n", "");
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(), videoCodecStr));
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getId(), fileQueueItem.getSize(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(), videoCodecStr));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, out);
@@ -93,13 +94,13 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getOptions(int jobId, Format src, Format target, String videoCodecStr) {
+    private String[] getOptions(int jobId, long fileSize, Format src, Format target, String videoCodecStr) {
         VideoCodec videoCodec = VideoCodec.fromCode(videoCodecStr);
         if (videoCodec == null) {
-            LOGGER.debug("Unknown video codec({}, {})", src, videoCodecStr);
+            LOGGER.debug("Unknown video codec({}, {}, {})", src, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
         }
         if (codecService.isVideoCodecSupported(target, videoCodec)) {
-            LOGGER.debug("Copy codecs({}, {}, {}, {})", jobId, src, target, videoCodecStr);
+            LOGGER.debug("Copy codecs({}, {}, {}, {}, {})", jobId, src, target, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
             return new String[]{
                     "-c:v", "copy", "-c:a", "copy"
             };
