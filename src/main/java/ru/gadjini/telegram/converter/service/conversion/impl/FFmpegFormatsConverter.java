@@ -84,11 +84,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             String videoCodecStr = StringUtils.defaultIfBlank(fFprobeDevice.getVideoCodec(file.getAbsolutePath()), "").replace("\n", "");
-            VideoCodec videoCodec = VideoCodec.fromCode(videoCodecStr);
-            if (videoCodec == null) {
-                LOGGER.debug("Unknown video codec({}, {})", fileQueueItem.getFirstFileFormat(), videoCodecStr);
-            }
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(), videoCodec));
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(), videoCodecStr));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, out);
@@ -97,11 +93,18 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getOptions(Format src, Format target, VideoCodec videoCodec) {
+    private String[] getOptions(int jobId, Format src, Format target, String videoCodecStr) {
+        VideoCodec videoCodec = VideoCodec.fromCode(videoCodecStr);
+        if (videoCodec == null) {
+            LOGGER.debug("Unknown video codec({}, {})", src, videoCodecStr);
+        }
         if (codecService.isVideoCodecSupported(target, videoCodec)) {
+            LOGGER.debug("Copy codecs({}, {}, {}, {})", jobId, src, target, videoCodecStr);
             return new String[]{
                     "-c:v", "copy", "-c:a", "copy"
             };
+        } else {
+            LOGGER.debug("Copy not copied({}, {}, {}, {})", jobId, src, target, videoCodec);
         }
         if (src == VOB) {
             if (target == WEBM) {
