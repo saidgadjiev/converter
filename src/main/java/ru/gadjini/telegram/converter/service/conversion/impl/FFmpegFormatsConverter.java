@@ -104,7 +104,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
                     "-c:v", "copy", "-c:a", "copy"
             };
         } else {
-            LOGGER.debug("Copy not copied({}, {}, {}, {})", jobId, src, target, videoCodec);
+            LOGGER.debug("Codecs not copied({}, {}, {}, {})", jobId, src, target, videoCodec);
         }
         if (src == VOB) {
             if (target == WEBM) {
