@@ -52,7 +52,7 @@ public class SchedulerConfiguration {
                 }
             }
         };
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(4, 4,
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(2, 2,
                 0, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(10),
                 (r, executor) -> {

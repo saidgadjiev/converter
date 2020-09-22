@@ -1,11 +1,17 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.conversion.codec.VideoCodec;
+import ru.gadjini.telegram.converter.service.conversion.codec.VideoCodecService;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
@@ -25,6 +31,8 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  */
 @Component
 public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegFormatsConverter.class);
 
     private static final String TAG = "ffmpeg";
 
@@ -46,16 +54,23 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
 
     private FFmpegDevice fFmpegDevice;
 
+    private FFprobeDevice fFprobeDevice;
+
     private TempFileService fileService;
 
     private FileManager fileManager;
 
+    private VideoCodecService codecService;
+
     @Autowired
-    public FFmpegFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager) {
+    public FFmpegFormatsConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, TempFileService fileService,
+                                  FileManager fileManager, VideoCodecService codecService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
+        this.fFprobeDevice = fFprobeDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
+        this.codecService = codecService;
     }
 
     @Override
@@ -67,7 +82,13 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
+
+            String videoCodecStr = StringUtils.defaultIfBlank(fFprobeDevice.getVideoCodec(file.getAbsolutePath()), "").replace("\n", "");
+            VideoCodec videoCodec = VideoCodec.fromCode(videoCodecStr);
+            if (videoCodec == null) {
+                LOGGER.debug("Unknown video codec({}, {})", fileQueueItem.getFirstFileFormat(), videoCodecStr);
+            }
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(), videoCodec));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, out);
@@ -76,20 +97,25 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getOptions(Format src, Format target) {
+    private String[] getOptions(Format src, Format target, VideoCodec videoCodec) {
+        if (codecService.isVideoCodecSupported(target, videoCodec)) {
+            return new String[]{
+                    "-c:v", "copy", "-c:a", "copy"
+            };
+        }
         if (src == VOB) {
             if (target == WEBM) {
                 return new String[]{
                         "-af", "aformat=channel_layouts=\"7.1|5.1|stereo\""
                 };
             } else if (target == WMV) {
-                return new String[] {
+                return new String[]{
                         "-acodec", "copy", "-vcodec", "wmv2"
                 };
             }
         }
         if (target == _3GP) {
-            return new String[] {
+            return new String[]{
                     "-vcodec", "h263", "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
             };
         }
@@ -104,12 +130,12 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             };
         }
         if (target == MTS) {
-            return new String[] {
+            return new String[]{
                     "-vcodec", "libx264", "-r", "30000/1001", "-b:v", "21M", "-acodec", "ac3"
             };
         }
         if (target == WMV) {
-            return new String[] {
+            return new String[]{
                     "-vcodec", "wmv2"
             };
         }

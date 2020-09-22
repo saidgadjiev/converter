@@ -329,8 +329,9 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private boolean isMultiImageMessage(MessageMedia media, ConvertState convertState) {
         return media != null
+                && media.getFormat() != null
                 && media.getFormat().getCategory() == FormatCategory.IMAGES
-                && convertState.getFiles().stream().allMatch(m -> m.getFormat().getCategory() == FormatCategory.IMAGES);
+                && convertState.getFiles().stream().allMatch(m -> m.getFormat() != null && m.getFormat().getCategory() == FormatCategory.IMAGES);
     }
 
     private boolean isMediaMessage(Message message) {
