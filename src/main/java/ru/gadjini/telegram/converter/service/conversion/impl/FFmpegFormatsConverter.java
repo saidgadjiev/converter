@@ -110,13 +110,18 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         if (src == VOB) {
             if (target == WEBM) {
                 return new String[]{
-                        "-af", "aformat=channel_layouts=\"7.1|5.1|stereo\""
+                        "-c:v", "libvpx", "-deadline", "realtime", "-af", "aformat=channel_layouts=\"7.1|5.1|stereo\""
                 };
             } else if (target == WMV) {
                 return new String[]{
                         "-acodec", "copy", "-vcodec", "wmv2"
                 };
             }
+        }
+        if (target == WEBM) {
+            return new String[] {
+                    "-c:v", "libvpx", "-deadline", "realtime"
+            };
         }
         if (target == _3GP) {
             return new String[]{
