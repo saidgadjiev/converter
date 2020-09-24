@@ -32,11 +32,14 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
 
     private ArchiveService archiveService;
 
+    private ProcessExecutor processExecutor;
+
     @Autowired
-    public Tgs2GifConverter(FileManager fileManager, TempFileService fileService) {
+    public Tgs2GifConverter(FileManager fileManager, TempFileService fileService, ProcessExecutor processExecutor) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
+        this.processExecutor = processExecutor;
     }
 
     @Autowired
@@ -57,7 +60,7 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.GIF.getExt());
             try {
-                new ProcessExecutor().execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
+                processExecutor.execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
                 SmartTempFile archive = archiveService.createArchive(fileQueueItem.getUserId(), List.of(result.getFile()), Format.ZIP);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.GIF.getExt());

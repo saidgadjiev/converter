@@ -157,7 +157,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 if (targetFormat == Format.GIF) {
                     convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
                 }
-                conversionService.convert(message.getFrom(), convertState, targetFormat, locale);
+                conversionService.createConversion(message.getFrom(), convertState, targetFormat, locale);
                 commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND);
             } else {
                 messageService.sendMessage(

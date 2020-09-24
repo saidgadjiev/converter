@@ -1,8 +1,9 @@
 package ru.gadjini.telegram.converter.dao;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.postgresql.jdbc.PgArray;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,24 +20,22 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import java.sql.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
 
 @Repository
 public class ConversionQueueDao {
 
-    private static final Pattern PG_TYPE_PATTERN = Pattern.compile("[^,]*,?");
-
     private JdbcTemplate jdbcTemplate;
 
+    private ObjectMapper objectMapper;
+
     @Autowired
-    public ConversionQueueDao(JdbcTemplate jdbcTemplate) {
+    public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
+        this.objectMapper = objectMapper;
     }
 
     public void create(ConversionQueueItem queueItem) {
@@ -104,9 +103,9 @@ public class ConversionQueueDao {
                         "        LIMIT ?)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
-                        "SELECT *\n" +
-                        "FROM queue_items\n" +
-                        "ORDER BY created_at",
+                        "SELECT cv.*, cc.files_json\n" +
+                        "FROM queue_items cv INNER JOIN (SELECT id, json_build_array(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n" +
+                        "ORDER BY cv.created_at",
                 ps -> {
                     ps.setLong(1, MemoryUtils.MB_100);
                     ps.setInt(2, limit);
@@ -144,28 +143,10 @@ public class ConversionQueueDao {
 
     public ConversionQueueItem delete(int id) {
         return jdbcTemplate.query(
-                "WITH del AS(DELETE FROM " + TYPE + " WHERE id = ? RETURNING *) SELECT * FROM del",
+                "WITH del AS(DELETE FROM " + TYPE + " WHERE id = ? RETURNING *) SELECT cv.*, cc.files_json FROM del " +
+                        "cv INNER JOIN (SELECT id, json_build_array(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id",
                 ps -> ps.setInt(1, id),
                 rs -> rs.next() ? map(rs) : null
-        );
-    }
-
-    public ConversionQueueItem getById(int id) {
-        return jdbcTemplate.query(
-                "SELECT f.*, queue_place.place_in_queue\n" +
-                        "FROM " + TYPE + " f\n" +
-                        "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
-                        "                     FROM " + TYPE + "\n" +
-                        "                     WHERE status = 0) queue_place ON f.id = queue_place.id\n" +
-                        "WHERE f.id = ?\n",
-                ps -> ps.setInt(1, id),
-                rs -> {
-                    if (rs.next()) {
-                        return map(rs);
-                    }
-
-                    return null;
-                }
         );
     }
 
@@ -179,20 +160,6 @@ public class ConversionQueueDao {
         ));
     }
 
-    public List<ConversionQueueItem> getActiveQueries(int userId) {
-        return jdbcTemplate.query(
-                "SELECT f.*, queue_place.place_in_queue\n" +
-                        "FROM " + TYPE + " f\n" +
-                        "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
-                        "                     FROM " + TYPE + "\n" +
-                        "                     WHERE status IN(0, 1)) queue_place ON f.id = queue_place.id\n" +
-                        "WHERE user_id = ?\n" +
-                        "  AND status IN (0, 1, 2)",
-                ps -> ps.setInt(1, userId),
-                (rs, rowNum) -> map(rs)
-        );
-    }
-
     public void setWaiting(int id) {
         jdbcTemplate.update("UPDATE conversion_queue SET status = 0 WHERE id = ?",
                 ps -> ps.setInt(1, id));
@@ -204,16 +171,6 @@ public class ConversionQueueDao {
                     ps.setInt(1, progressMessageId);
                     ps.setInt(2, id);
                 });
-    }
-
-    public ConversionQueueItem poll(int id) {
-        return jdbcTemplate.query(
-                "WITH queue_item AS (\n" +
-                        "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), started_at = COALESCE(started_at, now()) WHERE id = ? RETURNING *\n" +
-                        ") SELECT * FROM queue_item",
-                ps -> ps.setInt(1, id),
-                (rs) -> rs.next() ? map(rs) : null
-        );
     }
 
     private ConversionQueueItem map(ResultSet rs) throws SQLException {
@@ -247,58 +204,18 @@ public class ConversionQueueDao {
     }
 
     private List<TgFile> mapFiles(ResultSet rs) throws SQLException {
-        List<TgFile> files = new ArrayList<>();
-        PgArray arr = (PgArray) rs.getArray(ConversionQueueItem.FILES);
-        Object[] unparsedRepeatTimes = (Object[]) arr.getArray();
+        PGobject jsonArr = (PGobject) rs.getObject("files_json");
+        if (jsonArr != null) {
+            try {
+                List<List<TgFile>> lists = objectMapper.readValue(jsonArr.getValue(), new TypeReference<>() {
+                });
 
-        for (Object object : unparsedRepeatTimes) {
-            if (object == null) {
-                continue;
+                return lists.iterator().next();
+            } catch (JsonProcessingException e) {
+                throw new SQLException(e);
             }
-            String t = ((PGobject) object).getValue().replace("\"", "");
-            t = t.substring(1, t.length() - 1);
-            Matcher argMatcher = PG_TYPE_PATTERN.matcher(t);
-
-            TgFile file = new TgFile();
-            if (argMatcher.find()) {
-                String fileId = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(fileId)) {
-                    file.setFileId(fileId);
-                }
-            }
-            if (argMatcher.find()) {
-                String mimeType = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(mimeType)) {
-                    file.setMimeType(mimeType);
-                }
-            }
-            if (argMatcher.find()) {
-                String fileName = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(fileName)) {
-                    file.setFileName(fileName);
-                }
-            }
-            if (argMatcher.find()) {
-                String size = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(size)) {
-                    file.setSize(Integer.parseInt(size));
-                }
-            }
-            if (argMatcher.find()) {
-                String thumb = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(thumb)) {
-                    file.setThumb(thumb);
-                }
-            }
-            if (argMatcher.find()) {
-                String format = t.substring(argMatcher.start(), argMatcher.end());
-                if (StringUtils.isNotBlank(format)) {
-                    file.setFormat(Format.valueOf(format));
-                }
-            }
-            files.add(file);
         }
 
-        return files;
+        return null;
     }
 }

@@ -3,25 +3,25 @@ package ru.gadjini.telegram.converter.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.converter.common.CommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.job.ConversionJob;
+import ru.gadjini.telegram.converter.request.Arg;
+import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
-import ru.gadjini.telegram.converter.request.Arg;
-import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
 
 @Component
 public class CancelQueryCommand implements CallbackBotCommand {
 
-    private ConvertionService convertionService;
+    private ConversionJob conversionJob;
 
     private MessageService messageService;
 
@@ -30,9 +30,9 @@ public class CancelQueryCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelQueryCommand(ConvertionService convertionService, @Qualifier("messageLimits") MessageService messageService,
+    public CancelQueryCommand(ConversionJob conversionJob, @Qualifier("messageLimits") MessageService messageService,
                               LocalisationService localisationService, UserService userService) {
-        this.convertionService = convertionService;
+        this.conversionJob = conversionJob;
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -46,7 +46,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
-        boolean cancel = convertionService.cancel(queryItemId);
+        boolean cancel = conversionJob.cancel(queryItemId);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
 
         messageService.editMessage(

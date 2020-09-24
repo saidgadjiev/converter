@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.archive;
 
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.condition.LinuxMacCondition;
@@ -15,19 +16,23 @@ import java.util.Set;
 @Conditional(LinuxMacCondition.class)
 public class P7ArchiveDevice extends BaseArchiveDevice {
 
-    protected P7ArchiveDevice() {
+    private ProcessExecutor processExecutor;
+
+    @Autowired
+    public P7ArchiveDevice(ProcessExecutor processExecutor) {
         super(Set.of(Format.ZIP));
+        this.processExecutor = processExecutor;
     }
 
     @Override
     public void zip(List<String> files, String out) {
-        new ProcessExecutor().execute(buildCommand(files, out));
+        processExecutor.execute(buildCommand(files, out));
     }
 
     @Override
     public String rename(String archive, String fileHeader, String newFileName) {
         String newHeader = buildNewHeader(fileHeader, newFileName);
-        new ProcessExecutor().execute(buildRenameCommand(archive, fileHeader, newHeader));
+        processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
 
         return newHeader;
     }

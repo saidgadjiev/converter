@@ -16,20 +16,23 @@ import java.util.Set;
 @Conditional(LinuxMacCondition.class)
 public class RarArchiveDevice extends BaseArchiveDevice {
 
+    private ProcessExecutor processExecutor;
+
     @Autowired
-    public RarArchiveDevice() {
+    public RarArchiveDevice(ProcessExecutor processExecutor) {
         super(Set.of(Format.RAR));
+        this.processExecutor = processExecutor;
     }
 
     @Override
     public void zip(List<String> files, String out) {
-        new ProcessExecutor().execute(buildCommand(files, out));
+        processExecutor.execute(buildCommand(files, out));
     }
 
     @Override
     public String rename(String archive, String fileHeader, String newFileName) {
         String newHeader = buildNewHeader(fileHeader, newFileName);
-        new ProcessExecutor().execute(buildRenameCommand(archive, fileHeader, newHeader));
+        processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
 
         return newHeader;
     }

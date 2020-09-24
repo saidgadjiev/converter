@@ -1,13 +1,21 @@
 package ru.gadjini.telegram.converter.service.ffmpeg;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 @Service
 public class FFprobeDevice {
 
+    private ProcessExecutor processExecutor;
+
+    @Autowired
+    public FFprobeDevice(ProcessExecutor processExecutor) {
+        this.processExecutor = processExecutor;
+    }
+
     public String getVideoCodec(String in) {
-        return new ProcessExecutor().executeWithResult(getCommand(in));
+        return processExecutor.executeWithResult(getCommand(in));
     }
 
     private String[] getCommand(String in) {

@@ -21,9 +21,12 @@ public class SmartCalibreDevice implements ConvertDevice {
 
     private TempFileService tempFileService;
 
+    private ProcessExecutor processExecutor;
+
     @Autowired
-    public SmartCalibreDevice(TempFileService tempFileService) {
+    public SmartCalibreDevice(TempFileService tempFileService, ProcessExecutor processExecutor) {
         this.tempFileService = tempFileService;
+        this.processExecutor = processExecutor;
     }
 
     @Override
@@ -31,7 +34,7 @@ public class SmartCalibreDevice implements ConvertDevice {
         if (out.endsWith("doc")) {
             SmartTempFile tempFile = tempFileService.createTempFile(TAG, Format.DOCX.getExt());
             try {
-                new ProcessExecutor().execute(buildCommand(in, tempFile.getAbsolutePath(), title, options));
+                processExecutor.execute(buildCommand(in, tempFile.getAbsolutePath(), title, options));
 
                 Document document = new Document(tempFile.getAbsolutePath());
                 try {
@@ -54,14 +57,14 @@ public class SmartCalibreDevice implements ConvertDevice {
                     document.cleanup();
                 }
 
-                new ProcessExecutor().execute(buildCommand(tempFile.getAbsolutePath(), out, title, options));
+                processExecutor.execute(buildCommand(tempFile.getAbsolutePath(), out, title, options));
             } catch (Exception e) {
                 throw new ProcessException(e);
             } finally {
                 tempFile.smartDelete();
             }
         } else {
-            new ProcessExecutor().execute(buildCommand(in, out, title, options));
+            processExecutor.execute(buildCommand(in, out, title, options));
         }
     }
 

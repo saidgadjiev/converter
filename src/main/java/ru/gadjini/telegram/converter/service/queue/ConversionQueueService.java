@@ -39,7 +39,7 @@ public class ConversionQueueService {
     }
 
     @Transactional
-    public ConversionQueueItem createProcessingItem(User user, ConvertState convertState, Format targetFormat) {
+    public ConversionQueueItem create(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
 
         convertState.getFiles().forEach(media -> {
@@ -54,7 +54,7 @@ public class ConversionQueueService {
         });
         fileQueueItem.setUserId(user.getId());
         fileQueueItem.setReplyToMessageId(convertState.getMessageId());
-        fileQueueItem.setStatus(ConversionQueueItem.Status.PROCESSING);
+        fileQueueItem.setStatus(ConversionQueueItem.Status.WAITING);
         fileQueueItem.setTargetFormat(targetFormat);
 
         fileQueueItem.setLastRunAt(timeCreator.now());
@@ -63,12 +63,6 @@ public class ConversionQueueService {
         fileQueueItem.setPlaceInQueue(fileQueueDao.getPlaceInQueue(fileQueueItem.getId()));
 
         return fileQueueItem;
-    }
-
-    public ConversionQueueItem poll(SmartExecutorService.JobWeight weight) {
-        List<ConversionQueueItem> poll = fileQueueDao.poll(weight, 1);
-
-        return poll.isEmpty() ? null : poll.iterator().next();
     }
 
     @Transactional
@@ -109,15 +103,4 @@ public class ConversionQueueService {
         fileQueueDao.updateCompletedAt(id, ConversionQueueItem.Status.COMPLETED.getCode());
     }
 
-    public List<ConversionQueueItem> getActiveItems(int userId) {
-        return fileQueueDao.getActiveQueries(userId);
-    }
-
-    public ConversionQueueItem getItem(int id) {
-        return fileQueueDao.getById(id);
-    }
-
-    public ConversionQueueItem poll(int id) {
-        return fileQueueDao.poll(id);
-    }
 }

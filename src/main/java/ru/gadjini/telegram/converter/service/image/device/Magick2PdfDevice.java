@@ -16,14 +16,17 @@ public class Magick2PdfDevice implements Image2PdfDevice {
 
     private AsposePdfService asposePdfService;
 
+    private ProcessExecutor processExecutor;
+
     @Autowired
-    public Magick2PdfDevice(AsposePdfService asposePdfService) {
+    public Magick2PdfDevice(AsposePdfService asposePdfService, ProcessExecutor processExecutor) {
         this.asposePdfService = asposePdfService;
+        this.processExecutor = processExecutor;
     }
 
     @Override
     public void convert2Pdf(String in, String out, String pdfTitle) {
-        new ProcessExecutor().execute(get2PdfConvertCommand(List.of(in), out));
+        processExecutor.execute(get2PdfConvertCommand(List.of(in), out));
         asposePdfService.setPdfTitle(out, pdfTitle);
     }
 

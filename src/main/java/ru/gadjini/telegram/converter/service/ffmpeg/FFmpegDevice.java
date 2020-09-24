@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.ffmpeg;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
@@ -10,8 +11,15 @@ import java.util.List;
 @Service
 public class FFmpegDevice {
 
+    private ProcessExecutor processExecutor;
+
+    @Autowired
+    public FFmpegDevice(ProcessExecutor processExecutor) {
+        this.processExecutor = processExecutor;
+    }
+
     public void convert(String in, String out, String... options) {
-        new ProcessExecutor().execute(getConvertCommand(in, out, options));
+        processExecutor.execute(getConvertCommand(in, out, options));
     }
 
     private String[] getConvertCommand(String in, String out, String... options) {

@@ -22,19 +22,22 @@ public class Url2PdfApiDevice implements HtmlDevice {
 
     private ConversionProperties conversionProperties;
 
+    private ProcessExecutor processExecutor;
+
     @Autowired
-    public Url2PdfApiDevice(ConversionProperties conversionProperties) {
+    public Url2PdfApiDevice(ConversionProperties conversionProperties, ProcessExecutor processExecutor) {
         this.conversionProperties = conversionProperties;
+        this.processExecutor = processExecutor;
     }
 
     @Override
     public void convertHtml(String html, String out, String outputType) {
-        new ProcessExecutor().execute(buildCommandByHtml(html, out, outputType));
+        processExecutor.execute(buildCommandByHtml(html, out, outputType));
     }
 
     @Override
     public void convertUrl(String url, String out, String outputType) {
-        new ProcessExecutor().execute(buildCommandByUrl(prepareUrl(UrlUtils.appendScheme(url)), out, outputType));
+        processExecutor.execute(buildCommandByUrl(prepareUrl(UrlUtils.appendScheme(url)), out, outputType));
     }
 
     private String prepareUrl(String url) {

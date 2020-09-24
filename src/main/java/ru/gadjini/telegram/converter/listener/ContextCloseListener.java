@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
+import ru.gadjini.telegram.converter.job.ConversionJob;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 
 @Component
@@ -13,19 +13,19 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ContextCloseListener.class);
 
-    private ConvertionService conversionService;
+    private ConversionJob conversionJob;
 
     private FileManager fileManager;
 
-    public ContextCloseListener(ConvertionService conversionService, FileManager fileManager) {
-        this.conversionService = conversionService;
+    public ContextCloseListener(ConversionJob conversionJob, FileManager fileManager) {
+        this.conversionJob = conversionJob;
         this.fileManager = fileManager;
     }
 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
         try {
-            conversionService.shutdown();
+            conversionJob.shutdown();
         } catch (Throwable e) {
             LOGGER.error("Error shutdown conversionService. " + e.getMessage(), e);
         }
