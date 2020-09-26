@@ -117,7 +117,7 @@ public class ConversionJob {
         if (heavyExecutor.getActiveCount() < heavyExecutor.getCorePoolSize()) {
             Collection<ConversionQueueItem> items = queueService.poll(SmartExecutorService.JobWeight.LIGHT, heavyExecutor.getCorePoolSize() - heavyExecutor.getActiveCount());
 
-            items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem), SmartExecutorService.JobWeight.LIGHT));
+            items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem), SmartExecutorService.JobWeight.HEAVY));
         }
     }
 
