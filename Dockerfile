@@ -56,14 +56,11 @@ tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \
 make install && \
 make distclean && ldconfig
 
-USER bot
-
-RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin install_dir=/home/bot isolated=y
-ENV PATH="/home/bot/calibre/:${PATH}"
-
 USER root
 
 RUN apt-get update -y
+RUN apt-get install -y img2pdf
+
 RUN apt-get install -y libopus-dev libmp3lame-dev libfdk-aac-dev libvpx-dev libx264-dev yasm libass-dev libtheora-dev libvorbis-dev libopencore-amrnb-dev libopencore-amrwb-dev mercurial cmake
 RUN cd /usr/src && \
 wget https://github.com/videolan/x265/archive/master.zip | unzip && \
@@ -108,7 +105,9 @@ make -j 4 && make install
 
 ENV PATH="/home/bot/ffmpeg/:${PATH}"
 
-RUN apt-get install -y img2pdf
+RUN echo 'calibre-5.0.1'
+RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin install_dir=/home/bot isolated=y
+ENV PATH="/home/bot/calibre/:${PATH}"
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 

@@ -160,6 +160,14 @@ public class ConversionQueueDao {
         ));
     }
 
+    public void setResultFileId(int id, String fileId) {
+        jdbcTemplate.update("UPDATE conversion_queue SET result_file_id = ? WHERE id = ?",
+                ps -> {
+                    ps.setString(1, fileId);
+                    ps.setInt(2, id);
+                });
+    }
+
     public void setWaiting(int id) {
         jdbcTemplate.update("UPDATE conversion_queue SET status = 0 WHERE id = ?",
                 ps -> ps.setInt(1, id));

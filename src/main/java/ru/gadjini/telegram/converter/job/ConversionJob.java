@@ -22,6 +22,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
@@ -328,6 +329,7 @@ public class ConversionJob {
 
         private void sendResult(ConversionQueueItem fileQueueItem, ConvertResult convertResult) {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            SendFileResult sendFileResult = null;
             switch (convertResult.resultType()) {
                 case FILE: {
                     sendUploadingProgress(fileQueueItem, (FileResult) convertResult, locale);
@@ -337,12 +339,12 @@ public class ConversionJob {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        mediaMessageService.sendDocument(sendDocumentContext);
+                        sendFileResult = mediaMessageService.sendDocument(sendDocumentContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendDocumentContext.setReplyToMessageId(null);
-                            mediaMessageService.sendDocument(sendDocumentContext);
+                            sendFileResult = mediaMessageService.sendDocument(sendDocumentContext);
                         } else {
                             throw ex;
                         }
@@ -354,17 +356,25 @@ public class ConversionJob {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        mediaMessageService.sendSticker(sendFileContext);
+                        sendFileResult = mediaMessageService.sendSticker(sendFileContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendFileContext.setReplyToMessageId(null);
-                            mediaMessageService.sendSticker(sendFileContext);
+                            sendFileResult = mediaMessageService.sendSticker(sendFileContext);
                         } else {
                             throw ex;
                         }
                     }
                     break;
+                }
+            }
+            if (sendFileResult != null) {
+                try {
+                    LOGGER.debug("Result({}, {})", fileQueueItem.getId(), sendFileResult.getFileId());
+                    queueService.setResultFileId(fileQueueItem.getId(), sendFileResult.getFileId());
+                } catch (Exception ex) {
+                    LOGGER.error(ex.getMessage(), ex);
                 }
             }
         }

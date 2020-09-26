@@ -78,6 +78,10 @@ public class ConversionQueueService {
         fileQueueDao.setProgressMessageId(id, progressMessageId);
     }
 
+    public void setResultFileId(int id, String fileId) {
+        fileQueueDao.setResultFileId(id, fileId);
+    }
+
     public void resetProcessing() {
         fileQueueDao.resetProcessing();
     }
