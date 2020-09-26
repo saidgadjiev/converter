@@ -2,13 +2,25 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.pdf.Document;
 import com.aspose.pdf.SaveFormat;
+import com.aspose.pdf.facades.PdfFileEditor;
+import com.aspose.words.ImportFormatMode;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.validator.PdfValidator;
+import ru.gadjini.telegram.converter.service.logger.FileLg;
+import ru.gadjini.telegram.converter.service.logger.Lg;
+import ru.gadjini.telegram.converter.service.logger.SoutLg;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
@@ -16,11 +28,20 @@ import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
 @Component
 public class Pdf2WordConverter extends BaseAny2AnyConverter {
+
+    @Value("${process.logging.dir}")
+    private String processLoggingDir;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Pdf2WordConverter.class);
 
     public static final String TAG = "pdf2";
 
@@ -43,44 +64,151 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        File logFile = getLogFile();
 
-        try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-            boolean validPdf = fileValidator.isValidPdf(file.getFile().getAbsolutePath());
-            if (!validPdf) {
-                throw new CorruptedFileException("Damaged pdf file");
-            }
+        try (Lg log = logFile == null ? new SoutLg() : new FileLg(logFile)) {
+            LOGGER.debug("Log file({}, {})", fileQueueItem.getId(), logFile == null ? "sout": logFile.getAbsolutePath());
+            log.log("Start pdf 2 word(%s, %s, %s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(), fileQueueItem.getTargetFormat());
 
-            return doConvert(fileQueueItem, file);
-        } finally {
-            file.smartDelete();
-        }
-    }
-
-    private FileResult doConvert(ConversionQueueItem fileQueueItem, SmartTempFile file) {
-        try {
-            Document document = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
+                Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
+                fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
+                boolean validPdf = fileValidator.isValidPdf(file.getFile().getAbsolutePath());
+                if (!validPdf) {
+                    throw new CorruptedFileException("Damaged pdf file");
+                }
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, result);
+                FileResult fileResult;
+                try {
+                    fileResult = doRightConvert(fileQueueItem, file, log);
+                } catch (StackOverflowError e) {
+                    LOGGER.error("Right way pdf 2 word failed with StackOverflow. Trying dirty way");
+                    fileResult = doDirtyConvert(fileQueueItem, file, log);
+                }
+
+                FileUtils.deleteQuietly(logFile);
+                return fileResult;
+            } catch (Throwable e) {
+                log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
+                throw new ConvertException(e);
             } finally {
-                document.dispose();
+                file.smartDelete();
             }
-        } finally {
-            file.smartDelete();
         }
     }
 
-    private int getSaveFormat(Format format) {
+    private File getLogFile() {
+        try {
+            return File.createTempFile(TAG, ".txt");
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private FileResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
+        log.log("Right way convert pdf 2 word");
+        Document document = new Document(file.getAbsolutePath());
+        try {
+            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            document.save(result.getAbsolutePath(), getPdfSaveFormat(fileQueueItem.getTargetFormat()));
+
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+            return new FileResult(fileName, result);
+        } finally {
+            document.dispose();
+        }
+    }
+
+    private FileResult doDirtyConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) throws Exception {
+        File logFile = File.createTempFile(TAG, ".txt");
+        log.log("Start dirty way pdf 2 word(%s, %s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId(), logFile.getAbsolutePath());
+
+        SmartTempFile tempDir = fileService.createTempDir(fileQueueItem.getUserId(), TAG);
+        try {
+            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+
+            log.log("Slit dir: " + tempDir.getAbsolutePath());
+
+            PdfFileEditor pdfFileEditor = new PdfFileEditor();
+            pdfFileEditor.splitToPages(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "%NUM%.pdf");
+            List<File> files = Arrays.asList(tempDir.listFiles());
+            files.sort(Comparator.comparingInt(o -> Integer.parseInt(FilenameUtils.getBaseName(o.getName()))));
+            log.log("Pages: " + files.size());
+
+            String firstWord = tempDir.getAbsolutePath() + File.separator + "1." + fileQueueItem.getTargetFormat().getExt();
+            Document firstPdf = new Document(files.get(0).getAbsolutePath());
+            double width = firstPdf.getPageInfo().getWidth();
+            double height = firstPdf.getPageInfo().getHeight();
+
+            try {
+                firstPdf.save(firstWord, getPdfSaveFormat(fileQueueItem.getTargetFormat()));
+            } finally {
+                firstPdf.dispose();
+            }
+            com.aspose.words.Document destWord = new com.aspose.words.Document(firstWord);
+
+            log.log("Start word initialized");
+            try {
+                for (int i = 1; i < files.size(); ++i) {
+                    int page = i + 1;
+                    log.log("Start " + page + "-th page");
+                    String wordPath = tempDir.getAbsolutePath() + File.separator + page + "." + fileQueueItem.getTargetFormat().getExt();
+                    Document pdf = new Document(files.get(i).getAbsolutePath());
+                    try {
+                        pdf.save(wordPath, getPdfSaveFormat(fileQueueItem.getTargetFormat()));
+                    } catch (StackOverflowError e) {
+                        log.log("Stackoverflow " + page + " continue");
+                    } finally {
+                        pdf.dispose();
+                    }
+
+                    log.log("Saved to pdf " + page + "-th page");
+                    com.aspose.words.Document document = new com.aspose.words.Document(wordPath);
+                    try {
+                        destWord.appendDocument(document, ImportFormatMode.USE_DESTINATION_STYLES);
+                    } finally {
+                        document.cleanup();
+                    }
+                    log.log("Processed " + page + "-th page");
+                }
+
+                destWord.getSections().forEach(nodes -> {
+                    nodes.getPageSetup().setPageWidth(width);
+                    nodes.getPageSetup().setPageHeight(height);
+                });
+                destWord.updatePageLayout();
+                destWord.save(result.getAbsolutePath(), getWordSaveFormat(fileQueueItem.getTargetFormat()));
+            } finally {
+                destWord.cleanup();
+            }
+
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+            FileUtils.deleteQuietly(logFile);
+
+            return new FileResult(fileName, result);
+        } finally {
+            tempDir.smartDelete();
+        }
+    }
+
+    private int getPdfSaveFormat(Format format) {
         switch (format) {
             case DOC:
                 return SaveFormat.Doc;
             case DOCX:
                 return SaveFormat.DocX;
+        }
+
+        throw new UnsupportedOperationException();
+    }
+
+    private int getWordSaveFormat(Format format) {
+        switch (format) {
+            case DOC:
+                return com.aspose.words.SaveFormat.DOC;
+            case DOCX:
+                return com.aspose.words.SaveFormat.DOCX;
         }
 
         throw new UnsupportedOperationException();
