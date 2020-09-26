@@ -158,7 +158,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
             log.log("Start word initialized");
             try {
-                for (int i = 1; i < 5; ++i) {
+                for (int i = 1; i < files.size(); ++i) {
                     int page = i + 1;
                     log.log("Start " + page + "-th page");
                     String wordPath = tempDir.getAbsolutePath() + File.separator + page + "." + fileQueueItem.getTargetFormat().getExt();
