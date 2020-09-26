@@ -96,8 +96,8 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         }
 
         if (logFile != null) {
-            boolean quietly = FileUtils.deleteQuietly(logFile);
-            if (!quietly) {
+            FileUtils.deleteQuietly(logFile);
+            if (logFile.exists()) {
                 LOGGER.debug("Log file not deleted({})", logFile.getAbsolutePath());
             }
         }
@@ -129,8 +129,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult doDirtyConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) throws Exception {
-        File logFile = File.createTempFile(TAG, ".txt");
-        log.log("Start dirty way pdf 2 word(%s, %s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId(), logFile.getAbsolutePath());
+        log.log("Start dirty way pdf 2 word(%s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId());
 
         SmartTempFile tempDir = fileService.createTempDir(fileQueueItem.getUserId(), TAG);
         try {
@@ -144,13 +143,13 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             files.sort(Comparator.comparingInt(o -> Integer.parseInt(FilenameUtils.getBaseName(o.getName()))));
             log.log("Pages: " + files.size());
 
-            String firstWord = tempDir.getAbsolutePath() + File.separator + "1." + fileQueueItem.getTargetFormat().getExt();
+            String firstWord = tempDir.getAbsolutePath() + File.separator + "1." + Format.DOC.getExt();
             Document firstPdf = new Document(files.get(0).getAbsolutePath());
             double width = firstPdf.getPageInfo().getWidth();
             double height = firstPdf.getPageInfo().getHeight();
 
             try {
-                firstPdf.save(firstWord, getPdfSaveFormat(fileQueueItem.getTargetFormat()));
+                firstPdf.save(firstWord, SaveFormat.Doc);
             } finally {
                 firstPdf.dispose();
             }
@@ -161,10 +160,10 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 for (int i = 1; i < files.size(); ++i) {
                     int page = i + 1;
                     log.log("Start " + page + "-th page");
-                    String wordPath = tempDir.getAbsolutePath() + File.separator + page + "." + fileQueueItem.getTargetFormat().getExt();
+                    String wordPath = tempDir.getAbsolutePath() + File.separator + page + "." + Format.DOC.getExt();
                     Document pdf = new Document(files.get(i).getAbsolutePath());
                     try {
-                        pdf.save(wordPath, getPdfSaveFormat(fileQueueItem.getTargetFormat()));
+                        pdf.save(wordPath, SaveFormat.Doc);
                     } catch (StackOverflowError e) {
                         log.log("Stackoverflow " + page + " continue");
                     } finally {
@@ -197,8 +196,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             }
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            FileUtils.deleteQuietly(logFile);
-
             return new FileResult(fileName, result);
         } finally {
             tempDir.smartDelete();
