@@ -86,7 +86,7 @@ public class ConversionQueueService {
         return fileQueueDao.delete(id);
     }
 
-    public void exception(int id, Exception ex) {
+    public void exception(int id, Throwable ex) {
         String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
         fileQueueDao.updateException(id, ConversionQueueItem.Status.EXCEPTION.getCode(), exception);
     }

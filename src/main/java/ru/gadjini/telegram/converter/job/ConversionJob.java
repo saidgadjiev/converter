@@ -200,7 +200,7 @@ public class ConversionJob {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
 
                         throw ex;
-                    } catch (Exception ex) {
+                    } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
                             queueService.exception(fileQueueItem.getId(), ex);
 
@@ -268,7 +268,7 @@ public class ConversionJob {
         }
 
         @Override
-        public String getErrorCode(Exception e) {
+        public String getErrorCode(Throwable e) {
             if (e instanceof CorruptedFileException || e instanceof ProcessException) {
                 return MessagesProperties.MESSAGE_DAMAGED_FILE;
             }

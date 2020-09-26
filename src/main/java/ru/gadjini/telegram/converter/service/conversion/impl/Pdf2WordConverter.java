@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import com.aspose.pdf.Document;
 import com.aspose.pdf.SaveFormat;
 import com.aspose.pdf.facades.PdfFileEditor;
+import com.aspose.words.ConvertUtil;
 import com.aspose.words.ImportFormatMode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -66,8 +67,10 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         File logFile = getLogFile();
 
+        FileResult fileResult;
+
         try (Lg log = logFile == null ? new SoutLg() : new FileLg(logFile)) {
-            LOGGER.debug("Log file({}, {})", fileQueueItem.getId(), logFile == null ? "sout": logFile.getAbsolutePath());
+            LOGGER.debug("Log file({}, {})", fileQueueItem.getId(), logFile == null ? "sout" : logFile.getAbsolutePath());
             log.log("Start pdf 2 word(%s, %s, %s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(), fileQueueItem.getTargetFormat());
 
             try {
@@ -78,23 +81,28 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                     throw new CorruptedFileException("Damaged pdf file");
                 }
 
-                FileResult fileResult;
                 try {
                     fileResult = doRightConvert(fileQueueItem, file, log);
                 } catch (StackOverflowError e) {
                     LOGGER.error("Right way pdf 2 word failed with StackOverflow. Trying dirty way");
                     fileResult = doDirtyConvert(fileQueueItem, file, log);
                 }
-
-                FileUtils.deleteQuietly(logFile);
-                return fileResult;
             } catch (Throwable e) {
                 log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
-                throw new ConvertException(e);
+                throw new ConvertException(e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout"), e);
             } finally {
                 file.smartDelete();
             }
         }
+
+        if (logFile != null) {
+            boolean quietly = FileUtils.deleteQuietly(logFile);
+            if (!quietly) {
+                LOGGER.debug("Log file not deleted({})", logFile.getAbsolutePath());
+            }
+        }
+
+        return fileResult;
     }
 
     private File getLogFile() {
@@ -150,7 +158,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
             log.log("Start word initialized");
             try {
-                for (int i = 1; i < files.size(); ++i) {
+                for (int i = 1; i < 5; ++i) {
                     int page = i + 1;
                     log.log("Start " + page + "-th page");
                     String wordPath = tempDir.getAbsolutePath() + File.separator + page + "." + fileQueueItem.getTargetFormat().getExt();
@@ -176,6 +184,11 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 destWord.getSections().forEach(nodes -> {
                     nodes.getPageSetup().setPageWidth(width);
                     nodes.getPageSetup().setPageHeight(height);
+
+                    nodes.getPageSetup().setLeftMargin(ConvertUtil.millimeterToPoint(30));
+                    nodes.getPageSetup().setBottomMargin(ConvertUtil.millimeterToPoint(20));
+                    nodes.getPageSetup().setRightMargin(ConvertUtil.millimeterToPoint(15));
+                    nodes.getPageSetup().setTopMargin(ConvertUtil.millimeterToPoint(20));
                 });
                 destWord.updatePageLayout();
                 destWord.save(result.getAbsolutePath(), getWordSaveFormat(fileQueueItem.getTargetFormat()));
