@@ -86,22 +86,12 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
 
     private String[] getOptions(ConversionQueueItem queueItem) {
         if (Set.of(CBZ, CBR, CBC).contains(queueItem.getFirstFileFormat())) {
-            if (queueItem.getTargetFormat() == PDF) {
-                return new String[] {
-                        "--title", FilenameUtils.removeExtension(queueItem.getFirstFileName()), "--dont-grayscale", "--landscape", "--no-sort", "--disable-trim"
-                };
-            }
-
-            return new String[] {
-                    "--dont-grayscale", "--landscape", "--no-sort", "--disable-trim"
+            return new String[]{
+                    "--dont-grayscale", "--landscape", "--no-sort", "--disable-trim", "--title", FilenameUtils.removeExtension(queueItem.getFirstFileName())
             };
         }
-        if (queueItem.getTargetFormat() == PDF) {
-            return new String[] {
-                    "--title", FilenameUtils.removeExtension(queueItem.getFirstFileName())
-            };
-        }
-
-        return new String[0];
+        return new String[]{
+                "--title", FilenameUtils.removeExtension(queueItem.getFirstFileName())
+        };
     }
 }
