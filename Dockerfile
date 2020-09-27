@@ -121,5 +121,5 @@ COPY ./target/app.jar .
 
 EXPOSE 8080
 ENTRYPOINT ["java"]
-#CMD ["-jar", "app.jar"]
-CMD ["-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+CMD ["-jar", "app.jar"]
+#CMD ["-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]

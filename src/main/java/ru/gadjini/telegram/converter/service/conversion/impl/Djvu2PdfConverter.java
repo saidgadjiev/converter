@@ -51,7 +51,7 @@ public class Djvu2PdfConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, in);
 
             SmartTempFile file = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            djvuLibre.convert(in.getAbsolutePath(), file.getAbsolutePath());
+            djvuLibre.convert(in.getAbsolutePath(), file.getAbsolutePath(), "-format=pdf");
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, file);
