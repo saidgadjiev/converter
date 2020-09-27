@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
 
                 try {
                     djvuLibre.convert(in.getAbsolutePath(), pdf.getAbsolutePath(), "-format=pdf");
-                    calibreDevice.convert(pdf.getAbsolutePath(), file.getAbsolutePath());
+                    calibreDevice.convert(pdf.getAbsolutePath(), file.getAbsolutePath(), "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
                 } finally {
                     pdf.smartDelete();
                 }
