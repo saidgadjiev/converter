@@ -1,11 +1,10 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
-import ru.gadjini.telegram.converter.service.conversion.device.ConvertDevice;
+import ru.gadjini.telegram.converter.service.conversion.device.SmartCalibre;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -24,7 +23,7 @@ public class Epub2WordConverter extends BaseAny2AnyConverter {
             List.of(Format.EPUB), List.of(Format.DOCX, Format.DOC)
     );
 
-    private ConvertDevice convertDevice;
+    private SmartCalibre convertDevice;
 
     private FileManager fileManager;
 
@@ -33,7 +32,7 @@ public class Epub2WordConverter extends BaseAny2AnyConverter {
     private Pdf2WordConverter pdf2WordConverter;
 
     @Autowired
-    public Epub2WordConverter(ConvertDevice convertDevice, FileManager fileManager, TempFileService tempFileService, Pdf2WordConverter pdf2WordConverter) {
+    public Epub2WordConverter(SmartCalibre convertDevice, FileManager fileManager, TempFileService tempFileService, Pdf2WordConverter pdf2WordConverter) {
         super(MAP);
         this.convertDevice = convertDevice;
         this.fileManager = fileManager;
@@ -51,7 +50,7 @@ public class Epub2WordConverter extends BaseAny2AnyConverter {
 
             SmartTempFile pdf = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
             try {
-                convertDevice.convert(epub.getAbsolutePath(), pdf.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+                convertDevice.convert(epub.getAbsolutePath(), pdf.getAbsolutePath());
 
                 return pdf2WordConverter.convert(fileQueueItem, pdf);
             } finally {
