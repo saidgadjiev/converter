@@ -105,6 +105,40 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         return fileResult;
     }
 
+    public FileResult convert(ConversionQueueItem fileQueueItem, SmartTempFile file) {
+        File logFile = getLogFile();
+
+        FileResult fileResult;
+
+        try (Lg log = logFile == null ? new SoutLg() : new FileLg(logFile)) {
+            LOGGER.debug("Log file({}, {})", fileQueueItem.getId(), logFile == null ? "sout" : logFile.getAbsolutePath());
+            log.log("Start pdf 2 word(%s, %s, %s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(), fileQueueItem.getTargetFormat());
+
+            try {
+                try {
+                    fileResult = doRightConvert(fileQueueItem, file, log);
+                } catch (StackOverflowError e) {
+                    LOGGER.error("Right way pdf 2 word failed with StackOverflow. Trying dirty way");
+                    fileResult = doDirtyConvert(fileQueueItem, file, log);
+                }
+            } catch (Throwable e) {
+                log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
+                throw new ConvertException(e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout"), e);
+            } finally {
+                file.smartDelete();
+            }
+        }
+
+        if (logFile != null) {
+            FileUtils.deleteQuietly(logFile);
+            if (logFile.exists()) {
+                LOGGER.debug("Log file not deleted({})", logFile.getAbsolutePath());
+            }
+        }
+
+        return fileResult;
+    }
+
     private File getLogFile() {
         try {
             return File.createTempFile(TAG, ".txt");

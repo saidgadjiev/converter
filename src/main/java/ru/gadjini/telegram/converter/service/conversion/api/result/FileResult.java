@@ -15,6 +15,10 @@ public class FileResult implements ConvertResult {
         this.file = file;
     }
 
+    public SmartTempFile getTempFile() {
+        return file;
+    }
+
     public File getFile() {
         return file.getFile();
     }
