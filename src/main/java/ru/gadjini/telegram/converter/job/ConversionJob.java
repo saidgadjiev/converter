@@ -107,17 +107,26 @@ public class ConversionJob {
         if (heavyExecutor.getActiveCount() < heavyExecutor.getCorePoolSize()) {
             Collection<ConversionQueueItem> items = queueService.poll(SmartExecutorService.JobWeight.HEAVY, heavyExecutor.getCorePoolSize() - heavyExecutor.getActiveCount());
 
+            if (items.size() > 0) {
+                LOGGER.debug("Push heavy jobs({})", items.size());
+            }
             items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem)));
         }
         ThreadPoolExecutor lightExecutor = executor.getExecutor(SmartExecutorService.JobWeight.LIGHT);
         if (lightExecutor.getActiveCount() < lightExecutor.getCorePoolSize()) {
             Collection<ConversionQueueItem> items = queueService.poll(SmartExecutorService.JobWeight.LIGHT, lightExecutor.getCorePoolSize() - lightExecutor.getActiveCount());
 
+            if (items.size() > 0) {
+                LOGGER.debug("Push light jobs({})", items.size());
+            }
             items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem)));
         }
         if (heavyExecutor.getActiveCount() < heavyExecutor.getCorePoolSize()) {
             Collection<ConversionQueueItem> items = queueService.poll(SmartExecutorService.JobWeight.LIGHT, heavyExecutor.getCorePoolSize() - heavyExecutor.getActiveCount());
 
+            if (items.size() > 0) {
+                LOGGER.debug("Push light jobs to heavy threads({})", items.size());
+            }
             items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem), SmartExecutorService.JobWeight.HEAVY));
         }
     }
