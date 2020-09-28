@@ -326,9 +326,13 @@ public class ConversionJob {
         private void sendUploadingProgress(ConversionQueueItem conversionQueueItem, FileResult result, Locale locale) {
             if (!isShowingProgress(result.getFile().length())) {
                 String uploadingProgressMessage = messageBuilder.getUploadingProgressMessage(conversionQueueItem, locale);
-                messageService.editMessage(
-                        new EditMessageText(conversionQueueItem.getUserId(), conversionQueueItem.getProgressMessageId(), uploadingProgressMessage)
-                                .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale)));
+                try {
+                    messageService.editMessage(
+                            new EditMessageText(conversionQueueItem.getUserId(), conversionQueueItem.getProgressMessageId(), uploadingProgressMessage)
+                                    .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale)));
+                } catch (Exception e) {
+                    LOGGER.error("Ignore exception\n" + e.getMessage(), e);
+                }
             }
         }
 
