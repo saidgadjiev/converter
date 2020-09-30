@@ -122,7 +122,7 @@ public class ConversionQueueDao {
 
     public void updateException(int id, int status, String exception) {
         jdbcTemplate.update(
-                "UPDATE " + TYPE + " SET exception = ?, status = ? WHERE id = ?",
+                "UPDATE " + TYPE + " SET exception = ?, status = ?, suppress_user_exceptions = true WHERE id = ?",
                 ps -> {
                     ps.setString(1, exception);
                     ps.setInt(2, status);
