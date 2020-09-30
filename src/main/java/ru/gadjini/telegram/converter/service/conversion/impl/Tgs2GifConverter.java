@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.archive.ArchiveService;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -30,8 +29,6 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
 
     private TempFileService fileService;
 
-    private ArchiveService archiveService;
-
     private ProcessExecutor processExecutor;
 
     @Autowired
@@ -40,11 +37,6 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
         this.fileManager = fileManager;
         this.fileService = fileService;
         this.processExecutor = processExecutor;
-    }
-
-    @Autowired
-    public void setArchiveService(ArchiveService archiveService) {
-        this.archiveService = archiveService;
     }
 
     @Override
@@ -61,10 +53,9 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.GIF.getExt());
             try {
                 processExecutor.execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
-                SmartTempFile archive = archiveService.createArchive(fileQueueItem.getUserId(), List.of(result.getFile()), Format.ZIP);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.GIF.getExt());
-                return new FileResult(fileName, archive);
+                return new FileResult(fileName, result);
             } catch (Exception ex) {
                 result.smartDelete();
                 throw ex;

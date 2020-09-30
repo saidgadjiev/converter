@@ -31,7 +31,7 @@ public class ArchiveService {
     }
 
     public SmartTempFile createArchive(int userId, List<File> files, Format archiveFormat) {
-        SmartTempFile archive = fileService.createTempFile(userId, TAG, archiveFormat.getExt());
+        SmartTempFile archive = fileService.getTempFile(userId, TAG, archiveFormat.getExt());
         ArchiveDevice archiveDevice = getCandidate(archiveFormat);
         archiveDevice.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
 

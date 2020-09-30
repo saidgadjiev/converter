@@ -154,9 +154,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     return;
                 }
                 Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFirstFormat(), associatedFormat, text, locale);
-                if (targetFormat == Format.GIF) {
-                    convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
-                }
                 conversionService.createConversion(message.getFrom(), convertState, targetFormat, locale);
                 commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND);
             } else {
