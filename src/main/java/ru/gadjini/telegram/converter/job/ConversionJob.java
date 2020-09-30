@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.job;
 
 import com.aspose.pdf.Document;
 import com.aspose.words.License;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -194,7 +195,21 @@ public class ConversionJob {
         }
 
         @Override
+        public Integer getReplyToMessageId() {
+            return fileQueueItem.getReplyToMessageId();
+        }
+
+        @Override
+        public boolean isSuppressUserExceptions() {
+            return fileQueueItem.isSuppressUserExceptions();
+        }
+
+        @Override
         public void execute() throws Exception {
+            if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
+                mediaMessageService.sendFile(fileQueueItem.getUserId(), fileQueueItem.getResultFileId());
+                return;
+            }
             try {
                 fileWorkObject.start();
                 Any2AnyConverter candidate = getCandidate(fileQueueItem);

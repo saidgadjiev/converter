@@ -34,6 +34,10 @@ public class ConversionQueueItem {
 
     public static final String FILES = "files";
 
+    public static final String SUPPRESS_USER_EXCEPTIONS = "suppress_user_exceptions";
+
+    public static final String RESULT_FILE_ID = "result_file_id";
+
     private int id;
 
     private ZonedDateTime createdAt;
@@ -61,6 +65,10 @@ public class ConversionQueueItem {
     private Status status;
 
     private String message;
+
+    private boolean suppressUserExceptions;
+
+    private String resultFileId;
 
     public int getId() {
         return id;
@@ -201,6 +209,22 @@ public class ConversionQueueItem {
 
     public TgFile getFirstFile() {
         return files.iterator().next();
+    }
+
+    public String getResultFileId() {
+        return resultFileId;
+    }
+
+    public void setResultFileId(String resultFileId) {
+        this.resultFileId = resultFileId;
+    }
+
+    public boolean isSuppressUserExceptions() {
+        return suppressUserExceptions;
+    }
+
+    public void setSuppressUserExceptions(boolean suppressUserExceptions) {
+        this.suppressUserExceptions = suppressUserExceptions;
     }
 
     public enum Status {
