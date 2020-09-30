@@ -1,8 +1,8 @@
 Description:
-I can convert files, videos, stickers, links, text to other formats
+I can convert files, videos, stickers, links, text to other formats and compress videos
 
 AboutText:
-I can convert files, videos, stickers, links, text to other formats
+I can convert files, videos, stickers, links, text to other formats and compress videos
 
 Commands:
 start - restart the bot
