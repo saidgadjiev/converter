@@ -7,6 +7,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class FFmpegDevice {
@@ -19,7 +20,7 @@ public class FFmpegDevice {
     }
 
     public void convert(String in, String out, String... options) {
-        processExecutor.execute(getConvertCommand(in, out, options));
+        processExecutor.execute(getConvertCommand(in, out, options), Set.of(139));
     }
 
     private String[] getConvertCommand(String in, String out, String... options) {
