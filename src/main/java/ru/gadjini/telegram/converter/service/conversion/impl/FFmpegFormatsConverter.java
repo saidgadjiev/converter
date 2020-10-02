@@ -23,6 +23,7 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -99,7 +100,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         if (videoCodec == null) {
             LOGGER.debug("Unknown video codec({}, {}, {})", src, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
         }
-        if (src == WEBM && target == AVI && VideoCodec.VP9.equals(videoCodec)) {
+        if (Set.of(WEBM, MP4).contains(src) && target == AVI && VideoCodec.VP9.equals(videoCodec)) {
             return new String[0];
         }
         if (codecService.isVideoCodecSupported(target, videoCodec)) {
