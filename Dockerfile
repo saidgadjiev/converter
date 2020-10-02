@@ -70,6 +70,12 @@ ENV PATH="/home/bot/ffmpeg_build/bin/:${PATH}"
 
 RUN rm /usr/src/ImageMagick.tar.bz2
 
+RUN mkdir -p /usr/src/libaom && \
+  cd /usr/src/libaom && \
+  git clone https://aomedia.googlesource.com/aom && \
+  cmake ./aom && \
+  make && make install
+
 RUN cd /usr/src && \
 wget -O- http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj && \
 cd ffmpeg && \
@@ -95,6 +101,7 @@ PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
   --enable-libvorbis \
   --enable-libvpx \
   --enable-libx264 \
+  --enable-libaom \
   --enable-libx265 \
   --enable-nonfree && \
 make -j 4 && make install

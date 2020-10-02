@@ -49,6 +49,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_GIF_WARN = "message.gif.warn";
 
+    public static final String MESSAGE_INCOMPRESSIBLE_VIDEO = "message.incompressible.video";
+
     public static final String MESSAGE_CONVERSION_FAILED = "message.conversion.failed";
 
     public static final String MESSAGE_DAMAGED_FILE = "message.damaged.file";

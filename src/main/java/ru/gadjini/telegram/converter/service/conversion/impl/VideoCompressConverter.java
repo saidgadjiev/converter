@@ -4,20 +4,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -43,12 +48,19 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FileManager fileManager;
 
+    private LocalisationService localisationService;
+
+    private UserService userService;
+
     @Autowired
-    public VideoCompressConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager) {
+    public VideoCompressConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager,
+                                  LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
+        this.localisationService = localisationService;
+        this.userService = userService;
     }
 
     @Override
@@ -64,6 +76,11 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                     fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(),
                     MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()));
+
+            if (fileQueueItem.getSize() <= out.length()) {
+                Locale localeOrDefault = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, localeOrDefault)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+            }
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, out);
