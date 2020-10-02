@@ -23,7 +23,6 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -100,9 +99,6 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         if (videoCodec == null) {
             LOGGER.debug("Unknown video codec({}, {}, {})", src, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
         }
-        if (Set.of(WEBM, MP4).contains(src) && target == AVI && VideoCodec.VP9.equals(videoCodec)) {
-            return new String[0];
-        }
         if (codecService.isVideoCodecSupported(target, videoCodec)) {
             LOGGER.debug("Copy codecs({}, {}, {}, {}, {})", jobId, src, target, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
             if (target == AVI && videoCodec == VideoCodec.H264) {
@@ -129,7 +125,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             }
         }
         if (target == WEBM) {
-            return new String[] {
+            return new String[]{
                     "-c:v", "libvpx", "-deadline", "realtime"
             };
         }
