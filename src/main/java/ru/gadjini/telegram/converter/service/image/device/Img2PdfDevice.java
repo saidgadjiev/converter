@@ -24,7 +24,7 @@ public class Img2PdfDevice implements Image2PdfDevice {
 
     private String[] getCommand(String in, String out, String title) {
         return new String[]{
-                "bash", "-c", "img2pdf -o " + out + " -S A4 --imgsize 210mmx297mm --fit shrink --title " + title + " " + in
+                "bash", "-c", "img2pdf -o " + out + " -S A4 --imgsize 210mmx297mm --fit shrink --title \"" + title + "\" " + in
         };
     }
 }
