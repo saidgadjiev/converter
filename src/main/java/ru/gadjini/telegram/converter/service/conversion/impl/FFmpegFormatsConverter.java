@@ -101,9 +101,15 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         }
         if (codecService.isVideoCodecSupported(target, videoCodec)) {
             LOGGER.debug("Copy codecs({}, {}, {}, {}, {})", jobId, src, target, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
-            return new String[]{
-                    "-c:v", "copy", "-c:a", "copy"
-            };
+            if (target == AVI && videoCodec == VideoCodec.H264) {
+                return new String[]{
+                        "-bsf:v", "h264_mp4toannexb", "-c:v", "copy", "-c:a", "copy"
+                };
+            } else {
+                return new String[]{
+                        "-c:v", "copy", "-c:a", "copy"
+                };
+            }
         } else {
             LOGGER.debug("Codecs not copied({}, {}, {}, {})", jobId, src, target, videoCodec);
         }
