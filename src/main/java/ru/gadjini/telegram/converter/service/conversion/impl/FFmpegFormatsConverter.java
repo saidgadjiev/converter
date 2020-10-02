@@ -99,6 +99,9 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         if (videoCodec == null) {
             LOGGER.debug("Unknown video codec({}, {}, {})", src, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
         }
+        if (src == WEBM && target == AVI && VideoCodec.VP9.equals(videoCodec)) {
+            return new String[0];
+        }
         if (codecService.isVideoCodecSupported(target, videoCodec)) {
             LOGGER.debug("Copy codecs({}, {}, {}, {}, {})", jobId, src, target, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
             if (target == AVI && videoCodec == VideoCodec.H264) {
