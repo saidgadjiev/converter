@@ -77,10 +77,15 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             long resultSize = fileQueueItem.getSize() / 3;
-            String bitRate = getBitRate(fileQueueItem.getSize() / 3, fFprobeDevice.getDurationInSeconds(file.getAbsolutePath()));
+            long bitRate = getBitRate(fileQueueItem.getSize() / 3, fFprobeDevice.getDurationInSeconds(file.getAbsolutePath()));
+            String bitRateOption = bitRate + "k";
+
             LOGGER.debug("Trying compress({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                     MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(resultSize), bitRate);
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-b:v", bitRate);
+
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-b:v", bitRateOption, "-maxrate",
+                    bitRateOption, "-bufsize", bitRate * 2 + "k");
+
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                     fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(),
                     MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()), bitRate);
@@ -97,7 +102,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String getBitRate(long fileSize, long duration) {
-        return (MemoryUtils.toKbit(fileSize) / duration) + "k";
+    private long getBitRate(long fileSize, long duration) {
+        return MemoryUtils.toKbit(fileSize) / duration;
     }
 }
