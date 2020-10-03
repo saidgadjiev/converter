@@ -139,7 +139,12 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
                     "-f", "flv", "-ar", "44100"
             };
         }
-        if (target == MPG || target == MPEG) {
+        if (target == MPEG) {
+            return new String[] {
+                    "-f", "dvd", "-filter:v", "scale='min(4095,iw)':min'(4095,ih)':force_original_aspect_ratio=decrease"
+            };
+        }
+        if (target == MPG) {
             return new String[]{
                     "-f", "dvd"
             };
