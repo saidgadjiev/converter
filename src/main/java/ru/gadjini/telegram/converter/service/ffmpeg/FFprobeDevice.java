@@ -19,7 +19,7 @@ public class FFprobeDevice {
     }
 
     public long getDurationInSeconds(String in) {
-        String duration = new ProcessExecutor().executeWithResult(getDurationCommand(in));
+        String duration = processExecutor.executeWithResult(getDurationCommand(in));
 
         return Math.round(Double.parseDouble(duration));
     }
