@@ -33,7 +33,6 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  * WEBM -> MP4 very slow
  */
 @Component
-@SuppressWarnings("PMD")
 public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VideoCompressConverter.class);
