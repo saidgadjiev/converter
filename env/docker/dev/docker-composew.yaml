@@ -47,6 +47,8 @@ services:
     build: ../../../../fileutils-bot-api/
     env_file:
       - .env
+    ports:
+      - 5004:5005
     volumes:
       - ../../../data/converter/logs:/app/logs
       - ../../../data/shr:/tmp/shr
