@@ -18,6 +18,16 @@ public class FFprobeDevice {
         return processExecutor.executeWithResult(getCommand(in));
     }
 
+    public long getDurationInSeconds(String in) {
+        String duration = new ProcessExecutor().executeWithResult(getDurationCommand(in));
+
+        return Math.round(Double.parseDouble(duration));
+    }
+
+    private String[] getDurationCommand(String in) {
+        return new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", in};
+    }
+
     private String[] getCommand(String in) {
         return new String[] {
                 "ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", in
