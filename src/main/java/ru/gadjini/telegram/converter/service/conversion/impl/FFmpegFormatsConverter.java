@@ -124,6 +124,11 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
                 };
             }
         }
+        if (target == WEBM) {
+            return new String[]{
+                    "-c:v", "libvpx", "-deadline", "realtime"
+            };
+        }
         if (target == _3GP) {
             return new String[]{
                     "-vcodec", "h263", "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
@@ -135,7 +140,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             };
         }
         if (target == MPEG) {
-            return new String[]{
+            return new String[] {
                     "-f", "dvd", "-filter:v", "scale='min(4095,iw)':min'(4095,ih)':force_original_aspect_ratio=decrease"
             };
         }
