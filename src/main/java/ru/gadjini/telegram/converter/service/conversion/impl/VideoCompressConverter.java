@@ -86,16 +86,15 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-b:v", bitRateOption, "-maxrate",
                     bitRateOption, "-bufsize", bitRate * 2 + "k");
 
-            LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
-                    fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(),
-                    MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()), bitRate);
+            LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
+                    fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()), bitRate);
 
             if (fileQueueItem.getSize() <= out.length()) {
                 Locale localeOrDefault = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, localeOrDefault)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
             return new FileResult(fileName, out);
         } finally {
             file.smartDelete();
