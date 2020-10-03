@@ -33,6 +33,7 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  * WEBM -> MP4 very slow
  */
 @Component
+@SuppressWarnings("PMD")
 public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VideoCompressConverter.class);
@@ -76,7 +77,10 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
-            String bitRate = getBitRate(fileQueueItem.getSize() / 2, fFprobeDevice.getDurationInSeconds(file.getAbsolutePath()));
+            long resultSize = fileQueueItem.getSize() / 3;
+            String bitRate = getBitRate(fileQueueItem.getSize() / 3, fFprobeDevice.getDurationInSeconds(file.getAbsolutePath()));
+            LOGGER.debug("Trying compress({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
+                    MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(resultSize), bitRate);
             fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-b:v", bitRate);
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                     fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(),
