@@ -125,5 +125,5 @@ COPY ./target/app.jar .
 
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-Xss5m", "-Xmx2g", "-Xms256m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xss5m", "-Xmx2g", "-Xms512m", "-jar", "app.jar"]
 #ENTRYPOINT ["java", "-Xss5m", "-Xmx2g", "-Xms256m", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
