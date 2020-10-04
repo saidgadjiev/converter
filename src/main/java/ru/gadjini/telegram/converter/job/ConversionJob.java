@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.job;
 
-import com.aspose.pdf.Document;
 import com.aspose.words.License;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -92,7 +91,6 @@ public class ConversionJob {
 
     @PostConstruct
     public void init() {
-        initFonts();
         applyAsposeLicenses();
         try {
             queueService.resetProcessing();
@@ -152,10 +150,6 @@ public class ConversionJob {
 
     public void shutdown() {
         executor.shutdown();
-    }
-
-    private void initFonts() {
-        LOGGER.debug("Pdf fonts paths {}", Document.getLocalFontPaths());
     }
 
     private void applyAsposeLicenses() {

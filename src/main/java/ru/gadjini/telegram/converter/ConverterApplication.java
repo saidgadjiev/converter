@@ -38,6 +38,15 @@ public class ConverterApplication {
             LOGGER.error(ex.getMessage(), ex);
             throw ex;
         }
+        startLogs();
+    }
+
+    private static void startLogs() {
+        int mb = 1024 * 1024;
+        LOGGER.debug("Default zone({})", TimeZone.getDefault());
+        LOGGER.debug("Default locale({})", Locale.getDefault());
+        LOGGER.debug("Heap size({}mb)", Runtime.getRuntime().totalMemory() / mb);
+        LOGGER.debug("Max heap size({}mb)", Runtime.getRuntime().maxMemory() / mb);
     }
 
     private static void setDefaultLocaleAndTZ() {
