@@ -104,7 +104,7 @@ public class ConversionQueueDao {
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT cv.*, cc.files_json\n" +
-                        "FROM queue_items cv INNER JOIN (SELECT id, json_build_array(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n" +
+                        "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n" +
                         "ORDER BY cv.created_at",
                 ps -> {
                     ps.setLong(1, MemoryUtils.MB_100);
@@ -143,10 +143,21 @@ public class ConversionQueueDao {
 
     public ConversionQueueItem delete(int id) {
         return jdbcTemplate.query(
-                "WITH del AS(DELETE FROM " + TYPE + " WHERE id = ? RETURNING *) SELECT cv.*, cc.files_json FROM del " +
-                        "cv INNER JOIN (SELECT id, json_build_array(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id",
+                "WITH del AS(DELETE FROM " + TYPE + " WHERE id = ? RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
                 ps -> ps.setInt(1, id),
-                rs -> rs.next() ? map(rs) : null
+                rs -> {
+                    if (rs.next()) {
+                        ConversionQueueItem fileQueueItem = new ConversionQueueItem();
+
+                        fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
+                        fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
+                        fileQueueItem.setFiles(mapFiles(rs));
+
+                        return fileQueueItem;
+                    }
+
+                    return null;
+                }
         );
     }
 
