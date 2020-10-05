@@ -21,12 +21,12 @@ import ru.gadjini.telegram.converter.service.logger.SoutLg;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
+import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -45,18 +45,21 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private PdfValidator fileValidator;
 
+    private ProcessExecutor processExecutor;
+
     @Autowired
-    public Pdf2WordConverter(TempFileService fileService, FileManager fileManager, PdfValidator fileValidator) {
+    public Pdf2WordConverter(TempFileService fileService, FileManager fileManager, PdfValidator fileValidator, ProcessExecutor processExecutor) {
         super(MAP);
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.fileValidator = fileValidator;
+        this.processExecutor = processExecutor;
     }
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
-        File logFile = getLogFile();
+        File logFile = processExecutor.getErrorLogFile();
 
         FileResult fileResult;
 
@@ -92,7 +95,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
     }
 
     public FileResult convert(ConversionQueueItem fileQueueItem, SmartTempFile file) {
-        File logFile = getLogFile();
+        File logFile = processExecutor.getErrorLogFile();
 
         FileResult fileResult;
 
@@ -116,15 +119,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         }
 
         return fileResult;
-    }
-
-    private File getLogFile() {
-        try {
-            return File.createTempFile(TAG, ".txt");
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
-            return null;
-        }
     }
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
