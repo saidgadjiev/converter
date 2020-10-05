@@ -19,6 +19,7 @@ public class FileLg implements Lg {
     @Override
     public void log(String log, Object... args) {
         printWriter.println(String.format(log, args));
+        printWriter.flush();
     }
 
     @Override
