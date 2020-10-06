@@ -107,4 +107,7 @@ public class ConversionQueueService {
         fileQueueDao.updateCompletedAt(id, ConversionQueueItem.Status.COMPLETED.getCode());
     }
 
+    public ConversionQueueItem getItem(int id) {
+        return fileQueueDao.getById(id);
+    }
 }

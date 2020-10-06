@@ -10,6 +10,10 @@ public class TextUtils {
 
     }
 
+    public static String removeHtmlTags(String str) {
+        return str.replaceAll("<.*?>", "");
+    }
+
     public static String removeAllEmojis(String str, TextDirection direction) {
         if (StringUtils.isBlank(str)) {
             return str;

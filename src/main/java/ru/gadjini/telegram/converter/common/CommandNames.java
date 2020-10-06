@@ -24,4 +24,6 @@ public class CommandNames {
 
     public static final String GET_FILE_COMMAND = "getfile";
 
+    public static final String UPDATE_QUERY_STATUS = "updq";
+
 }

@@ -80,6 +80,6 @@ public class ConvertionService {
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
         String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(new HtmlMessage((long) queueItem.getUserId(), queuedMessage)
-                .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale)), callback);
+                .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)), callback);
     }
 }

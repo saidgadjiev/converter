@@ -203,6 +203,25 @@ public class ConversionQueueDao {
                 });
     }
 
+    public ConversionQueueItem getById(int id) {
+        return jdbcTemplate.query(
+                "SELECT f.*, queue_place.place_in_queue, queue_place.files_json\n" +
+                        "FROM " + TYPE + " f\n" +
+                        "         INNER JOIN (SELECT id, json_agg(files) as files_json, row_number() over (ORDER BY created_at) as place_in_queue\n" +
+                        "                     FROM " + TYPE + "\n" +
+                        "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ") GROUP BY id) queue_place ON f.id = queue_place.id\n" +
+                        "WHERE f.id = ?\n",
+                ps -> ps.setInt(1, id),
+                rs -> {
+                    if (rs.next()) {
+                        return map(rs);
+                    }
+
+                    return null;
+                }
+        );
+    }
+
     private ConversionQueueItem map(ResultSet rs) throws SQLException {
         Set<String> columns = JdbcUtils.getColumnNames(rs.getMetaData());
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();

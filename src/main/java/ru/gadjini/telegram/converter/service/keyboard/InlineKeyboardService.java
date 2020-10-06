@@ -30,6 +30,13 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup getConversionWaitingKeyboard(int queueItemId, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.updateQueryStatus(queueItemId, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelQueryItem(queueItemId, locale)));
+        return inlineKeyboardMarkup;
+    }
+
     private InlineKeyboardMarkup inlineKeyboardMarkup() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
 

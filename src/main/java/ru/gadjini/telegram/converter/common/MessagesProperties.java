@@ -92,4 +92,8 @@ public class MessagesProperties {
     public static final String MESSAGE_VIDEO_CONVERSION = "message.video.conversion";
 
     public static final String MESSAGE_DEFAULT_CONVERSION = "message.default.conversion";
+
+    public static final String UPDATE_QUERY_STATUS_COMMAND_DESCRIPTION = "update.query.status.command.description";
+
+    public static final String UPDATED_CALLBACK_ANSWER = "updated.callback.answer";
 }
