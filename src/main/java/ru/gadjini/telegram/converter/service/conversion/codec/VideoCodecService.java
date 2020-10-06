@@ -26,7 +26,7 @@ public class VideoCodecService {
         CODECS.put(Format.VOB, List.of(MPEG1, MPEG2));
         CODECS.put(Format.WEBM, List.of(VP7, VP8, VP9));
         CODECS.put(Format.WMV, List.of(MPEG4));
-        CODECS.put(Format.MP4, List.of(MJPEG, MPEG2, VC1, SVQ1, SVQ3, CINEPAK, THEORA, MPEG4, H263, H264, H265, DIRAC, VP9, AV1));
+        CODECS.put(Format.MP4, List.of(MJPEG, MPEG2, VC1, SVQ1, SVQ3, CINEPAK, THEORA, H263, H264, H265, DIRAC, VP9, AV1));
         CODECS.put(Format.M4V, List.of(MJPEG, MPEG4, H263, H264, H265));
     }
 
