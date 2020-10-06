@@ -88,7 +88,7 @@ public class ConversionQueueDao {
         return jdbcTemplate.query(
                 "SELECT place_in_queue\n" +
                         "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue FROM "
-                        + TYPE + " WHERE status IN(0, 1) AND files[1].format IN(" + inFormats() + ")) as file_q\n" +
+                        + TYPE + " WHERE status = 0 AND files[1].format IN(" + inFormats() + ")) as file_q\n" +
                         "WHERE id = ?",
                 ps -> ps.setInt(1, id),
                 rs -> {
@@ -213,13 +213,17 @@ public class ConversionQueueDao {
 
     public ConversionQueueItem getById(int id) {
         return jdbcTemplate.query(
-                "SELECT f.*, queue_place.place_in_queue, queue_place.files_json\n" +
+                "SELECT f.*, queue_place.place_in_queue, cc.files_json\n" +
                         "FROM " + TYPE + " f\n" +
-                        "         INNER JOIN (SELECT id, json_agg(files) as files_json, row_number() over (ORDER BY created_at) as place_in_queue\n" +
+                        "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
                         "                     FROM " + TYPE + "\n" +
-                        "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ") GROUP BY id) queue_place ON f.id = queue_place.id\n" +
+                        "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ")) queue_place ON f.id = queue_place.id\n" +
+                        "         INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE id = ? GROUP BY id) cc ON f.id = cc.id\n" +
                         "WHERE f.id = ?\n",
-                ps -> ps.setInt(1, id),
+                ps -> {
+                    ps.setInt(1, id);
+                    ps.setInt(2, id);
+                },
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
