@@ -15,13 +15,17 @@ import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgUser;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.sql.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
 
@@ -32,10 +36,17 @@ public class ConversionQueueDao {
 
     private ObjectMapper objectMapper;
 
+    private Set<Format> formatsSet = new HashSet<>();
+
     @Autowired
-    public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, Map<FormatCategory, Map<List<Format>, List<Format>>> formats) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        for (Format value : Format.values()) {
+            if (formats.containsKey(value.getCategory())) {
+                formatsSet.add(value);
+            }
+        }
     }
 
     public void create(ConversionQueueItem queueItem) {
@@ -77,7 +88,7 @@ public class ConversionQueueDao {
         return jdbcTemplate.query(
                 "SELECT place_in_queue\n" +
                         "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue FROM "
-                        + TYPE + " WHERE status IN(0, 1)) as file_q\n" +
+                        + TYPE + " WHERE status IN(0, 1) AND files[1].format IN(" + inFormats() + ")) as file_q\n" +
                         "WHERE id = ?",
                 ps -> ps.setInt(1, id),
                 rs -> {
@@ -96,7 +107,7 @@ public class ConversionQueueDao {
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +
                         "started_at = COALESCE(started_at, now()) WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " c, unnest(c.files) cf WHERE c.status = 0 " +
+                        "        FROM " + TYPE + " c, unnest(c.files) cf WHERE c.status = 0 AND files[1].format IN(" + inFormats() + ")" +
                         "        GROUP BY c.id, c.created_at\n" +
                         "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         "        ORDER BY c.created_at\n" +
@@ -238,5 +249,9 @@ public class ConversionQueueDao {
         }
 
         return null;
+    }
+
+    private String inFormats() {
+        return formatsSet.stream().map(f -> "'" + f.name() + "'").collect(Collectors.joining(", "));
     }
 }

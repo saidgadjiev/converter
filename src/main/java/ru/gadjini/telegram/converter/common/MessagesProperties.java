@@ -88,4 +88,8 @@ public class MessagesProperties {
     public static final String MESSAGE_FILES_APPENDED = "message.files.appended";
 
     public static final String MESSAGE_CALCULATED = "message.calculated";
+
+    public static final String MESSAGE_VIDEO_CONVERSION = "message.video.conversion";
+
+    public static final String MESSAGE_DEFAULT_CONVERSION = "message.default.conversion";
 }

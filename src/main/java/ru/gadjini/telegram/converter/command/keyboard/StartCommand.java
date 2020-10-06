@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 @Component
 public class StartCommand implements NavigableBotCommand, BotCommand {
@@ -253,6 +254,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
             messageMedia.setFileId(message.getText());
             messageMedia.setFileSize(message.getText().length());
             messageMedia.setFormat(formatService.getFormat(message.getText()));
+            checkFormat(message.getFrom().getId(), messageMedia.getFormat(), null, null, locale);
 
             convertState.addMedia(messageMedia);
         } else {
@@ -297,6 +299,16 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         if (format.getCategory() == FormatCategory.ARCHIVE) {
             LOGGER.warn("Archive unsupported({})", userId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        }
+        if (!conversionFormatService.isSupportedCategory(format.getCategory())) {
+            LOGGER.warn("Category unsupported({}, {})", userId, format.getCategory());
+            String msgCode = MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT;
+            if (format.getCategory() == FormatCategory.VIDEO) {
+                msgCode = MessagesProperties.MESSAGE_VIDEO_CONVERSION;
+            } else if (Set.of(FormatCategory.DOCUMENTS, FormatCategory.IMAGES, FormatCategory.WEB).contains(format.getCategory())) {
+                msgCode = MessagesProperties.MESSAGE_DEFAULT_CONVERSION;
+            }
+            throw new UserException(localisationService.getMessage(msgCode, locale));
         }
 
         return format;
