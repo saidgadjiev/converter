@@ -65,6 +65,10 @@ public class ConversionQueueService {
         return fileQueueItem;
     }
 
+    public long count(ConversionQueueItem.Status status) {
+        return fileQueueDao.count(status);
+    }
+
     @Transactional
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return fileQueueDao.poll(weight, limit);

@@ -101,6 +101,14 @@ public class ConversionQueueDao {
         );
     }
 
+    public Long count(ConversionQueueItem.Status status) {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM conversion_queue WHERE status = ? AND files[1].format IN(" + inFormats() + ")",
+                ps -> ps.setInt(1, status.getCode()),
+                rs -> rs.next() ? rs.getLong("cnt") : 0
+        );
+    }
+
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +

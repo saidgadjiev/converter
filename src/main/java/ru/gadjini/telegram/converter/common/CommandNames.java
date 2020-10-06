@@ -26,4 +26,6 @@ public class CommandNames {
 
     public static final String UPDATE_QUERY_STATUS = "updq";
 
+    public static final String STATS_COMMAND = "stats";
+
 }
