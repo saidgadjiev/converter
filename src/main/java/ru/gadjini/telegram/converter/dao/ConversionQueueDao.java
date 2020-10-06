@@ -13,10 +13,10 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgUser;
+import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
-import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.sql.*;
 import java.time.ZoneOffset;
@@ -38,10 +38,15 @@ public class ConversionQueueDao {
 
     private Set<Format> formatsSet = new HashSet<>();
 
+    private FileLimitProperties fileLimitProperties;
+
     @Autowired
-    public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, Map<FormatCategory, Map<List<Format>, List<Format>>> formats) {
+    public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
+                              Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
+                              FileLimitProperties fileLimitProperties) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.fileLimitProperties = fileLimitProperties;
         for (Format value : Format.values()) {
             if (formats.containsKey(value.getCategory())) {
                 formatsSet.add(value);
@@ -84,19 +89,26 @@ public class ConversionQueueDao {
         queueItem.setId(id);
     }
 
-    public Integer getPlaceInQueue(int id) {
+    public Integer getPlaceInQueue(int id, SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
-                "SELECT place_in_queue\n" +
-                        "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue FROM "
-                        + TYPE + " WHERE status = 0 AND files[1].format IN(" + inFormats() + ")) as file_q\n" +
+                "SELECT COALESCE(place_in_queue, 1) as place_in_queue\n" +
+                        "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue\n" +
+                        "      FROM " + TYPE + " c, unnest(c.files) cf\n" +
+                        "      WHERE status = 0\n" +
+                        "        AND files[1].format IN (" + inFormats() + ")\n" +
+                        "        GROUP BY c.id HAVING sum(cf.size)" + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
+                        ") as file_q\n" +
                         "WHERE id = ?",
-                ps -> ps.setInt(1, id),
+                ps -> {
+                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
+                    ps.setInt(2, id);
+                },
                 rs -> {
                     if (rs.next()) {
                         return rs.getInt(ConversionQueueItem.PLACE_IN_QUEUE);
                     }
 
-                    return 0;
+                    return 1;
                 }
         );
     }
@@ -122,11 +134,11 @@ public class ConversionQueueDao {
                         "        LIMIT ?)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
-                        "SELECT cv.*, cc.files_json\n" +
+                        "SELECT cv.*, cc.files_json, 1 as place_in_queue\n" +
                         "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n" +
                         "ORDER BY cv.created_at",
                 ps -> {
-                    ps.setLong(1, MemoryUtils.MB_100);
+                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
                     ps.setInt(2, limit);
                 },
                 (rs, rowNum) -> map(rs)
@@ -211,18 +223,36 @@ public class ConversionQueueDao {
                 });
     }
 
+    public SmartExecutorService.JobWeight getWeight(int id) {
+        Long size = jdbcTemplate.query(
+                "SELECT sum(cf.size) as sm FROm conversion_queue cv, unnest(cv.files) cf WHERE id = ?",
+                ps -> ps.setInt(1, id),
+                rs -> rs.next() ? rs.getLong("sm") : null
+        );
+
+        return size == null ? null : size > fileLimitProperties.getLightFileMaxWeight() ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+    }
+
     public ConversionQueueItem getById(int id) {
+        SmartExecutorService.JobWeight weight = getWeight(id);
+
+        if (weight == null) {
+            return null;
+        }
         return jdbcTemplate.query(
-                "SELECT f.*, queue_place.place_in_queue, cc.files_json\n" +
+                "SELECT f.*, COALESCE(queue_place.place_in_queue, 1) as place_in_queue, cc.files_json\n" +
                         "FROM " + TYPE + " f\n" +
                         "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
-                        "                     FROM " + TYPE + "\n" +
-                        "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ")) queue_place ON f.id = queue_place.id\n" +
+                        "                     FROM " + TYPE + " c, unnest(c.files) cf\n" +
+                        "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ")" +
+                        "        GROUP BY c.id HAVING sum(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
+                        ") queue_place ON f.id = queue_place.id\n" +
                         "         INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE id = ? GROUP BY id) cc ON f.id = cc.id\n" +
                         "WHERE f.id = ?\n",
                 ps -> {
-                    ps.setInt(1, id);
+                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
                     ps.setInt(2, id);
+                    ps.setInt(3, id);
                 },
                 rs -> {
                     if (rs.next()) {

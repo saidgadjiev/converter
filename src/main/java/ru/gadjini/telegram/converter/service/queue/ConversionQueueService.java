@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.dao.ConversionQueueDao;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
+import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TimeCreator;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
@@ -31,11 +32,15 @@ public class ConversionQueueService {
 
     private TimeCreator timeCreator;
 
+    private FileLimitProperties fileLimitProperties;
+
     @Autowired
-    public ConversionQueueService(ConversionQueueDao fileQueueDao, LocalisationService localisationService, TimeCreator timeCreator) {
+    public ConversionQueueService(ConversionQueueDao fileQueueDao, LocalisationService localisationService,
+                                  TimeCreator timeCreator, FileLimitProperties fileLimitProperties) {
         this.fileQueueDao = fileQueueDao;
         this.localisationService = localisationService;
         this.timeCreator = timeCreator;
+        this.fileLimitProperties = fileLimitProperties;
     }
 
     @Transactional
@@ -60,7 +65,8 @@ public class ConversionQueueService {
         fileQueueItem.setLastRunAt(timeCreator.now());
         fileQueueItem.setStatedAt(timeCreator.now());
         fileQueueDao.create(fileQueueItem);
-        fileQueueItem.setPlaceInQueue(fileQueueDao.getPlaceInQueue(fileQueueItem.getId()));
+        fileQueueItem.setPlaceInQueue(fileQueueDao.getPlaceInQueue(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
+                ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT));
 
         return fileQueueItem;
     }

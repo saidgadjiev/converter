@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.property.DetectLanguageProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.BotApiProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.MTProtoProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
@@ -23,7 +24,8 @@ import java.util.TimeZone;
         ConversionProperties.class,
         DetectLanguageProperties.class,
         MTProtoProperties.class,
-        BotApiProperties.class
+        BotApiProperties.class,
+        FileLimitProperties.class
 })
 @EnableScheduling
 @SpringBootApplication

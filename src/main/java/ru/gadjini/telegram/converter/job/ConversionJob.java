@@ -27,6 +27,7 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocum
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
+import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
@@ -65,11 +66,13 @@ public class ConversionJob {
 
     private Set<Any2AnyConverter> any2AnyConverters = new LinkedHashSet<>();
 
+    private FileLimitProperties fileLimitProperties;
+
     @Autowired
     public ConversionJob(ConversionQueueService queueService,
                          FileManager fileManager, UserService userService,
                          InlineKeyboardService inlineKeyboardService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService,
-                         @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder) {
+                         @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder, FileLimitProperties fileLimitProperties) {
         this.queueService = queueService;
         this.fileManager = fileManager;
         this.userService = userService;
@@ -77,6 +80,7 @@ public class ConversionJob {
         this.mediaMessageService = mediaMessageService;
         this.messageService = messageService;
         this.messageBuilder = messageBuilder;
+        this.fileLimitProperties = fileLimitProperties;
     }
 
     @Autowired
@@ -200,10 +204,6 @@ public class ConversionJob {
 
         @Override
         public void execute() throws Exception {
-            if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
-                mediaMessageService.sendFile(fileQueueItem.getUserId(), fileQueueItem.getResultFileId());
-                return;
-            }
             try {
                 fileWorkObject.start();
                 Any2AnyConverter candidate = getCandidate(fileQueueItem);
@@ -211,8 +211,14 @@ public class ConversionJob {
                     String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
                     LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
 
-                    try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
-                        sendResult(fileQueueItem, convertResult);
+                    try {
+                        if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
+                            mediaMessageService.sendFile(fileQueueItem.getUserId(), fileQueueItem.getResultFileId());
+                        } else {
+                            try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
+                                sendResult(fileQueueItem, convertResult);
+                            }
+                        }
                         queueService.complete(fileQueueItem.getId());
                         LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
                     } catch (CorruptedFileException ex) {
@@ -273,7 +279,7 @@ public class ConversionJob {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return fileQueueItem.getSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight() ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         @Override
