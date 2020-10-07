@@ -114,6 +114,10 @@ public class ConversionQueueService {
         fileQueueDao.updateException(id, exception);
     }
 
+    public long getTodayConversionsCount() {
+        return fileQueueDao.getTodayConversionsCount();
+    }
+
     public void completeWithException(int id, String msg) {
         fileQueueDao.updateException(id, ConversionQueueItem.Status.COMPLETED.getCode(), msg);
     }

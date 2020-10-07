@@ -172,6 +172,13 @@ public class ConversionQueueDao {
         );
     }
 
+    public Long getTodayConversionsCount() {
+        return jdbcTemplate.query(
+                "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date AND status = 3",
+                rs -> rs.next() ? rs.getLong("cnt") : -1
+        );
+    }
+
     public void updateCompletedAt(int id, int status) {
         jdbcTemplate.update(
                 "UPDATE " + TYPE + " SET status = ?, completed_at = now() WHERE id = ?",
