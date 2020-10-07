@@ -104,9 +104,14 @@ public class ConversionQueueService {
         return fileQueueDao.delete(id);
     }
 
-    public void exception(int id, Throwable ex) {
+    public void exceptionStatus(int id, Throwable ex) {
         String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
         fileQueueDao.updateException(id, ConversionQueueItem.Status.EXCEPTION.getCode(), exception);
+    }
+
+    public void exception(int id, Throwable ex) {
+        String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
+        fileQueueDao.updateException(id, exception);
     }
 
     public void completeWithException(int id, String msg) {

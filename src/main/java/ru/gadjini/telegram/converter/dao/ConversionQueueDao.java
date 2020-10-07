@@ -162,6 +162,16 @@ public class ConversionQueueDao {
         );
     }
 
+    public void updateException(int id, String exception) {
+        jdbcTemplate.update(
+                "UPDATE " + TYPE + " SET exception = ? WHERE id = ?",
+                ps -> {
+                    ps.setString(1, exception);
+                    ps.setInt(2, id);
+                }
+        );
+    }
+
     public void updateCompletedAt(int id, int status) {
         jdbcTemplate.update(
                 "UPDATE " + TYPE + " SET status = ?, completed_at = now() WHERE id = ?",

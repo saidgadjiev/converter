@@ -227,7 +227,7 @@ public class ConversionJob {
                         throw ex;
                     } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
-                            queueService.exception(fileQueueItem.getId(), ex);
+                            queueService.exceptionStatus(fileQueueItem.getId(), ex);
 
                             throw ex;
                         }
