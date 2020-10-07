@@ -77,7 +77,8 @@ public class ConvertionService {
         }, locale);
     }
 
-    public ConversionQueueItem retry(int id) {
+    public ConversionQueueItem retryFloodWait(int id) {
+        queueService.setSuppressUserExceptions(id, false);
         queueService.setWaiting(id);
 
         return queueService.getItem(id);

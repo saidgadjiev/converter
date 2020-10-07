@@ -63,12 +63,9 @@ public class RetryCommand implements CallbackBotCommand {
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-        ConversionQueueItem queueItem = convertionService.retry(queryItemId);
+        ConversionQueueItem queueItem = convertionService.retryFloodWait(queryItemId);
         if (queueItem == null) {
-            messageService.editMessage(
-                    new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(),
-                            localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
-            );
+            messageService.deleteMessage(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
             messageService.sendAnswerCallbackQuery(
                     new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
                             .setShowAlert(true));
@@ -76,13 +73,14 @@ public class RetryCommand implements CallbackBotCommand {
             String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.WAITING, Lang.JAVA, locale);
             if (!Objects.equals(TextUtils.removeHtmlTags(queuedMessage), callbackQuery.getMessage().getText())) {
                 messageService.editMessage(
-                        new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), queuedMessage)
+                        new EditMessageText(callbackQuery.getMessage().getChatId(), queueItem.getProgressMessageId(), queuedMessage)
                                 .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queryItemId, locale))
                 );
             }
             messageService.sendAnswerCallbackQuery(
                     new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_RETRY_ANSWER, locale)));
+
+            messageService.deleteMessage(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
         }
-        messageService.deleteMessage(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
     }
 }

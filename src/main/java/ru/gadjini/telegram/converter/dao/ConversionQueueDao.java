@@ -215,6 +215,14 @@ public class ConversionQueueDao {
                 ps -> ps.setInt(1, id));
     }
 
+    public void setSuppressUserExceptions(int id, boolean suppressUserExceptions) {
+        jdbcTemplate.update("UPDATE conversion_queue SET suppress_user_exceptions = ? WHERE id = ?",
+                ps -> {
+                    ps.setBoolean(1, suppressUserExceptions);
+                    ps.setInt(2, id);
+                });
+    }
+
     public void setProgressMessageId(int id, int progressMessageId) {
         jdbcTemplate.update("UPDATE conversion_queue SET progress_message_id = ? WHERE id = ?",
                 ps -> {
