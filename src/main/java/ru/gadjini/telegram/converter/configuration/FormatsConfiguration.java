@@ -24,8 +24,6 @@ public class FormatsConfiguration {
         documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
         documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT));
         documents.put(List.of(TXT), List.of(PDF, DOC, DOCX));
-        documents.put(List.of(URL), List.of(PDF, PNG, HTML));
-        documents.put(List.of(HTML), List.of(PDF, PNG));
         documents.put(List.of(XLS, XLSX), List.of(PDF));
         documents.put(List.of(PPTX, PPT, PPTM, POTX, POT, POTM, PPS, PPSX, PPSM), List.of(PDF));
         documents.put(List.of(AZW), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
@@ -53,6 +51,14 @@ public class FormatsConfiguration {
         documents.put(List.of(TXTZ), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, ZIP));
 
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
+
+        Map<List<Format>, List<Format>> web = new LinkedHashMap<>();
+
+        web.put(List.of(URL), List.of(PDF, PNG, HTML));
+        web.put(List.of(HTML), List.of(PDF, PNG));
+        web.put(List.of(HTMLZ), List.of(AZW3, EPUB, DOCX, FB2, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
+
+        FORMATS.put(FormatCategory.WEB, web);
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
         images.put(List.of(PNG), List.of(PDF, DOC, DOCX, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
