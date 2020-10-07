@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.common.CommandNames;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.CurrReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
@@ -90,11 +90,11 @@ public class ConverterBotService {
     }
 
     private boolean restoreCommand(long chatId, String command) {
-        if (StringUtils.isNotBlank(command) && command.startsWith(BotCommand.COMMAND_INIT_CHARACTER + CommandNames.START_COMMAND)) {
+        if (StringUtils.isNotBlank(command) && command.startsWith(BotCommand.COMMAND_INIT_CHARACTER + ConverterCommandNames.START_COMMAND)) {
             return false;
         }
         if (commandNavigator.isEmpty(chatId)) {
-            commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND));
+            commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(ConverterCommandNames.START_COMMAND));
             Locale locale = userService.getLocaleOrDefault((int) chatId);
             messageService.sendBotRestartedMessage(chatId, replyKeyboardService.removeKeyboard(chatId), locale);
 

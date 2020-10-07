@@ -3,7 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.common.CommandNames;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
@@ -71,10 +71,16 @@ public class ConvertionService {
             queueService.setProgressMessageId(queueItem.getId(), message.getMessageId());
             messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
                     .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
-            commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND);
+            commandStateService.deleteState(message.getChatId(), ConverterCommandNames.START_COMMAND);
 
             fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), queueItem.getFirstFileId(), queueItem.getSize(), TAG);
         }, locale);
+    }
+
+    public ConversionQueueItem retry(int id) {
+        queueService.setWaiting(id);
+
+        return queueService.getItem(id);
     }
 
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {

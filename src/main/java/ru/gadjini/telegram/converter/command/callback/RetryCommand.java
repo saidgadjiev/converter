@@ -3,17 +3,17 @@ package ru.gadjini.telegram.converter.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.request.Arg;
+import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.converter.utils.TextUtils;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
@@ -27,43 +27,43 @@ import java.util.Locale;
 import java.util.Objects;
 
 @Component
-public class UpdateQueryStatusCommand implements CallbackBotCommand {
+@SuppressWarnings("CPD-START")
+public class RetryCommand implements CallbackBotCommand {
 
-    private ConversionMessageBuilder messageBuilder;
-
-    private ConversionQueueService queueService;
+    private ConvertionService convertionService;
 
     private UserService userService;
 
-    private MessageService messageService;
+    private LocalisationService localisationService;
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private LocalisationService localisationService;
+    private MessageService messageService;
+
+    private ConversionMessageBuilder messageBuilder;
 
     @Autowired
-    public UpdateQueryStatusCommand(ConversionMessageBuilder messageBuilder,
-                                    ConversionQueueService queueService, UserService userService,
-                                    @Qualifier("messageLimits") MessageService messageService,
-                                    InlineKeyboardService inlineKeyboardService, LocalisationService localisationService) {
-        this.messageBuilder = messageBuilder;
-        this.queueService = queueService;
+    public RetryCommand(ConvertionService convertionService, UserService userService,
+                        LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
+                        @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder) {
+        this.convertionService = convertionService;
         this.userService = userService;
-        this.messageService = messageService;
-        this.inlineKeyboardService = inlineKeyboardService;
         this.localisationService = localisationService;
+        this.inlineKeyboardService = inlineKeyboardService;
+        this.messageService = messageService;
+        this.messageBuilder = messageBuilder;
     }
 
     @Override
     public String getName() {
-        return ConverterCommandNames.UPDATE_QUERY_STATUS;
+        return CommandNames.RETRY;
     }
 
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-        ConversionQueueItem queueItem = queueService.getItem(queryItemId);
+        ConversionQueueItem queueItem = convertionService.retry(queryItemId);
         if (queueItem == null) {
             messageService.editMessage(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(),
@@ -81,7 +81,8 @@ public class UpdateQueryStatusCommand implements CallbackBotCommand {
                 );
             }
             messageService.sendAnswerCallbackQuery(
-                    new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.UPDATED_CALLBACK_ANSWER, locale)));
+                    new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_RETRY_ANSWER, locale)));
         }
+        messageService.deleteMessage(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
     }
 }

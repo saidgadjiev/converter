@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
-import ru.gadjini.telegram.converter.common.CommandNames;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
@@ -40,7 +40,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
 
     @Override
     public String getName() {
-        return CommandNames.REPORT_COMMAND_NAME;
+        return ConverterCommandNames.REPORT_COMMAND_NAME;
     }
 
     @Override

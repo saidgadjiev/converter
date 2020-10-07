@@ -2,7 +2,7 @@ package ru.gadjini.telegram.converter.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.common.CommandNames;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.CommandMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -22,11 +22,11 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
     public String getCommandsInfo(Locale locale) {
         StringBuilder info = new StringBuilder();
 
-        info.append("/").append(CommandNames.START_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.START_COMMAND_DESCRIPTION, locale)).append("\n");
-        info.append("/").append(CommandNames.CONVERT_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.CONVERT_COMMAND_DESCRIPTION, locale)).append("\n");
-        info.append("/").append(CommandNames.LANGUAGE_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_DESCRIPTION, locale)).append("\n");
-        info.append("/").append(CommandNames.FORMATS_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.FORMATS_COMMAND_DESCRIPTION, locale)).append("\n");
-        info.append("/").append(CommandNames.HELP_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.HELP_COMMAND_DESCRIPTION, locale));
+        info.append("/").append(ConverterCommandNames.START_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.START_COMMAND_DESCRIPTION, locale)).append("\n");
+        info.append("/").append(ConverterCommandNames.CONVERT_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.CONVERT_COMMAND_DESCRIPTION, locale)).append("\n");
+        info.append("/").append(ConverterCommandNames.LANGUAGE_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_DESCRIPTION, locale)).append("\n");
+        info.append("/").append(ConverterCommandNames.FORMATS_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.FORMATS_COMMAND_DESCRIPTION, locale)).append("\n");
+        info.append("/").append(ConverterCommandNames.HELP_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.HELP_COMMAND_DESCRIPTION, locale));
 
         return info.toString();
     }

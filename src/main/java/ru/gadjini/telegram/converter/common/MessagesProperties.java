@@ -35,6 +35,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_QUERY_ITEM_NOT_FOUND = "message.query.item.not.found";
 
+    public static final String MESSAGE_RETRY_ANSWER = "message.retry.answer";
+
     public static final String MESSAGE_NO_BASE_URL_IN_HTML = "message.no.base.url.in.html";
 
     public static final String MESSAGE_CONVERT_WARNINGS = "message.convert.warnings";

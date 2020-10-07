@@ -3,7 +3,7 @@ package ru.gadjini.telegram.converter.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.common.CommandNames;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.job.ConversionJob;
 import ru.gadjini.telegram.converter.request.Arg;
@@ -40,7 +40,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
 
     @Override
     public String getName() {
-        return CommandNames.CANCEL_QUERY_COMMAND_NAME;
+        return ConverterCommandNames.CANCEL_QUERY_COMMAND_NAME;
     }
 
     @Override

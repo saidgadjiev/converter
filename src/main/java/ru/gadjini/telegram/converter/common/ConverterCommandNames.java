@@ -1,8 +1,8 @@
 package ru.gadjini.telegram.converter.common;
 
-public class CommandNames {
+public class ConverterCommandNames {
 
-    private CommandNames() {
+    private ConverterCommandNames() {
 
     }
 

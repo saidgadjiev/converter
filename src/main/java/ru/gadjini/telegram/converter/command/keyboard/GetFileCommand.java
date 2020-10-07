@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
-import ru.gadjini.telegram.converter.common.CommandNames;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
@@ -31,6 +31,6 @@ public class GetFileCommand implements BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return CommandNames.GET_FILE_COMMAND;
+        return ConverterCommandNames.GET_FILE_COMMAND;
     }
 }
