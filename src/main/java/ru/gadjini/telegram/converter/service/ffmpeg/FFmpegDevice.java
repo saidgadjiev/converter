@@ -45,6 +45,8 @@ public class FFmpegDevice {
         cmd.add("-i");
         cmd.add(in);
         cmd.addAll(Arrays.asList(options));
+        cmd.add("-threads");
+        cmd.add(String.valueOf(ffmpegThreads));
         cmd.add(out);
 
         return cmd.toArray(String[]::new);
