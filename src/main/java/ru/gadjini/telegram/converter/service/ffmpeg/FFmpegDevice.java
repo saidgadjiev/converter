@@ -1,9 +1,13 @@
 package ru.gadjini.telegram.converter.service.ffmpeg;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +16,17 @@ import java.util.Set;
 @Service
 public class FFmpegDevice {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegDevice.class);
+
     private ProcessExecutor processExecutor;
+
+    @Value("${ffmpeg.threads:2}")
+    private int ffmpegThreads;
+
+    @PostConstruct
+    public void init() {
+        LOGGER.debug("Ffmpeg threads({})", ffmpegThreads);
+    }
 
     @Autowired
     public FFmpegDevice(ProcessExecutor processExecutor) {
