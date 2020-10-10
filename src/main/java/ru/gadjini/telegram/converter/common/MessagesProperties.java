@@ -79,6 +79,8 @@ public class MessagesProperties {
 
     public static final String CONVERTING_STEP = "converting.step";
 
+    public static final String COMPRESSING_STEP = "compressing.step";
+
     public static final String UPLOADING_STEP = "uploading.step";
 
     public static final String ICON_CHECK = "icon.check";

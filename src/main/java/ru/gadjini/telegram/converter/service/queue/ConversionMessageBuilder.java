@@ -33,7 +33,7 @@ public class ConversionMessageBuilder {
         this.progressManager = progressManager;
     }
 
-    public String getFilesDownloadingProgressMessage(long fileSize, int current, int total, Lang lang, Locale locale) {
+    public String getFilesDownloadingProgressMessage(long fileSize, int current, int total, Format targetFormat, Lang lang, Locale locale) {
         String formatter = lang == Lang.JAVA ? "%s" : "{}";
         String percentage = lang == Lang.JAVA ? "%%" : "%";
         boolean progress = isShowingProgress(fileSize, ConversionStep.DOWNLOADING);
@@ -42,42 +42,43 @@ public class ConversionMessageBuilder {
         return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_FILES_STEP, new Object[]{current, total}, locale) + " " + percentageFormatter + "</b>\n" +
                 (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" : "") +
                 (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" : "") +
-                "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b>\n" +
+                "<b>" + localisationService.getMessage(targetFormat == Format.COMPRESS ? MessagesProperties.COMPRESSING_STEP : MessagesProperties.CONVERTING_STEP, locale) + "</b>\n" +
                 "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
     }
 
-    public String getProgressMessage(long fileSize, ConversionStep conversionStep, Lang lang, Locale locale) {
+    public String getProgressMessage(long fileSize, ConversionStep conversionStep, Format targetFormat, Lang lang, Locale locale) {
         String formatter = lang == Lang.JAVA ? "%s" : "{}";
         String percentage = lang == Lang.JAVA ? "%%" : "%";
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
         boolean progress = isShowingProgress(fileSize, conversionStep);
         String percentageFormatter = progress ? "(" + formatter + percentage + ")..." : "...";
+        String conversionMsgCode = targetFormat == Format.COMPRESS ? MessagesProperties.COMPRESSING_STEP : MessagesProperties.CONVERTING_STEP;
 
         switch (conversionStep) {
             case WAITING:
                 return "<b>" + localisationService.getMessage(MessagesProperties.WAITING_STEP, locale) + "...</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b>\n" +
-                        "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b>\n" +
+                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
             case DOWNLOADING:
                 return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + " " + percentageFormatter + "</b>\n" +
                         (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" : "") +
                         (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" : "") +
-                        "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b>\n" +
+                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
             case CONVERTING:
                 return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
-                        "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + " ...</b>\n" +
+                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + " ...</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
             case UPLOADING:
                 return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
-                        "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + " " + percentageFormatter + "</b>\n" +
                         (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" : "") +
                         (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>" : "");
             default:
                 return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
-                        "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b> " + iconCheck;
         }
     }
@@ -128,14 +129,14 @@ public class ConversionMessageBuilder {
     public String getFilesDownloadingProgressMessage(ConversionQueueItem queueItem, long fileSize, int current, int total, Lang lang, Locale locale) {
         String progressingMessage = getConversionProgressingMessage(queueItem, Collections.emptySet(), locale);
 
-        return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(fileSize, current, total, lang, locale);
+        return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(fileSize, current, total, queueItem.getTargetFormat(), lang, locale);
     }
 
     public String getConversionProcessingMessage(ConversionQueueItem queueItem, long fileSize, Set<String> warns,
                                                  ConversionStep conversionStep, Lang lang, Locale locale) {
         String progressingMessage = getConversionProgressingMessage(queueItem, warns, locale);
 
-        return progressingMessage + "\n\n" + getProgressMessage(fileSize, conversionStep, lang, locale);
+        return progressingMessage + "\n\n" + getProgressMessage(fileSize, conversionStep, queueItem.getTargetFormat(), lang, locale);
     }
 
     public String getUploadingProgressMessage(ConversionQueueItem queueItem, Locale locale) {
@@ -144,7 +145,7 @@ public class ConversionMessageBuilder {
 
         return progressingMessage + "\n\n" +
                 "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
-                "<b>" + localisationService.getMessage(MessagesProperties.CONVERTING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                "<b>" + localisationService.getMessage(queueItem.getTargetFormat() == Format.COMPRESS ? MessagesProperties.COMPRESSING_STEP : MessagesProperties.CONVERTING_STEP, locale) + "</b> " + iconCheck + "\n" +
                 "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "...</b>\n";
     }
 
