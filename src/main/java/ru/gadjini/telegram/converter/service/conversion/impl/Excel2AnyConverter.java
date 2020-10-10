@@ -50,10 +50,15 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
             Workbook workbook = new Workbook(file.getAbsolutePath());
             try {
                 SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
-                workbook.save(tempFile.getAbsolutePath(), SaveFormat.PDF);
+                try {
+                    workbook.save(tempFile.getAbsolutePath(), SaveFormat.PDF);
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
-                return new FileResult(fileName, tempFile);
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
+                    return new FileResult(fileName, tempFile);
+                } catch (Throwable e) {
+                    tempFile.smartDelete();
+                    throw e;
+                }
             } finally {
                 workbook.dispose();
             }

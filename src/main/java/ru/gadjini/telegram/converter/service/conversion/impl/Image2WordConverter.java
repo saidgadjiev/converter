@@ -61,10 +61,15 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 documentBuilder.insertImage(file.getAbsolutePath());
                 SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                documentBuilder.getDocument().save(out.getAbsolutePath());
+                try {
+                    documentBuilder.getDocument().save(out.getAbsolutePath());
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, out);
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                    return new FileResult(fileName, out);
+                } catch (Throwable e) {
+                    out.smartDelete();
+                    throw e;
+                }
             } finally {
                 document.cleanup();
             }

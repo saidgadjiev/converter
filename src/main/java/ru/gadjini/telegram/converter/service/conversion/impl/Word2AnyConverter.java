@@ -53,10 +53,15 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
             Document asposeDocument = new Document(file.getAbsolutePath());
             try {
                 SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                asposeDocument.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
+                try {
+                    asposeDocument.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, result);
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                    return new FileResult(fileName, result);
+                } catch (Throwable e) {
+                    result.smartDelete();
+                    throw e;
+                }
             } finally {
                 asposeDocument.cleanup();
             }

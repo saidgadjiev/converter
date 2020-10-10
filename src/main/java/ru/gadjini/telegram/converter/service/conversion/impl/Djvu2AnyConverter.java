@@ -62,23 +62,28 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
 
             SmartTempFile file = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                //Try convert with calibre
-                calibreDevice.convert(in.getAbsolutePath(), file.getAbsolutePath());
-            } catch (ProcessException ex) {
-                //Fail because djvu has no actual text and has scanned images. Trying do conversion with djvulibre
-                LOGGER.error("No text djvu({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId());
-                SmartTempFile pdf = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
-
                 try {
-                    djvuLibre.convert(in.getAbsolutePath(), pdf.getAbsolutePath(), "-format=pdf");
-                    calibreDevice.convert(pdf.getAbsolutePath(), file.getAbsolutePath(), "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
-                } finally {
-                    pdf.smartDelete();
-                }
-            }
+                    //Try convert with calibre
+                    calibreDevice.convert(in.getAbsolutePath(), file.getAbsolutePath());
+                } catch (ProcessException ex) {
+                    //Fail because djvu has no actual text and has scanned images. Trying do conversion with djvulibre
+                    LOGGER.error("No text djvu({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId());
+                    SmartTempFile pdf = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, file);
+                    try {
+                        djvuLibre.convert(in.getAbsolutePath(), pdf.getAbsolutePath(), "-format=pdf");
+                        calibreDevice.convert(pdf.getAbsolutePath(), file.getAbsolutePath(), "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+                    } finally {
+                        pdf.smartDelete();
+                    }
+                }
+
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, file);
+            } catch (Throwable e) {
+                file.smartDelete();
+                throw e;
+            }
         } finally {
             in.smartDelete();
         }

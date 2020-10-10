@@ -75,10 +75,15 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
 
                 documentBuilder.write(text);
                 SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
+                try {
+                    document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, result);
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                    return new FileResult(fileName, result);
+                } catch (Throwable e) {
+                    result.smartDelete();
+                    throw e;
+                }
             } finally {
                 document.cleanup();
             }

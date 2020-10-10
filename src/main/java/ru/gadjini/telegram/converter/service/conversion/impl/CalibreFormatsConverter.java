@@ -75,10 +75,15 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, in);
 
             SmartTempFile file = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), getOptions(fileQueueItem));
+            try {
+                convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), getOptions(fileQueueItem));
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, file);
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, file);
+            } catch (Throwable e) {
+                file.smartDelete();
+                throw e;
+            }
         } finally {
             in.smartDelete();
         }

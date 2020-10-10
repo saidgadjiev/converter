@@ -48,8 +48,8 @@ public class Text2TxtConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult toTxt(ConversionQueueItem fileQueueItem) {
+        SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.TXT.getExt());
         try {
-            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.TXT.getExt());
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
             LOGGER.debug("Text info({})", textInfo);
             String text = TextUtils.removeAllEmojis(fileQueueItem.getFirstFileId(), textInfo.getDirection());
@@ -58,6 +58,7 @@ public class Text2TxtConverter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TXT.getExt());
             return new FileResult(fileName, result);
         } catch (Exception ex) {
+            result.smartDelete();
             throw new ConvertException(ex);
         }
     }

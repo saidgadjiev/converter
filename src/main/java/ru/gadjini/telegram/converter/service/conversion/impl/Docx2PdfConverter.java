@@ -57,10 +57,15 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
                 Document doc = new Document(docFile.getAbsolutePath());
                 try {
                     SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
-                    doc.save(result.getAbsolutePath(), SaveFormat.PDF);
+                    try {
+                        doc.save(result.getAbsolutePath(), SaveFormat.PDF);
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, result);
+                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                        return new FileResult(fileName, result);
+                    } catch (Throwable e) {
+                        result.smartDelete();
+                        throw e;
+                    }
                 } finally {
                     doc.cleanup();
                 }

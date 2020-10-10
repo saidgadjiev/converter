@@ -42,15 +42,20 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
         fileQueueItem.setTargetFormat(Format.PDF);
         try (FileResult fileResult = (FileResult) images2PdfTiffConverter.convert(fileQueueItem)) {
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, originalFormat.getExt());
-            Document document = new Document(fileResult.getFile().getAbsolutePath());
             try {
-                document.save(result.getAbsolutePath(), originalFormat == Format.DOC ? SaveFormat.Doc : SaveFormat.DocX);
-            } finally {
-                document.dispose();
-            }
+                Document document = new Document(fileResult.getFile().getAbsolutePath());
+                try {
+                    document.save(result.getAbsolutePath(), originalFormat == Format.DOC ? SaveFormat.Doc : SaveFormat.DocX);
+                } finally {
+                    document.dispose();
+                }
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileResult.getFileName(), originalFormat.getExt());
-            return new FileResult(fileName, result);
+                String fileName = Any2AnyFileNameUtils.getFileName(fileResult.getFileName(), originalFormat.getExt());
+                return new FileResult(fileName, result);
+            } catch (Throwable e) {
+                result.smartDelete();
+                throw e;
+            }
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

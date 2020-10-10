@@ -52,10 +52,15 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
             try {
                 SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                document.save(result.getAbsolutePath());
+                try {
+                    document.save(result.getAbsolutePath());
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, result);
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                    return new FileResult(fileName, result);
+                } catch (Throwable e) {
+                    result.smartDelete();
+                    throw e;
+                }
             } finally {
                 document.cleanup();
             }

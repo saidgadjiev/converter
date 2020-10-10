@@ -57,10 +57,15 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
                         documentBuilder.insertImage(tiffFrame.toBitmap());
                     }
                     SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                    documentBuilder.getDocument().save(result.getAbsolutePath());
+                    try {
+                        documentBuilder.getDocument().save(result.getAbsolutePath());
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, result);
+                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                        return new FileResult(fileName, result);
+                    } catch (Throwable e) {
+                        result.smartDelete();
+                        throw e;
+                    }
                 } finally {
                     documentBuilder.getDocument().cleanup();
                 }

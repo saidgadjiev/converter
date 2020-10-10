@@ -64,10 +64,15 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
                 page.getParagraphs().add(text);
 
                 SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
-                doc.save(result.getAbsolutePath());
+                try {
+                    doc.save(result.getAbsolutePath());
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
-                return new FileResult(fileName, result);
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
+                    return new FileResult(fileName, result);
+                } catch (Throwable e) {
+                    result.smartDelete();
+                    throw e;
+                }
             } finally {
                 doc.dispose();
             }

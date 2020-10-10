@@ -71,12 +71,17 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
             normalize(file.getFile(), fileQueueItem);
 
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
+            try {
+                imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return fileQueueItem.getTargetFormat() == STICKER
-                    ? new StickerResult(tempFile)
-                    : new FileResult(fileName, tempFile);
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                return fileQueueItem.getTargetFormat() == STICKER
+                        ? new StickerResult(tempFile)
+                        : new FileResult(fileName, tempFile);
+            } catch (Throwable e) {
+                tempFile.smartDelete();
+                throw e;
+            }
         } catch (ProcessException ex) {
             throw ex;
         } catch (Exception ex) {

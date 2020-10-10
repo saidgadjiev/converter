@@ -51,11 +51,16 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(),
-                    "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
+            try {
+                imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(),
+                        "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, tempFile);
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, tempFile);
+            } catch (Throwable e) {
+                tempFile.smartDelete();
+                throw e;
+            }
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {

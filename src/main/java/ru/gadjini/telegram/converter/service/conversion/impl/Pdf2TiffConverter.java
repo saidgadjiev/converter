@@ -52,7 +52,6 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
                 throw new CorruptedFileException("Damaged pdf file");
             }
             return toTiff(fileQueueItem, file);
-
         } finally {
             file.smartDelete();
         }
@@ -64,10 +63,15 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
             try {
                 TiffDevice tiffDevice = new TiffDevice();
                 SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
-                tiffDevice.process(pdf, tiff.getAbsolutePath());
+                try {
+                    tiffDevice.process(pdf, tiff.getAbsolutePath());
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
-                return new FileResult(fileName, tiff);
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
+                    return new FileResult(fileName, tiff);
+                } catch (Throwable e) {
+                    tiff.smartDelete();
+                    throw e;
+                }
             } finally {
                 pdf.dispose();
             }

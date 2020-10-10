@@ -55,22 +55,27 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.SVG.getExt());
-            if (fileQueueItem.getFirstFileFormat() != Format.PNG) {
-                SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PNG.getExt());
-                try {
-                    imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
-                    imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
+            try {
+                if (fileQueueItem.getFirstFileFormat() != Format.PNG) {
+                    SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PNG.getExt());
+                    try {
+                        imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
+                        imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
+
+                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
+                        return new FileResult(fileName, result);
+                    } finally {
+                        tempFile.smartDelete();
+                    }
+                } else {
+                    imageTracer.trace(file.getAbsolutePath(), result.getAbsolutePath());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
                     return new FileResult(fileName, result);
-                } finally {
-                    tempFile.smartDelete();
                 }
-            } else {
-                imageTracer.trace(file.getAbsolutePath(), result.getAbsolutePath());
-
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
-                return new FileResult(fileName, result);
+            } catch (Throwable e) {
+                result.smartDelete();
+                throw e;
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);

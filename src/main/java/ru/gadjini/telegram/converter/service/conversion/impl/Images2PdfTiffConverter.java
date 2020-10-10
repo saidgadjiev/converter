@@ -91,15 +91,19 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             magickDevice.changeFormatAndRemoveAlphaChannel(parentDir + "*", Format.PNG.getExt());
 
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            try {
+                String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
+                if (fileQueueItem.getTargetFormat() == Format.PDF) {
+                    image2PdfDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
+                } else {
+                    magickDevice.convert2Tiff(parentDir + "*.png", result.getAbsolutePath());
+                }
 
-            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
-            if (fileQueueItem.getTargetFormat() == Format.PDF) {
-                image2PdfDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
-            } else {
-                magickDevice.convert2Tiff(parentDir + "*.png", result.getAbsolutePath());
+                return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result);
+            } catch (Throwable e) {
+                result.smartDelete();
+                throw e;
             }
-
-            return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result);
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
