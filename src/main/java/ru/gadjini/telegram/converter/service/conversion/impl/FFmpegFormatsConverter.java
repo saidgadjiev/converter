@@ -1,24 +1,17 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.codec.VideoCodec;
-import ru.gadjini.telegram.converter.service.conversion.codec.VideoCodecService;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
-import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +25,6 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  */
 @Component
 public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegFormatsConverter.class);
 
     private static final String TAG = "ffmpeg";
 
@@ -55,23 +46,17 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
 
     private FFmpegDevice fFmpegDevice;
 
-    private FFprobeDevice fFprobeDevice;
-
     private TempFileService fileService;
 
     private FileManager fileManager;
 
-    private VideoCodecService codecService;
-
     @Autowired
-    public FFmpegFormatsConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, TempFileService fileService,
-                                  FileManager fileManager, VideoCodecService codecService) {
+    public FFmpegFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService,
+                                  FileManager fileManager) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
-        this.fFprobeDevice = fFprobeDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
-        this.codecService = codecService;
     }
 
     @Override
@@ -83,9 +68,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-
-            String videoCodecStr = StringUtils.defaultIfBlank(fFprobeDevice.getVideoCodec(file.getAbsolutePath()), "").replace("\n", "");
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getId(), fileQueueItem.getSize(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat(), videoCodecStr));
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, out);
@@ -94,25 +77,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getOptions(int jobId, long fileSize, Format src, Format target, String videoCodecStr) {
-        VideoCodec videoCodec = VideoCodec.fromCode(videoCodecStr);
-        if (videoCodec == null) {
-            LOGGER.debug("Unknown video codec({}, {}, {})", src, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
-        }
-        if (codecService.isVideoCodecSupported(target, videoCodec)) {
-            LOGGER.debug("Copy codecs({}, {}, {}, {}, {})", jobId, src, target, videoCodecStr, MemoryUtils.humanReadableByteCount(fileSize));
-            if (target == AVI && videoCodec == VideoCodec.H264) {
-                return new String[]{
-                        "-bsf:v", "h264_mp4toannexb", "-c:v", "copy", "-c:a", "copy"
-                };
-            } else {
-                return new String[]{
-                        "-c:v", "copy", "-c:a", "copy"
-                };
-            }
-        } else {
-            LOGGER.debug("Codecs not copied({}, {}, {}, {})", jobId, src, target, videoCodec);
-        }
+    private String[] getOptions(Format src, Format target) {
         if (src == VOB) {
             if (target == WEBM) {
                 return new String[]{
