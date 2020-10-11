@@ -6,7 +6,6 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.StickerResult;
-import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
@@ -16,7 +15,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -45,16 +43,12 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
 
     private ImageMagickDevice imageDevice;
 
-    private ConversionFormatService formatService;
-
     @Autowired
-    public Image2AnyConverter(FileManager fileManager, TempFileService fileService,
-                              ImageMagickDevice imageDevice, ConversionFormatService formatService) {
+    public Image2AnyConverter(FileManager fileManager, TempFileService fileService, ImageMagickDevice imageDevice) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
         this.imageDevice = imageDevice;
-        this.formatService = formatService;
     }
 
     @Override
@@ -68,7 +62,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-            normalize(file.getFile(), fileQueueItem);
+            normalize(fileQueueItem);
 
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
@@ -91,11 +85,9 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private void normalize(File file, ConversionQueueItem fileQueueItem) {
+    private void normalize(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFirstFileFormat() == PHOTO) {
-            Format format = formatService.getImageFormat(file, fileQueueItem.getFirstFileId());
-            format = format == null ? JPG : format;
-            fileQueueItem.getFirstFile().setFormat(format);
+            fileQueueItem.getFirstFile().setFormat(JPG);
         }
     }
 }

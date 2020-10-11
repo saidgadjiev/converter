@@ -61,6 +61,7 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
             SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
             try {
                 try {
+                    pdf.optimizeResources();
                     TiffDevice tiffDevice = new TiffDevice();
                     tiffDevice.process(pdf, tiff.getAbsolutePath());
                 } finally {

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
@@ -15,7 +14,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -33,14 +31,11 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
 
     private TempFileService fileService;
 
-    private ConversionFormatService formatService;
-
     @Autowired
-    public Image2WordConverter(FileManager fileManager, TempFileService fileService, ConversionFormatService formatService) {
+    public Image2WordConverter(FileManager fileManager, TempFileService fileService) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
-        this.formatService = formatService;
     }
 
     @Override
@@ -54,7 +49,7 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-            normalize(file.getFile(), fileQueueItem);
+            normalize(fileQueueItem);
 
             Document document = new Document();
             try {
@@ -80,11 +75,9 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private void normalize(File file, ConversionQueueItem fileQueueItem) {
+    private void normalize(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFirstFileFormat() == Format.PHOTO) {
-            Format format = formatService.getImageFormat(file, fileQueueItem.getFirstFileId());
-            format = format == null ? Format.JPG : format;
-            fileQueueItem.getFirstFile().setFormat(format);
+            fileQueueItem.getFirstFile().setFormat(Format.JPG);
         }
     }
 }

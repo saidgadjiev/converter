@@ -6,9 +6,8 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
-import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
+import ru.gadjini.telegram.converter.service.image.device.Img2PdfDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -17,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -46,21 +44,16 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
 
     private ImageMagickDevice magickDevice;
 
-    private final Image2PdfDevice image2PdfDevice;
-
-    private ConversionFormatService formatService;
+    private final Img2PdfDevice image2PdfDevice;
 
     @Autowired
     public Image2PdfConverter(FileManager fileManager, TempFileService fileService,
-                              ImageMagickDevice magickDevice,
-                              Image2PdfDevice image2PdfDevice,
-                              ConversionFormatService formatService) {
+                              ImageMagickDevice magickDevice, Img2PdfDevice image2PdfDevice) {
         super(MAP);
         this.fileManager = fileManager;
         this.fileService = fileService;
         this.magickDevice = magickDevice;
         this.image2PdfDevice = image2PdfDevice;
-        this.formatService = formatService;
     }
 
     @Override
@@ -74,7 +67,7 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-            normalize(file.getFile(), fileQueueItem);
+            normalize(fileQueueItem);
 
             SmartTempFile src = file;
             if (fileQueueItem.getFirstFileFormat() != PNG) {
@@ -106,11 +99,9 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private void normalize(File file, ConversionQueueItem fileQueueItem) {
+    private void normalize(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFirstFileFormat() == PHOTO) {
-            Format format = formatService.getImageFormat(file, fileQueueItem.getFirstFileId());
-            format = format == null ? JPG : format;
-            fileQueueItem.getFirstFile().setFormat(format);
+            fileQueueItem.getFirstFile().setFormat(JPG);
         }
     }
 }

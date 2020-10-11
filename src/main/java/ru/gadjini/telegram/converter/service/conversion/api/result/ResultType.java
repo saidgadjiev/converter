@@ -4,5 +4,7 @@ public enum ResultType {
 
     FILE,
 
-    STICKER
+    STICKER,
+
+    BUSY
 }

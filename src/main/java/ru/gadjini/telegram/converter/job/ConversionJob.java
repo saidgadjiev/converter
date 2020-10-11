@@ -15,6 +15,7 @@ import ru.gadjini.telegram.converter.exception.CorruptedFileException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ResultType;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -214,12 +215,17 @@ public class ConversionJob {
                     try {
                         if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
                             mediaMessageService.sendFile(fileQueueItem.getUserId(), fileQueueItem.getResultFileId());
+                            queueService.complete(fileQueueItem.getId());
                         } else {
                             try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
-                                sendResult(fileQueueItem, convertResult);
+                                if (convertResult.resultType() == ResultType.BUSY) {
+                                    queueService.setWaiting(fileQueueItem.getId());
+                                } else {
+                                    sendResult(fileQueueItem, convertResult);
+                                    queueService.complete(fileQueueItem.getId());
+                                }
                             }
                         }
-                        queueService.complete(fileQueueItem.getId());
                         LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
                     } catch (CorruptedFileException ex) {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
