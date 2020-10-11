@@ -38,7 +38,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
@@ -151,7 +151,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         return fileResult;
     }
 
-    private ConvertResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) throws ExecutionException, InterruptedException {
+    private ConvertResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) throws Exception {
         AtomicReference<FileResult> fileResultAtomicReference = new AtomicReference<>();
         CompletableFuture<Boolean> completableFuture = asposeExecutorService.submit(new AsposeExecutorService.AsposeTask() {
             @Override
@@ -191,7 +191,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             }
         });
 
-        Boolean aBoolean = completableFuture.get();
+        Boolean aBoolean = completableFuture.get(30, TimeUnit.MINUTES);
 
         if (aBoolean) {
             return fileResultAtomicReference.get();
@@ -288,7 +288,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 }
             }
         });
-        Boolean aBoolean = completableFuture.get();
+        Boolean aBoolean = completableFuture.get(30, TimeUnit.MINUTES);
 
         if (aBoolean) {
             return fileResultAtomicReference.get();

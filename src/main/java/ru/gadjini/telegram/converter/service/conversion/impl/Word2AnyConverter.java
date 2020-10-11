@@ -19,6 +19,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
@@ -118,7 +119,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
         });
 
         try {
-            Boolean aBoolean = completableFuture.get();
+            Boolean aBoolean = completableFuture.get(30, TimeUnit.MINUTES);
 
             if (aBoolean) {
                 return fileResultAtomicReference.get();
