@@ -125,5 +125,5 @@ COPY ./target/app.jar .
 
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-Xss5m", "-Xmx8g", "-Xms512m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
-#ENTRYPOINT ["java", "-Xss5m", "-Xmx8g", "-Xms256m", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+ENTRYPOINT ["java", "-Xss5m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
+#ENTRYPOINT ["java", "-Xss5m", "-Xmx8g", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
