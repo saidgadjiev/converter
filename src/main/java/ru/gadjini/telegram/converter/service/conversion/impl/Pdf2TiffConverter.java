@@ -49,6 +49,7 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
 
             Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
+                pdf.optimize();
                 pdf.optimizeResources();
                 TiffDevice tiffDevice = new TiffDevice();
                 SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
