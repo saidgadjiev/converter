@@ -16,6 +16,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ResultType;
+import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -69,11 +70,14 @@ public class ConversionJob {
 
     private FileLimitProperties fileLimitProperties;
 
+    private AsposeExecutorService asposeExecutorService;
+
     @Autowired
     public ConversionJob(ConversionQueueService queueService,
                          FileManager fileManager, UserService userService,
                          InlineKeyboardService inlineKeyboardService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService,
-                         @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder, FileLimitProperties fileLimitProperties) {
+                         @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
+                         FileLimitProperties fileLimitProperties, AsposeExecutorService asposeExecutorService) {
         this.queueService = queueService;
         this.fileManager = fileManager;
         this.userService = userService;
@@ -82,6 +86,7 @@ public class ConversionJob {
         this.messageService = messageService;
         this.messageBuilder = messageBuilder;
         this.fileLimitProperties = fileLimitProperties;
+        this.asposeExecutorService = asposeExecutorService;
     }
 
     @Autowired
@@ -155,6 +160,7 @@ public class ConversionJob {
 
     public void shutdown() {
         executor.shutdown();
+        asposeExecutorService.shutdown();
     }
 
     private void applyAsposeLicenses() {
@@ -220,13 +226,14 @@ public class ConversionJob {
                             try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                                 if (convertResult.resultType() == ResultType.BUSY) {
                                     queueService.setWaiting(fileQueueItem.getId());
+                                    LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
                                 } else {
                                     sendResult(fileQueueItem, convertResult);
                                     queueService.complete(fileQueueItem.getId());
                                 }
                             }
                         }
-                        LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
+                        LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), size);
                     } catch (CorruptedFileException ex) {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
 
@@ -264,6 +271,7 @@ public class ConversionJob {
                 LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFirstFileFormat(),
                         fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), fileQueueItem.getFirstFileId());
             }
+            asposeExecutorService.cancel(fileQueueItem.getId());
             executor.complete(fileQueueItem.getId());
             fileWorkObject.stop();
         }

@@ -25,6 +25,7 @@ import ru.gadjini.telegram.converter.service.logger.Lg;
 import ru.gadjini.telegram.converter.service.logger.SoutLg;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
@@ -100,7 +101,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 }
             } catch (Throwable e) {
                 log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
-                throw new ConvertException(e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout"), e);
+                throw new ProcessException(-1, e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout") + "\n" + ExceptionUtils.getStackTrace(e));
             } finally {
                 file.smartDelete();
             }
@@ -137,7 +138,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 }
             } catch (Throwable e) {
                 log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
-                throw new ConvertException(e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout"), e);
+                throw new ProcessException(-1, e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout") + "\n" + ExceptionUtils.getStackTrace(e));
             }
         }
 

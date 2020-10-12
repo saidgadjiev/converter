@@ -6,7 +6,7 @@ services:
     build: ../../../
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
-        - ../../../data/converter/oom:/home/bot/app/oom
+      - ../../../data/converter/oom:/home/bot/app/oom
       - ../../../data/shr:/tmp/shr
       - ../../../../fonts:/usr/share/fonts/converter
     ports:

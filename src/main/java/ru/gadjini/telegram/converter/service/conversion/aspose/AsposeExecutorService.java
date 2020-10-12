@@ -22,6 +22,14 @@ public class AsposeExecutorService {
         return completableFuture;
     }
 
+    public void cancel(int id) {
+        CompletableFuture<Boolean> completableFuture = callbacks.get(id);
+        if (completableFuture != null && !completableFuture.isCancelled()) {
+            callbacks.remove(id);
+            completableFuture.cancel(true);
+        }
+    }
+
     public void shutdown() {
         callbacks.forEach((integer, completableFuture) -> completableFuture.cancel(true));
         executorService.shutdownNow();
