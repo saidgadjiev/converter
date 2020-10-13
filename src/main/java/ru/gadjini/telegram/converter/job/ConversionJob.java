@@ -166,6 +166,7 @@ public class ConversionJob {
         if (!executor.cancelAndComplete(jobId, true)) {
             fileManager.fileWorkObject(item.getId(), item.getSize()).stop();
         }
+        asposeExecutorService.cancel(jobId);
 
         return item.getStatus() != ConversionQueueItem.Status.COMPLETED;
     }
