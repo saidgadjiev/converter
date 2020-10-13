@@ -63,10 +63,10 @@ public class ConvertionService {
         this.replyKeyboardService = replyKeyboardService;
     }
 
-    public void createConversion(User user, ConvertState convertState, Format targetFormat, Locale locale) {
+    public void createConversion(User user, ConvertState convertState, int canceledTasksCount, Format targetFormat, Locale locale) {
         ConversionQueueItem queueItem = queueService.create(user, convertState, targetFormat);
 
-        sendConversionQueuedMessage(queueItem, convertState, message -> {
+        sendConversionQueuedMessage(queueItem, convertState, canceledTasksCount, message -> {
             queueItem.setProgressMessageId(message.getMessageId());
             queueService.setProgressMessageId(queueItem.getId(), message.getMessageId());
             messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
@@ -84,8 +84,11 @@ public class ConvertionService {
         return queueService.getItem(id);
     }
 
-    private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
+    private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, int canceledTasksCount, Consumer<Message> callback, Locale locale) {
         String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
+        if (canceledTasksCount > 0) {
+            queuedMessage += "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_CURRENT_TASKS_CANCELED, locale);
+        }
         messageService.sendMessage(new HtmlMessage((long) queueItem.getUserId(), queuedMessage)
                 .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)), callback);
     }

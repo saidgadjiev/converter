@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.job.ConversionJob;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
@@ -77,6 +78,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private XSync<String> stringXSync;
 
+    private ConversionJob conversionJob;
+
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService,
                         @Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService,
@@ -84,7 +87,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         FormatService formatService, ConvertionService convertionService,
                         ConversionMessageBuilder queueMessageBuilder,
                         TempFileService fileService, FileManager fileManager, MessageMediaService messageMediaService,
-                        ConversionFormatService conversionFormatService, XSync<String> stringXSync) {
+                        ConversionFormatService conversionFormatService, XSync<String> stringXSync, ConversionJob conversionJob) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -98,6 +101,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         this.messageMediaService = messageMediaService;
         this.conversionFormatService = conversionFormatService;
         this.stringXSync = stringXSync;
+        this.conversionJob = conversionJob;
     }
 
     @Override
@@ -155,7 +159,9 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     return;
                 }
                 Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFirstFormat(), associatedFormat, text, locale);
-                conversionService.createConversion(message.getFrom(), convertState, targetFormat, locale);
+                int canceledTasksCount = conversionJob.removeAndCancelCurrentTasks(message.getFrom().getId());
+
+                conversionService.createConversion(message.getFrom(), convertState, canceledTasksCount, targetFormat, locale);
                 commandStateService.deleteState(message.getChatId(), ConverterCommandNames.START_COMMAND);
             } else {
                 messageService.sendMessage(

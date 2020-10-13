@@ -145,6 +145,18 @@ public class ConversionJob {
         LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
+    public int removeAndCancelCurrentTasks(long chatId) {
+        List<ConversionQueueItem> conversionQueueItems = queueService.deleteProcessingOrWaitingByUserId((int) chatId);
+        for (ConversionQueueItem conversionQueueItem : conversionQueueItems) {
+            if (!executor.cancelAndComplete(conversionQueueItem.getId(), true)) {
+                fileManager.fileWorkObject(conversionQueueItem.getUserId(), conversionQueueItem.getSize()).stop();
+            }
+            asposeExecutorService.cancel(conversionQueueItem.getId());
+        }
+
+        return conversionQueueItems.size();
+    }
+
     public boolean cancel(int jobId) {
         ConversionQueueItem item = queueService.delete(jobId);
 

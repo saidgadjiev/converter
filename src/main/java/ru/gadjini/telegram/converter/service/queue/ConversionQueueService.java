@@ -126,6 +126,10 @@ public class ConversionQueueService {
         fileQueueDao.updateException(id, ConversionQueueItem.Status.CANDIDATE_NOT_FOUND.getCode(), "Converter not found");
     }
 
+    public List<ConversionQueueItem> deleteProcessingOrWaitingByUserId(int userId) {
+        return fileQueueDao.deleteProcessingOrWaitingByUserId(userId);
+    }
+
     public void complete(int id) {
         fileQueueDao.updateCompletedAt(id, ConversionQueueItem.Status.COMPLETED.getCode());
     }

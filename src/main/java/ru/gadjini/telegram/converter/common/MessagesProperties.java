@@ -37,6 +37,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_RETRY_ANSWER = "message.retry.answer";
 
+    public static final String MESSAGE_CURRENT_TASKS_CANCELED = "message.current.tasks.canceled";
+
     public static final String MESSAGE_NO_BASE_URL_IN_HTML = "message.no.base.url.in.html";
 
     public static final String MESSAGE_CONVERT_WARNINGS = "message.convert.warnings";

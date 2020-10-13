@@ -189,6 +189,14 @@ public class ConversionQueueDao {
         );
     }
 
+
+    public List<ConversionQueueItem> deleteProcessingOrWaitingByUserId(int userId) {
+        return jdbcTemplate.query("WITH del AS(DELETE FROM " + TYPE + " WHERE user_id = ? AND status IN (0, 1) RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                ps -> ps.setInt(1, userId),
+                (rs, rowNum) -> map(rs)
+        );
+    }
+
     public ConversionQueueItem delete(int id) {
         return jdbcTemplate.query(
                 "WITH del AS(DELETE FROM " + TYPE + " WHERE id = ? RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
