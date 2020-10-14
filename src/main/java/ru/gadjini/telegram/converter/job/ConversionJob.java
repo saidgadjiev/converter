@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.job;
 
 import com.aspose.words.License;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.smart.bot.commons.exception.FloodWaitException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
@@ -253,9 +255,16 @@ public class ConversionJob {
                         throw ex;
                     } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
-                            queueService.exceptionStatus(fileQueueItem.getId(), ex);
+                            int floodWaitExceptionIndexOf = ExceptionUtils.indexOfThrowable(ex, FloodWaitException.class);
+                            if (floodWaitExceptionIndexOf != -1) {
+                                LOGGER.error(ex.getMessage());
+                                queueService.setWaiting(fileQueueItem.getId());
+                                updateProgressMessageAfterFloodWait(fileQueueItem.getId());
+                            } else {
+                                queueService.exceptionStatus(fileQueueItem.getId(), ex);
 
-                            throw ex;
+                                throw ex;
+                            }
                         }
                     }
                 } else {
@@ -345,6 +354,19 @@ public class ConversionJob {
             }
 
             return queueItem.getFirstFileFormat();
+        }
+
+        private void updateProgressMessageAfterFloodWait(int id) {
+            ConversionQueueItem queueItem = queueService.getItem(id);
+
+            if (queueItem == null) {
+                return;
+            }
+            Locale locale = userService.getLocaleOrDefault(queueItem.getId());
+            String message = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.WAITING, Lang.JAVA, locale);
+
+            messageService.editMessage(new EditMessageText((long) queueItem.getUserId(), queueItem.getProgressMessageId(), message)
+                    .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)));
         }
 
         private Progress progress(long chatId, ConversionQueueItem queueItem) {
