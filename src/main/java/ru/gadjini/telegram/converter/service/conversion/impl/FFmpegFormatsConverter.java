@@ -1,12 +1,16 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -16,6 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -25,6 +30,8 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  */
 @Component
 public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegFormatsConverter.class);
 
     private static final String TAG = "ffmpeg";
 
@@ -50,13 +57,16 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
 
     private FileManager fileManager;
 
+    private FFprobeDevice fFprobeDevice;
+
     @Autowired
     public FFmpegFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService,
-                                  FileManager fileManager) {
+                                  FileManager fileManager, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
+        this.fFprobeDevice = fFprobeDevice;
     }
 
     @Override
@@ -69,7 +79,13 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
+                try {
+                    String videoCodec = fFprobeDevice.getVideoCodec(file.getAbsolutePath());
+                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getCopyCodecsOptions(fileQueueItem.getFirstFileFormat(), videoCodec));
+                } catch (ProcessException e) {
+                    LOGGER.error("Error copy codecs for " + fileQueueItem.getId() + "\n" + e.getMessage(), e);
+                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
+                }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return new FileResult(fileName, out);
@@ -79,6 +95,18 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             }
         } finally {
             file.smartDelete();
+        }
+    }
+
+    private String[] getCopyCodecsOptions(Format target, String videoCodec) {
+        if (target == AVI && Objects.equals(videoCodec, "h264")) {
+            return new String[]{
+                    "-bsf:v", "h264_mp4toannexb", "-c:v", "copy", "-c:a", "copy"
+            };
+        } else {
+            return new String[]{
+                    "-c:v", "copy", "-c:a", "copy"
+            };
         }
     }
 
@@ -110,7 +138,7 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
             };
         }
         if (target == MPEG) {
-            return new String[] {
+            return new String[]{
                     "-f", "dvd", "-filter:v", "scale='min(4095,iw)':min'(4095,ih)':force_original_aspect_ratio=decrease"
             };
         }
