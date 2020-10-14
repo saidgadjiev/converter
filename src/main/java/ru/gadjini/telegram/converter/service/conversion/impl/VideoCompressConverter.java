@@ -84,8 +84,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 LOGGER.debug("Trying compress({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                         MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(resultSize), bitRate);
 
-                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-b:v", bitRateOption, "-maxrate",
-                        bitRateOption, "-bufsize", bitRate * 2 + "k");
+                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(),  "-maxrate",
+                        bitRateOption, "-bufsize", bitRate * 2 + "k", "-preset", "veryfast", "-tune", "film");
 
                 LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                         fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()), bitRate);
