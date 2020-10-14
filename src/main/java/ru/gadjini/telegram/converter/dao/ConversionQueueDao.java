@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.BooleanUtils;
 import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -17,6 +19,7 @@ import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.sql.*;
 import java.time.ZoneOffset;
@@ -31,6 +34,8 @@ import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
 
 @Repository
 public class ConversionQueueDao {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionQueueDao.class);
 
     private JdbcTemplate jdbcTemplate;
 
@@ -52,6 +57,7 @@ public class ConversionQueueDao {
                 formatsSet.add(value);
             }
         }
+        LOGGER.debug("Light file weight({})", MemoryUtils.humanReadableByteCount(fileLimitProperties.getLightFileMaxWeight()));
     }
 
     public void create(ConversionQueueItem queueItem) {
