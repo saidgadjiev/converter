@@ -185,6 +185,43 @@ public class ConversionQueueDao {
         );
     }
 
+    public Long getYesterdayConversionsCount() {
+        return jdbcTemplate.query(
+                "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date - interval '1 days' AND status = 3",
+                rs -> rs.next() ? rs.getLong("cnt") : -1
+        );
+    }
+
+    public Long getWeeklyConversionsCount() {
+        return jdbcTemplate.query(
+                "SELECT count(*) as cnt FROM conversion_queue " +
+                        "WHERE completed_at::date > current_date - interval '7 days' AND completed_at::date <= current_date AND status = 3",
+                rs -> rs.next() ? rs.getLong("cnt") : -1
+        );
+    }
+
+    public Long getMonthlyConversionsCount() {
+        return jdbcTemplate.query(
+                "SELECT count(*) as cnt FROM conversion_queue " +
+                        "WHERE completed_at::date > current_date - interval '30 days' AND completed_at::date <= current_date AND status = 3",
+                rs -> rs.next() ? rs.getLong("cnt") : -1
+        );
+    }
+
+    public Long getAllConversionsCount() {
+        return jdbcTemplate.query(
+                "SELECT max(id) as cnt FROM conversion_queue WHERE status = 3",
+                rs -> rs.next() ? rs.getLong("cnt") : -1
+        );
+    }
+
+    public Long getTodayDailyActiveUsersCount() {
+        return jdbcTemplate.query(
+                "SELECT count(DISTINCT user_id) as cnt FROM conversion_queue WHERE completed_at::date = current_date AND status = 3",
+                rs -> rs.next() ? rs.getLong("cnt") : -1
+        );
+    }
+
     public void updateCompletedAt(int id, int status) {
         jdbcTemplate.update(
                 "UPDATE " + TYPE + " SET status = ?, completed_at = now() WHERE id = ?",

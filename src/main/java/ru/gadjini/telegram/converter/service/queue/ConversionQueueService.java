@@ -118,6 +118,26 @@ public class ConversionQueueService {
         return fileQueueDao.getTodayConversionsCount();
     }
 
+    public long getYesterdayConversionsCount() {
+        return fileQueueDao.getYesterdayConversionsCount();
+    }
+
+    public long getWeeklyConversionsCount() {
+        return fileQueueDao.getWeeklyConversionsCount();
+    }
+
+    public long getMonthlyConversionsCount() {
+        return fileQueueDao.getWeeklyConversionsCount();
+    }
+
+    public long getAllConversionsCount() {
+        return fileQueueDao.getAllConversionsCount();
+    }
+
+    public long getTodayDailyActiveUsersCount() {
+        return fileQueueDao.getTodayDailyActiveUsersCount();
+    }
+
     public void completeWithException(int id, String msg) {
         fileQueueDao.updateException(id, ConversionQueueItem.Status.COMPLETED.getCode(), msg);
     }
