@@ -39,7 +39,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
@@ -193,7 +192,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             }
         });
 
-        Boolean aBoolean = completableFuture.get(30, TimeUnit.MINUTES);
+        Boolean aBoolean = completableFuture.get();
 
         if (aBoolean) {
             return fileResultAtomicReference.get();
@@ -290,7 +289,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 }
             }
         });
-        Boolean aBoolean = completableFuture.get(30, TimeUnit.MINUTES);
+        Boolean aBoolean = completableFuture.get();
 
         if (aBoolean) {
             return fileResultAtomicReference.get();
