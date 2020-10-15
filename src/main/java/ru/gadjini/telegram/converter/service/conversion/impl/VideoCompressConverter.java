@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -84,8 +85,13 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 LOGGER.debug("Trying compress({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                         MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(resultSize), bitRate);
 
-                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(),  "-maxrate",
-                        bitRateOption, "-bufsize", bitRate * 2 + "k", "-preset", "veryfast", "-tune", "film");
+                String[] options = new String[]{
+                        "-b:v", bitRateOption, "-maxrate", bitRateOption, "-bufsize", bitRate * 2 + "k",
+                        "-preset", "veryfast", "-tune", "film"
+                };
+                String[] formatSpecificOptions = getOptions(fileQueueItem.getFirstFileFormat());
+                String[] allOptions = Stream.concat(Stream.of(formatSpecificOptions), Stream.of(options)).toArray(String[]::new);
+                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
 
                 LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                         fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()), bitRate);
@@ -104,6 +110,16 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         } finally {
             file.smartDelete();
         }
+    }
+
+    private String[] getOptions(Format src) {
+        if (src == _3GP) {
+            return new String[]{
+                    "-vcodec", "h263", "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
+            };
+        }
+
+        return new String[0];
     }
 
     private long getBitRate(long fileSize, long duration) {
