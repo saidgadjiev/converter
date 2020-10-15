@@ -87,7 +87,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
                 String[] options = new String[]{
                         "-b:v", bitRateOption, "-maxrate", bitRateOption, "-bufsize", bitRate * 2 + "k",
-                        "-preset", "veryfast", "-tune", "film"
+                        "-preset", "veryfast", "-tune", "film", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2"
                 };
                 String[] formatSpecificOptions = getOptions(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(formatSpecificOptions), Stream.of(options)).toArray(String[]::new);
