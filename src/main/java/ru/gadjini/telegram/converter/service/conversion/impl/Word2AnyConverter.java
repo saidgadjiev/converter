@@ -13,6 +13,7 @@ import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -53,22 +54,30 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
     private ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         AtomicReference<FileResult> fileResultAtomicReference = new AtomicReference<>();
 
-        CompletableFuture<Boolean> completableFuture = asposeExecutorService.submit(new AsposeExecutorService.AsposeTask() {
-            @Override
-            public int getId() {
-                return fileQueueItem.getId();
-            }
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        try {
+            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
+            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
-            @Override
-            public void run() {
-                SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+            Document asposeDocument = new Document(file.getAbsolutePath());
+            try {
+                CompletableFuture<Boolean> completableFuture = asposeExecutorService.submit(new AsposeExecutorService.AsposeTask() {
+                    @Override
+                    public int getId() {
+                        return fileQueueItem.getId();
+                    }
 
-                try {
-                    Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-                    fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
+                    @Override
+                    public SmartExecutorService.JobWeight getWeight() {
+                        try {
+                            return asposeDocument.getPageCount() > 150 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+                        } catch (Exception e) {
+                            throw new ConvertException(e);
+                        }
+                    }
 
-                    Document asposeDocument = new Document(file.getAbsolutePath());
-                    try {
+                    @Override
+                    public void run() {
                         SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                         try {
                             SmartTempFile tempDir = fileService.createTempDir(fileQueueItem.getUserId(), TAG);
@@ -104,29 +113,29 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
                             fileResultAtomicReference.set(new FileResult(fileName, result));
                         } catch (Throwable e) {
                             result.smartDelete();
-                            throw e;
+                            throw new ConvertException(e);
                         }
-                    } finally {
-                        asposeDocument.cleanup();
                     }
-                } catch (Exception ex) {
-                    throw new ConvertException(ex);
-                } finally {
-                    file.smartDelete();
+                });
+
+                try {
+                    Boolean aBoolean = completableFuture.get();
+
+                    if (aBoolean) {
+                        return fileResultAtomicReference.get();
+                    }
+
+                    return new BusyConvertResult();
+                } catch (Exception e) {
+                    throw new ConvertException(e);
                 }
+            } finally {
+                asposeDocument.cleanup();
             }
-        });
-
-        try {
-            Boolean aBoolean = completableFuture.get();
-
-            if (aBoolean) {
-                return fileResultAtomicReference.get();
-            }
-
-            return new BusyConvertResult();
-        } catch (Exception e) {
-            throw new ConvertException(e);
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
+        } finally {
+            file.smartDelete();
         }
     }
 }

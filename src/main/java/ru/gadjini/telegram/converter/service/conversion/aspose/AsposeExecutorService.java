@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.aspose;
 
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -10,14 +11,30 @@ import java.util.function.Supplier;
 @Service
 public class AsposeExecutorService {
 
-    private final ThreadPoolExecutor executorService = createThreadPool();
+    private static final int THREADS = 1;
+
+    private final ThreadPoolExecutor lightExecutorService = createThreadPool(THREADS);
+
+    private final ThreadPoolExecutor heavyExecutorService = createThreadPool(THREADS);
 
     private final Map<Integer, CompletableFuture<Boolean>> callbacks = new ConcurrentHashMap<>();
 
     public CompletableFuture<Boolean> submit(AsposeTask asposeTask) {
         CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
         callbacks.put(asposeTask.getId(), completableFuture);
-        completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), executorService);
+        if (asposeTask.getWeight() == SmartExecutorService.JobWeight.LIGHT) {
+            synchronized (heavyExecutorService) {
+                if (heavyExecutorService.getActiveCount() < heavyExecutorService.getCorePoolSize()) {
+                    completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), heavyExecutorService);
+                } else {
+                    completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), lightExecutorService);
+                }
+            }
+        } else {
+            synchronized (heavyExecutorService) {
+                completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), heavyExecutorService);
+            }
+        }
 
         return completableFuture;
     }
@@ -32,11 +49,11 @@ public class AsposeExecutorService {
 
     public void shutdown() {
         callbacks.forEach((integer, completableFuture) -> completableFuture.cancel(true));
-        executorService.shutdownNow();
+        lightExecutorService.shutdownNow();
     }
 
-    private ThreadPoolExecutor createThreadPool() {
-        return new ThreadPoolExecutor(2, 2, 0L, TimeUnit.SECONDS,
+    private ThreadPoolExecutor createThreadPool(int threads) {
+        return new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.SECONDS,
                 new SynchronousQueue<>(),
                 (r, executor) -> {
                     AsposeTask job = getJob(r);
@@ -64,6 +81,8 @@ public class AsposeExecutorService {
     public interface AsposeTask extends Runnable {
 
         int getId();
+
+        SmartExecutorService.JobWeight getWeight();
     }
 
     private class AsposeTaskSupplier implements Supplier<Boolean> {
