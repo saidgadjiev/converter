@@ -22,16 +22,14 @@ public class AsposeExecutorService {
     public CompletableFuture<Boolean> submit(AsposeTask asposeTask) {
         CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
         callbacks.put(asposeTask.getId(), completableFuture);
-        if (asposeTask.getWeight() == SmartExecutorService.JobWeight.LIGHT) {
-            synchronized (heavyExecutorService) {
+        synchronized (heavyExecutorService) {
+            if (asposeTask.getWeight() == SmartExecutorService.JobWeight.LIGHT) {
                 if (heavyExecutorService.getActiveCount() < heavyExecutorService.getCorePoolSize()) {
                     completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), heavyExecutorService);
                 } else {
                     completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), lightExecutorService);
                 }
-            }
-        } else {
-            synchronized (heavyExecutorService) {
+            } else {
                 completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), heavyExecutorService);
             }
         }

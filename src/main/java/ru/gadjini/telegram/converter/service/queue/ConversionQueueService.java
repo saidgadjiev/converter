@@ -127,7 +127,7 @@ public class ConversionQueueService {
     }
 
     public long getMonthlyConversionsCount() {
-        return fileQueueDao.getWeeklyConversionsCount();
+        return fileQueueDao.getMonthlyConversionsCount();
     }
 
     public long getAllConversionsCount() {
