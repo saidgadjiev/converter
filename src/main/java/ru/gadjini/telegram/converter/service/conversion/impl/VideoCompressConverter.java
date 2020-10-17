@@ -78,8 +78,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
-                long resultSize = fileQueueItem.getSize() / 3;
-                long bitRate = getBitRate(fileQueueItem.getSize() / 3, fFprobeDevice.getDurationInSeconds(file.getAbsolutePath()));
+                long resultSize = fileQueueItem.getSize() / 2;
+                long bitRate = getBitRate(fileQueueItem.getSize() / 2, fFprobeDevice.getDurationInSeconds(file.getAbsolutePath()));
                 String bitRateOption = bitRate + "k";
 
                 LOGGER.debug("Trying compress({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
@@ -87,7 +87,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
                 String[] options = new String[]{
                         "-b:v", bitRateOption, "-maxrate", bitRateOption, "-bufsize", bitRate * 2 + "k",
-                        "-preset", "veryfast", "-tune", "film", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2"
+                        "-preset", "veryfast", "-tune", "animation", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2"
                 };
                 String[] formatSpecificOptions = getOptions(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(formatSpecificOptions), Stream.of(options)).toArray(String[]::new);
