@@ -22,10 +22,17 @@ public class ConverterCommandNames {
 
     public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
 
-    public static final String GET_FILE_COMMAND = "getfile";
+    public static final String CONVERSION_STATS_COMMAND = "cstats";
+
+    public static final String EXECUTE_CONVERSION_COMMAND = "exec";
 
     public static final String UPDATE_QUERY_STATUS = "updq";
 
     public static final String STATS_COMMAND = "stats";
 
+    public static final String SET_RESULT_FILE_ID = "setresfileid";
+
+    public static final String SET_FILE_ID = "setfileid";
+
+    public static final String GET_EXCEPTION = "exception";
 }

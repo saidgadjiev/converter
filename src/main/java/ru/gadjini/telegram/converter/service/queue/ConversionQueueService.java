@@ -84,6 +84,11 @@ public class ConversionQueueService {
         fileQueueDao.setWaiting(id);
     }
 
+    public void setWaiting(int id, Throwable ex) {
+        String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
+        fileQueueDao.setWaiting(id, exception);
+    }
+
     public void setSuppressUserExceptions(int id, boolean suppressUserExceptions) {
         fileQueueDao.setSuppressUserExceptions(id, suppressUserExceptions);
     }
@@ -94,6 +99,14 @@ public class ConversionQueueService {
 
     public void setResultFileId(int id, String fileId) {
         fileQueueDao.setResultFileId(id, fileId);
+    }
+
+    public void setFileId(int id, String fileId) {
+        fileQueueDao.setFileId(id, fileId);
+    }
+
+    public String getException(int id) {
+        return fileQueueDao.getException(id);
     }
 
     public void resetProcessing() {

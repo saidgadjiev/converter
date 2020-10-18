@@ -12,6 +12,8 @@ public class ConversionQueueItem {
 
     public static final String TYPE = "conversion_queue";
 
+    public static final String EXCEPTION = "exception";
+
     public static final String ID = "id";
 
     public static final String USER_ID = "user_id";
@@ -19,6 +21,10 @@ public class ConversionQueueItem {
     public static final String REPLY_TO_MESSAGE_ID = "reply_to_message_id";
 
     public static final String CREATED_AT = "created_at";
+
+    public static final String STARTED_AT = "started_at";
+
+    public static final String COMPLETED_AT = "completed_at";
 
     public static final String LAST_RUN_AT = "last_run_at";
 

@@ -168,6 +168,17 @@ public class ConversionQueueDao {
         );
     }
 
+    public void setWaiting(int id, String exception) {
+        jdbcTemplate.update(
+                "UPDATE " + TYPE + " SET exception = ?, status = ? WHERE id = ?",
+                ps -> {
+                    ps.setString(1, exception);
+                    ps.setInt(2, ConversionQueueItem.Status.WAITING.getCode());
+                    ps.setInt(3, id);
+                }
+        );
+    }
+
     public void updateException(int id, String exception) {
         jdbcTemplate.update(
                 "UPDATE " + TYPE + " SET exception = ? WHERE id = ?",
@@ -317,6 +328,26 @@ public class ConversionQueueDao {
         return size == null ? null : size > fileLimitProperties.getLightFileMaxWeight() ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
     }
 
+    public void setFileId(int id, String fileId) {
+        jdbcTemplate.update(
+                "UPDATE conversion_queue SET files[1].file_id = ? WHERE id = ?",
+                ps -> {
+                    ps.setString(1, fileId);
+                    ps.setInt(2, id);
+                }
+        );
+    }
+
+    public String getException(int id) {
+        return jdbcTemplate.query(
+                "SELECT exception FROM conversion_queue WHERE id = ?",
+                ps -> {
+                    ps.setInt(1, id);
+                },
+                rs -> rs.next() ? rs.getString(ConversionQueueItem.EXCEPTION) : null
+        );
+    }
+
     public ConversionQueueItem getById(int id) {
         SmartExecutorService.JobWeight weight = getWeight(id);
 
@@ -364,14 +395,26 @@ public class ConversionQueueDao {
 
         fileQueueItem.setFiles(mapFiles(rs));
 
+        Timestamp createdAt = rs.getTimestamp(ConversionQueueItem.CREATED_AT);
+        fileQueueItem.setCreatedAt(ZonedDateTime.of(createdAt.toLocalDateTime(), ZoneOffset.UTC));
+
+        Timestamp startedAt = rs.getTimestamp(ConversionQueueItem.STARTED_AT);
+        fileQueueItem.setStatedAt(ZonedDateTime.of(startedAt.toLocalDateTime(), ZoneOffset.UTC));
+
+        Timestamp completedAt = rs.getTimestamp(ConversionQueueItem.COMPLETED_AT);
+        if (completedAt != null) {
+            fileQueueItem.setCompletedAt(ZonedDateTime.of(completedAt.toLocalDateTime(), ZoneOffset.UTC));
+        }
+
+        Timestamp lastRunAt = rs.getTimestamp(ConversionQueueItem.LAST_RUN_AT);
+        if (lastRunAt != null) {
+            fileQueueItem.setLastRunAt(ZonedDateTime.of(lastRunAt.toLocalDateTime(), ZoneOffset.UTC));
+        }
+
         fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(ConversionQueueItem.TARGET_FORMAT)));
         fileQueueItem.setMessage(rs.getString(ConversionQueueItem.MESSAGE));
         fileQueueItem.setProgressMessageId(rs.getInt(ConversionQueueItem.PROGRESS_MESSAGE_ID));
-        Timestamp lastRunAt = rs.getTimestamp(ConversionQueueItem.LAST_RUN_AT);
-        if (lastRunAt != null) {
-            ZonedDateTime zonedDateTime = ZonedDateTime.of(lastRunAt.toLocalDateTime(), ZoneOffset.UTC);
-            fileQueueItem.setLastRunAt(zonedDateTime);
-        }
+
         fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
         if (columns.contains(ConversionQueueItem.PLACE_IN_QUEUE)) {
             fileQueueItem.setPlaceInQueue(rs.getInt(ConversionQueueItem.PLACE_IN_QUEUE));

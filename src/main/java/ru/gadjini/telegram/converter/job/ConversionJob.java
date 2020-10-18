@@ -23,6 +23,7 @@ import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.smart.bot.commons.exception.DownloadingException;
 import ru.gadjini.telegram.smart.bot.commons.exception.FloodWaitException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
@@ -255,10 +256,11 @@ public class ConversionJob {
                         throw ex;
                     } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
+                            int downloadingExceptionIndexOf = ExceptionUtils.indexOfThrowable(ex, DownloadingException.class);
                             int floodWaitExceptionIndexOf = ExceptionUtils.indexOfThrowable(ex, FloodWaitException.class);
-                            if (floodWaitExceptionIndexOf != -1) {
+                            if (downloadingExceptionIndexOf != -1 || floodWaitExceptionIndexOf  != -1) {
                                 LOGGER.error(ex.getMessage());
-                                queueService.setWaiting(fileQueueItem.getId());
+                                queueService.setWaiting(fileQueueItem.getId(), ex);
                                 updateProgressMessageAfterFloodWait(fileQueueItem.getId());
                             } else {
                                 queueService.exceptionStatus(fileQueueItem.getId(), ex);

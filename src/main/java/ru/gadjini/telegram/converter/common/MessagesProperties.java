@@ -106,4 +106,6 @@ public class MessagesProperties {
     public static final String UPDATED_CALLBACK_ANSWER = "updated.callback.answer";
 
     public static final String MESSAGE_STATS = "message.stats";
+
+    public static final String MESSAGE_CONVERSION_STATS = "message.conversion.stats";
 }
