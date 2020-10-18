@@ -78,7 +78,7 @@ public class ConversionJob {
     @Autowired
     public ConversionJob(ConversionQueueService queueService,
                          FileManager fileManager, UserService userService,
-                         InlineKeyboardService inlineKeyboardService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService,
+                         InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                          @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
                          FileLimitProperties fileLimitProperties, AsposeExecutorService asposeExecutorService) {
         this.queueService = queueService;
