@@ -105,11 +105,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
-    public boolean accept(Message message) {
-        return true;
-    }
-
-    @Override
     public void processNonCommandUpdate(Message message, String text) {
         stringXSync.execute(message.getChatId().toString(), () -> {
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
