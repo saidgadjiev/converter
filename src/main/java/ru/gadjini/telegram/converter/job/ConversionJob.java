@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.job;
 
 import com.aspose.words.License;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +22,6 @@ import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
-import ru.gadjini.telegram.smart.bot.commons.exception.DownloadingException;
-import ru.gadjini.telegram.smart.bot.commons.exception.FloodWaitException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
@@ -256,12 +253,8 @@ public class ConversionJob {
                         throw ex;
                     } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
-                            int downloadingExceptionIndexOf = ExceptionUtils.indexOfThrowable(ex, DownloadingException.class);
-                            int floodWaitExceptionIndexOf = ExceptionUtils.indexOfThrowable(ex, FloodWaitException.class);
-                            if (downloadingExceptionIndexOf != -1 || floodWaitExceptionIndexOf  != -1) {
-                                LOGGER.error(ex.getMessage());
-                                queueService.setWaiting(fileQueueItem.getId(), ex);
-                                updateProgressMessageAfterFloodWait(fileQueueItem.getId());
+                            if (FileManager.isSomethingWentWrongWithDownloadingUploading(ex)) {
+                                handleDownloadingUploadingException(ex);
                             } else {
                                 queueService.exceptionStatus(fileQueueItem.getId(), ex);
 
@@ -348,6 +341,12 @@ public class ConversionJob {
             }
 
             return null;
+        }
+
+        private void handleDownloadingUploadingException(Throwable ex) {
+            LOGGER.error(ex.getMessage());
+            queueService.setWaiting(fileQueueItem.getId(), ex);
+            updateProgressMessageAfterFloodWait(fileQueueItem.getId());
         }
 
         private Format getCandidateFormat(ConversionQueueItem queueItem) {
