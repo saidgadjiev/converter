@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class XSyncConfiguration {
 
     @Bean
-    public XSync<String> stringXSync() {
+    public XSync<Long> longXSync() {
         return new XSync<>();
     }
 }

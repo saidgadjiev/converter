@@ -76,7 +76,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private ConversionFormatService conversionFormatService;
 
-    private XSync<String> stringXSync;
+    private XSync<Long> longXSync;
 
     private ConversionJob conversionJob;
 
@@ -87,7 +87,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         FormatService formatService, ConvertionService convertionService,
                         ConversionMessageBuilder queueMessageBuilder,
                         TempFileService fileService, FileManager fileManager, MessageMediaService messageMediaService,
-                        ConversionFormatService conversionFormatService, XSync<String> stringXSync, ConversionJob conversionJob) {
+                        ConversionFormatService conversionFormatService, XSync<Long> longXSync, ConversionJob conversionJob) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -100,7 +100,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         this.fileManager = fileManager;
         this.messageMediaService = messageMediaService;
         this.conversionFormatService = conversionFormatService;
-        this.stringXSync = stringXSync;
+        this.longXSync = longXSync;
         this.conversionJob = conversionJob;
     }
 
@@ -111,7 +111,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        stringXSync.execute(message.getChatId().toString(), () -> {
+        longXSync.execute(message.getChatId(), () -> {
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
             ConvertState convertState = commandStateService.getState(message.getChatId(), ConverterCommandNames.START_COMMAND, false, ConvertState.class);
