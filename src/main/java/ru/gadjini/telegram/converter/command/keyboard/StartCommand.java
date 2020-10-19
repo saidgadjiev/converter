@@ -105,11 +105,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
-    public boolean accept(Message message) {
-        return true;
-    }
-
-    @Override
     public void processNonCommandUpdate(Message message, String text) {
         longXSync.execute(message.getChatId(), () -> {
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
@@ -274,7 +269,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         SmartTempFile file = fileService.createTempFile(chatId, fileId, TAG, Format.HTML.getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileId, fileSize, file);
+            fileManager.forceDownloadFileByFileId(fileId, fileSize, file);
 
             Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");

@@ -49,7 +49,7 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, tiff);
+            fileManager.forceDownloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, tiff);
             try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
                 DocumentBuilder documentBuilder = new DocumentBuilder();
                 try {

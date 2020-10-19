@@ -45,7 +45,7 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, pdfFile);
+            fileManager.forceDownloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, pdfFile);
 
             Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
