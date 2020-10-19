@@ -299,7 +299,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         }
         if (format.getCategory() == FormatCategory.ARCHIVE) {
             LOGGER.warn("Archive unsupported({})", userId);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FILE, new Object[] {mimeType}, locale));
         }
         if (!conversionFormatService.isSupportedCategory(format.getCategory())) {
             LOGGER.warn("Category unsupported({}, {})", userId, format.getCategory());

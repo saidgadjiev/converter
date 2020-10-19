@@ -29,6 +29,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";
 
+    public static final String MESSAGE_UNSUPPORTED_FILE = "message.unsupported.file";
+
     public static final String CANCEL_QUERY_COMMAND_DESCRIPTION = "cancel.query.command.description";
 
     public static final String MESSAGE_QUERY_CANCELED = "message.query.canceled";
