@@ -50,7 +50,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter {
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, html);
+            fileManager.forceDownloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, html);
             SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 htmlDevice.convertHtml(html.getAbsolutePath(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));

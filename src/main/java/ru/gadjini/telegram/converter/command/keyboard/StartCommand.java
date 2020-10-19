@@ -269,7 +269,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         SmartTempFile file = fileService.createTempFile(chatId, fileId, TAG, Format.HTML.getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileId, fileSize, file);
+            fileManager.forceDownloadFileByFileId(fileId, fileSize, file);
 
             Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");

@@ -49,7 +49,7 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
+            fileManager.forceDownloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.GIF.getExt());
             try {
                 processExecutor.execute(command(file.getAbsolutePath(), result.getAbsolutePath()));

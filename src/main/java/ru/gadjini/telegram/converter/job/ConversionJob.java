@@ -253,8 +253,8 @@ public class ConversionJob {
                         throw ex;
                     } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
-                            if (FileManager.isSomethingWentWrongWithDownloadingUploading(ex)) {
-                                handleDownloadingUploadingException(ex);
+                            if (FileManager.isFloodWaitException(ex)) {
+                                handleFloodWaitException(ex);
                             } else {
                                 queueService.exceptionStatus(fileQueueItem.getId(), ex);
 
@@ -343,7 +343,7 @@ public class ConversionJob {
             return null;
         }
 
-        private void handleDownloadingUploadingException(Throwable ex) {
+        private void handleFloodWaitException(Throwable ex) {
             LOGGER.error(ex.getMessage());
             queueService.setWaiting(fileQueueItem.getId(), ex);
             updateProgressMessageAfterFloodWait(fileQueueItem.getId());

@@ -51,7 +51,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, txt);
+            fileManager.forceDownloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, txt);
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);
