@@ -74,7 +74,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
-                String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-1:ceil(ih/4)*2", "-crf", "30", "-preset", "veryfast"};
+                String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-2:ceil(ih/4)*2", "-crf", "30", "-preset", "veryfast"};
                 String[] formatSpecificOptions = getOptions(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(formatSpecificOptions), Stream.of(options)).toArray(String[]::new);
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
