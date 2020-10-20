@@ -9,7 +9,6 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
-import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -54,18 +53,15 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private UserService userService;
 
-    private FFprobeDevice fFprobeDevice;
-
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager,
-                                  LocalisationService localisationService, UserService userService, FFprobeDevice fFprobeDevice) {
+                                  LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.userService = userService;
-        this.fFprobeDevice = fFprobeDevice;
     }
 
     @Override
@@ -78,23 +74,13 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
-                long resultSize = fileQueueItem.getSize() / 2;
-                long bitRate = getBitRate(fileQueueItem.getSize() / 2, fFprobeDevice.getDurationInSeconds(file.getAbsolutePath()));
-                String bitRateOption = bitRate + "k";
-
-                LOGGER.debug("Trying compress({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
-                        MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(resultSize), bitRate);
-
-                String[] options = new String[]{
-                        "-b:v", bitRateOption, "-maxrate", bitRateOption, "-bufsize", bitRate * 2 + "k",
-                        "-preset", "veryfast", "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2"
-                };
+                String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-1:ceil(ih/4)*2", "-crf", "30", "-preset", "veryfast"};
                 String[] formatSpecificOptions = getOptions(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(formatSpecificOptions), Stream.of(options)).toArray(String[]::new);
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
 
-                LOGGER.debug("Compress({}, {}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
-                        fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()), bitRate);
+                LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
+                        fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()));
 
                 if (fileQueueItem.getSize() <= out.length()) {
                     Locale localeOrDefault = userService.getLocaleOrDefault(fileQueueItem.getUserId());
@@ -120,9 +106,5 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         }
 
         return new String[0];
-    }
-
-    private long getBitRate(long fileSize, long duration) {
-        return MemoryUtils.toKbit(fileSize) / duration;
     }
 }
