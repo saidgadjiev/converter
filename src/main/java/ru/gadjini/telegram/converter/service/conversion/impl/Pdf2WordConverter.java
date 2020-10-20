@@ -178,7 +178,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                         document.optimizeResources();
                         DocSaveOptions docSaveOptions = new DocSaveOptions();
                         docSaveOptions.setFormat(fileQueueItem.getTargetFormat() == Format.DOC ? DocSaveOptions.DocFormat.Doc : DocSaveOptions.DocFormat.DocX);
-                        docSaveOptions.setMode(DocSaveOptions.RecognitionMode.Flow);
+                        docSaveOptions.setMode(DocSaveOptions.RecognitionMode.Textbox);
                         docSaveOptions.CustomProgressHandler = new UnifiedSaveOptions.ConversionProgressEventHandler() {
 
                             @Override
