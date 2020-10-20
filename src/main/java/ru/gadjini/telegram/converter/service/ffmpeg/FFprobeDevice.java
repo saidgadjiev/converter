@@ -15,7 +15,7 @@ public class FFprobeDevice {
     }
 
     public String getVideoCodec(String in) {
-        return processExecutor.executeWithResult(getCommand(in));
+        return processExecutor.executeWithResult(getCommand(in)).replace("\n", "");
     }
 
     public long getDurationInSeconds(String in) {
@@ -29,7 +29,7 @@ public class FFprobeDevice {
     }
 
     private String[] getCommand(String in) {
-        return new String[] {
+        return new String[]{
                 "ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", in
         };
     }
