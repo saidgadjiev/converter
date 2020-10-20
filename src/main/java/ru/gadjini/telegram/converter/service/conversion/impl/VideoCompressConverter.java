@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -53,15 +54,18 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private UserService userService;
 
+    private FFprobeDevice fFprobeDevice;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager,
-                                  LocalisationService localisationService, UserService userService) {
+                                  LocalisationService localisationService, UserService userService, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.userService = userService;
+        this.fFprobeDevice = fFprobeDevice;
     }
 
     @Override
@@ -74,9 +78,10 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
+                String videoCodec = fFprobeDevice.getVideoCodec(file.getAbsolutePath());
                 String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-2:ceil(ih/4)*2", "-crf", "30", "-preset", "veryfast"};
-                String[] formatSpecificOptions = getOptions(fileQueueItem.getFirstFileFormat());
-                String[] allOptions = Stream.concat(Stream.of(formatSpecificOptions), Stream.of(options)).toArray(String[]::new);
+                String[] specificOptions = getOptions(fileQueueItem.getFirstFileFormat(), videoCodec);
+                String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
 
                 LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
@@ -98,10 +103,15 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getOptions(Format src) {
+    private String[] getOptions(Format src, String videoCodec) {
         if (src == _3GP) {
             return new String[]{
                     "-vcodec", "h263", "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
+            };
+        }
+        if ("h264".equals(videoCodec)) {
+            return new String[]{
+                    "-c:v", "libx264"
             };
         }
 
