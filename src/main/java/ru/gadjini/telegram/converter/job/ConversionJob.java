@@ -253,8 +253,9 @@ public class ConversionJob {
                         throw ex;
                     } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
-                            if (FileManager.isFloodWaitException(ex)) {
-                                handleFloodWaitException(ex);
+                            if (FileManager.isNoneCriticalDownloadingException(ex)) {
+                                LOGGER.error("Non critical error " + ex.getMessage());
+                                handleNoneCriticalDownloadingException(ex);
                             } else {
                                 queueService.exceptionStatus(fileQueueItem.getId(), ex);
 
@@ -343,10 +344,10 @@ public class ConversionJob {
             return null;
         }
 
-        private void handleFloodWaitException(Throwable ex) {
+        private void handleNoneCriticalDownloadingException(Throwable ex) {
             LOGGER.error(ex.getMessage());
             queueService.setWaiting(fileQueueItem.getId(), ex);
-            updateProgressMessageAfterFloodWait(fileQueueItem.getId());
+            updateProgressMessageAfterNoneCriticalException(fileQueueItem.getId());
         }
 
         private Format getCandidateFormat(ConversionQueueItem queueItem) {
@@ -357,7 +358,7 @@ public class ConversionJob {
             return queueItem.getFirstFileFormat();
         }
 
-        private void updateProgressMessageAfterFloodWait(int id) {
+        private void updateProgressMessageAfterNoneCriticalException(int id) {
             ConversionQueueItem queueItem = queueService.getItem(id);
 
             if (queueItem == null) {
