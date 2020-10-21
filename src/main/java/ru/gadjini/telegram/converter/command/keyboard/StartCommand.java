@@ -130,11 +130,10 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 MessageMedia media = messageMediaService.getMedia(message, locale);
                 if (isMultiImageMessage(media, convertState)) {
                     convertState.addMedia(media);
-                    if (StringUtils.isBlank(message.getMediaGroupId())) {
-                        messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_FILE_APPENDED, locale))
-                                .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale)));
-                    } else if (!Objects.equals(convertState.getMediaGroupId(), message.getMediaGroupId())) {
+                    if (StringUtils.isNotBlank(message.getMediaGroupId()) && !Objects.equals(convertState.getMediaGroupId(), message.getMediaGroupId())) {
                         convertState.setMediaGroupId(message.getMediaGroupId());
+                    }
+                    if (convertState.getFiles().size() < 3) {
                         messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_FILES_APPENDED, locale))
                                 .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale)));
                     }
@@ -299,7 +298,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         }
         if (format.getCategory() == FormatCategory.ARCHIVE) {
             LOGGER.warn("Archive unsupported({})", userId);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FILE, new Object[] {mimeType}, locale));
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FILE, new Object[]{mimeType}, locale));
         }
         if (!conversionFormatService.isSupportedCategory(format.getCategory())) {
             LOGGER.warn("Category unsupported({}, {})", userId, format.getCategory());

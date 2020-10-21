@@ -93,8 +93,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_SPEED = "message.speed";
 
-    public static final String MESSAGE_FILE_APPENDED = "message.file.appended";
-
     public static final String MESSAGE_FILES_APPENDED = "message.files.appended";
 
     public static final String MESSAGE_CALCULATED = "message.calculated";
