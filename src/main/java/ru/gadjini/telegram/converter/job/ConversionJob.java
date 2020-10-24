@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.job;
 
 import com.aspose.words.License;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -347,8 +346,7 @@ public class ConversionJob {
 
         private void handleNoneCriticalDownloadingException(Throwable ex) {
             queueService.setWaiting(fileQueueItem.getId(), ex);
-            if (StringUtils.isNotBlank(fileQueueItem.getException())
-                    && !fileQueueItem.getException().contains(ClassUtils.getShortClassName(ex, null))) {
+            if (!FileManager.isNoneCriticalDownloadingException(fileQueueItem.getException())) {
                 updateProgressMessageAfterNoneCriticalException(fileQueueItem.getId());
             }
         }
@@ -367,7 +365,7 @@ public class ConversionJob {
             if (queueItem == null) {
                 return;
             }
-            Locale locale = userService.getLocaleOrDefault(queueItem.getId());
+            Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
             String message = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.WAITING, Lang.JAVA, locale);
 
             messageService.editMessage(new EditMessageText((long) queueItem.getUserId(), queueItem.getProgressMessageId(), message)
