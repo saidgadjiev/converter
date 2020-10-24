@@ -76,6 +76,8 @@ public class ConversionQueueItem {
 
     private String resultFileId;
 
+    private String exception;
+
     public int getId() {
         return id;
     }
@@ -231,6 +233,14 @@ public class ConversionQueueItem {
 
     public void setSuppressUserExceptions(boolean suppressUserExceptions) {
         this.suppressUserExceptions = suppressUserExceptions;
+    }
+
+    public String getException() {
+        return exception;
+    }
+
+    public void setException(String exception) {
+        this.exception = exception;
     }
 
     public enum Status {

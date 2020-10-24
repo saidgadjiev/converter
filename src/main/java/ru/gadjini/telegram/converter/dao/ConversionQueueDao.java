@@ -411,6 +411,7 @@ public class ConversionQueueDao {
             fileQueueItem.setLastRunAt(ZonedDateTime.of(lastRunAt.toLocalDateTime(), ZoneOffset.UTC));
         }
 
+        fileQueueItem.setException(rs.getString(ConversionQueueItem.EXCEPTION));
         fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(ConversionQueueItem.TARGET_FORMAT)));
         fileQueueItem.setMessage(rs.getString(ConversionQueueItem.MESSAGE));
         fileQueueItem.setProgressMessageId(rs.getInt(ConversionQueueItem.PROGRESS_MESSAGE_ID));

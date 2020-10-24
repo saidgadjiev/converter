@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.job;
 
 import com.aspose.words.License;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -345,9 +346,11 @@ public class ConversionJob {
         }
 
         private void handleNoneCriticalDownloadingException(Throwable ex) {
-            LOGGER.error(ex.getMessage());
             queueService.setWaiting(fileQueueItem.getId(), ex);
-            updateProgressMessageAfterNoneCriticalException(fileQueueItem.getId());
+            if (StringUtils.isNotBlank(fileQueueItem.getException())
+                    && !fileQueueItem.getException().contains(ClassUtils.getShortClassName(ex, null))) {
+                updateProgressMessageAfterNoneCriticalException(fileQueueItem.getId());
+            }
         }
 
         private Format getCandidateFormat(ConversionQueueItem queueItem) {
