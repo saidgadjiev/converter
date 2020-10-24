@@ -145,7 +145,7 @@
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-pdf</artifactId>
-            <version>19.9</version>
+            <version>${aspose.version}</version>
         </dependency>
         <dependency>
             <groupId>com.aspose</groupId>
