@@ -254,7 +254,6 @@ public class ConversionJob {
                     } catch (Throwable ex) {
                         if (checker == null || !checker.get()) {
                             if (FileManager.isNoneCriticalDownloadingException(ex)) {
-                                LOGGER.error("Non critical error " + ex.getMessage());
                                 handleNoneCriticalDownloadingException(ex);
                             } else {
                                 queueService.exceptionStatus(fileQueueItem.getId(), ex);
