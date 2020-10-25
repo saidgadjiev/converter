@@ -180,7 +180,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+        messageService.sendMessage(new HtmlMessage(message.getChatId(), queueMessageBuilder.getWelcomeMessage(locale))
                 .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
     }
 
@@ -193,7 +193,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public String getMessage(long chatId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
 
-        return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale);
+        return queueMessageBuilder.getWelcomeMessage(locale);
     }
 
     @Override
@@ -202,7 +202,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         ConvertState convertState = commandStateService.getState(message.getChatId(), ConverterCommandNames.START_COMMAND, false, ConvertState.class);
         if (convertState == null) {
             messageService.sendMessage(
-                    new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+                    new HtmlMessage(message.getChatId(), queueMessageBuilder.getWelcomeMessage(locale))
                             .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId()))
             );
         } else {
@@ -258,7 +258,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
             convertState.addMedia(messageMedia);
         } else {
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale));
+            throw new UserException(queueMessageBuilder.getWelcomeMessage(locale));
         }
 
         return convertState;

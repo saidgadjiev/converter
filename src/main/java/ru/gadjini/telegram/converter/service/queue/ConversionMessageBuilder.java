@@ -1,9 +1,13 @@
 package ru.gadjini.telegram.converter.service.queue;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
@@ -12,12 +16,15 @@ import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 
 @Service
 public class ConversionMessageBuilder {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionMessageBuilder.class);
 
     private static final Set<Format> NON_DISPLAY_FORMATS = Set.of(Format.TEXT);
 
@@ -27,10 +34,28 @@ public class ConversionMessageBuilder {
 
     private ProgressManager progressManager;
 
+    @Value("${converter:all}")
+    private String converter;
+
     @Autowired
     public ConversionMessageBuilder(LocalisationService localisationService, ProgressManager progressManager) {
         this.localisationService = localisationService;
         this.progressManager = progressManager;
+    }
+
+    @PostConstruct
+    public void init() {
+        LOGGER.debug("Message builder converter({})", converter);
+    }
+
+    public String getWelcomeMessage(Locale locale) {
+        if (FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
+            return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale);
+        } else if (FormatsConfiguration.DEFAULT_CONVERTER.equals(converter)) {
+            return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_DOCUMENT_FILE, locale);
+        } else {
+            return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_VIDEO_FILE, locale);
+        }
     }
 
     public String getFilesDownloadingProgressMessage(long fileSize, int current, int total, Format targetFormat, Lang lang, Locale locale) {

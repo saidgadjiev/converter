@@ -55,6 +55,10 @@ public class MessagesProperties {
 
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
+    public static final String MESSAGE_CONVERT_VIDEO_FILE = "message.convert.video.file";
+
+    public static final String MESSAGE_CONVERT_DOCUMENT_FILE = "message.convert.document.file";
+
     public static final String MESSAGE_GIF_WARN = "message.gif.warn";
 
     public static final String MESSAGE_INCOMPRESSIBLE_VIDEO = "message.incompressible.video";

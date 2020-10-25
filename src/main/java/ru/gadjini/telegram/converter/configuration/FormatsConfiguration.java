@@ -15,6 +15,12 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 @Configuration
 public class FormatsConfiguration {
 
+    public static final String ALL_CONVERTER = "all";
+
+    public static final String DEFAULT_CONVERTER = "default";
+
+    public static final String VIDEO_CONVERTER = "video";
+
     private static final Map<FormatCategory, Map<List<Format>, List<Format>>> FORMATS = new LinkedHashMap<>();
 
     static {
@@ -96,7 +102,7 @@ public class FormatsConfiguration {
     @Bean
     @ConditionalOnProperty(
             value = "converter",
-            havingValue = "video"
+            havingValue = VIDEO_CONVERTER
     )
     public Map<FormatCategory, Map<List<Format>, List<Format>>> videoFormats() {
         return Map.of(FormatCategory.VIDEO, FORMATS.get(FormatCategory.VIDEO));
@@ -105,7 +111,7 @@ public class FormatsConfiguration {
     @Bean
     @ConditionalOnProperty(
             value = "converter",
-            havingValue = "default"
+            havingValue = DEFAULT_CONVERTER
     )
     public Map<FormatCategory, Map<List<Format>, List<Format>>> defaultFormats() {
         return Map.of(FormatCategory.DOCUMENTS, FORMATS.get(FormatCategory.DOCUMENTS), FormatCategory.IMAGES, FORMATS.get(FormatCategory.IMAGES));
@@ -114,7 +120,7 @@ public class FormatsConfiguration {
     @Bean
     @ConditionalOnProperty(
             value = "converter",
-            havingValue = "all",
+            havingValue = ALL_CONVERTER,
             matchIfMissing = true
     )
     public Map<FormatCategory, Map<List<Format>, List<Format>>> allFormats() {

@@ -69,7 +69,7 @@ public class ConvertionService {
         sendConversionQueuedMessage(queueItem, convertState, canceledTasksCount, message -> {
             queueItem.setProgressMessageId(message.getMessageId());
             queueService.setProgressMessageId(queueItem.getId(), message.getMessageId());
-            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+            messageService.sendMessage(new SendMessage(message.getChatId(), messageBuilder.getWelcomeMessage(locale))
                     .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
             commandStateService.deleteState(message.getChatId(), ConverterCommandNames.START_COMMAND);
 
