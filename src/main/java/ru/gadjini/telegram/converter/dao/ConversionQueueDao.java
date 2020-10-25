@@ -221,7 +221,7 @@ public class ConversionQueueDao {
 
     public Long getAllConversionsCount() {
         return jdbcTemplate.query(
-                "SELECT max(id) as cnt FROM conversion_queue WHERE status = 3 AND files[1].format IN(" + inFormats() + ")",
+                "SELECT max(id) as cnt FROM conversion_queue WHERE status = 3",
                 rs -> rs.next() ? rs.getLong("cnt") : -1
         );
     }
