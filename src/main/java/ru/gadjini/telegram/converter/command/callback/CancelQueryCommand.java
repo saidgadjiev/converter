@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.converter.job.ConversionJob;
 import ru.gadjini.telegram.converter.request.Arg;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
@@ -21,7 +21,7 @@ import java.util.Locale;
 @Component
 public class CancelQueryCommand implements CallbackBotCommand {
 
-    private ConversionJob conversionJob;
+    private QueueJob conversionJob;
 
     private MessageService messageService;
 
@@ -30,7 +30,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelQueryCommand(ConversionJob conversionJob, @Qualifier("messageLimits") MessageService messageService,
+    public CancelQueryCommand(QueueJob conversionJob, @Qualifier("messageLimits") MessageService messageService,
                               LocalisationService localisationService, UserService userService) {
         this.conversionJob = conversionJob;
         this.messageService = messageService;

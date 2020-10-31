@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.converter.job.ConversionJob;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
@@ -22,6 +21,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
@@ -78,7 +78,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private XSync<Long> longXSync;
 
-    private ConversionJob conversionJob;
+    private QueueJob conversionJob;
 
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService,
@@ -87,7 +87,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         FormatService formatService, ConvertionService convertionService,
                         ConversionMessageBuilder queueMessageBuilder,
                         TempFileService fileService, FileManager fileManager, MessageMediaService messageMediaService,
-                        ConversionFormatService conversionFormatService, XSync<Long> longXSync, ConversionJob conversionJob) {
+                        ConversionFormatService conversionFormatService, XSync<Long> longXSync, QueueJob conversionJob) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;

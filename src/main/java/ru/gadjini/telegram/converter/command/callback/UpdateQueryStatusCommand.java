@@ -10,7 +10,6 @@ import ru.gadjini.telegram.converter.request.Arg;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.converter.utils.TextUtils;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
@@ -20,6 +19,7 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Collections;
@@ -31,7 +31,7 @@ public class UpdateQueryStatusCommand implements CallbackBotCommand {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private ConversionQueueService queueService;
+    private QueueService queueService;
 
     private UserService userService;
 
@@ -43,7 +43,7 @@ public class UpdateQueryStatusCommand implements CallbackBotCommand {
 
     @Autowired
     public UpdateQueryStatusCommand(ConversionMessageBuilder messageBuilder,
-                                    ConversionQueueService queueService, UserService userService,
+                                    QueueService queueService, UserService userService,
                                     @Qualifier("messageLimits") MessageService messageService,
                                     InlineKeyboardService inlineKeyboardService, LocalisationService localisationService) {
         this.messageBuilder = messageBuilder;
@@ -63,7 +63,7 @@ public class UpdateQueryStatusCommand implements CallbackBotCommand {
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-        ConversionQueueItem queueItem = queueService.getItem(queryItemId);
+        ConversionQueueItem queueItem = (ConversionQueueItem) queueService.getById(queryItemId);
         if (queueItem == null) {
             messageService.editMessage(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(),

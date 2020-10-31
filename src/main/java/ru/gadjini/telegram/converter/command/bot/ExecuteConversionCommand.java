@@ -3,20 +3,20 @@ package ru.gadjini.telegram.converter.command.bot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 
 @Component
 public class ExecuteConversionCommand implements BotCommand {
 
-    private ConversionQueueService queueService;
+    private QueueService queueService;
 
     private UserService userService;
 
     @Autowired
-    public ExecuteConversionCommand(ConversionQueueService queueService, UserService userService) {
+    public ExecuteConversionCommand(QueueService queueService, UserService userService) {
         this.queueService = queueService;
         this.userService = userService;
     }

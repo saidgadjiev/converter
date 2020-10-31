@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -22,6 +21,8 @@ import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
+import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
@@ -29,28 +30,26 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocum
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
-import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueJobDelegate;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
-import javax.annotation.PostConstruct;
-import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Supplier;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Set;
 
 @Component
-public class ConversionJob {
+public class ConversionJobDelegate implements QueueJobDelegate {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionJob.class);
-
-    private ConversionQueueService queueService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionJobDelegate.class);
 
     private SmartExecutorService executor;
 
@@ -68,25 +67,23 @@ public class ConversionJob {
 
     private Set<Any2AnyConverter> any2AnyConverters = new LinkedHashSet<>();
 
-    private FileLimitProperties fileLimitProperties;
-
     private AsposeExecutorService asposeExecutorService;
 
+    private ConversionQueueService conversionQueueService;
+
     @Autowired
-    public ConversionJob(ConversionQueueService queueService,
-                         FileManager fileManager, UserService userService,
-                         InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
-                         @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
-                         FileLimitProperties fileLimitProperties, AsposeExecutorService asposeExecutorService) {
-        this.queueService = queueService;
+    public ConversionJobDelegate(FileManager fileManager, UserService userService,
+                                 InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
+                                 @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
+                                 AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
         this.fileManager = fileManager;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.mediaMessageService = mediaMessageService;
         this.messageService = messageService;
         this.messageBuilder = messageBuilder;
-        this.fileLimitProperties = fileLimitProperties;
         this.asposeExecutorService = asposeExecutorService;
+        this.conversionQueueService = conversionQueueService;
     }
 
     @Autowired
@@ -99,76 +96,24 @@ public class ConversionJob {
         this.executor = executor;
     }
 
-    @PostConstruct
+    @Override
     public void init() {
         applyAsposeLicenses();
-        try {
-            queueService.resetProcessing();
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
-        pushJobs();
     }
 
-    @Scheduled(fixedDelay = 5000)
-    public void pushJobs() {
-        ThreadPoolExecutor heavyExecutor = executor.getExecutor(SmartExecutorService.JobWeight.HEAVY);
-        if (heavyExecutor.getActiveCount() < heavyExecutor.getCorePoolSize()) {
-            Collection<ConversionQueueItem> items = queueService.poll(SmartExecutorService.JobWeight.HEAVY, heavyExecutor.getCorePoolSize() - heavyExecutor.getActiveCount());
-
-            if (items.size() > 0) {
-                LOGGER.debug("Push heavy jobs({})", items.size());
-            }
-            items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem)));
-        }
-        ThreadPoolExecutor lightExecutor = executor.getExecutor(SmartExecutorService.JobWeight.LIGHT);
-        if (lightExecutor.getActiveCount() < lightExecutor.getCorePoolSize()) {
-            Collection<ConversionQueueItem> items = queueService.poll(SmartExecutorService.JobWeight.LIGHT, lightExecutor.getCorePoolSize() - lightExecutor.getActiveCount());
-
-            if (items.size() > 0) {
-                LOGGER.debug("Push light jobs({})", items.size());
-            }
-            items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem)));
-        }
-        if (heavyExecutor.getActiveCount() < heavyExecutor.getCorePoolSize()) {
-            Collection<ConversionQueueItem> items = queueService.poll(SmartExecutorService.JobWeight.LIGHT, heavyExecutor.getCorePoolSize() - heavyExecutor.getActiveCount());
-
-            if (items.size() > 0) {
-                LOGGER.debug("Push light jobs to heavy threads({})", items.size());
-            }
-            items.forEach(queueItem -> executor.execute(new ConversionTask(queueItem), SmartExecutorService.JobWeight.HEAVY));
-        }
+    @Override
+    public WorkerTaskDelegate mapWorker(QueueItem queueItem) {
+        return null;
     }
 
-    public void rejectTask(SmartExecutorService.Job job) {
-        queueService.setWaiting(job.getId());
-        LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
+    @Override
+    public SmartExecutorService getExecutor() {
+        return executor;
     }
 
-    public int removeAndCancelCurrentTasks(long chatId) {
-        List<ConversionQueueItem> conversionQueueItems = queueService.deleteProcessingOrWaitingByUserId((int) chatId);
-        for (ConversionQueueItem conversionQueueItem : conversionQueueItems) {
-            if (!executor.cancelAndComplete(conversionQueueItem.getId(), true)) {
-                fileManager.fileWorkObject(conversionQueueItem.getUserId(), conversionQueueItem.getSize()).stop();
-            }
-            asposeExecutorService.cancel(conversionQueueItem.getId());
-        }
-
-        return conversionQueueItems.size();
-    }
-
-    public boolean cancel(int jobId) {
-        ConversionQueueItem item = queueService.delete(jobId);
-
-        if (item == null) {
-            return false;
-        }
-        if (!executor.cancelAndComplete(jobId, true)) {
-            fileManager.fileWorkObject(item.getId(), item.getSize()).stop();
-        }
-        asposeExecutorService.cancel(jobId);
-
-        return item.getStatus() != ConversionQueueItem.Status.COMPLETED;
+    @Override
+    public void afterTaskCanceled(int id) {
+        asposeExecutorService.cancel(id);
     }
 
     public void shutdown() {
@@ -197,130 +142,43 @@ public class ConversionJob {
         }
     }
 
-    public class ConversionTask implements SmartExecutorService.Job {
+    public class ConversionTask implements QueueJobDelegate.WorkerTaskDelegate {
 
         private final ConversionQueueItem fileQueueItem;
 
-        private volatile Supplier<Boolean> checker;
-
-        private volatile boolean canceledByUser;
-
-        private FileWorkObject fileWorkObject;
-
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
-            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId(), fileQueueItem.getSize());
-        }
-
-        @Override
-        public Integer getReplyToMessageId() {
-            return fileQueueItem.getReplyToMessageId();
-        }
-
-        @Override
-        public boolean isSuppressUserExceptions() {
-            return fileQueueItem.isSuppressUserExceptions();
         }
 
         @Override
         public void execute() throws Exception {
-            try {
-                fileWorkObject.start();
-                Any2AnyConverter candidate = getCandidate(fileQueueItem);
-                if (candidate != null) {
-                    String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
-                    LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
+            Any2AnyConverter candidate = getCandidate(fileQueueItem);
+            if (candidate != null) {
+                String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
+                LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
+                if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
+                    mediaMessageService.sendFile(fileQueueItem.getUserId(), fileQueueItem.getResultFileId());
+                } else {
+                    try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
+                        if (convertResult.resultType() == ResultType.BUSY) {
+                            LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getTargetFormat());
 
-                    try {
-                        if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
-                            mediaMessageService.sendFile(fileQueueItem.getUserId(), fileQueueItem.getResultFileId());
-                            queueService.complete(fileQueueItem.getId());
+                            throw new BusyWorkerException();
                         } else {
-                            try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
-                                if (convertResult.resultType() == ResultType.BUSY) {
-                                    queueService.setWaiting(fileQueueItem.getId());
-                                    LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                                } else {
-                                    sendResult(fileQueueItem, convertResult);
-                                    queueService.complete(fileQueueItem.getId());
-                                }
-                            }
-                        }
-                        LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), size);
-                    } catch (CorruptedFileException ex) {
-                        queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
-
-                        throw ex;
-                    } catch (Throwable ex) {
-                        if (checker == null || !checker.get()) {
-                            if (FileManager.isNoneCriticalDownloadingException(ex)) {
-                                handleNoneCriticalDownloadingException(ex);
-                            } else {
-                                queueService.exceptionStatus(fileQueueItem.getId(), ex);
-
-                                throw ex;
-                            }
+                            sendResult(fileQueueItem, convertResult);
                         }
                     }
-                } else {
-                    queueService.converterNotFound(fileQueueItem.getId());
-                    LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFirstFileFormat());
-                    throw new ConvertException("Candidate not found src " + fileQueueItem.getFirstFileFormat() + " target " + fileQueueItem.getTargetFormat());
                 }
-            } finally {
-                if (checker == null || !checker.get()) {
-                    executor.complete(fileQueueItem.getId());
-                    fileWorkObject.stop();
-                }
+                LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), size);
+            } else {
+                throw new ConvertException("Candidate not found src " + fileQueueItem.getFirstFile().getFormat() + " target " + fileQueueItem.getTargetFormat());
             }
-        }
-
-        @Override
-        public int getId() {
-            return fileQueueItem.getId();
         }
 
         @Override
         public void cancel() {
-            fileManager.cancelDownloading(fileQueueItem.getFirstFileId());
-            if (canceledByUser) {
-                queueService.delete(fileQueueItem.getId());
-                LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFirstFileFormat(),
-                        fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), fileQueueItem.getFirstFileId());
-            }
+            fileManager.cancelDownloading(fileQueueItem.getFirstFile().getFileId());
             asposeExecutorService.cancel(fileQueueItem.getId());
-            executor.complete(fileQueueItem.getId());
-            fileWorkObject.stop();
-        }
-
-        @Override
-        public void setCancelChecker(Supplier<Boolean> checker) {
-            this.checker = checker;
-        }
-
-        @Override
-        public Supplier<Boolean> getCancelChecker() {
-            return checker;
-        }
-
-        @Override
-        public void setCanceledByUser(boolean canceledByUser) {
-            this.canceledByUser = canceledByUser;
-        }
-
-        @Override
-        public SmartExecutorService.JobWeight getWeight() {
-            return fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight() ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
-        }
-
-        @Override
-        public long getChatId() {
-            return fileQueueItem.getUserId();
-        }
-
-        @Override
-        public int getProgressMessageId() {
-            return fileQueueItem.getProgressMessageId();
         }
 
         @Override
@@ -330,6 +188,16 @@ public class ConversionJob {
             }
 
             return MessagesProperties.MESSAGE_CONVERSION_FAILED;
+        }
+
+        @Override
+        public String getWaitingMessage(QueueItem queueItem, Locale locale) {
+            return messageBuilder.getConversionProcessingMessage((ConversionQueueItem) queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.WAITING, Lang.JAVA, locale);
+        }
+
+        @Override
+        public InlineKeyboardMarkup getWaitingKeyboard(QueueItem queueItem, Locale locale) {
+            return inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale);
         }
 
         private Any2AnyConverter getCandidate(ConversionQueueItem fileQueueItem) {
@@ -343,33 +211,12 @@ public class ConversionJob {
             return null;
         }
 
-        private void handleNoneCriticalDownloadingException(Throwable ex) {
-            queueService.setWaiting(fileQueueItem.getId(), ex);
-            if (!FileManager.isNoneCriticalDownloadingException(fileQueueItem.getException())) {
-                updateProgressMessageAfterNoneCriticalException(fileQueueItem.getId());
-            }
-        }
-
         private Format getCandidateFormat(ConversionQueueItem queueItem) {
             if (queueItem.getFiles().size() > 1 && queueItem.getFiles().stream().allMatch(m -> m.getFormat().getCategory() == FormatCategory.IMAGES)) {
                 return Format.IMAGES;
             }
 
-            return queueItem.getFirstFileFormat();
-        }
-
-        private void updateProgressMessageAfterNoneCriticalException(int id) {
-            ConversionQueueItem queueItem = queueService.getItem(id);
-
-            if (queueItem == null) {
-                return;
-            }
-            Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
-            String message = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.WAITING, Lang.JAVA, locale);
-
-            messageService.editMessage(new EditMessageText((long) queueItem.getUserId(), queueItem.getProgressMessageId(), message)
-                    .setNoLogging(true)
-                    .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)));
+            return queueItem.getFirstFile().getFormat();
         }
 
         private Progress progress(long chatId, ConversionQueueItem queueItem) {
@@ -452,7 +299,7 @@ public class ConversionJob {
             if (sendFileResult != null) {
                 try {
                     LOGGER.debug("Result({}, {})", fileQueueItem.getId(), sendFileResult.getFileId());
-                    queueService.setResultFileId(fileQueueItem.getId(), sendFileResult.getFileId());
+                    conversionQueueService.setResultFileId(fileQueueItem.getId(), sendFileResult.getFileId());
                 } catch (Exception ex) {
                     LOGGER.error(ex.getMessage(), ex);
                 }

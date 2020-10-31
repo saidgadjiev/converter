@@ -7,13 +7,13 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 
 import java.time.format.DateTimeFormatter;
 
@@ -22,7 +22,7 @@ public class ConversionStatsCommand implements BotCommand {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private ConversionQueueService queueService;
+    private QueueService queueService;
 
     private UserService userService;
 
@@ -31,7 +31,7 @@ public class ConversionStatsCommand implements BotCommand {
     private MessageService messageService;
 
     @Autowired
-    public ConversionStatsCommand(ConversionQueueService queueService, UserService userService,
+    public ConversionStatsCommand(QueueService queueService, UserService userService,
                                   LocalisationService localisationService, @Qualifier("messageLimits") MessageService messageService) {
         this.queueService = queueService;
         this.userService = userService;
@@ -46,12 +46,12 @@ public class ConversionStatsCommand implements BotCommand {
 
     @Override
     public void processMessage(Message message, String[] params) {
-        ConversionQueueItem item = queueService.getItem(Integer.parseInt(params[0]));
+        ConversionQueueItem item = (ConversionQueueItem) queueService.getById(Integer.parseInt(params[0]));
 
         if (item != null) {
             String status = item.getStatus().name();
             String createdAt = DATE_TIME_FORMATTER.format(item.getCreatedAt());
-            String startedAt = DATE_TIME_FORMATTER.format(item.getStatedAt());
+            String startedAt = DATE_TIME_FORMATTER.format(item.getStartedAt());
             String lastRunAt = "";
             if (item.getLastRunAt() != null) {
                 lastRunAt = DATE_TIME_FORMATTER.format(item.getLastRunAt());

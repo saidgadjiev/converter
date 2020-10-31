@@ -23,7 +23,6 @@ import ru.gadjini.telegram.converter.service.conversion.device.BusyConvertResult
 import ru.gadjini.telegram.converter.service.logger.FileLg;
 import ru.gadjini.telegram.converter.service.logger.Lg;
 import ru.gadjini.telegram.converter.service.logger.SoutLg;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -59,19 +58,16 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private ProcessExecutor processExecutor;
 
-    private ConversionQueueService queueService;
-
     private AsposeExecutorService asposeExecutorService;
 
     @Autowired
     public Pdf2WordConverter(TempFileService fileService, FileManager fileManager,
-                             ProcessExecutor processExecutor, ConversionQueueService queueService,
+                             ProcessExecutor processExecutor,
                              AsposeExecutorService asposeExecutorService) {
         super(MAP);
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.processExecutor = processExecutor;
-        this.queueService = queueService;
         this.asposeExecutorService = asposeExecutorService;
     }
 
@@ -98,7 +94,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                     log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
 
                     dirtyConvert = true;
-                    queueService.exception(fileQueueItem.getId(), e);
                     fileResult = doDirtyConvert(fileQueueItem, file, log);
                 }
             } catch (Throwable e) {
@@ -135,7 +130,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                     LOGGER.error(e.getMessage(), e);
                     log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
 
-                    queueService.exception(fileQueueItem.getId(), e);
                     fileResult = doDirtyConvert(fileQueueItem, file, log);
                 }
             } catch (Throwable e) {

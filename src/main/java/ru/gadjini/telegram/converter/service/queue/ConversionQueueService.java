@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.queue;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.TimeCreator;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -75,56 +73,12 @@ public class ConversionQueueService {
         return fileQueueDao.count(status);
     }
 
-    @Transactional
-    public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
-        return fileQueueDao.poll(weight, limit);
-    }
-
-    public void setWaiting(int id) {
-        fileQueueDao.setWaiting(id);
-    }
-
-    public void setWaiting(int id, Throwable ex) {
-        String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
-        fileQueueDao.setWaiting(id, exception);
-    }
-
-    public void setSuppressUserExceptions(int id, boolean suppressUserExceptions) {
-        fileQueueDao.setSuppressUserExceptions(id, suppressUserExceptions);
-    }
-
-    public void setProgressMessageId(int id, int progressMessageId) {
-        fileQueueDao.setProgressMessageId(id, progressMessageId);
-    }
-
     public void setResultFileId(int id, String fileId) {
         fileQueueDao.setResultFileId(id, fileId);
     }
 
     public void setFileId(int id, String fileId) {
         fileQueueDao.setFileId(id, fileId);
-    }
-
-    public String getException(int id) {
-        return fileQueueDao.getException(id);
-    }
-
-    public void resetProcessing() {
-        fileQueueDao.resetProcessing();
-    }
-
-    public ConversionQueueItem delete(int id) {
-        return fileQueueDao.delete(id);
-    }
-
-    public void exceptionStatus(int id, Throwable ex) {
-        String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
-        fileQueueDao.updateException(id, ConversionQueueItem.Status.EXCEPTION.getCode(), exception);
-    }
-
-    public void exception(int id, Throwable ex) {
-        String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
-        fileQueueDao.updateException(id, exception);
     }
 
     public long getTodayConversionsCount() {
@@ -149,21 +103,5 @@ public class ConversionQueueService {
 
     public long getTodayDailyActiveUsersCount() {
         return fileQueueDao.getTodayDailyActiveUsersCount();
-    }
-
-    public void completeWithException(int id, String msg) {
-        fileQueueDao.updateException(id, ConversionQueueItem.Status.COMPLETED.getCode(), msg);
-    }
-
-    public List<ConversionQueueItem> deleteProcessingOrWaitingByUserId(int userId) {
-        return fileQueueDao.deleteProcessingOrWaitingByUserId(userId);
-    }
-
-    public void complete(int id) {
-        fileQueueDao.updateCompletedAt(id, ConversionQueueItem.Status.COMPLETED.getCode());
-    }
-
-    public ConversionQueueItem getItem(int id) {
-        return fileQueueDao.getById(id);
     }
 }

@@ -69,6 +69,18 @@ public class ConversionQueueItem extends QueueItem {
         this.resultFileId = resultFileId;
     }
 
+    public String getFirstFileId() {
+        return getFirstFile().getFileId();
+    }
+
+    public Format getFirstFileFormat() {
+        return getFirstFile().getFormat();
+    }
+
+    public String getFirstFileName() {
+        return getFirstFile().getFileName();
+    }
+
     @Override
     public long getSize() {
         return files.stream().mapToLong(TgFile::getSize).sum();

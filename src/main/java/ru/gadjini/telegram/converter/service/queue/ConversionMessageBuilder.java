@@ -122,10 +122,10 @@ public class ConversionMessageBuilder {
     public String getConversionProgressingMessage(ConversionQueueItem queueItem, Set<String> warns, Locale locale) {
         StringBuilder text = new StringBuilder();
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
-            text.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_COMPRESS_QUEUED, new Object[]{queueItem.getPlaceInQueue()}, locale));
+            text.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else {
             String queuedMessageCode = queueItem.getFiles().size() > 1 ? MessagesProperties.MESSAGE_FILES_QUEUED : MessagesProperties.MESSAGE_FILE_QUEUED;
-            text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().getName(), queueItem.getPlaceInQueue()}, locale));
+            text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().getName(), queueItem.getQueuePosition()}, locale));
         }
 
         if (!NON_DISPLAY_FORMATS.contains(queueItem.getFirstFileFormat())) {

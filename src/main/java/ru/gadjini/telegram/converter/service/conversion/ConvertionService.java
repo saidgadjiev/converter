@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -35,7 +36,9 @@ public class ConvertionService {
 
     private MessageService messageService;
 
-    private ConversionQueueService queueService;
+    private ConversionQueueService conversionQueueService;
+
+    private QueueService queueService;
 
     private LocalisationService localisationService;
 
@@ -50,11 +53,12 @@ public class ConvertionService {
     @Autowired
     public ConvertionService(InlineKeyboardService inlineKeyboardService,
                              @Qualifier("messageLimits") MessageService messageService,
-                             ConversionQueueService queueService, LocalisationService localisationService,
+                             ConversionQueueService conversionQueueService, QueueService queueService, LocalisationService localisationService,
                              FileManager fileManager, ConversionMessageBuilder messageBuilder,
                              CommandStateService commandStateService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;
+        this.conversionQueueService = conversionQueueService;
         this.queueService = queueService;
         this.localisationService = localisationService;
         this.fileManager = fileManager;
@@ -64,7 +68,7 @@ public class ConvertionService {
     }
 
     public void createConversion(User user, ConvertState convertState, int canceledTasksCount, Format targetFormat, Locale locale) {
-        ConversionQueueItem queueItem = queueService.create(user, convertState, targetFormat);
+        ConversionQueueItem queueItem = conversionQueueService.create(user, convertState, targetFormat);
 
         sendConversionQueuedMessage(queueItem, convertState, canceledTasksCount, message -> {
             queueItem.setProgressMessageId(message.getMessageId());
@@ -75,13 +79,6 @@ public class ConvertionService {
 
             fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), queueItem.getFirstFileId(), queueItem.getSize(), TAG);
         }, locale);
-    }
-
-    public ConversionQueueItem retryFloodWait(int id) {
-        queueService.setSuppressUserExceptions(id, false);
-        queueService.setWaiting(id);
-
-        return queueService.getItem(id);
     }
 
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, int canceledTasksCount, Consumer<Message> callback, Locale locale) {

@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.dao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.BooleanUtils;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,6 @@ import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
-import ru.gadjini.telegram.smart.bot.commons.domain.TgUser;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -99,8 +97,8 @@ public class ConversionQueueDao implements QueueDaoDelegate {
 
     public Integer getPlaceInQueue(int id, SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
-                "SELECT COALESCE(place_in_queue, 1) as place_in_queue\n" +
-                        "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue\n" +
+                "SELECT COALESCE(queue_position, 1) as queue_position\n" +
+                        "FROM (SELECT id, row_number() over (ORDER BY created_at) AS queue_position\n" +
                         "      FROM " + TYPE + " c, unnest(c.files) cf\n" +
                         "      WHERE status = 0\n" +
                         "        AND files[1].format IN (" + inFormats() + ")\n" +
@@ -113,7 +111,7 @@ public class ConversionQueueDao implements QueueDaoDelegate {
                 },
                 rs -> {
                     if (rs.next()) {
-                        return rs.getInt(ConversionQueueItem.PLACE_IN_QUEUE);
+                        return rs.getInt(ConversionQueueItem.QUEUE_POSITION);
                     }
 
                     return 1;
@@ -143,7 +141,7 @@ public class ConversionQueueDao implements QueueDaoDelegate {
                         "        LIMIT ?)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
-                        "SELECT cv.*, cc.files_json, 1 as place_in_queue\n" +
+                        "SELECT cv.*, cc.files_json, 1 as queue_position\n" +
                         "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n" +
                         "ORDER BY cv.created_at",
                 ps -> {
@@ -198,46 +196,10 @@ public class ConversionQueueDao implements QueueDaoDelegate {
         );
     }
 
-    public void updateCompletedAt(int id, int status) {
-        jdbcTemplate.update(
-                "UPDATE " + TYPE + " SET status = ?, completed_at = now() WHERE id = ?",
-                ps -> {
-                    ps.setInt(1, status);
-                    ps.setInt(2, id);
-                }
-        );
-    }
-
-    public boolean exists(int id) {
-        return BooleanUtils.toBoolean(jdbcTemplate.query(
-                "SELECT TRUE FROM conversion_queue WHERE id =?",
-                ps -> {
-                    ps.setInt(1, id);
-                },
-                ResultSet::next
-        ));
-    }
-
     public void setResultFileId(int id, String fileId) {
         jdbcTemplate.update("UPDATE conversion_queue SET result_file_id = ? WHERE id = ?",
                 ps -> {
                     ps.setString(1, fileId);
-                    ps.setInt(2, id);
-                });
-    }
-
-    public void setSuppressUserExceptions(int id, boolean suppressUserExceptions) {
-        jdbcTemplate.update("UPDATE conversion_queue SET suppress_user_exceptions = ? WHERE id = ?",
-                ps -> {
-                    ps.setBoolean(1, suppressUserExceptions);
-                    ps.setInt(2, id);
-                });
-    }
-
-    public void setProgressMessageId(int id, int progressMessageId) {
-        jdbcTemplate.update("UPDATE conversion_queue SET progress_message_id = ? WHERE id = ?",
-                ps -> {
-                    ps.setInt(1, progressMessageId);
                     ps.setInt(2, id);
                 });
     }
@@ -262,16 +224,6 @@ public class ConversionQueueDao implements QueueDaoDelegate {
         );
     }
 
-    public String getException(int id) {
-        return jdbcTemplate.query(
-                "SELECT exception FROM conversion_queue WHERE id = ?",
-                ps -> {
-                    ps.setInt(1, id);
-                },
-                rs -> rs.next() ? rs.getString(ConversionQueueItem.EXCEPTION) : null
-        );
-    }
-
     public ConversionQueueItem getById(int id) {
         SmartExecutorService.JobWeight weight = getWeight(id);
 
@@ -279,10 +231,10 @@ public class ConversionQueueDao implements QueueDaoDelegate {
             return null;
         }
         return jdbcTemplate.query(
-                "SELECT f.*, COALESCE(queue_place.place_in_queue, 1) as place_in_queue, cc.files_json\n" +
-                        "FROM " + TYPE + " f\n" +
-                        "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
-                        "                     FROM " + TYPE + " c, unnest(c.files) cf\n" +
+                "SELECT f.*, COALESCE(queue_place.queue_position, 1) as queue_position, cc.files_json\n" +
+                        "FROM conversion_queue f\n" +
+                        "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as queue_position\n" +
+                        "                     FROM conversion_queue c, unnest(c.files) cf\n" +
                         "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ")" +
                         "        GROUP BY c.id HAVING sum(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         ") queue_place ON f.id = queue_place.id\n" +
@@ -305,7 +257,7 @@ public class ConversionQueueDao implements QueueDaoDelegate {
 
     @Override
     public List<QueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
-        return jdbcTemplate.query("WITH del AS(DELETE FROM " + TYPE + " WHERE user_id = ? AND status IN (0, 1) RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+        return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE user_id = ? AND status IN (0, 1) RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
                 ps -> ps.setInt(1, userId),
                 (rs, rowNum) -> {
                     ConversionQueueItem fileQueueItem = new ConversionQueueItem();
@@ -320,9 +272,9 @@ public class ConversionQueueDao implements QueueDaoDelegate {
     }
 
     @Override
-    public QueueItem deleteAndGetById(int i) {
+    public QueueItem deleteAndGetById(int id) {
         return jdbcTemplate.query(
-                "WITH del AS(DELETE FROM cconversion_queue WHERE id = ? RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                "WITH del AS(DELETE FROM conversion_queue WHERE id = ? RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
                 ps -> ps.setInt(1, id),
                 rs -> {
                     if (rs.next()) {
@@ -379,8 +331,8 @@ public class ConversionQueueDao implements QueueDaoDelegate {
         fileQueueItem.setProgressMessageId(rs.getInt(ConversionQueueItem.PROGRESS_MESSAGE_ID));
 
         fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
-        if (columns.contains(ConversionQueueItem.PLACE_IN_QUEUE)) {
-            fileQueueItem.setQueuePosition(rs.getInt(ConversionQueueItem.PLACE_IN_QUEUE));
+        if (columns.contains(ConversionQueueItem.QUEUE_POSITION)) {
+            fileQueueItem.setQueuePosition(rs.getInt(ConversionQueueItem.QUEUE_POSITION));
         }
 
         return fileQueueItem;

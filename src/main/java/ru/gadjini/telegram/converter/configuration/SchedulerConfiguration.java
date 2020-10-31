@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gadjini.telegram.converter.job.ConversionJob;
+import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
@@ -25,7 +25,7 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    private ConversionJob conversionJob;
+    private QueueJob conversionJob;
 
     @Value("${light.threads:2}")
     private int lightThreads;
@@ -40,7 +40,7 @@ public class SchedulerConfiguration {
     }
 
     @Autowired
-    public void setConversionJob(ConversionJob conversionJob) {
+    public void setConversionJob(QueueJob conversionJob) {
         this.conversionJob = conversionJob;
     }
 
