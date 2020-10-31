@@ -63,9 +63,9 @@ public class ConversionQueueService {
         fileQueueItem.setTargetFormat(targetFormat);
 
         fileQueueItem.setLastRunAt(timeCreator.now());
-        fileQueueItem.setStatedAt(timeCreator.now());
+        fileQueueItem.setStartedAt(timeCreator.now());
         fileQueueDao.create(fileQueueItem);
-        fileQueueItem.setPlaceInQueue(fileQueueDao.getPlaceInQueue(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
+        fileQueueItem.setQueuePosition(fileQueueDao.getPlaceInQueue(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
                 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT));
 
         return fileQueueItem;
@@ -153,10 +153,6 @@ public class ConversionQueueService {
 
     public void completeWithException(int id, String msg) {
         fileQueueDao.updateException(id, ConversionQueueItem.Status.COMPLETED.getCode(), msg);
-    }
-
-    public void converterNotFound(int id) {
-        fileQueueDao.updateException(id, ConversionQueueItem.Status.CANDIDATE_NOT_FOUND.getCode(), "Converter not found");
     }
 
     public List<ConversionQueueItem> deleteProcessingOrWaitingByUserId(int userId) {

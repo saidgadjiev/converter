@@ -13,6 +13,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
+import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
+import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgUser;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
 
 @Repository
-public class ConversionQueueDao {
+public class ConversionQueueDao implements QueueDaoDelegate {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionQueueDao.class);
 
@@ -80,8 +82,8 @@ public class ConversionQueueDao {
                     } else {
                         ps.setNull(6, Types.TIMESTAMP);
                     }
-                    if (queueItem.getStatedAt() != null) {
-                        ps.setTimestamp(7, Timestamp.valueOf(queueItem.getStatedAt().toLocalDateTime()));
+                    if (queueItem.getStartedAt() != null) {
+                        ps.setTimestamp(7, Timestamp.valueOf(queueItem.getStartedAt().toLocalDateTime()));
                     } else {
                         ps.setNull(7, Types.TIMESTAMP);
                     }
@@ -127,7 +129,8 @@ public class ConversionQueueDao {
         );
     }
 
-    public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+    @Override
+    public List<QueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +
@@ -148,44 +151,6 @@ public class ConversionQueueDao {
                     ps.setInt(2, limit);
                 },
                 (rs, rowNum) -> map(rs)
-        );
-    }
-
-    public void resetProcessing() {
-        jdbcTemplate.update(
-                "UPDATE " + TYPE + " SET status = 0 WHERE status = 1"
-        );
-    }
-
-    public void updateException(int id, int status, String exception) {
-        jdbcTemplate.update(
-                "UPDATE " + TYPE + " SET exception = ?, status = ?, suppress_user_exceptions = true, completed_at = now() WHERE id = ?",
-                ps -> {
-                    ps.setString(1, exception);
-                    ps.setInt(2, status);
-                    ps.setInt(3, id);
-                }
-        );
-    }
-
-    public void setWaiting(int id, String exception) {
-        jdbcTemplate.update(
-                "UPDATE " + TYPE + " SET exception = ?, status = ? WHERE id = ?",
-                ps -> {
-                    ps.setString(1, exception);
-                    ps.setInt(2, ConversionQueueItem.Status.WAITING.getCode());
-                    ps.setInt(3, id);
-                }
-        );
-    }
-
-    public void updateException(int id, String exception) {
-        jdbcTemplate.update(
-                "UPDATE " + TYPE + " SET exception = ? WHERE id = ?",
-                ps -> {
-                    ps.setString(1, exception);
-                    ps.setInt(2, id);
-                }
         );
     }
 
@@ -243,42 +208,6 @@ public class ConversionQueueDao {
         );
     }
 
-
-    public List<ConversionQueueItem> deleteProcessingOrWaitingByUserId(int userId) {
-        return jdbcTemplate.query("WITH del AS(DELETE FROM " + TYPE + " WHERE user_id = ? AND status IN (0, 1) RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
-                ps -> ps.setInt(1, userId),
-                (rs, rowNum) -> {
-                    ConversionQueueItem fileQueueItem = new ConversionQueueItem();
-
-                    fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
-                    fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
-                    fileQueueItem.setFiles(mapFiles(rs));
-
-                    return fileQueueItem;
-                }
-        );
-    }
-
-    public ConversionQueueItem delete(int id) {
-        return jdbcTemplate.query(
-                "WITH del AS(DELETE FROM " + TYPE + " WHERE id = ? RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
-                ps -> ps.setInt(1, id),
-                rs -> {
-                    if (rs.next()) {
-                        ConversionQueueItem fileQueueItem = new ConversionQueueItem();
-
-                        fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
-                        fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
-                        fileQueueItem.setFiles(mapFiles(rs));
-
-                        return fileQueueItem;
-                    }
-
-                    return null;
-                }
-        );
-    }
-
     public boolean exists(int id) {
         return BooleanUtils.toBoolean(jdbcTemplate.query(
                 "SELECT TRUE FROM conversion_queue WHERE id =?",
@@ -295,11 +224,6 @@ public class ConversionQueueDao {
                     ps.setString(1, fileId);
                     ps.setInt(2, id);
                 });
-    }
-
-    public void setWaiting(int id) {
-        jdbcTemplate.update("UPDATE conversion_queue SET status = 0 WHERE id = ?",
-                ps -> ps.setInt(1, id));
     }
 
     public void setSuppressUserExceptions(int id, boolean suppressUserExceptions) {
@@ -379,6 +303,48 @@ public class ConversionQueueDao {
         );
     }
 
+    @Override
+    public List<QueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
+        return jdbcTemplate.query("WITH del AS(DELETE FROM " + TYPE + " WHERE user_id = ? AND status IN (0, 1) RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                ps -> ps.setInt(1, userId),
+                (rs, rowNum) -> {
+                    ConversionQueueItem fileQueueItem = new ConversionQueueItem();
+
+                    fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
+                    fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
+                    fileQueueItem.setFiles(mapFiles(rs));
+
+                    return fileQueueItem;
+                }
+        );
+    }
+
+    @Override
+    public QueueItem deleteAndGetById(int i) {
+        return jdbcTemplate.query(
+                "WITH del AS(DELETE FROM cconversion_queue WHERE id = ? RETURNING *) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                ps -> ps.setInt(1, id),
+                rs -> {
+                    if (rs.next()) {
+                        ConversionQueueItem fileQueueItem = new ConversionQueueItem();
+
+                        fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
+                        fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
+                        fileQueueItem.setFiles(mapFiles(rs));
+
+                        return fileQueueItem;
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    @Override
+    public String getQueueName() {
+        return TYPE;
+    }
+
     private ConversionQueueItem map(ResultSet rs) throws SQLException {
         Set<String> columns = JdbcUtils.getColumnNames(rs.getMetaData());
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
@@ -389,17 +355,13 @@ public class ConversionQueueDao {
         fileQueueItem.setSuppressUserExceptions(rs.getBoolean(ConversionQueueItem.SUPPRESS_USER_EXCEPTIONS));
         fileQueueItem.setResultFileId(rs.getString(ConversionQueueItem.RESULT_FILE_ID));
 
-        TgUser user = new TgUser();
-        user.setUserId(fileQueueItem.getUserId());
-        fileQueueItem.setUser(user);
-
         fileQueueItem.setFiles(mapFiles(rs));
 
         Timestamp createdAt = rs.getTimestamp(ConversionQueueItem.CREATED_AT);
         fileQueueItem.setCreatedAt(ZonedDateTime.of(createdAt.toLocalDateTime(), ZoneOffset.UTC));
 
         Timestamp startedAt = rs.getTimestamp(ConversionQueueItem.STARTED_AT);
-        fileQueueItem.setStatedAt(ZonedDateTime.of(startedAt.toLocalDateTime(), ZoneOffset.UTC));
+        fileQueueItem.setStartedAt(ZonedDateTime.of(startedAt.toLocalDateTime(), ZoneOffset.UTC));
 
         Timestamp completedAt = rs.getTimestamp(ConversionQueueItem.COMPLETED_AT);
         if (completedAt != null) {
@@ -418,7 +380,7 @@ public class ConversionQueueDao {
 
         fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
         if (columns.contains(ConversionQueueItem.PLACE_IN_QUEUE)) {
-            fileQueueItem.setPlaceInQueue(rs.getInt(ConversionQueueItem.PLACE_IN_QUEUE));
+            fileQueueItem.setQueuePosition(rs.getInt(ConversionQueueItem.PLACE_IN_QUEUE));
         }
 
         return fileQueueItem;
