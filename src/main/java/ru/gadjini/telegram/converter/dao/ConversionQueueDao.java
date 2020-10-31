@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
 
 @Repository
-public class ConversionQueueDao implements QueueDaoDelegate {
+public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionQueueDao.class);
 
@@ -128,7 +128,7 @@ public class ConversionQueueDao implements QueueDaoDelegate {
     }
 
     @Override
-    public List<QueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+    public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +
@@ -256,7 +256,7 @@ public class ConversionQueueDao implements QueueDaoDelegate {
     }
 
     @Override
-    public List<QueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
+    public List<ConversionQueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
         return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE user_id = ? AND status IN (0, 1) RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
                 ps -> ps.setInt(1, userId),
                 (rs, rowNum) -> {
@@ -272,7 +272,7 @@ public class ConversionQueueDao implements QueueDaoDelegate {
     }
 
     @Override
-    public QueueItem deleteAndGetById(int id) {
+    public ConversionQueueItem deleteAndGetById(int id) {
         return jdbcTemplate.query(
                 "WITH del AS(DELETE FROM conversion_queue WHERE id = ? RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
                 ps -> ps.setInt(1, id),

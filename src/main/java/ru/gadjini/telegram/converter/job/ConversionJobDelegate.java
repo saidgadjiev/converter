@@ -32,7 +32,6 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -50,8 +49,6 @@ import java.util.Set;
 public class ConversionJobDelegate implements QueueJobDelegate {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionJobDelegate.class);
-
-    private SmartExecutorService executor;
 
     private FileManager fileManager;
 
@@ -91,11 +88,6 @@ public class ConversionJobDelegate implements QueueJobDelegate {
         any2AnyConverters.addAll(any2AnyConvertersSet);
     }
 
-    @Autowired
-    public void setExecutor(@Qualifier("conversionTaskExecutor") SmartExecutorService executor) {
-        this.executor = executor;
-    }
-
     @Override
     public void init() {
         applyAsposeLicenses();
@@ -107,17 +99,12 @@ public class ConversionJobDelegate implements QueueJobDelegate {
     }
 
     @Override
-    public SmartExecutorService getExecutor() {
-        return executor;
-    }
-
-    @Override
     public void afterTaskCanceled(int id) {
         asposeExecutorService.cancel(id);
     }
 
+    @Override
     public void shutdown() {
-        executor.shutdown();
         asposeExecutorService.shutdown();
     }
 
