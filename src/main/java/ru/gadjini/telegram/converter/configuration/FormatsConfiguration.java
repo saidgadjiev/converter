@@ -114,7 +114,11 @@ public class FormatsConfiguration {
             havingValue = DEFAULT_CONVERTER
     )
     public Map<FormatCategory, Map<List<Format>, List<Format>>> defaultFormats() {
-        return Map.of(FormatCategory.DOCUMENTS, FORMATS.get(FormatCategory.DOCUMENTS), FormatCategory.IMAGES, FORMATS.get(FormatCategory.IMAGES));
+        return Map.of(
+                FormatCategory.DOCUMENTS, FORMATS.get(FormatCategory.DOCUMENTS),
+                FormatCategory.IMAGES, FORMATS.get(FormatCategory.IMAGES),
+                FormatCategory.WEB, FORMATS.get(FormatCategory.WEB)
+        );
     }
 
     @Bean
