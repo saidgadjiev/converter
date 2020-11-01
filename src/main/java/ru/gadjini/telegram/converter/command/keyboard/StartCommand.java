@@ -153,9 +153,9 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     return;
                 }
                 Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFirstFormat(), associatedFormat, text, locale);
-                int canceledTasksCount = conversionJob.removeAndCancelCurrentTasks(message.getFrom().getId());
+                conversionJob.removeAndCancelCurrentTasks(message.getFrom().getId());
 
-                conversionService.createConversion(message.getFrom(), convertState, canceledTasksCount, targetFormat, locale);
+                conversionService.createConversion(message.getFrom(), convertState, targetFormat, locale);
                 commandStateService.deleteState(message.getChatId(), ConverterCommandNames.START_COMMAND);
             } else {
                 messageService.sendMessage(

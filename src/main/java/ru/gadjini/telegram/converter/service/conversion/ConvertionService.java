@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -17,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessa
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.User;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -40,8 +38,6 @@ public class ConvertionService {
 
     private QueueService queueService;
 
-    private LocalisationService localisationService;
-
     private FileManager fileManager;
 
     private ConversionMessageBuilder messageBuilder;
@@ -53,24 +49,23 @@ public class ConvertionService {
     @Autowired
     public ConvertionService(InlineKeyboardService inlineKeyboardService,
                              @Qualifier("messageLimits") MessageService messageService,
-                             ConversionQueueService conversionQueueService, QueueService queueService, LocalisationService localisationService,
+                             ConversionQueueService conversionQueueService, QueueService queueService,
                              FileManager fileManager, ConversionMessageBuilder messageBuilder,
                              CommandStateService commandStateService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;
         this.conversionQueueService = conversionQueueService;
         this.queueService = queueService;
-        this.localisationService = localisationService;
         this.fileManager = fileManager;
         this.messageBuilder = messageBuilder;
         this.commandStateService = commandStateService;
         this.replyKeyboardService = replyKeyboardService;
     }
 
-    public void createConversion(User user, ConvertState convertState, int canceledTasksCount, Format targetFormat, Locale locale) {
+    public void createConversion(User user, ConvertState convertState, Format targetFormat, Locale locale) {
         ConversionQueueItem queueItem = conversionQueueService.create(user, convertState, targetFormat);
 
-        sendConversionQueuedMessage(queueItem, convertState, canceledTasksCount, message -> {
+        sendConversionQueuedMessage(queueItem, convertState, message -> {
             queueItem.setProgressMessageId(message.getMessageId());
             queueService.setProgressMessageId(queueItem.getId(), message.getMessageId());
             messageService.sendMessage(new SendMessage(message.getChatId(), messageBuilder.getWelcomeMessage(locale))
@@ -81,11 +76,9 @@ public class ConvertionService {
         }, locale);
     }
 
-    private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, int canceledTasksCount, Consumer<Message> callback, Locale locale) {
-        String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
-        if (canceledTasksCount > 0) {
-            queuedMessage += "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_CURRENT_TASKS_CANCELED, locale);
-        }
+    private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
+        String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(),
+                convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(new HtmlMessage((long) queueItem.getUserId(), queuedMessage)
                 .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)), callback);
     }

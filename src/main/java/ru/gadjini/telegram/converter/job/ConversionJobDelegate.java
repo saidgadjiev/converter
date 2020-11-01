@@ -95,12 +95,12 @@ public class ConversionJobDelegate implements QueueJobDelegate {
 
     @Override
     public WorkerTaskDelegate mapWorker(QueueItem queueItem) {
-        return null;
+        return new ConversionTask((ConversionQueueItem) queueItem);
     }
 
     @Override
-    public void afterTaskCanceled(int id) {
-        asposeExecutorService.cancel(id);
+    public void afterTaskCanceled(QueueItem queueItem) {
+        asposeExecutorService.cancel(queueItem.getId());
     }
 
     @Override
