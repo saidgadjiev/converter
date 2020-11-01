@@ -18,7 +18,6 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -118,12 +117,14 @@ public class ConversionMessageBuilder {
                     .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_COUNT, new Object[]{queueItem.getFiles().size()}, locale));
         }
 
-        warns = new HashSet<>(warns);
-        warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST_WARN, locale));
-        String w = warns(warns, locale);
+        if (warns.isEmpty()) {
+            text.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST_WARN, locale));
+        } else {
+            String w = warns(warns, locale);
 
-        if (StringUtils.isNotBlank(w)) {
-            text.append("\n\n").append(w);
+            if (StringUtils.isNotBlank(w)) {
+                text.append("\n\n").append(w);
+            }
         }
 
         return text.toString();

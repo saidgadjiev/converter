@@ -234,7 +234,7 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
                         "FROM conversion_queue f\n" +
                         "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as queue_position\n" +
                         "                     FROM conversion_queue c, unnest(c.files) cf\n" +
-                        "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ")" +
+                        "                     WHERE files[1].format IN (" + inFormats() + ")" +
                         "        GROUP BY c.id HAVING sum(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         ") queue_place ON f.id = queue_place.id\n" +
                         "         INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE id = ? GROUP BY id) cc ON f.id = cc.id\n" +
