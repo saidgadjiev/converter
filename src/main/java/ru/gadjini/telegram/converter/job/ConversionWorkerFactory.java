@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.job;
 
-import com.aspose.words.License;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueJobDelegate;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorkerFactory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.Collections;
@@ -46,9 +46,9 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class ConversionJobDelegate implements QueueJobDelegate {
+public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQueueItem> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionJobDelegate.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionWorkerFactory.class);
 
     private FileManager fileManager;
 
@@ -69,7 +69,7 @@ public class ConversionJobDelegate implements QueueJobDelegate {
     private ConversionQueueService conversionQueueService;
 
     @Autowired
-    public ConversionJobDelegate(FileManager fileManager, UserService userService,
+    public ConversionWorkerFactory(FileManager fileManager, UserService userService,
                                  InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                  @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
                                  AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
@@ -89,51 +89,15 @@ public class ConversionJobDelegate implements QueueJobDelegate {
     }
 
     @Override
-    public void init() {
-        applyAsposeLicenses();
+    public QueueWorker createWorker(ConversionQueueItem item) {
+        return new ConversionWorker(item);
     }
 
-    @Override
-    public WorkerTaskDelegate mapWorker(QueueItem queueItem) {
-        return new ConversionTask((ConversionQueueItem) queueItem);
-    }
-
-    @Override
-    public void afterTaskCanceled(QueueItem queueItem) {
-        asposeExecutorService.cancel(queueItem.getId());
-    }
-
-    @Override
-    public void shutdown() {
-        asposeExecutorService.shutdown();
-    }
-
-    private void applyAsposeLicenses() {
-        try {
-            new License().setLicense("license/license-19.lic");
-            LOGGER.debug("Word license applied");
-
-            new com.aspose.pdf.License().setLicense("license/license-19.lic");
-            LOGGER.debug("Pdf license applied");
-
-            new com.aspose.imaging.License().setLicense("license/license-19.lic");
-            LOGGER.debug("Imaging license applied");
-
-            new com.aspose.slides.License().setLicense("license/license-19.lic");
-            LOGGER.debug("Slides license applied");
-
-            new com.aspose.cells.License().setLicense("license/license-19.lic");
-            LOGGER.debug("Cells license applied");
-        } catch (Exception ex) {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
-    }
-
-    public class ConversionTask implements QueueJobDelegate.WorkerTaskDelegate {
+    public class ConversionWorker implements QueueWorker {
 
         private final ConversionQueueItem fileQueueItem;
 
-        private ConversionTask(ConversionQueueItem fileQueueItem) {
+        private ConversionWorker(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
         }
 
