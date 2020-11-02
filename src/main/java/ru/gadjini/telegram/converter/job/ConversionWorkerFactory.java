@@ -6,10 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.exception.CorruptedFileException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -20,16 +18,13 @@ import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
-import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
-import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -130,25 +125,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         public void cancel() {
             fileManager.cancelDownloading(fileQueueItem.getFirstFile().getFileId());
             asposeExecutorService.cancel(fileQueueItem.getId());
-        }
-
-        @Override
-        public String getErrorCode(Throwable e) {
-            if (e instanceof CorruptedFileException || e instanceof ProcessException) {
-                return MessagesProperties.MESSAGE_DAMAGED_FILE;
-            }
-
-            return MessagesProperties.MESSAGE_CONVERSION_FAILED;
-        }
-
-        @Override
-        public String getWaitingMessage(QueueItem queueItem, Locale locale) {
-            return messageBuilder.getConversionProcessingMessage((ConversionQueueItem) queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.WAITING, Lang.JAVA, locale);
-        }
-
-        @Override
-        public InlineKeyboardMarkup getWaitingKeyboard(QueueItem queueItem, Locale locale) {
-            return inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale);
         }
 
         private Any2AnyConverter getCandidate(ConversionQueueItem fileQueueItem) {
