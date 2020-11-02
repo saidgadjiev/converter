@@ -64,7 +64,7 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
         jdbcTemplate.update(
                 con -> {
                     PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE + " (user_id, files, reply_to_message_id, target_format, status)\n" +
-                            "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
+                            "    VALUES (?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
                     ps.setInt(1, queueItem.getUserId());
 
                     Object[] files = queueItem.getFiles().stream().map(TgFile::sqlObject).toArray();

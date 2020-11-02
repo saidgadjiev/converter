@@ -18,6 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -80,8 +81,7 @@ public class ConversionMessageBuilder {
         String progressingMessage = getConversionProgressingMessage(queueItem, warns, locale);
 
         return progressingMessage + "\n\n" +
-                getProgressMessage(fileSize, conversionStep, queueItem.getTargetFormat(), lang, locale) + "\n\n" +
-                localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale);
+                getProgressMessage(fileSize, conversionStep, queueItem.getTargetFormat(), lang, locale);
     }
 
     public String getUploadingProgressMessage(ConversionQueueItem queueItem, Locale locale) {
@@ -120,6 +120,8 @@ public class ConversionMessageBuilder {
         if (warns.isEmpty()) {
             text.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST_WARN, locale));
         } else {
+            warns = new HashSet<>(warns);
+            warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
             String w = warns(warns, locale);
 
             if (StringUtils.isNotBlank(w)) {
