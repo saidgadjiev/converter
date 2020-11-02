@@ -60,8 +60,6 @@ public class ConversionQueueService {
         fileQueueItem.setStatus(ConversionQueueItem.Status.WAITING);
         fileQueueItem.setTargetFormat(targetFormat);
 
-        fileQueueItem.setLastRunAt(timeCreator.now());
-        fileQueueItem.setStartedAt(timeCreator.now());
         fileQueueDao.create(fileQueueItem);
         fileQueueItem.setQueuePosition(fileQueueDao.getPlaceInQueue(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
                 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT));

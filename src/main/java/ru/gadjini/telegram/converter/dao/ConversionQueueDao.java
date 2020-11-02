@@ -63,7 +63,7 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE + " (user_id, files, reply_to_message_id, target_format, status, last_run_at, started_at)\n" +
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE + " (user_id, files, reply_to_message_id, target_format, status)\n" +
                             "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
                     ps.setInt(1, queueItem.getUserId());
 
@@ -74,16 +74,6 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
                     ps.setInt(3, queueItem.getReplyToMessageId());
                     ps.setString(4, queueItem.getTargetFormat().name());
                     ps.setInt(5, queueItem.getStatus().getCode());
-                    if (queueItem.getLastRunAt() != null) {
-                        ps.setTimestamp(6, Timestamp.valueOf(queueItem.getLastRunAt().toLocalDateTime()));
-                    } else {
-                        ps.setNull(6, Types.TIMESTAMP);
-                    }
-                    if (queueItem.getStartedAt() != null) {
-                        ps.setTimestamp(7, Timestamp.valueOf(queueItem.getStartedAt().toLocalDateTime()));
-                    } else {
-                        ps.setNull(7, Types.TIMESTAMP);
-                    }
 
                     return ps;
                 },
