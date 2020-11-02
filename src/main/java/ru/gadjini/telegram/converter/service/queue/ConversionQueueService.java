@@ -61,7 +61,7 @@ public class ConversionQueueService {
         fileQueueItem.setTargetFormat(targetFormat);
 
         fileQueueDao.create(fileQueueItem);
-        fileQueueItem.setQueuePosition(fileQueueDao.getPlaceInQueue(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
+        fileQueueItem.setQueuePosition(fileQueueDao.getQueuePosition(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
                 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT));
 
         return fileQueueItem;

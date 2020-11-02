@@ -84,7 +84,7 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
         queueItem.setId(id);
     }
 
-    public Integer getPlaceInQueue(int id, SmartExecutorService.JobWeight weight) {
+    public Integer getQueuePosition(int id, SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
                 "SELECT COALESCE(queue_position, 1) as queue_position\n" +
                         "FROM (SELECT id, row_number() over (ORDER BY created_at) AS queue_position\n" +
