@@ -302,7 +302,9 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
         fileQueueItem.setCreatedAt(ZonedDateTime.of(createdAt.toLocalDateTime(), ZoneOffset.UTC));
 
         Timestamp startedAt = rs.getTimestamp(ConversionQueueItem.STARTED_AT);
-        fileQueueItem.setStartedAt(ZonedDateTime.of(startedAt.toLocalDateTime(), ZoneOffset.UTC));
+        if (startedAt != null) {
+            fileQueueItem.setStartedAt(ZonedDateTime.of(startedAt.toLocalDateTime(), ZoneOffset.UTC));
+        }
 
         Timestamp completedAt = rs.getTimestamp(ConversionQueueItem.COMPLETED_AT);
         if (completedAt != null) {
