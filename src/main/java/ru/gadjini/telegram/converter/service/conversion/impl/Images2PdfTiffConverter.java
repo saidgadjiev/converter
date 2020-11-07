@@ -12,7 +12,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
-import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
@@ -140,18 +139,18 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         progress.setChatId(queueItem.getUserId());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
         progress.setLocale(locale.getLanguage());
-        progress.setProgressMessage(messageBuilder.getFilesDownloadingProgressMessage(queueItem, queueItem.getFiles().get(current).getSize(), current, total, Lang.PYTHON, locale));
+        progress.setProgressMessage(messageBuilder.getFilesDownloadingProgressMessage(queueItem, current, total, locale));
         progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
 
         if (current + 1 < total) {
-            String completionMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, queueItem.getFiles().get(current + 1).getSize(), current + 1, total, Lang.JAVA, locale);
+            String completionMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, current + 1, total, locale);
             String calculated = localisationService.getMessage(MESSAGE_CALCULATED, locale);
             completionMessage = String.format(completionMessage, 0, calculated, calculated);
             progress.setAfterProgressCompletionMessage(completionMessage);
             progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
         } else {
-            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, 0, Collections.emptySet(),
-                    ConversionStep.CONVERTING, Lang.JAVA, locale);
+            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
+                    ConversionStep.CONVERTING, locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
         }
@@ -160,35 +159,25 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
     }
 
     private void downloadingFinishedProgress(ConversionQueueItem queueItem, Locale locale) {
-        long lastFileSize = queueItem.getFiles().get(queueItem.getFiles().size() - 1).getSize();
-        if (!isShowingProgress(lastFileSize)) {
-            try {
-                String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, 1, Collections.emptySet(),
-                        ConversionStep.CONVERTING, Lang.JAVA, locale);
-                InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
-                messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
-                        .setReplyMarkup(conversionKeyboard));
-            } catch (Exception ex) {
-                LOGGER.error(ex.getMessage(), ex);
-            }
+        try {
+            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
+                    ConversionStep.CONVERTING, locale);
+            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
+            messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
+                    .setReplyMarkup(conversionKeyboard));
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
     }
 
     private void downloadingStartProgress(ConversionQueueItem queueItem, Locale locale) {
-        long firstFileSize = queueItem.getFiles().iterator().next().getSize();
-        if (!isShowingProgress(firstFileSize)) {
-            try {
-                String progressMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, 1, 0, queueItem.getFiles().size(), Lang.JAVA, locale);
-                InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
-                messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
-                        .setReplyMarkup(conversionKeyboard));
-            } catch (Exception ex) {
-                LOGGER.error(ex.getMessage(), ex);
-            }
+        try {
+            String progressMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, 0, queueItem.getFiles().size(), locale);
+            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
+            messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
+                    .setReplyMarkup(conversionKeyboard));
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
-    }
-
-    private boolean isShowingProgress(long fileSize) {
-        return fileSize > 5 * 1024 * 1024;
     }
 }

@@ -14,7 +14,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ResultType;
 import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
-import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
@@ -65,9 +64,9 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
     @Autowired
     public ConversionWorkerFactory(FileManager fileManager, UserService userService,
-                                 InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
-                                 @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
-                                 AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
+                                   InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
+                                   @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
+                                   AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
         this.fileManager = fileManager;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -154,31 +153,25 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
             progress.setLocale(locale.getLanguage());
             progress.setProgressMessageId(queueItem.getProgressMessageId());
-            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.UPLOADING, Lang.PYTHON, locale);
+            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.UPLOADING, locale);
             progress.setProgressMessage(progressMessage);
             progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
 
-            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.COMPLETED, Lang.PYTHON, locale);
+            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.COMPLETED, locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
 
             return progress;
         }
 
-        private void sendUploadingProgress(ConversionQueueItem conversionQueueItem, FileResult result, Locale locale) {
-            if (!isShowingProgress(result.getFile().length())) {
-                String uploadingProgressMessage = messageBuilder.getUploadingProgressMessage(conversionQueueItem, locale);
-                try {
-                    messageService.editMessage(
-                            new EditMessageText(conversionQueueItem.getUserId(), conversionQueueItem.getProgressMessageId(), uploadingProgressMessage)
-                                    .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale)));
-                } catch (Exception e) {
-                    LOGGER.error("Ignore exception\n" + e.getMessage(), e);
-                }
+        private void sendUploadingProgress(ConversionQueueItem conversionQueueItem, Locale locale) {
+            String uploadingProgressMessage = messageBuilder.getUploadingProgressMessage(conversionQueueItem, locale);
+            try {
+                messageService.editMessage(
+                        new EditMessageText(conversionQueueItem.getUserId(), conversionQueueItem.getProgressMessageId(), uploadingProgressMessage)
+                                .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale)));
+            } catch (Exception e) {
+                LOGGER.error("Ignore exception\n" + e.getMessage(), e);
             }
-        }
-
-        private boolean isShowingProgress(long fileSize) {
-            return fileSize > 5 * 1024 * 1024;
         }
 
         private void sendResult(ConversionQueueItem fileQueueItem, ConvertResult convertResult) {
@@ -186,7 +179,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             SendFileResult sendFileResult = null;
             switch (convertResult.resultType()) {
                 case FILE: {
-                    sendUploadingProgress(fileQueueItem, (FileResult) convertResult, locale);
+                    sendUploadingProgress(fileQueueItem, locale);
                     SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFileName(), ((FileResult) convertResult).getFile())
                             .setProgress(progress(fileQueueItem.getUserId(), fileQueueItem))
                             .setCaption(fileQueueItem.getMessage())

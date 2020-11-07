@@ -9,50 +9,17 @@ services:
       - ../../../data/converter/oom:/home/bot/app/oom
       - ../../../data/shr:/tmp/shr
       - ../../../../fonts:/usr/share/fonts/converter
+      - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
     ports:
       - 5005:5005
     env_file:
       - .env
     depends_on:
       - url2api
-      - convertermtproto
-      - converterbotapi
   url2api:
     container_name: url2api
     restart: always
     build: ../../../../url-to-pdf-api/
-  convertermtproto:
-    container_name: convertermtproto
-    restart: always
-    build: ../../../../fileutils-rest/
-    env_file:
-      - .env
-    volumes:
-      - ../../../data/converter/gram:/home/bot/app/gram
-      - ../../../data/shr:/tmp/shr
-    depends_on:
-      - converterbotapi
-  converterbot:
-    container_name: converterbot
-    restart: always
-    build: ../../../../fileutils-bot/
-    env_file:
-      - .env
-    volumes:
-      - ../../../data/converter/gram:/home/bot/app/gram
-    depends_on:
-      - converterapp
-  converterbotapi:
-    container_name: converterbotapi
-    restart: always
-    build: ../../../../fileutils-bot-api/
-    env_file:
-      - .env
-    ports:
-      - 5004:5005
-    volumes:
-      - ../../../data/converter/logs:/app/logs
-      - ../../../data/shr:/tmp/shr
 
 networks:
   default:

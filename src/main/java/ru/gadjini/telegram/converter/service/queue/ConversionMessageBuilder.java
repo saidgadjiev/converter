@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
@@ -33,15 +31,12 @@ public class ConversionMessageBuilder {
 
     private LocalisationService localisationService;
 
-    private ProgressManager progressManager;
-
     @Value("${converter:all}")
     private String converter;
 
     @Autowired
-    public ConversionMessageBuilder(LocalisationService localisationService, ProgressManager progressManager) {
+    public ConversionMessageBuilder(LocalisationService localisationService) {
         this.localisationService = localisationService;
-        this.progressManager = progressManager;
     }
 
     @PostConstruct
@@ -70,18 +65,18 @@ public class ConversionMessageBuilder {
         return message.toString();
     }
 
-    public String getFilesDownloadingProgressMessage(ConversionQueueItem queueItem, long fileSize, int current, int total, Lang lang, Locale locale) {
+    public String getFilesDownloadingProgressMessage(ConversionQueueItem queueItem, int current, int total, Locale locale) {
         String progressingMessage = getConversionProgressingMessage(queueItem, Collections.emptySet(), locale);
 
-        return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(fileSize, current, total, queueItem.getTargetFormat(), lang, locale);
+        return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(current, total, queueItem.getTargetFormat(), locale);
     }
 
-    public String getConversionProcessingMessage(ConversionQueueItem queueItem, long fileSize, Set<String> warns,
-                                                 ConversionStep conversionStep, Lang lang, Locale locale) {
+    public String getConversionProcessingMessage(ConversionQueueItem queueItem, Set<String> warns,
+                                                 ConversionStep conversionStep, Locale locale) {
         String progressingMessage = getConversionProgressingMessage(queueItem, warns, locale);
 
         return progressingMessage + "\n\n" +
-                getProgressMessage(fileSize, conversionStep, queueItem.getTargetFormat(), lang, locale);
+                getProgressMessage(conversionStep, queueItem.getTargetFormat(), locale);
     }
 
     public String getUploadingProgressMessage(ConversionQueueItem queueItem, Locale locale) {
@@ -132,12 +127,8 @@ public class ConversionMessageBuilder {
         return text.toString();
     }
 
-    private String getProgressMessage(long fileSize, ConversionStep conversionStep, Format targetFormat, Lang lang, Locale locale) {
-        String formatter = lang == Lang.JAVA ? "%s" : "{}";
-        String percentage = lang == Lang.JAVA ? "%%" : "%";
+    private String getProgressMessage(ConversionStep conversionStep, Format targetFormat, Locale locale) {
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
-        boolean progress = isShowingProgress(fileSize, conversionStep);
-        String percentageFormatter = progress ? "(" + formatter + percentage + ")..." : "...";
         String conversionMsgCode = targetFormat == Format.COMPRESS ? MessagesProperties.COMPRESSING_STEP : MessagesProperties.CONVERTING_STEP;
 
         switch (conversionStep) {
@@ -147,9 +138,7 @@ public class ConversionMessageBuilder {
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
             case DOWNLOADING:
-                return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + " " + percentageFormatter + "</b>\n" +
-                        (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" : "") +
-                        (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" : "") +
+                return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + " ...</b>\n" +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
             case CONVERTING:
@@ -159,9 +148,7 @@ public class ConversionMessageBuilder {
             case UPLOADING:
                 return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
-                        "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + " " + percentageFormatter + "</b>\n" +
-                        (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" : "") +
-                        (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>" : "");
+                        "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + " ...</b>";
             default:
                 return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
@@ -169,15 +156,8 @@ public class ConversionMessageBuilder {
         }
     }
 
-    private String getFilesDownloadingProgressMessage(long fileSize, int current, int total, Format targetFormat, Lang lang, Locale locale) {
-        String formatter = lang == Lang.JAVA ? "%s" : "{}";
-        String percentage = lang == Lang.JAVA ? "%%" : "%";
-        boolean progress = isShowingProgress(fileSize, ConversionStep.DOWNLOADING);
-        String percentageFormatter = progress ? "(" + formatter + percentage + ")..." : "...";
-
-        return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_FILES_STEP, new Object[]{current, total}, locale) + " " + percentageFormatter + "</b>\n" +
-                (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" : "") +
-                (progress ? localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" : "") +
+    private String getFilesDownloadingProgressMessage(int current, int total, Format targetFormat, Locale locale) {
+        return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_FILES_STEP, new Object[]{current, total}, locale) + " ...</b>\n" +
                 "<b>" + localisationService.getMessage(targetFormat == Format.COMPRESS ? MessagesProperties.COMPRESSING_STEP : MessagesProperties.CONVERTING_STEP, locale) + "</b>\n" +
                 "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
     }
@@ -197,15 +177,5 @@ public class ConversionMessageBuilder {
         }
 
         return null;
-    }
-
-    private boolean isShowingProgress(long fileSize, ConversionStep conversionStep) {
-        if (conversionStep == ConversionStep.DOWNLOADING) {
-            return progressManager.isShowingDownloadingProgress(fileSize);
-        } else if (conversionStep == ConversionStep.UPLOADING) {
-            return progressManager.isShowingUploadingProgress(fileSize);
-        }
-
-        return false;
     }
 }

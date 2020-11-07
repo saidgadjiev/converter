@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
-import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
@@ -58,11 +57,11 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
         progress.setLocale(locale.getLanguage());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.DOWNLOADING, Lang.PYTHON, locale);
+        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.DOWNLOADING, locale);
         progress.setProgressMessage(progressMessage);
         progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
 
-        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(), Collections.emptySet(), ConversionStep.CONVERTING, Lang.PYTHON, locale);
+        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.CONVERTING, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
         progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
 

@@ -4,6 +4,7 @@ import com.aspose.words.License;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
@@ -12,7 +13,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.queue.event.QueueJobShuttin
 import ru.gadjini.telegram.smart.bot.commons.service.queue.event.TaskCanceled;
 
 @Component
-public class QueueJobEventListener {
+public class QueueJobEventListener implements ApplicationListener<QueueJobInitialization> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionWorkerFactory.class);
 
@@ -23,8 +24,8 @@ public class QueueJobEventListener {
         this.asposeExecutorService = asposeExecutorService;
     }
 
-    @EventListener
-    public void jobInitialization(QueueJobInitialization event) {
+    @Override
+    public void onApplicationEvent(QueueJobInitialization event) {
         applyAsposeLicenses();
     }
 

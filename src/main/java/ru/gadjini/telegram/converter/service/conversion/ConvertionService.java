@@ -8,7 +8,6 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
-import ru.gadjini.telegram.converter.service.progress.Lang;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
@@ -72,13 +71,13 @@ public class ConvertionService {
                     .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
             commandStateService.deleteState(message.getChatId(), ConverterCommandNames.START_COMMAND);
 
-            fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), queueItem.getFirstFileId(), queueItem.getSize(), TAG);
+            fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), queueItem.getFirstFileId(), TAG);
         }, locale);
     }
 
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
-        String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, queueItem.getSize(),
-                convertState.getWarnings(), ConversionStep.WAITING, Lang.JAVA, new Locale(convertState.getUserLanguage()));
+        String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem,
+                convertState.getWarnings(), ConversionStep.WAITING, new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(new HtmlMessage((long) queueItem.getUserId(), queuedMessage)
                 .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)), callback);
     }

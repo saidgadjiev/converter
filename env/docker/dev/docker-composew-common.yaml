@@ -1,0 +1,48 @@
+version: '3.5'
+services:
+  db:
+    container_name: db
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5431:5432
+    env_file:
+      - .db.env
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    command:
+      - 'redis-server'
+      - '--save 900 1'
+      - '--save 300 10'
+      - '--save 60 10000'
+    volumes:
+      - ../../../data/redis:/data
+  botapi:
+    container_name: botapi
+    restart: always
+    build: ../../../bot-api/
+    ports:
+      - 8081:8081
+      - 8082:8082
+    volumes:
+      - type: bind
+        source: ../../../data/botapi/logs
+        target: /home/bot/logs
+      - type: bind
+        source: ../../../data/botapi/workdir
+        target: /home/bot/workdir/1119541928:AAFiil_pWtM2YevKfifi-p8XxR0delkEeuw
+    env_file:
+      - .env.fileutils
+
+volumes:
+  pgdata:
+    external: true
+
+networks:
+  default:
+    external:
+      name: fileutils
