@@ -30,9 +30,6 @@ services:
       - 8082:8082
     volumes:
       - type: bind
-        source: ../../../data/botapi/logs
-        target: /home/bot/logs
-      - type: bind
         source: ../../../data/botapi/workdir
         target: /home/bot/workdir/1119541928:AAFiil_pWtM2YevKfifi-p8XxR0delkEeuw
     env_file:
