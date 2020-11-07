@@ -9,7 +9,7 @@ services:
     ports:
       - 5431:5432
     env_file:
-      - .db.env
+      - .common.env
   redis:
     container_name: redis
     image: redis:alpine
@@ -36,7 +36,7 @@ services:
         source: ../../../data/botapi/workdir
         target: /home/bot/workdir/1119541928:AAFiil_pWtM2YevKfifi-p8XxR0delkEeuw
     env_file:
-      - .env.fileutils
+      - .common.env
 
 volumes:
   pgdata:
