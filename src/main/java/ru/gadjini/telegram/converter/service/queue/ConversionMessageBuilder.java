@@ -112,16 +112,14 @@ public class ConversionMessageBuilder {
                     .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_COUNT, new Object[]{queueItem.getFiles().size()}, locale));
         }
 
-        if (warns.isEmpty()) {
-            text.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST_WARN, locale));
-        } else {
-            warns = new HashSet<>(warns);
-            warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
-            String w = warns(warns, locale);
+        warns = new HashSet<>(warns);
+        warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
+        warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_PROGRESS_REMOVED, locale));
 
-            if (StringUtils.isNotBlank(w)) {
-                text.append("\n\n").append(w);
-            }
+        String w = warns(warns, locale);
+
+        if (StringUtils.isNotBlank(w)) {
+            text.append("\n\n").append(w);
         }
 
         return text.toString();

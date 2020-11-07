@@ -115,5 +115,5 @@ public class MessagesProperties {
 
     public static final String MESSAGE_DONT_SEND_NEW_REQUEST = "message.dont.send.new.request";
 
-    public static final String MESSAGE_DONT_SEND_NEW_REQUEST_WARN = "message.dont.send.new.request.warn";
+    public static final String MESSAGE_DOWNLOADING_PROGRESS_REMOVED = "message.downloading.progress.removed";
 }
