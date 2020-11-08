@@ -4,12 +4,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -69,7 +70,7 @@ public class ConversionStatsCommand implements BotCommand {
                     completedAt, item.getFirstFileId(), resultFileId
             }, userService.getLocaleOrDefault(message.getFrom().getId()));
 
-            messageService.sendMessage(new HtmlMessage(message.getChatId(), msg));
+            messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId())).text(msg).parseMode(ParseMode.HTML).build());
         }
     }
 

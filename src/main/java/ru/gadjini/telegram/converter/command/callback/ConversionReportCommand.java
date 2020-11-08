@@ -3,18 +3,19 @@ package ru.gadjini.telegram.converter.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.converter.request.Arg;
-import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.telegram.converter.service.ConversinoReportService;
+import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
 
@@ -51,13 +52,17 @@ public class ConversionReportCommand implements CallbackBotCommand {
         if (fileReportService.createReport(callbackQuery.getFrom().getId(), itemId)) {
             messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
             messageService.sendMessage(
-                    new HtmlMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
+                    SendMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
+                            .parseMode(ParseMode.HTML)
+                            .build()
             );
         } else {
             messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
             messageService.sendAnswerCallbackQuery(
-                    new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
-                            .setShowAlert(true));
+                    AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                            .showAlert(true).build());
         }
     }
 }

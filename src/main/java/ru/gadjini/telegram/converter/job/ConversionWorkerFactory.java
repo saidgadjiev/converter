@@ -6,6 +6,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
@@ -19,11 +23,8 @@ import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendSticker;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -102,7 +103,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
                 LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
                 if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
-                    mediaMessageService.sendFile(fileQueueItem.getUserId(), fileQueueItem.getResultFileId());
+                    mediaMessageService.sendDocument(new SendDocument(String.valueOf(fileQueueItem.getUserId()), new InputFile(fileQueueItem.getResultFileId())), null);
                 } else {
                     try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                         if (convertResult.resultType() == ResultType.BUSY) {
@@ -167,8 +168,10 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             String uploadingProgressMessage = messageBuilder.getUploadingProgressMessage(conversionQueueItem, locale);
             try {
                 messageService.editMessage(
-                        new EditMessageText(conversionQueueItem.getUserId(), conversionQueueItem.getProgressMessageId(), uploadingProgressMessage)
-                                .setReplyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale)));
+                        EditMessageText.builder().chatId(String.valueOf(conversionQueueItem.getUserId()))
+                                .messageId(conversionQueueItem.getProgressMessageId()).text(uploadingProgressMessage)
+                                .replyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale))
+                                .build());
             } catch (Exception e) {
                 LOGGER.error("Ignore exception\n" + e.getMessage(), e);
             }
@@ -180,13 +183,13 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             switch (convertResult.resultType()) {
                 case FILE: {
                     sendUploadingProgress(fileQueueItem, locale);
-                    SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFileName(), ((FileResult) convertResult).getFile())
-                            .setProgress(progress(fileQueueItem.getUserId(), fileQueueItem))
-                            .setCaption(fileQueueItem.getMessage())
-                            .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
-                            .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
+                    SendDocument sendDocumentContext = SendDocument.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .document(new InputFile(((FileResult) convertResult).getFile(), ((FileResult) convertResult).getFileName()))
+                            .caption(fileQueueItem.getMessage())
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale)).build();
                     try {
-                        sendFileResult = mediaMessageService.sendDocument(sendDocumentContext);
+                        sendFileResult = mediaMessageService.sendDocument(sendDocumentContext, progress(fileQueueItem.getUserId(), fileQueueItem));
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
@@ -199,9 +202,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     break;
                 }
                 case STICKER: {
-                    SendSticker sendFileContext = new SendSticker((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
-                            .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
-                            .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
+                    SendSticker sendFileContext = SendSticker.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .sticker(new InputFile(((FileResult) convertResult).getFile()))
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
+                            .build();
                     try {
                         sendFileResult = mediaMessageService.sendSticker(sendFileContext);
                     } catch (TelegramApiRequestException ex) {

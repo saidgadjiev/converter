@@ -4,10 +4,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
@@ -37,7 +37,7 @@ public class GetExceptionCommand implements BotCommand {
     public void processMessage(Message message, String[] params) {
         String exception = queueService.getException(Integer.parseInt(params[0]));
         messageService.sendMessage(new SendMessage(
-                message.getChatId(),
+                String.valueOf(message.getChatId()),
                 StringUtils.defaultIfBlank(exception, "No stack trace")
         ));
     }

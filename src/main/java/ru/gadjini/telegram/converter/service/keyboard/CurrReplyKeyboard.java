@@ -2,10 +2,10 @@ package ru.gadjini.telegram.converter.service.keyboard;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.gadjini.telegram.smart.bot.commons.dao.command.keyboard.ReplyKeyboardDao;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.Locale;
@@ -18,7 +18,7 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
 
     private ConverterReplyKeyboardService keyboardService;
 
-    public CurrReplyKeyboard(@Qualifier("inMemory") ReplyKeyboardDao replyKeyboardDao, @Qualifier("keyboard") ConverterReplyKeyboardService keyboardService) {
+    public CurrReplyKeyboard(@Qualifier("redis") ReplyKeyboardDao replyKeyboardDao, @Qualifier("keyboard") ConverterReplyKeyboardService keyboardService) {
         this.replyKeyboardDao = replyKeyboardDao;
         this.keyboardService = keyboardService;
     }

@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
@@ -17,9 +19,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -121,7 +121,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
                 SmartTempFile downloadedImage = fileService.createTempFile(tempDir, queueItem.getUserId(), "File-" + i + "." + imageFile.getFormat().getExt());
                 images.add(downloadedImage);
                 Progress downloadProgress = progress(queueItem, i, queueItem.getFiles().size(), locale);
-                fileManager.forceDownloadFileByFileId(imageFile.getFileId(), imageFile.getSize(), downloadProgress, downloadedImage);
+                fileManager.downloadFileByFileId(imageFile.getFileId(), imageFile.getSize(), downloadProgress, downloadedImage);
                 ++i;
             }
         } catch (Exception ex) {
@@ -163,8 +163,10 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
                     ConversionStep.CONVERTING, locale);
             InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
-            messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
-                    .setReplyMarkup(conversionKeyboard));
+            messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
+                    .messageId(queueItem.getProgressMessageId())
+                    .text(progressMessage)
+                    .replyMarkup(conversionKeyboard).build());
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
         }
@@ -174,8 +176,11 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         try {
             String progressMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, 0, queueItem.getFiles().size(), locale);
             InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
-            messageService.editMessage(new EditMessageText(queueItem.getUserId(), queueItem.getProgressMessageId(), progressMessage)
-                    .setReplyMarkup(conversionKeyboard));
+            messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
+                    .messageId(queueItem.getProgressMessageId())
+                    .text(progressMessage)
+                    .replyMarkup(conversionKeyboard)
+                    .build());
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
         }

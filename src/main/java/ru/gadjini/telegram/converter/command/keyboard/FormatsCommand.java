@@ -3,11 +3,12 @@ package ru.gadjini.telegram.converter.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -32,7 +33,9 @@ public class FormatsCommand implements BotCommand {
     @Override
     public void processMessage(Message message, String[] params) {
         messageService.sendMessage(
-                new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, userService.getLocaleOrDefault(message.getFrom().getId()))));
+                SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, userService.getLocaleOrDefault(message.getFrom().getId())))
+                        .parseMode(ParseMode.HTML).build());
     }
 
     @Override

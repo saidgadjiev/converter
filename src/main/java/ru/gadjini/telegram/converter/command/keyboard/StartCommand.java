@@ -10,6 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
@@ -24,10 +28,6 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -115,13 +115,17 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 convertState = createState(message, locale);
                 if (StringUtils.isNotBlank(message.getMediaGroupId())) {
                     messageService.sendMessage(
-                            new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                                    .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale))
+                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                    .text(queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
+                                    .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale))
+                                    .build()
                     );
                 } else {
                     messageService.sendMessage(
-                            new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                                    .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                    .text(queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
+                                    .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                                    .build()
                     );
                 }
                 convertState.deleteWarns();
@@ -134,13 +138,17 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         convertState.setMediaGroupId(message.getMediaGroupId());
                     }
                     if (convertState.getFiles().size() < 3) {
-                        messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_FILES_APPENDED, locale))
-                                .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale)));
+                        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_APPENDED, locale))
+                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale)).build());
                     }
                     commandStateService.setState(message.getChatId(), ConverterCommandNames.START_COMMAND, convertState);
                 } else {
-                    messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TYPE, locale))
-                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale)));
+                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TYPE, locale))
+                            .parseMode(ParseMode.HTML)
+                            .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            .build());
                 }
             } else if (message.hasText()) {
                 Format associatedFormat = formatService.getAssociatedFormat(text);
@@ -148,8 +156,10 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 if (isMultiTextMessage(associatedFormat, convertState)) {
                     convertState.getFirstFile().setFileId(convertState.getFirstFile().getFileId() + " " + text);
                     commandStateService.setState(message.getChatId(), ConverterCommandNames.START_COMMAND, convertState);
-                    messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
-                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale)));
+                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
+                            .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            .build());
                     return;
                 }
                 Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFirstFormat(), associatedFormat, text, locale);
@@ -159,8 +169,11 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 commandStateService.deleteState(message.getChatId(), ConverterCommandNames.START_COMMAND);
             } else {
                 messageService.sendMessage(
-                        new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                                .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                        SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                .text(queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
+                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                                .parseMode(ParseMode.HTML)
+                                .build()
                 );
             }
         });
@@ -180,8 +193,10 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessage(new HtmlMessage(message.getChatId(), queueMessageBuilder.getWelcomeMessage(locale))
-                .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())));
+        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                .text(queueMessageBuilder.getWelcomeMessage(locale))
+                .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId()))
+                .parseMode(ParseMode.HTML).build());
     }
 
     @Override
@@ -202,13 +217,18 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         ConvertState convertState = commandStateService.getState(message.getChatId(), ConverterCommandNames.START_COMMAND, false, ConvertState.class);
         if (convertState == null) {
             messageService.sendMessage(
-                    new HtmlMessage(message.getChatId(), queueMessageBuilder.getWelcomeMessage(locale))
-                            .setReplyMarkup(replyKeyboardService.removeKeyboard(message.getChatId()))
+                    SendMessage.builder().chatId(String.valueOf(message.getChatId())).text(queueMessageBuilder.getWelcomeMessage(locale))
+                            .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId()))
+                            .parseMode(ParseMode.HTML)
+                            .build()
             );
         } else {
             messageService.sendMessage(
-                    new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                    SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
+                            .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            .parseMode(ParseMode.HTML)
+                            .build()
             );
         }
     }
@@ -268,7 +288,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         SmartTempFile file = fileService.createTempFile(chatId, fileId, TAG, Format.HTML.getExt());
 
         try {
-            fileManager.forceDownloadFileByFileId(fileId, fileSize, file);
+            fileManager.downloadFileByFileId(fileId, fileSize, file);
 
             Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");

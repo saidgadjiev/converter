@@ -3,6 +3,9 @@ package ru.gadjini.telegram.converter.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -12,9 +15,6 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.converter.utils.TextUtils;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -65,22 +65,30 @@ public class UpdateQueryStatusCommand implements CallbackBotCommand {
         ConversionQueueItem queueItem = (ConversionQueueItem) queueService.getById(queryItemId);
         if (queueItem == null) {
             messageService.editMessage(
-                    new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(),
-                            localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                    EditMessageText.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                            .build()
             );
             messageService.sendAnswerCallbackQuery(
-                    new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
-                            .setShowAlert(true));
+                    AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                            .showAlert(true)
+                            .build());
         } else {
             String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.WAITING, locale);
             if (!Objects.equals(TextUtils.removeHtmlTags(queuedMessage), callbackQuery.getMessage().getText())) {
                 messageService.editMessage(
-                        new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), queuedMessage)
-                                .setReplyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queryItemId, locale))
+                        EditMessageText.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                                .messageId(callbackQuery.getMessage().getMessageId())
+                                .text(queuedMessage)
+                                .replyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queryItemId, locale))
+                                .build()
                 );
             }
             messageService.sendAnswerCallbackQuery(
-                    new AnswerCallbackQuery(callbackQuery.getId(), localisationService.getMessage(MessagesProperties.UPDATED_CALLBACK_ANSWER, locale)));
+                    AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+                            .text(localisationService.getMessage(MessagesProperties.UPDATED_CALLBACK_ANSWER, locale)).build());
         }
     }
 }
