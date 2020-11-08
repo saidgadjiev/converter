@@ -8,9 +8,12 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.event.QueueJobInitialization;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.event.QueueJobShuttingDown;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.event.TaskCanceled;
+
+import java.util.Set;
 
 @Component
 public class QueueJobEventListener implements ApplicationListener<QueueJobInitialization> {
@@ -19,14 +22,20 @@ public class QueueJobEventListener implements ApplicationListener<QueueJobInitia
 
     private AsposeExecutorService asposeExecutorService;
 
+    private final Set<FormatCategory> categories;
+
+
     @Autowired
-    public QueueJobEventListener(AsposeExecutorService asposeExecutorService) {
+    public QueueJobEventListener(AsposeExecutorService asposeExecutorService, Set<FormatCategory> categories) {
         this.asposeExecutorService = asposeExecutorService;
+        this.categories = categories;
     }
 
     @Override
     public void onApplicationEvent(QueueJobInitialization event) {
-        applyAsposeLicenses();
+        if (categories.contains(FormatCategory.DOCUMENTS)) {
+            applyAsposeLicenses();
+        }
     }
 
     @EventListener

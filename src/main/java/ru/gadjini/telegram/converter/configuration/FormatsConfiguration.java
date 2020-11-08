@@ -9,6 +9,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -129,5 +130,10 @@ public class FormatsConfiguration {
     )
     public Map<FormatCategory, Map<List<Format>, List<Format>>> allFormats() {
         return FORMATS;
+    }
+
+    @Bean
+    public Set<FormatCategory> formatCategories(Map<FormatCategory, Map<List<Format>, List<Format>>> formats) {
+        return formats.keySet();
     }
 }
