@@ -118,12 +118,14 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                     .text(queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
                                     .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale))
+                                    .parseMode(ParseMode.HTML)
                                     .build()
                     );
                 } else {
                     messageService.sendMessage(
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                     .text(queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
+                                    .parseMode(ParseMode.HTML)
                                     .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                     .build()
                     );

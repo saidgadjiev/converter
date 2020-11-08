@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -71,6 +72,7 @@ public class ConvertionService {
         String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem,
                 convertState.getWarnings(), ConversionStep.WAITING, new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(queueItem.getUserId())).text(queuedMessage)
+                .parseMode(ParseMode.HTML)
                 .replyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)).build(), callback);
     }
 }

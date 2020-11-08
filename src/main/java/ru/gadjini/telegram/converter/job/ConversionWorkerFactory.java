@@ -103,7 +103,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
                 LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
                 if (StringUtils.isNotBlank(fileQueueItem.getResultFileId())) {
-                    mediaMessageService.sendDocument(new SendDocument(String.valueOf(fileQueueItem.getUserId()), new InputFile(fileQueueItem.getResultFileId())), null);
+                    mediaMessageService.sendDocument(new SendDocument(String.valueOf(fileQueueItem.getUserId()), new InputFile(fileQueueItem.getResultFileId())));
                 } else {
                     try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                         if (convertResult.resultType() == ResultType.BUSY) {
