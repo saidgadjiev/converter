@@ -41,7 +41,7 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
     @Override
     public ReplyKeyboardRemove removeKeyboard(long chatId) {
         ReplyKeyboardRemove replyKeyboardRemove = keyboardService.removeKeyboard(chatId);
-        setCurrentKeyboard(chatId, new ReplyKeyboardMarkup());
+        setCurrentKeyboard(chatId, replyKeyboardMarkup());
 
         return replyKeyboardRemove;
     }

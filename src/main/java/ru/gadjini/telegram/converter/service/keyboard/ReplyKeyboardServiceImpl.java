@@ -74,7 +74,10 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
     @Override
     public ReplyKeyboardRemove removeKeyboard(long chatId) {
-        return new ReplyKeyboardRemove();
+        ReplyKeyboardRemove replyKeyboardRemove = new ReplyKeyboardRemove();
+        replyKeyboardRemove.setRemoveKeyboard(true);
+
+        return replyKeyboardRemove;
     }
 
 }

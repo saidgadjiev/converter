@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -14,13 +15,13 @@ import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.CurrReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandExecutor;
 import ru.gadjini.telegram.smart.bot.commons.service.command.navigator.CommandNavigator;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
+import java.util.Collections;
 import java.util.Locale;
 
 @Service
@@ -112,6 +113,9 @@ public class ConverterBotService {
 
         if (replyKeyboardMarkup == null) {
             return true;
+        }
+        if (replyKeyboardMarkup.getKeyboard() == null) {
+            replyKeyboardMarkup.setKeyboard(Collections.emptyList());
         }
 
         for (KeyboardRow keyboardRow : replyKeyboardMarkup.getKeyboard()) {

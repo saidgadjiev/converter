@@ -19,7 +19,7 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup reportKeyboard(int queueItemId, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.report(queueItemId, locale)));
         return inlineKeyboardMarkup;
     }
