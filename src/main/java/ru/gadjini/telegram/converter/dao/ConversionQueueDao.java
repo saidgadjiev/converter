@@ -15,6 +15,7 @@ import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.QueueProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -44,13 +45,16 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
 
     private FileLimitProperties fileLimitProperties;
 
+    private QueueProperties queueProperties;
+
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
                               Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
-                              FileLimitProperties fileLimitProperties) {
+                              FileLimitProperties fileLimitProperties, QueueProperties queueProperties) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
+        this.queueProperties = queueProperties;
         for (Format value : Format.values()) {
             if (formats.containsKey(value.getCategory())) {
                 formatsSet.add(value);
@@ -120,8 +124,8 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
-                        "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +
-                        "started_at = COALESCE(started_at, now()) WHERE id IN (\n" +
+                        "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), attempts = attempts + 1, " +
+                        "started_at = COALESCE(started_at, now()) WHERE attempts <= ? AND id IN (\n" +
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " c, unnest(c.files) cf WHERE c.status = 0 AND files[1].format IN(" + inFormats() + ")" +
                         "        GROUP BY c.id, c.created_at\n" +
@@ -134,8 +138,9 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
                         "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n" +
                         "ORDER BY cv.created_at",
                 ps -> {
-                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
-                    ps.setInt(2, limit);
+                    ps.setInt(1, queueProperties.getMaxAttempts());
+                    ps.setLong(2, fileLimitProperties.getLightFileMaxWeight());
+                    ps.setInt(3, limit);
                 },
                 (rs, rowNum) -> map(rs)
         );
