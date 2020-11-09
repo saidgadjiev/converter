@@ -126,6 +126,8 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             try {
                 try {
                     fileResult = doRightConvert(fileQueueItem, file, log);
+                } catch (OutOfMemoryError e) {
+                    throw e;
                 } catch (Throwable e) {
                     LOGGER.error(e.getMessage(), e);
                     log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
