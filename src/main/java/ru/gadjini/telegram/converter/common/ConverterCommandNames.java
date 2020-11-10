@@ -26,8 +26,6 @@ public class ConverterCommandNames {
 
     public static final String EXECUTE_CONVERSION_COMMAND = "exec";
 
-    public static final String UPDATE_QUERY_STATUS = "updq";
-
     public static final String STATS_COMMAND = "stats";
 
     public static final String SET_RESULT_FILE_ID = "setresfileid";

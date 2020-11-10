@@ -32,26 +32,6 @@ public class ButtonFactory {
         return button;
     }
 
-    public InlineKeyboardButton cancelQueryItem(int queryItemId, Locale locale) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_QUERY_COMMAND_DESCRIPTION, locale));
-        inlineKeyboardButton.setCallbackData(ConverterCommandNames.CANCEL_QUERY_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(Arg.QUEUE_ITEM_ID.getKey(), queryItemId)
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
-    public InlineKeyboardButton updateQueryStatus(int queryItemId, Locale locale) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.UPDATE_QUERY_STATUS_COMMAND_DESCRIPTION, locale));
-        inlineKeyboardButton.setCallbackData(ConverterCommandNames.UPDATE_QUERY_STATUS + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(Arg.QUEUE_ITEM_ID.getKey(), queryItemId)
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
     public InlineKeyboardButton report(int queryItemId, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.REPORT_COMMAND_DESCRIPTION, locale));
         inlineKeyboardButton.setCallbackData(ConverterCommandNames.REPORT_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +

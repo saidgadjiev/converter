@@ -13,7 +13,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
-import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
@@ -25,6 +24,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.io.File;
@@ -59,7 +59,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private InlineKeyboardService inlineKeyboardService;
+    private SmartInlineKeyboardService inlineKeyboardService;
 
     @Autowired
     public Images2PdfTiffConverter(TempFileService fileService, FileManager fileManager,
@@ -67,7 +67,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
                                    LocalisationService localisationService, UserService userService,
                                    @Qualifier("messageLimits") MessageService messageService,
                                    Image2PdfDevice image2PdfDevice, ConversionMessageBuilder messageBuilder,
-                                   InlineKeyboardService inlineKeyboardService) {
+                                   SmartInlineKeyboardService inlineKeyboardService) {
         super(MAP);
         this.fileService = fileService;
         this.fileManager = fileManager;
@@ -140,19 +140,19 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         progress.setProgressMessageId(queueItem.getProgressMessageId());
         progress.setLocale(locale.getLanguage());
         progress.setProgressMessage(messageBuilder.getFilesDownloadingProgressMessage(queueItem, current, total, locale));
-        progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
         if (current + 1 < total) {
             String completionMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, current + 1, total, locale);
             String calculated = localisationService.getMessage(MESSAGE_CALCULATED, locale);
             completionMessage = String.format(completionMessage, 0, calculated, calculated);
             progress.setAfterProgressCompletionMessage(completionMessage);
-            progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+            progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         } else {
             String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
                     ConversionStep.CONVERTING, locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
-            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         }
 
         return progress;
@@ -162,7 +162,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         try {
             String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
                     ConversionStep.CONVERTING, locale);
-            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
+            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale);
             messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
                     .messageId(queueItem.getProgressMessageId())
                     .text(progressMessage)
@@ -175,7 +175,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
     private void downloadingStartProgress(ConversionQueueItem queueItem, Locale locale) {
         try {
             String progressMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, 0, queueItem.getFiles().size(), locale);
-            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale);
+            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale);
             messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
                     .messageId(queueItem.getProgressMessageId())
                     .text(progressMessage)

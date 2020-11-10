@@ -6,10 +6,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
-import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueJobConfigurator;
 
 import java.util.Collections;
@@ -20,10 +20,10 @@ public class ConversionQueueJobConfigurator implements QueueJobConfigurator<Conv
 
     private ConversionMessageBuilder messageBuilder;
 
-    private InlineKeyboardService inlineKeyboardService;
+    private SmartInlineKeyboardService inlineKeyboardService;
 
     @Autowired
-    public ConversionQueueJobConfigurator(ConversionMessageBuilder messageBuilder, InlineKeyboardService inlineKeyboardService) {
+    public ConversionQueueJobConfigurator(ConversionMessageBuilder messageBuilder, SmartInlineKeyboardService inlineKeyboardService) {
         this.messageBuilder = messageBuilder;
         this.inlineKeyboardService = inlineKeyboardService;
     }
@@ -40,7 +40,7 @@ public class ConversionQueueJobConfigurator implements QueueJobConfigurator<Conv
 
     @Override
     public InlineKeyboardMarkup getWaitingKeyboard(ConversionQueueItem queueItem, Locale locale) {
-        return inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale);
+        return inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale);
     }
 
     @Override

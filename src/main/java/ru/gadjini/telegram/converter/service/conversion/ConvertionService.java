@@ -11,12 +11,12 @@ import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
-import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 
@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 @Service
 public class ConvertionService {
 
-    private InlineKeyboardService inlineKeyboardService;
+    private SmartInlineKeyboardService inlineKeyboardService;
 
     private MessageService messageService;
 
@@ -41,7 +41,7 @@ public class ConvertionService {
     private ConverterReplyKeyboardService replyKeyboardService;
 
     @Autowired
-    public ConvertionService(InlineKeyboardService inlineKeyboardService,
+    public ConvertionService(SmartInlineKeyboardService inlineKeyboardService,
                              @Qualifier("messageLimits") MessageService messageService,
                              ConversionQueueService conversionQueueService, QueueService queueService,
                              ConversionMessageBuilder messageBuilder,
@@ -73,6 +73,6 @@ public class ConvertionService {
                 convertState.getWarnings(), ConversionStep.WAITING, new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(queueItem.getUserId())).text(queuedMessage)
                 .parseMode(ParseMode.HTML)
-                .replyMarkup(inlineKeyboardService.getConversionWaitingKeyboard(queueItem.getId(), locale)).build(), callback);
+                .replyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale)).build(), callback);
     }
 }

@@ -29,6 +29,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
@@ -49,6 +50,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
     private UserService userService;
 
+    private SmartInlineKeyboardService smartInlineKeyboardService;
+
     private InlineKeyboardService inlineKeyboardService;
 
     private MediaMessageService mediaMessageService;
@@ -65,11 +68,12 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
     @Autowired
     public ConversionWorkerFactory(FileManager fileManager, UserService userService,
-                                   InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
+                                   SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                    @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
                                    AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
         this.fileManager = fileManager;
         this.userService = userService;
+        this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.mediaMessageService = mediaMessageService;
         this.messageService = messageService;
@@ -156,7 +160,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             progress.setProgressMessageId(queueItem.getProgressMessageId());
             String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.UPLOADING, locale);
             progress.setProgressMessage(progressMessage);
-            progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+            progress.setProgressReplyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
             String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.COMPLETED, locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
@@ -170,7 +174,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 messageService.editMessage(
                         EditMessageText.builder().chatId(String.valueOf(conversionQueueItem.getUserId()))
                                 .messageId(conversionQueueItem.getProgressMessageId()).text(uploadingProgressMessage)
-                                .replyMarkup(inlineKeyboardService.getConversionKeyboard(conversionQueueItem.getId(), locale))
+                                .replyMarkup(smartInlineKeyboardService.getWaitingKeyboard(conversionQueueItem.getId(), locale))
                                 .build());
             } catch (Exception e) {
                 LOGGER.error("Ignore exception\n" + e.getMessage(), e);

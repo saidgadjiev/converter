@@ -3,12 +3,12 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +21,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private InlineKeyboardService inlineKeyboardService;
+    private SmartInlineKeyboardService inlineKeyboardService;
 
     private UserService userService;
 
@@ -40,7 +40,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     @Autowired
-    public void setInlineKeyboardService(InlineKeyboardService inlineKeyboardService) {
+    public void setInlineKeyboardService(SmartInlineKeyboardService inlineKeyboardService) {
         this.inlineKeyboardService = inlineKeyboardService;
     }
 
@@ -59,11 +59,11 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         progress.setProgressMessageId(queueItem.getProgressMessageId());
         String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.DOWNLOADING, locale);
         progress.setProgressMessage(progressMessage);
-        progress.setProgressReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
         String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.CONVERTING, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
-        progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getConversionKeyboard(queueItem.getId(), locale));
+        progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
         return progress;
     }

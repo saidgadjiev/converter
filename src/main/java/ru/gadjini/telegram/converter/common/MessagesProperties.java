@@ -31,15 +31,7 @@ public class MessagesProperties {
 
     public static final String MESSAGE_UNSUPPORTED_FILE = "message.unsupported.file";
 
-    public static final String CANCEL_QUERY_COMMAND_DESCRIPTION = "cancel.query.command.description";
-
-    public static final String MESSAGE_QUERY_CANCELED = "message.query.canceled";
-
     public static final String MESSAGE_QUERY_ITEM_NOT_FOUND = "message.query.item.not.found";
-
-    public static final String MESSAGE_RETRY_ANSWER = "message.retry.answer";
-
-    public static final String MESSAGE_CURRENT_TASKS_CANCELED = "message.current.tasks.canceled";
 
     public static final String MESSAGE_NO_BASE_URL_IN_HTML = "message.no.base.url.in.html";
 
@@ -58,8 +50,6 @@ public class MessagesProperties {
     public static final String MESSAGE_CONVERT_VIDEO_FILE = "message.convert.video.file";
 
     public static final String MESSAGE_CONVERT_DOCUMENT_FILE = "message.convert.document.file";
-
-    public static final String MESSAGE_GIF_WARN = "message.gif.warn";
 
     public static final String MESSAGE_INCOMPRESSIBLE_VIDEO = "message.incompressible.video";
 
@@ -93,10 +83,6 @@ public class MessagesProperties {
 
     public static final String ICON_CHECK = "icon.check";
 
-    public static final String MESSAGE_ETA = "message.eta";
-
-    public static final String MESSAGE_SPEED = "message.speed";
-
     public static final String MESSAGE_FILES_APPENDED = "message.files.appended";
 
     public static final String MESSAGE_CALCULATED = "message.calculated";
@@ -104,10 +90,6 @@ public class MessagesProperties {
     public static final String MESSAGE_VIDEO_CONVERSION = "message.video.conversion";
 
     public static final String MESSAGE_DEFAULT_CONVERSION = "message.default.conversion";
-
-    public static final String UPDATE_QUERY_STATUS_COMMAND_DESCRIPTION = "update.query.status.command.description";
-
-    public static final String UPDATED_CALLBACK_ANSWER = "updated.callback.answer";
 
     public static final String MESSAGE_STATS = "message.stats";
 
