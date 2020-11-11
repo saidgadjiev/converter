@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.update.UpdateQueryStatusCommandMessageProvider;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
@@ -21,7 +23,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Service
-public class ConversionMessageBuilder {
+public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessageProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionMessageBuilder.class);
 
@@ -69,6 +71,11 @@ public class ConversionMessageBuilder {
         String progressingMessage = getConversionProgressingMessage(queueItem, Collections.emptySet(), locale);
 
         return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(current, total, queueItem.getTargetFormat(), locale);
+    }
+
+    @Override
+    public String getWaitingMessage(QueueItem queueItem, Locale locale) {
+        return getConversionProcessingMessage((ConversionQueueItem) queueItem, Collections.emptySet(), ConversionStep.WAITING, locale);
     }
 
     public String getConversionProcessingMessage(ConversionQueueItem queueItem, Set<String> warns,

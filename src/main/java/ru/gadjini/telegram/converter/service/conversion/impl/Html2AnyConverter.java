@@ -24,7 +24,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "html2";
 
-    private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.HTML), List.of(Format.PDF));
+    private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.HTML), List.of(Format.PDF, Format.PNG));
 
     private FileManager fileManager;
 
