@@ -83,7 +83,8 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
                     String videoCodec = fFprobeDevice.getVideoCodec(file.getAbsolutePath());
                     fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getCopyCodecsOptions(fileQueueItem.getFirstFileFormat(), videoCodec));
                 } catch (ProcessException e) {
-                    LOGGER.error("Error copy codecs for " + fileQueueItem.getId() + "\n" + e.getMessage(), e);
+                    LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
+                            fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
                     fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
                 }
 
