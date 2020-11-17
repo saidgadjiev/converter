@@ -25,12 +25,12 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
 
     @Override
     public ReplyKeyboard getMainMenu(long chatId, Locale locale) {
-        return keyboardService.getMainMenu(chatId, locale);
+        return removeKeyboard(chatId);
     }
 
     @Override
     public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, (ReplyKeyboardMarkup) keyboardService.languageKeyboard(chatId, locale));
+        return setCurrentKeyboard(chatId, keyboardService.languageKeyboard(chatId, locale));
     }
 
     @Override

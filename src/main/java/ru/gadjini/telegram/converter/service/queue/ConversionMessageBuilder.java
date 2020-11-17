@@ -121,7 +121,6 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
         warns = new HashSet<>(warns);
         warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
-        warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_PROGRESS_REMOVED, locale));
 
         String w = warns(warns, locale);
 
