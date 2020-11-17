@@ -121,7 +121,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
                 SmartTempFile downloadedImage = fileService.createTempFile(tempDir, queueItem.getUserId(), "File-" + i + "." + imageFile.getFormat().getExt());
                 images.add(downloadedImage);
                 Progress downloadProgress = progress(queueItem, i, queueItem.getFiles().size(), locale);
-                fileManager.downloadFileByFileId(imageFile.getFileId(), imageFile.getSize(), downloadProgress, downloadedImage);
+                fileManager.forceDownloadFileByFileId(imageFile.getFileId(), imageFile.getSize(), downloadProgress, downloadedImage);
                 ++i;
             }
         } catch (Exception ex) {
