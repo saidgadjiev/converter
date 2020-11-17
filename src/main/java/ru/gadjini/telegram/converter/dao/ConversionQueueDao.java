@@ -125,9 +125,9 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), attempts = attempts + 1, " +
-                        "started_at = COALESCE(started_at, now()) WHERE attempts < ? AND id IN (\n" +
+                        "started_at = COALESCE(started_at, now()) WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " c, unnest(c.files) cf WHERE c.status = 0 AND files[1].format IN(" + inFormats() + ")" +
+                        "        FROM " + TYPE + " c, unnest(c.files) cf WHERE c.status = 0 AND attempts < ? AND files[1].format IN(" + inFormats() + ")" +
                         "        GROUP BY c.id, c.created_at\n" +
                         "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         "        ORDER BY c.created_at\n" +
