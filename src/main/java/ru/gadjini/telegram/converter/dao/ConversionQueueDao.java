@@ -12,6 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
+import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
@@ -124,13 +125,12 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
-                        "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), attempts = attempts + 1, " +
-                        "started_at = COALESCE(started_at, now()) WHERE id IN (\n" +
+                        "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " c, unnest(c.files) cf WHERE c.status = 0 AND attempts < ? AND files[1].format IN(" + inFormats() + ")" +
-                        "        GROUP BY c.id, c.created_at\n" +
+                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.attempts < ? AND qu.files[1].format IN(" + inFormats() + ")" +
+                        "        GROUP BY qu.id, qu.created_at\n" +
                         "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
-                        "        ORDER BY c.created_at\n" +
+                        QueueDao.POLL_ORDER_BY + "\n" +
                         "        LIMIT ?)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
