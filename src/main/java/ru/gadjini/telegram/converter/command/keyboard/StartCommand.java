@@ -305,7 +305,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private void check(Message message, Locale locale) {
         if (message.hasDocument() || message.hasText() || message.hasPhoto()
-                || message.hasSticker() || message.hasVideo()) {
+                || message.hasSticker() || message.hasVideo() || message.hasAudio() || message.hasVoice()) {
             return;
         }
 
@@ -329,6 +329,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 msgCode = MessagesProperties.MESSAGE_VIDEO_CONVERSION;
             } else if (Set.of(FormatCategory.DOCUMENTS, FormatCategory.IMAGES, FormatCategory.WEB).contains(format.getCategory())) {
                 msgCode = MessagesProperties.MESSAGE_DEFAULT_CONVERSION;
+            } else if (format.getCategory() == FormatCategory.AUDIO) {
+                msgCode = MessagesProperties.MESSAGE_AUDIO_CONVERSION;
             }
             throw new UserException(localisationService.getMessage(msgCode, locale));
         }

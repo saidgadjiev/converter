@@ -22,6 +22,8 @@ public class FormatsConfiguration {
 
     public static final String VIDEO_CONVERTER = "video";
 
+    public static final String AUDIO_CONVERTER = "audio";
+
     private static final Map<FormatCategory, Map<List<Format>, List<Format>>> FORMATS = new LinkedHashMap<>();
 
     static {
@@ -98,6 +100,18 @@ public class FormatsConfiguration {
         videos.put(List.of(WMV), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WMV, COMPRESS));
 
         FORMATS.put(FormatCategory.VIDEO, videos);
+
+        Map<List<Format>, List<Format>> audios = new LinkedHashMap<>();
+        audios.put(List.of(AAC), List.of(AMR, AIFF, FLAC, MP3, OGG, WAV, WMA));
+        audios.put(List.of(AMR), List.of(AAC, AIFF, FLAC, MP3, OGG, WAV, WMA));
+        audios.put(List.of(AIFF), List.of(AMR, AAC, FLAC, MP3, OGG, WAV, WMA));
+        audios.put(List.of(FLAC), List.of(AMR, AAC, AIFF, MP3, OGG, WAV, WMA));
+        audios.put(List.of(MP3), List.of(AMR, AAC, AIFF, FLAC, OGG, WAV, WMA));
+        audios.put(List.of(OGG), List.of(AMR, AAC, AIFF, FLAC, MP3, WAV, WMA));
+        audios.put(List.of(WAV), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WMA));
+        audios.put(List.of(WMA), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV));
+
+        FORMATS.put(FormatCategory.AUDIO, audios);
     }
 
     @Bean
@@ -107,6 +121,15 @@ public class FormatsConfiguration {
     )
     public Map<FormatCategory, Map<List<Format>, List<Format>>> videoFormats() {
         return Map.of(FormatCategory.VIDEO, FORMATS.get(FormatCategory.VIDEO));
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+            value = "converter",
+            havingValue = AUDIO_CONVERTER
+    )
+    public Map<FormatCategory, Map<List<Format>, List<Format>>> audioFormats() {
+        return Map.of(FormatCategory.AUDIO, FORMATS.get(FormatCategory.AUDIO));
     }
 
     @Bean

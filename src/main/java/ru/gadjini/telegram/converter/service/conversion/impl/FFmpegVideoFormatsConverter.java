@@ -29,11 +29,11 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  * WEBM -> MP4 very slow
  */
 @Component
-public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
+public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegFormatsConverter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideoFormatsConverter.class);
 
-    private static final String TAG = "ffmpeg";
+    private static final String TAG = "ffmpegvideo";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
         put(List.of(MP4), List.of(_3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV));
@@ -60,8 +60,8 @@ public class FFmpegFormatsConverter extends BaseAny2AnyConverter {
     private FFprobeDevice fFprobeDevice;
 
     @Autowired
-    public FFmpegFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService,
-                                  FileManager fileManager, FFprobeDevice fFprobeDevice) {
+    public FFmpegVideoFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService,
+                                       FileManager fileManager, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fileService = fileService;
