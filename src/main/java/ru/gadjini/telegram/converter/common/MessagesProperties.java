@@ -91,7 +91,7 @@ public class MessagesProperties {
 
     public static final String MESSAGE_DEFAULT_CONVERSION = "message.default.conversion";
 
-    public static final String MESSAGE_STATS = "message.stats";
+    public static final String MESSAGE_CUSTOM_STATS = "message.custom.stats";
 
     public static final String MESSAGE_CONVERSION_STATS = "message.conversion.stats";
 

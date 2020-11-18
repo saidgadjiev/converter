@@ -50,7 +50,7 @@ public class StatsCommand implements BotCommand {
 
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId())).text(localisationService.getMessage(
-                            MessagesProperties.MESSAGE_STATS, new Object[]{processing, waiting, errors, todayConversions, yesterdayConversions,
+                            MessagesProperties.MESSAGE_CUSTOM_STATS, new Object[]{processing, waiting, errors, todayConversions, yesterdayConversions,
                                     weeklyConversions, monthlyConversions, allConversions, activity},
                             userService.getLocaleOrDefault(message.getFrom().getId())))
                             .parseMode(ParseMode.HTML).build()
