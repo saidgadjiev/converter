@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,14 +75,9 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
+                SmartTempFile thumbFile = downloadThumb(fileQueueItem);
                 if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource())
                         && fileQueueItem.getTargetFormat().canBeSentAsAudio()) {
-                    SmartTempFile thumbFile = null;
-                    if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
-                        thumbFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getThumb(), TAG, Format.JPG.getExt());
-                        fileManager.downloadFileByFileId(fileQueueItem.getFirstFile().getThumb(), 1, thumbFile);
-                    }
-
                     if (fileQueueItem.getFirstFile().getDuration() == null) {
                         try {
                             long durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
@@ -98,7 +92,7 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
                             fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration());
                 }
 
-                return new FileResult(fileName, out);
+                return new FileResult(fileName, out, thumbFile);
             } catch (Throwable e) {
                 out.smartDelete();
                 throw e;

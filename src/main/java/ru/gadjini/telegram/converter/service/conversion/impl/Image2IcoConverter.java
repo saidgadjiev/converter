@@ -56,7 +56,7 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
                         "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, tempFile);
+                return new FileResult(fileName, tempFile, null);
             } catch (Throwable e) {
                 tempFile.smartDelete();
                 throw e;

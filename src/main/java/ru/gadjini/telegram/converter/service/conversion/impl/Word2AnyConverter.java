@@ -110,7 +110,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
                             }
 
                             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                            fileResultAtomicReference.set(new FileResult(fileName, result));
+                            fileResultAtomicReference.set(new FileResult(fileName, result, null));
                         } catch (Throwable e) {
                             result.smartDelete();
                             throw new ConvertException(e);

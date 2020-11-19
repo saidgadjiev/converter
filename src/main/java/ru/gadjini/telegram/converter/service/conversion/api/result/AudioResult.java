@@ -2,23 +2,18 @@ package ru.gadjini.telegram.converter.service.conversion.api.result;
 
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 
-import java.io.File;
-
 public class AudioResult extends FileResult {
 
     private String audioPerformer;
 
     private String audioTitle;
 
-    private SmartTempFile thumb;
-
     private Integer duration;
 
     public AudioResult(String fileName, SmartTempFile file, String audioPerformer, String audioTitle, SmartTempFile thumb, Integer duration) {
-        super(fileName, file);
+        super(fileName, file, thumb);
         this.audioPerformer = audioPerformer;
         this.audioTitle = audioTitle;
-        this.thumb = thumb;
         this.duration = duration;
     }
 
@@ -35,19 +30,7 @@ public class AudioResult extends FileResult {
         return audioTitle;
     }
 
-    public File getThumb() {
-        return thumb != null ? thumb.getFile() : null;
-    }
-
     public Integer getDuration() {
         return duration;
-    }
-
-    @Override
-    public void close() {
-        super.close();
-        if (thumb != null) {
-            thumb.smartDelete();
-        }
     }
 }

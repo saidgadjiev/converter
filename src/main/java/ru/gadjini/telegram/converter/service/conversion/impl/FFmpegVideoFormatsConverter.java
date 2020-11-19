@@ -88,8 +88,9 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                     fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
                 }
 
+                SmartTempFile thumbFile = downloadThumb(fileQueueItem);
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, out);
+                return new FileResult(fileName, out, thumbFile);
             } catch (Throwable e) {
                 out.smartDelete();
                 throw e;

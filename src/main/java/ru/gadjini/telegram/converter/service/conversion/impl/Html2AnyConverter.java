@@ -56,7 +56,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter {
                 htmlDevice.convertHtml(html.getAbsolutePath(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, file);
+                return new FileResult(fileName, file, null);
             } catch (Throwable e) {
                 file.smartDelete();
                 throw e;

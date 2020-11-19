@@ -61,7 +61,7 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
                         doc.save(result.getAbsolutePath(), SaveFormat.PDF);
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                        return new FileResult(fileName, result);
+                        return new FileResult(fileName, result, null);
                     } catch (Throwable e) {
                         result.smartDelete();
                         throw e;

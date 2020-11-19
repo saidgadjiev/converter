@@ -60,7 +60,7 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
                     documentBuilder.getDocument().save(out.getAbsolutePath());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, out);
+                    return new FileResult(fileName, out, null);
                 } catch (Throwable e) {
                     out.smartDelete();
                     throw e;

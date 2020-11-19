@@ -186,7 +186,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                         document.save(result.getAbsolutePath(), docSaveOptions);
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                        fileResultAtomicReference.set(new FileResult(fileName, result));
+                        fileResultAtomicReference.set(new FileResult(fileName, result, null));
                     } catch (Throwable e) {
                         result.smartDelete();
                         throw e;
@@ -291,7 +291,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                             }
 
                             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                            fileResultAtomicReference.set(new FileResult(fileName, result));
+                            fileResultAtomicReference.set(new FileResult(fileName, result, null));
                         } catch (Throwable e) {
                             result.smartDelete();
                             throw new ConvertException(e);

@@ -98,7 +98,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
                     magickDevice.convert2Tiff(parentDir + "*.png", result.getAbsolutePath());
                 }
 
-                return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result);
+                return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result, null);
             } catch (Throwable e) {
                 result.smartDelete();
                 throw e;

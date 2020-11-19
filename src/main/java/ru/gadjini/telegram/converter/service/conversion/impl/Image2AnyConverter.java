@@ -70,7 +70,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return fileQueueItem.getTargetFormat() == STICKER
                         ? new StickerResult(tempFile)
-                        : new FileResult(fileName, tempFile);
+                        : new FileResult(fileName, tempFile, null);
             } catch (Throwable e) {
                 tempFile.smartDelete();
                 throw e;

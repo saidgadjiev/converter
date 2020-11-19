@@ -51,7 +51,7 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
                 }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileResult.getFileName(), originalFormat.getExt());
-                return new FileResult(fileName, result);
+                return new FileResult(fileName, result, null);
             } catch (Throwable e) {
                 result.smartDelete();
                 throw e;

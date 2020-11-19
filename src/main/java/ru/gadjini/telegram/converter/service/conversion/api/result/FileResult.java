@@ -8,15 +8,18 @@ public class FileResult implements ConvertResult {
 
     private final SmartTempFile file;
 
+    private final SmartTempFile thumb;
+
     private String fileName;
 
-    public FileResult(String fileName, SmartTempFile file) {
+    public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb) {
         this.fileName = fileName;
         this.file = file;
+        this.thumb = thumb;
     }
 
-    public SmartTempFile getTempFile() {
-        return file;
+    public File getThumb() {
+        return thumb != null ? thumb.getFile() : null;
     }
 
     public File getFile() {
@@ -35,5 +38,8 @@ public class FileResult implements ConvertResult {
     @Override
     public void close() {
         file.smartDelete();
+        if (thumb != null) {
+            thumb.smartDelete();
+        }
     }
 }

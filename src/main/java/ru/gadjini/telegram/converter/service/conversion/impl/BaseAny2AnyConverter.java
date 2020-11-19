@@ -1,12 +1,16 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
@@ -25,8 +29,17 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     private UserService userService;
 
+    private TempFileService fileService;
+
+    private FileManager fileManager;
+
     protected BaseAny2AnyConverter(Map<List<Format>, List<Format>> map) {
         this.map = map;
+    }
+
+    @Autowired
+    public void setFileManager(FileManager fileManager) {
+        this.fileManager = fileManager;
     }
 
     @Autowired
@@ -44,9 +57,24 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         this.inlineKeyboardService = inlineKeyboardService;
     }
 
+    @Autowired
+    public void setFileService(TempFileService fileService) {
+        this.fileService = fileService;
+    }
+
     @Override
     public final boolean accept(Format format, Format targetFormat) {
         return isConvertAvailable(format, targetFormat);
+    }
+
+    protected final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
+        SmartTempFile thumbFile = null;
+        if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
+            thumbFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getThumb(), "base", Format.JPG.getExt());
+            fileManager.downloadFileByFileId(fileQueueItem.getFirstFile().getThumb(), 1, thumbFile);
+        }
+
+        return thumbFile;
     }
 
     protected final Progress progress(long chatId, ConversionQueueItem queueItem) {

@@ -61,7 +61,7 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
                         documentBuilder.getDocument().save(result.getAbsolutePath());
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                        return new FileResult(fileName, result);
+                        return new FileResult(fileName, result, null);
                     } catch (Throwable e) {
                         result.smartDelete();
                         throw e;

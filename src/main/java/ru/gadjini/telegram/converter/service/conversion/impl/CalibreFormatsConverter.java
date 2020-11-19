@@ -80,7 +80,7 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
                 convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), getOptions(fileQueueItem));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, file);
+                return new FileResult(fileName, file, null);
             } catch (Throwable e) {
                 file.smartDelete();
                 throw e;

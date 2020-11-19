@@ -63,7 +63,7 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
                         imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
-                        return new FileResult(fileName, result);
+                        return new FileResult(fileName, result, null);
                     } finally {
                         tempFile.smartDelete();
                     }
@@ -71,7 +71,7 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
                     imageTracer.trace(file.getAbsolutePath(), result.getAbsolutePath());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
-                    return new FileResult(fileName, result);
+                    return new FileResult(fileName, result, null);
                 }
             } catch (Throwable e) {
                 result.smartDelete();

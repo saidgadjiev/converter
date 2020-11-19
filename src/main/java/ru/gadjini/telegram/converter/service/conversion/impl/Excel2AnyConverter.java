@@ -54,7 +54,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
                     workbook.save(tempFile.getAbsolutePath(), SaveFormat.PDF);
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
-                    return new FileResult(fileName, tempFile);
+                    return new FileResult(fileName, tempFile, null);
                 } catch (Throwable e) {
                     tempFile.smartDelete();
                     throw e;

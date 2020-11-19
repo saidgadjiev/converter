@@ -93,7 +93,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-                return new FileResult(fileName, out);
+                return new FileResult(fileName, out, null);
             } catch (Throwable e) {
                 out.smartDelete();
                 throw e;

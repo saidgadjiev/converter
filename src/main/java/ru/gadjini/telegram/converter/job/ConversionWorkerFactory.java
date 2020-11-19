@@ -187,13 +187,17 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             SendFileResult sendFileResult = null;
             switch (convertResult.resultType()) {
                 case FILE: {
+                    FileResult fileResult = (FileResult) convertResult;
                     sendUploadingProgress(fileQueueItem, locale);
-                    SendDocument sendDocumentContext = SendDocument.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
-                            .document(new InputFile(((FileResult) convertResult).getFile(), ((FileResult) convertResult).getFileName()))
+                    SendDocument.SendDocumentBuilder sendDocumentBuilder = SendDocument.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .document(new InputFile(fileResult.getFile(), fileResult.getFileName()))
                             .caption(fileQueueItem.getMessage())
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
-                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale)).build();
-                    sendFileResult = mediaMessageService.sendDocument(sendDocumentContext, progress(fileQueueItem.getUserId(), fileQueueItem));
+                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
+                    if (fileResult.getThumb() != null) {
+                        sendDocumentBuilder.thumb(new InputFile(fileResult.getThumb(), fileResult.getThumb().getName()));
+                    }
+                    sendFileResult = mediaMessageService.sendDocument(sendDocumentBuilder.build(), progress(fileQueueItem.getUserId(), fileQueueItem));
 
                     break;
                 }
