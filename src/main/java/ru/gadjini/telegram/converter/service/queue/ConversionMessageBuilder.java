@@ -13,6 +13,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.update.UpdateQueryStatusCommandMessageProvider;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
@@ -46,11 +47,26 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         LOGGER.debug("Message builder converter({})", converter);
     }
 
+    public String getUnsupportedCategoryMessage(FormatCategory category, Locale locale) {
+        String msgCode = MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT;
+        if (category == FormatCategory.VIDEO) {
+            msgCode = MessagesProperties.MESSAGE_VIDEO_CONVERSION;
+        } else if (Set.of(FormatCategory.DOCUMENTS, FormatCategory.IMAGES, FormatCategory.WEB).contains(category)) {
+            msgCode = MessagesProperties.MESSAGE_DEFAULT_CONVERSION;
+        } else if (category == FormatCategory.AUDIO) {
+            msgCode = MessagesProperties.MESSAGE_AUDIO_CONVERSION;
+        }
+
+        return localisationService.getMessage(msgCode, locale);
+    }
+
     public String getWelcomeMessage(Locale locale) {
         if (FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
             return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale);
         } else if (FormatsConfiguration.DEFAULT_CONVERTER.equals(converter)) {
             return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_DOCUMENT_FILE, locale);
+        } else if (FormatsConfiguration.AUDIO_CONVERTER.equals(converter)) {
+            return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_AUDIO_FILE, locale);
         } else {
             return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_VIDEO_FILE, locale);
         }
@@ -58,7 +74,11 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     public String getChooseFormat(Set<String> warns, Locale locale) {
         StringBuilder message = new StringBuilder();
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION, locale));
+        if (FormatsConfiguration.DEFAULT_CONVERTER.equals(converter) || FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
+            message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION, locale));
+        } else {
+            message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION, locale));
+        }
         String w = warns(warns, locale);
         if (StringUtils.isNotBlank(w)) {
             message.append("\n\n").append(w);

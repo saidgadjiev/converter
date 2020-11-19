@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 
 @Component
 public class StartCommand implements NavigableBotCommand, BotCommand {
@@ -324,15 +323,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         }
         if (!conversionFormatService.isSupportedCategory(format.getCategory())) {
             LOGGER.warn("Category unsupported({}, {})", userId, format.getCategory());
-            String msgCode = MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT;
-            if (format.getCategory() == FormatCategory.VIDEO) {
-                msgCode = MessagesProperties.MESSAGE_VIDEO_CONVERSION;
-            } else if (Set.of(FormatCategory.DOCUMENTS, FormatCategory.IMAGES, FormatCategory.WEB).contains(format.getCategory())) {
-                msgCode = MessagesProperties.MESSAGE_DEFAULT_CONVERSION;
-            } else if (format.getCategory() == FormatCategory.AUDIO) {
-                msgCode = MessagesProperties.MESSAGE_AUDIO_CONVERSION;
-            }
-            throw new UserException(localisationService.getMessage(msgCode, locale));
+            throw new UserException(queueMessageBuilder.getUnsupportedCategoryMessage(format.getCategory(), locale));
         }
 
         return format;

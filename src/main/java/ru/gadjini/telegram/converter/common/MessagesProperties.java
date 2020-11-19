@@ -23,7 +23,9 @@ public class MessagesProperties {
 
     public static final String MESSAGE_CHOOSE_ANOTHER_FORMAT = "message.choose.another.format";
 
-    public static final String MESSAGE_CHOOSE_TARGET_EXTENSION = "message.choose.target.extension";
+    public static final String MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION = "message.choose.target.extension.default.conversion";
+
+    public static final String MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION = "message.choose.target.extension.video.audio.conversion";
 
     public static final String GO_BACK_COMMAND_NAME = "go.back.command.name";
 
@@ -48,6 +50,8 @@ public class MessagesProperties {
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
     public static final String MESSAGE_CONVERT_VIDEO_FILE = "message.convert.video.file";
+
+    public static final String MESSAGE_CONVERT_AUDIO_FILE = "message.convert.audio.file";
 
     public static final String MESSAGE_CONVERT_DOCUMENT_FILE = "message.convert.document.file";
 
