@@ -12,11 +12,14 @@ public class AudioResult extends FileResult {
 
     private SmartTempFile thumb;
 
-    public AudioResult(String fileName, SmartTempFile file, String audioPerformer, String audioTitle, SmartTempFile thumb) {
+    private Integer duration;
+
+    public AudioResult(String fileName, SmartTempFile file, String audioPerformer, String audioTitle, SmartTempFile thumb, Integer duration) {
         super(fileName, file);
         this.audioPerformer = audioPerformer;
         this.audioTitle = audioTitle;
         this.thumb = thumb;
+        this.duration = duration;
     }
 
     @Override
@@ -34,6 +37,10 @@ public class AudioResult extends FileResult {
 
     public File getThumb() {
         return thumb != null ? thumb.getFile() : null;
+    }
+
+    public Integer getDuration() {
+        return duration;
     }
 
     @Override

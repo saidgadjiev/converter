@@ -236,6 +236,9 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     if (audioResult.getThumb() != null) {
                         sendAudioBuilder.thumb(new InputFile(audioResult.getThumb(), audioResult.getThumb().getName()));
                     }
+                    if (audioResult.getDuration() != null) {
+                        sendAudioBuilder.duration(audioResult.getDuration());
+                    }
                     SendAudio sendAudio = sendAudioBuilder.replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
                     try {
