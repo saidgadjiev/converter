@@ -1,13 +1,18 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -22,6 +27,8 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
 public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudioFormatsConverter.class);
 
     private static final String TAG = "ffmpegaudio";
 
@@ -44,12 +51,15 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
 
     private FileManager fileManager;
 
+    private FFprobeDevice fFprobeDevice;
+
     @Autowired
-    public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager) {
+    public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
+        this.fFprobeDevice = fFprobeDevice;
     }
 
     @Override
@@ -65,14 +75,30 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getTargetFormat()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                SmartTempFile thumbFile = null;
-                if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
-                    thumbFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getThumb(), TAG, Format.JPG.getExt());
-                    fileManager.downloadFileByFileId(fileQueueItem.getFirstFile().getThumb(), 1, thumbFile);
+
+                if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource())
+                        && fileQueueItem.getTargetFormat().canBeSentAsAudio()) {
+                    SmartTempFile thumbFile = null;
+                    if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
+                        thumbFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getThumb(), TAG, Format.JPG.getExt());
+                        fileManager.downloadFileByFileId(fileQueueItem.getFirstFile().getThumb(), 1, thumbFile);
+                    }
+
+                    if (fileQueueItem.getFirstFile().getDuration() == null) {
+                        try {
+                            long durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
+                            fileQueueItem.getFirstFile().setDuration((int) durationInSeconds);
+                        } catch (Exception e) {
+                            LOGGER.error(e.getMessage(), e);
+                            fileQueueItem.getFirstFile().setDuration(0);
+                        }
+                    }
+
+                    return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
+                            fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration());
                 }
 
-                return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
-                        fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration());
+                return new FileResult(fileName, out);
             } catch (Throwable e) {
                 out.smartDelete();
                 throw e;

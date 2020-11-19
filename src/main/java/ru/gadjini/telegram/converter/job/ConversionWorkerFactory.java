@@ -209,7 +209,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 }
                 case STICKER: {
                     SendSticker sendFileContext = SendSticker.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
-                            .sticker(new InputFile(((FileResult) convertResult).getFile()))
+                            .sticker(new InputFile(((FileResult) convertResult).getFile(), ((FileResult) convertResult).getFileName()))
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
@@ -229,7 +229,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 case AUDIO: {
                     AudioResult audioResult = (AudioResult) convertResult;
                     SendAudio.SendAudioBuilder sendAudioBuilder = SendAudio.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
-                            .audio(new InputFile(((FileResult) convertResult).getFile()))
+                            .audio(new InputFile(audioResult.getFile(), audioResult.getFileName()))
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .performer(audioResult.getAudioPerformer())
                             .title(audioResult.getAudioTitle());
