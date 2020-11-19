@@ -33,6 +33,8 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
         put(List.of(OGG), List.of(AMR, AAC, AIFF, FLAC, MP3, WAV, WMA));
         put(List.of(WAV), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WMA));
         put(List.of(WMA), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV));
+        put(List.of(M4A), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA));
+        put(List.of(M4B), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA));
     }};
 
     private FFmpegDevice fFmpegDevice;
