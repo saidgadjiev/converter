@@ -24,7 +24,6 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
-import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -194,17 +193,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             .caption(fileQueueItem.getMessage())
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale)).build();
-                    try {
-                        sendFileResult = mediaMessageService.sendDocument(sendDocumentContext, progress(fileQueueItem.getUserId(), fileQueueItem));
-                    } catch (TelegramApiRequestException ex) {
-                        if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
-                            LOGGER.debug("Reply message not found try send without reply");
-                            sendDocumentContext.setReplyToMessageId(null);
-                            sendFileResult = mediaMessageService.sendDocument(sendDocumentContext);
-                        } else {
-                            throw ex;
-                        }
-                    }
+                    sendFileResult = mediaMessageService.sendDocument(sendDocumentContext, progress(fileQueueItem.getUserId(), fileQueueItem));
+
                     break;
                 }
                 case STICKER: {
@@ -213,17 +203,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
-                    try {
-                        sendFileResult = mediaMessageService.sendSticker(sendFileContext);
-                    } catch (TelegramApiRequestException ex) {
-                        if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
-                            LOGGER.debug("Reply message not found try send without reply");
-                            sendFileContext.setReplyToMessageId(null);
-                            sendFileResult = mediaMessageService.sendSticker(sendFileContext);
-                        } else {
-                            throw ex;
-                        }
-                    }
+                    sendFileResult = mediaMessageService.sendSticker(sendFileContext);
+
                     break;
                 }
                 case AUDIO: {
@@ -241,17 +222,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     }
                     SendAudio sendAudio = sendAudioBuilder.replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
-                    try {
-                        sendFileResult = mediaMessageService.sendAudio(sendAudio);
-                    } catch (TelegramApiRequestException ex) {
-                        if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
-                            LOGGER.debug("Reply message not found try send without reply");
-                            sendAudio.setReplyToMessageId(null);
-                            sendFileResult = mediaMessageService.sendAudio(sendAudio);
-                        } else {
-                            throw ex;
-                        }
-                    }
+                    sendFileResult = mediaMessageService.sendAudio(sendAudio);
                     break;
                 }
             }
