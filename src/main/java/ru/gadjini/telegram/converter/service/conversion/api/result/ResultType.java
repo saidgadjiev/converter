@@ -4,6 +4,8 @@ public enum ResultType {
 
     FILE,
 
+    AUDIO,
+
     STICKER,
 
     BUSY

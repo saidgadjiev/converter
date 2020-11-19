@@ -1,12 +1,15 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -64,6 +67,17 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getTargetFormat()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource())) {
+                    SmartTempFile thumbFile = null;
+                    if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
+                        thumbFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getThumb(), TAG, Format.JPG.getExt());
+                        fileManager.downloadFileByFileId(fileQueueItem.getFirstFile().getThumb(), 1, thumbFile);
+                    }
+
+                    return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
+                            fileQueueItem.getFirstFile().getAudioTitle(), thumbFile);
+                }
+
                 return new FileResult(fileName, out);
             } catch (Throwable e) {
                 out.smartDelete();

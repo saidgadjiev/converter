@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -13,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
+import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ResultType;
@@ -218,6 +220,31 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             LOGGER.debug("Reply message not found try send without reply");
                             sendFileContext.setReplyToMessageId(null);
                             sendFileResult = mediaMessageService.sendSticker(sendFileContext);
+                        } else {
+                            throw ex;
+                        }
+                    }
+                    break;
+                }
+                case AUDIO: {
+                    AudioResult audioResult = (AudioResult) convertResult;
+                    SendAudio.SendAudioBuilder sendAudioBuilder = SendAudio.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .audio(new InputFile(((FileResult) convertResult).getFile()))
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                            .performer(audioResult.getAudioPerformer())
+                            .title(audioResult.getAudioTitle());
+                    if (audioResult.getThumb() != null) {
+                        sendAudioBuilder.thumb(new InputFile(audioResult.getThumb(), audioResult.getThumb().getName()));
+                    }
+                    SendAudio sendAudio = sendAudioBuilder.replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
+                            .build();
+                    try {
+                        sendFileResult = mediaMessageService.sendAudio(sendAudio);
+                    } catch (TelegramApiRequestException ex) {
+                        if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
+                            LOGGER.debug("Reply message not found try send without reply");
+                            sendAudio.setReplyToMessageId(null);
+                            sendFileResult = mediaMessageService.sendAudio(sendAudio);
                         } else {
                             throw ex;
                         }
