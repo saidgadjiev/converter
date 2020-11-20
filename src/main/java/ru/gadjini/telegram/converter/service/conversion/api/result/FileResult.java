@@ -6,7 +6,7 @@ import java.io.File;
 
 public class FileResult implements ConvertResult {
 
-    private final SmartTempFile file;
+    private SmartTempFile file;
 
     private final SmartTempFile thumb;
 
@@ -24,6 +24,18 @@ public class FileResult implements ConvertResult {
 
     public File getFile() {
         return file.getFile();
+    }
+
+    public SmartTempFile getSmartFile() {
+        return file;
+    }
+
+    public void setSmartFile(SmartTempFile file) {
+        this.file = file;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     @Override

@@ -32,16 +32,18 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
     private static final String TAG = "ffmpegaudio";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(List.of(AAC), List.of(AMR, AIFF, FLAC, MP3, OGG, WAV, WMA));
-        put(List.of(AMR), List.of(AAC, AIFF, FLAC, MP3, OGG, WAV, WMA));
-        put(List.of(AIFF), List.of(AMR, AAC, FLAC, MP3, OGG, WAV, WMA));
-        put(List.of(FLAC), List.of(AMR, AAC, AIFF, MP3, OGG, WAV, WMA));
-        put(List.of(MP3), List.of(AMR, AAC, AIFF, FLAC, OGG, WAV, WMA));
-        put(List.of(OGG), List.of(AMR, AAC, AIFF, FLAC, MP3, WAV, WMA));
-        put(List.of(WAV), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WMA));
-        put(List.of(WMA), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV));
-        put(List.of(M4A), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA));
-        put(List.of(M4B), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA));
+        put(List.of(AAC), List.of(AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS));
+        put(List.of(AMR), List.of(AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS));
+        put(List.of(AIFF), List.of(AMR, AAC, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS));
+        put(List.of(FLAC), List.of(AMR, AAC, AIFF, MP3, OGG, WAV, WMA, SPX, OPUS));
+        put(List.of(MP3), List.of(AMR, AAC, AIFF, FLAC, OGG, WAV, WMA, SPX, OPUS));
+        put(List.of(OGG), List.of(AMR, AAC, AIFF, FLAC, MP3, WAV, WMA, SPX, OPUS));
+        put(List.of(WAV), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WMA, SPX, OPUS));
+        put(List.of(WMA), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, SPX, OPUS));
+        put(List.of(OPUS), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX));
+        put(List.of(SPX), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX));
+        put(List.of(M4A), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS));
+        put(List.of(M4B), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS));
     }};
 
     private FFmpegDevice fFmpegDevice;

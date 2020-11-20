@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -78,14 +79,17 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
             SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            String[] selectAllStreamsOptions = new String[]{"-map", "0"};
             try {
                 try {
                     String videoCodec = fFprobeDevice.getVideoCodec(file.getAbsolutePath());
-                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getCopyCodecsOptions(fileQueueItem.getFirstFileFormat(), videoCodec));
+                    String[] copyCodecsOptions = getCopyCodecsOptions(fileQueueItem.getFirstFileFormat(), videoCodec);
+                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(selectAllStreamsOptions), Stream.of(copyCodecsOptions)).toArray(String[]::new));
                 } catch (ProcessException e) {
                     LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                             fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat()));
+                    String[] options = getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(selectAllStreamsOptions), Stream.of(options)).toArray(String[]::new));
                 }
 
                 SmartTempFile thumbFile = downloadThumb(fileQueueItem);

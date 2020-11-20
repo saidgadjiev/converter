@@ -76,6 +76,8 @@ RUN mkdir -p /usr/src/libaom && \
   cmake ./aom && \
   make && make install
 
+RUN apt-get install -y libspeex-dev
+
 RUN cd /usr/src && \
 wget -O- http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj && \
 cd ffmpeg && \
@@ -90,6 +92,7 @@ PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
   --enable-pthreads \
   --enable-libopencore-amrnb \
   --enable-libopencore-amrwb \
+  --enable-libspeex \
   --enable-version3 \
   --enable-gpl \
   --enable-libass \
@@ -114,7 +117,7 @@ ENV PATH="/home/bot/calibre/:${PATH}"
 
 RUN apt-get install -y img2pdf
 RUN apt-get install -y djvulibre-bin
-RUN apt-get install libxss1
+RUN apt-get install -y libxss1
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
