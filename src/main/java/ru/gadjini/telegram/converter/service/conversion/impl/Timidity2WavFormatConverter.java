@@ -8,8 +8,8 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.timidity.TimidityDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -22,31 +22,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.MID;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WAV;
 
 @Component
-public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
+@SuppressWarnings("CPD-START")
+public class Timidity2WavFormatConverter extends BaseAny2AnyConverter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudioFormatsConverter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Timidity2WavFormatConverter.class);
 
-    private static final String TAG = "ffmpegaudio";
+    private static final String TAG = "timiditywav";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(List.of(AAC), List.of(AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A));
-        put(List.of(AMR), List.of(AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A));
-        put(List.of(AIFF), List.of(AMR, AAC, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A));
-        put(List.of(FLAC), List.of(AMR, AAC, AIFF, MP3, OGG, WAV, WMA, SPX, OPUS, M4A));
-        put(List.of(MP3), List.of(AMR, AAC, AIFF, FLAC, OGG, WAV, WMA, SPX, OPUS, M4A));
-        put(List.of(OGG), List.of(AMR, AAC, AIFF, FLAC, MP3, WAV, WMA, SPX, OPUS, M4A));
-        put(List.of(WAV), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WMA, SPX, OPUS, M4A));
-        put(List.of(WMA), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, SPX, OPUS, M4A));
-        put(List.of(OPUS), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, M4A));
-        put(List.of(SPX), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A));
-        put(List.of(M4A), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS));
-        put(List.of(M4B), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A));
+        put(List.of(MID), List.of(WAV));
     }};
 
-    private FFmpegDevice fFmpegDevice;
+    private TimidityDevice timidityDevice;
 
     private TempFileService fileService;
 
@@ -55,9 +46,10 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
     private FFprobeDevice fFprobeDevice;
 
     @Autowired
-    public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager, FFprobeDevice fFprobeDevice) {
+    public Timidity2WavFormatConverter(TimidityDevice timidityDevice, TempFileService fileService,
+                                       FileManager fileManager, FFprobeDevice fFprobeDevice) {
         super(MAP);
-        this.fFmpegDevice = fFmpegDevice;
+        this.timidityDevice = timidityDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.fFprobeDevice = fFprobeDevice;
@@ -65,17 +57,17 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, MID.getExt());
 
         try {
             Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
             fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
 
-            SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, WAV.getExt());
             try {
-                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), getOptions(fileQueueItem.getTargetFormat()));
+                timidityDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), "-Ow", "-o");
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), WAV.getExt());
 
                 SmartTempFile thumbFile = downloadThumb(fileQueueItem);
                 if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource())
@@ -102,19 +94,5 @@ public class FFmpegAudioFormatsConverter extends BaseAny2AnyConverter {
         } finally {
             file.smartDelete();
         }
-    }
-
-    private String[] getOptions(Format target) {
-        if (target == AMR) {
-            return new String[]{
-                    "-ar", "8000", "-ac", "1"
-            };
-        }
-        if (target == OGG) {
-            return new String[]{
-                    "-c:a", "libvorbis", "-q:a", "4"
-            };
-        }
-        return new String[0];
     }
 }

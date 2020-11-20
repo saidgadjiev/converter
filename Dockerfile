@@ -118,6 +118,7 @@ ENV PATH="/home/bot/calibre/:${PATH}"
 RUN apt-get install -y img2pdf
 RUN apt-get install -y djvulibre-bin
 RUN apt-get install -y libxss1
+RUN apt-get install -y timidity
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
