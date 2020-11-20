@@ -82,6 +82,10 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+        return doConvert(fileQueueItem, fileQueueItem.getTargetFormat());
+    }
+
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem, Format targetFormat) {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
         List<SmartTempFile> images = downloadImages(fileQueueItem, locale);
 
@@ -89,16 +93,16 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             String parentDir = images.iterator().next().getParent() + File.separator;
             magickDevice.changeFormatAndRemoveAlphaChannel(parentDir + "*", Format.PNG.getExt());
 
-            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, targetFormat.getExt());
             try {
                 String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
-                if (fileQueueItem.getTargetFormat() == Format.PDF) {
+                if (targetFormat == Format.PDF) {
                     image2PdfDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
                 } else {
                     magickDevice.convert2Tiff(parentDir + "*.png", result.getAbsolutePath());
                 }
 
-                return new FileResult(fileName + "." + fileQueueItem.getTargetFormat().getExt(), result, null);
+                return new FileResult(fileName + "." + targetFormat.getExt(), result, null);
             } catch (Throwable e) {
                 result.smartDelete();
                 throw e;

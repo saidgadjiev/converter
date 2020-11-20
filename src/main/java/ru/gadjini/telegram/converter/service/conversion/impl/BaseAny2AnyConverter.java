@@ -67,6 +67,14 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return isConvertAvailable(format, targetFormat);
     }
 
+    public FileManager getFileManager() {
+        return fileManager;
+    }
+
+    public TempFileService getFileService() {
+        return fileService;
+    }
+
     protected final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
         SmartTempFile thumbFile = null;
         if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
