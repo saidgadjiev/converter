@@ -11,7 +11,11 @@ public class AudioResult extends FileResult {
     private Integer duration;
 
     public AudioResult(String fileName, SmartTempFile file, String audioPerformer, String audioTitle, SmartTempFile thumb, Integer duration) {
-        super(fileName, file, thumb);
+        this(fileName, file, audioPerformer, audioTitle, thumb, duration, null);
+    }
+
+    public AudioResult(String fileName, SmartTempFile file, String audioPerformer, String audioTitle, SmartTempFile thumb, Integer duration, String caption) {
+        super(fileName, file, thumb, caption);
         this.audioPerformer = audioPerformer;
         this.audioTitle = audioTitle;
         this.duration = duration;

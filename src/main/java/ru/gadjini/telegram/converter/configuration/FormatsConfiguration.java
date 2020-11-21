@@ -85,36 +85,36 @@ public class FormatsConfiguration {
         FORMATS.put(FormatCategory.IMAGES, images);
 
         Map<List<Format>, List<Format>> videos = new LinkedHashMap<>();
-        videos.put(List.of(MP4), List.of(_3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(_3GP), List.of(MP4, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(AVI), List.of(MP4, _3GP, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(FLV), List.of(MP4, _3GP, AVI, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(M4V), List.of(MP4, _3GP, AVI, FLV, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(MKV), List.of(MP4, _3GP, AVI, FLV, M4V, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(MOV), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(MPEG), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(MPG), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MTS, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(MTS), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, VOB, WEBM, WMV, COMPRESS));
-        videos.put(List.of(VOB), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, WEBM, WMV, COMPRESS));
-        videos.put(List.of(WEBM), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WMV, COMPRESS));
-        videos.put(List.of(WMV), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WMV, COMPRESS));
+        videos.put(List.of(MP4), List.of(_3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(_3GP), List.of(MP4, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(AVI), List.of(MP4, _3GP, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(FLV), List.of(MP4, _3GP, AVI, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(M4V), List.of(MP4, _3GP, AVI, FLV, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(MKV), List.of(MP4, _3GP, AVI, FLV, M4V, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(MOV), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MPEG, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(MPEG), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(MPG), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MTS, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(MTS), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, VOB, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(VOB), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, WEBM, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(WEBM), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WMV, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
+        videos.put(List.of(WMV), List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, COMPRESS, AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE));
 
         FORMATS.put(FormatCategory.VIDEO, videos);
 
         Map<List<Format>, List<Format>> audios = new LinkedHashMap<>();
-        audios.put(List.of(AAC), List.of(AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(AMR), List.of(AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(AIFF), List.of(AMR, AAC, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(FLAC), List.of(AMR, AAC, AIFF, MP3, OGG, WAV, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(MP3), List.of(AMR, AAC, AIFF, FLAC, OGG, WAV, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(OGG), List.of(AMR, AAC, AIFF, FLAC, MP3, WAV, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(WAV), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(WMA), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, OPUS, SPX, M4A));
-        audios.put(List.of(OPUS), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, M4A));
-        audios.put(List.of(SPX), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, M4A));
-        audios.put(List.of(M4A), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX));
-        audios.put(List.of(MID), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A));
-        audios.put(List.of(M4B), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A));
+        audios.put(List.of(AAC), List.of(AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(AMR), List.of(AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(AIFF), List.of(AMR, AAC, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(FLAC), List.of(AMR, AAC, AIFF, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(MP3), List.of(AMR, AAC, AIFF, FLAC, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(OGG), List.of(AMR, AAC, AIFF, FLAC, MP3, WAV, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(WAV), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(WMA), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(OPUS), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, M4A, VOICE));
+        audios.put(List.of(SPX), List.of(AMR, AAC, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, M4A, VOICE));
+        audios.put(List.of(M4A), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, VOICE));
+        audios.put(List.of(MID), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE));
+        audios.put(List.of(M4B), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE));
 
         FORMATS.put(FormatCategory.AUDIO, audios);
     }

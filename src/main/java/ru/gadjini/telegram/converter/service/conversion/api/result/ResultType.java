@@ -6,7 +6,11 @@ public enum ResultType {
 
     AUDIO,
 
+    VOICE,
+
     STICKER,
+
+    CONTAINER,
 
     BUSY
 }

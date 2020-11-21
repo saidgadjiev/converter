@@ -9,15 +9,13 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ResultType;
+import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -191,7 +189,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     sendUploadingProgress(fileQueueItem, locale);
                     SendDocument.SendDocumentBuilder sendDocumentBuilder = SendDocument.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
                             .document(new InputFile(fileResult.getFile(), fileResult.getFileName()))
-                            .caption(fileQueueItem.getMessage())
+                            .caption(fileResult.getCaption())
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     if (fileResult.getThumb() != null) {
@@ -217,6 +215,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             .audio(new InputFile(audioResult.getFile(), audioResult.getFileName()))
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .performer(audioResult.getAudioPerformer())
+                            .caption(audioResult.getCaption())
                             .title(audioResult.getAudioTitle());
                     if (audioResult.getThumb() != null) {
                         sendAudioBuilder.thumb(new InputFile(audioResult.getThumb(), audioResult.getThumb().getName()));
@@ -226,9 +225,29 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     }
                     SendAudio sendAudio = sendAudioBuilder.replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
-                    sendFileResult = mediaMessageService.sendAudio(sendAudio);
+                    sendFileResult = mediaMessageService.sendAudio(sendAudio, progress(fileQueueItem.getUserId(), fileQueueItem));
                     break;
                 }
+                case CONTAINER: {
+                    ConvertResults convertResults = (ConvertResults) convertResult;
+                    for (ConvertResult result : convertResults.getConvertResults()) {
+                        sendResult(fileQueueItem, result);
+                    }
+                    break;
+                }
+                case VOICE:
+                    VoiceResult voiceResult = (VoiceResult) convertResult;
+                    SendVoice.SendVoiceBuilder sendVoiceBuilder = SendVoice.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .voice(new InputFile(voiceResult.getFile(), voiceResult.getFileName()))
+                            .caption(voiceResult.getCaption())
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId());
+                    if (voiceResult.getDuration() != null) {
+                        sendVoiceBuilder.duration(voiceResult.getDuration());
+                    }
+                    SendVoice sendVoice = sendVoiceBuilder.replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
+                            .build();
+                    sendFileResult = mediaMessageService.sendVoice(sendVoice, progress(fileQueueItem.getUserId(), fileQueueItem));
+                    break;
             }
             if (sendFileResult != null) {
                 try {

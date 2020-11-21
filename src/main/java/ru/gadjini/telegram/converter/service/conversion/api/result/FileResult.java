@@ -12,10 +12,17 @@ public class FileResult implements ConvertResult {
 
     private String fileName;
 
+    private String caption;
+
     public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb) {
+        this(fileName, file, thumb, null);
+    }
+
+    public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb, String caption) {
         this.fileName = fileName;
         this.file = file;
         this.thumb = thumb;
+        this.caption = caption;
     }
 
     public File getThumb() {
@@ -45,6 +52,10 @@ public class FileResult implements ConvertResult {
 
     public String getFileName() {
         return fileName;
+    }
+
+    public String getCaption() {
+        return caption;
     }
 
     @Override
