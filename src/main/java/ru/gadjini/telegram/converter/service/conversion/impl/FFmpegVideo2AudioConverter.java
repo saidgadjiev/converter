@@ -1,11 +1,9 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -14,9 +12,7 @@ import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.converter.utils.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -51,20 +47,14 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private LocalisationService localisationService;
-
-    private UserService userService;
-
     @Autowired
     public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, TempFileService fileService,
-                                      FileManager fileManager, FFprobeDevice fFprobeDevice, LocalisationService localisationService, UserService userService) {
+                                      FileManager fileManager, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.fFprobeDevice = fFprobeDevice;
-        this.localisationService = localisationService;
-        this.userService = userService;
     }
 
     @Override
@@ -97,7 +87,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
                         }
 
                         if (fileQueueItem.getTargetFormat().equals(VOICE)) {
-                            convertResults.addResult(new VoiceResult(fileName, out, downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
+                            convertResults.addResult(new VoiceResult(fileName, out, (int) durationInSeconds, audioStream.getLanguage()));
                         } else {
                             convertResults.addResult(new AudioResult(fileName, out, null, null, downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
                         }

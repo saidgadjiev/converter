@@ -49,9 +49,8 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
                 SmartTempFile thumbFile = downloadThumb(fileQueueItem);
-                if ((FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource())
-                        || fileQueueItem.getTargetFormat().equals(Format.VOICE))
-                        && fileQueueItem.getTargetFormat().canBeSentAsAudio()) {
+                if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource()) && fileQueueItem.getTargetFormat().canBeSentAsAudio()
+                        || fileQueueItem.getTargetFormat().equals(Format.VOICE)) {
                     if (fileQueueItem.getFirstFile().getDuration() == null) {
                         try {
                             long durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
@@ -63,7 +62,7 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
                     }
 
                     if (fileQueueItem.getTargetFormat() == Format.VOICE) {
-                        return new VoiceResult(fileName, out, thumbFile, fileQueueItem.getFirstFile().getDuration());
+                        return new VoiceResult(fileName, out, fileQueueItem.getFirstFile().getDuration());
                     } else {
                         return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
                                 fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration());
