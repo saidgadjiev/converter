@@ -94,7 +94,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     }
 
     @Override
-    public String getWaitingMessage(QueueItem queueItem, Locale locale) {
+    public String getUpdateStatusMessage(QueueItem queueItem, Locale locale) {
         return getConversionProcessingMessage((ConversionQueueItem) queueItem, Collections.emptySet(), ConversionStep.WAITING, locale);
     }
 
