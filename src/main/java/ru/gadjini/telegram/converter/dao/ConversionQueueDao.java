@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
-import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
+import ru.gadjini.telegram.smart.bot.commons.dao.WorkQueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.DownloadingQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
 
 @Repository
-public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem> {
+public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueItem> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionQueueDao.class);
 

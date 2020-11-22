@@ -13,7 +13,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
-@SuppressWarnings("CPD-START")
 @Component
 public class FormatsCommand implements BotCommand {
 

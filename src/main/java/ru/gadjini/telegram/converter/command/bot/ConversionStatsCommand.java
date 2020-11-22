@@ -14,7 +14,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.WorkQueueService;
 
 import java.time.format.DateTimeFormatter;
 
@@ -23,7 +23,7 @@ public class ConversionStatsCommand implements BotCommand {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private QueueService queueService;
+    private WorkQueueService queueService;
 
     private UserService userService;
 
@@ -32,7 +32,7 @@ public class ConversionStatsCommand implements BotCommand {
     private MessageService messageService;
 
     @Autowired
-    public ConversionStatsCommand(QueueService queueService, UserService userService,
+    public ConversionStatsCommand(WorkQueueService queueService, UserService userService,
                                   LocalisationService localisationService, @Qualifier("messageLimits") MessageService messageService) {
         this.queueService = queueService;
         this.userService = userService;
