@@ -145,7 +145,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
         @Override
         public void cancel() {
-            fileDownloadService.cancelDownload(fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getSize());
+            fileDownloadService.cancelDownload(fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getSize(), fileQueueItem.getId());
             asposeExecutorService.cancel(fileQueueItem.getId());
         }
 

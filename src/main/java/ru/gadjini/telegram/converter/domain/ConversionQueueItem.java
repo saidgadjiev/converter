@@ -24,6 +24,8 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     public static final String RESULT_FILE_ID = "result_file_id";
 
+    public static final String DOWNLOADS = "downloads";
+
     private List<TgFile> files = new ArrayList<>();
 
     private Format targetFormat;

@@ -7,7 +7,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
-import ru.gadjini.telegram.smart.bot.commons.domain.DownloadingQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -20,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
@@ -77,12 +75,12 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     @Override
     public void createDownloads(ConversionQueueItem conversionQueueItem) {
         conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem.getUserId(), conversionQueueItem));
-        fileDownloadService.createDownload(conversionQueueItem.getFirstFile());
+        fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId());
     }
 
     public void deleteDownloads(ConversionQueueItem conversionQueueItem) {
         if (conversionQueueItem.getDownloadedFiles() != null) {
-            fileDownloadService.deleteDownloads(conversionQueueItem.getDownloadedFiles().stream().map(DownloadingQueueItem::getId).collect(Collectors.toList()));
+            fileDownloadService.deleteDownloads(conversionQueueItem.getId());
         }
     }
 
