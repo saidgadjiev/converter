@@ -123,6 +123,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             imageFile.setFilePath(path);
             Progress downloadProgress = progress(queueItem, i, queueItem.getFiles().size(), locale);
             imageFile.setProgress(downloadProgress);
+            imageFile.setDeleteParentDir(true);
             ++i;
         }
 
