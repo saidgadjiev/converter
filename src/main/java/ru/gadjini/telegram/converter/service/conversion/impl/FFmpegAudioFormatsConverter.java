@@ -41,7 +41,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     }
 
     @Override
-    public void doConvert(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
+    public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
         fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
     }
 }

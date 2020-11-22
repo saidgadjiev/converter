@@ -6,9 +6,6 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.device.SmartCalibre;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -25,30 +22,21 @@ public class Epub2WordConverter extends BaseAny2AnyConverter {
 
     private SmartCalibre convertDevice;
 
-    private FileManager fileManager;
-
-    private TempFileService tempFileService;
-
     private Pdf2WordConverter pdf2WordConverter;
 
     @Autowired
-    public Epub2WordConverter(SmartCalibre convertDevice, FileManager fileManager, TempFileService tempFileService, Pdf2WordConverter pdf2WordConverter) {
+    public Epub2WordConverter(SmartCalibre convertDevice, Pdf2WordConverter pdf2WordConverter) {
         super(MAP);
         this.convertDevice = convertDevice;
-        this.fileManager = fileManager;
-        this.tempFileService = tempFileService;
         this.pdf2WordConverter = pdf2WordConverter;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile epub = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile epub = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, epub);
-
-            SmartTempFile pdf = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+            SmartTempFile pdf = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
             try {
                 convertDevice.convert(epub.getAbsolutePath(), pdf.getAbsolutePath());
 

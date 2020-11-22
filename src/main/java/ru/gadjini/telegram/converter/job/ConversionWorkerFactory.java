@@ -25,7 +25,7 @@ import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
@@ -45,7 +45,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionWorkerFactory.class);
 
-    private FileManager fileManager;
+    private FileDownloadService fileDownloadService;
 
     private UserService userService;
 
@@ -66,11 +66,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     private ConversionQueueService conversionQueueService;
 
     @Autowired
-    public ConversionWorkerFactory(FileManager fileManager, UserService userService,
+    public ConversionWorkerFactory(FileDownloadService fileDownloadService, UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                    @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
                                    AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
-        this.fileManager = fileManager;
+        this.fileDownloadService = fileDownloadService;
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -89,6 +89,25 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     @Override
     public QueueWorker createWorker(ConversionQueueItem item) {
         return new ConversionWorker(item);
+    }
+
+    public Any2AnyConverter getCandidate(ConversionQueueItem fileQueueItem) {
+        Format format = getCandidateFormat(fileQueueItem);
+        for (Any2AnyConverter any2AnyConverter : any2AnyConverters) {
+            if (any2AnyConverter.accept(format, fileQueueItem.getTargetFormat())) {
+                return any2AnyConverter;
+            }
+        }
+
+        return null;
+    }
+
+    private Format getCandidateFormat(ConversionQueueItem queueItem) {
+        if (queueItem.getFiles().size() > 1 && queueItem.getFiles().stream().allMatch(m -> m.getFormat().getCategory() == FormatCategory.IMAGES)) {
+            return Format.IMAGES;
+        }
+
+        return queueItem.getFirstFile().getFormat();
     }
 
     public class ConversionWorker implements QueueWorker {
@@ -126,27 +145,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
         @Override
         public void cancel() {
-            fileManager.cancelDownloading(fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getSize());
+            fileDownloadService.cancelDownload(fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getSize());
             asposeExecutorService.cancel(fileQueueItem.getId());
-        }
-
-        private Any2AnyConverter getCandidate(ConversionQueueItem fileQueueItem) {
-            Format format = getCandidateFormat(fileQueueItem);
-            for (Any2AnyConverter any2AnyConverter : any2AnyConverters) {
-                if (any2AnyConverter.accept(format, fileQueueItem.getTargetFormat())) {
-                    return any2AnyConverter;
-                }
-            }
-
-            return null;
-        }
-
-        private Format getCandidateFormat(ConversionQueueItem queueItem) {
-            if (queueItem.getFiles().size() > 1 && queueItem.getFiles().stream().allMatch(m -> m.getFormat().getCategory() == FormatCategory.IMAGES)) {
-                return Format.IMAGES;
-            }
-
-            return queueItem.getFirstFile().getFormat();
         }
 
         private Progress progress(long chatId, ConversionQueueItem queueItem) {
@@ -155,7 +155,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
             Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
 
-            progress.setLocale(locale.getLanguage());
             progress.setProgressMessageId(queueItem.getProgressMessageId());
             String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.UPLOADING, locale);
             progress.setProgressMessage(progressMessage);

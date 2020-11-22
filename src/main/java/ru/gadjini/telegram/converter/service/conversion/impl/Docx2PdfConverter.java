@@ -9,9 +9,6 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -26,37 +23,24 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
             List.of(Format.DOCX), List.of(Format.PDF)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     @Autowired
-    public Docx2PdfConverter(FileManager fileManager, TempFileService fileService) {
+    public Docx2PdfConverter() {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem queueItem) {
-        return doConvert(queueItem);
-    }
-
-    private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+    public FileResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-
             Document docx = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile docFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.DOC.getExt());
+                SmartTempFile docFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.DOC.getExt());
                 docx.save(docFile.getAbsolutePath(), SaveFormat.DOC);
 
                 Document doc = new Document(docFile.getAbsolutePath());
                 try {
-                    SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                    SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                     try {
                         doc.save(result.getAbsolutePath(), SaveFormat.PDF);
 

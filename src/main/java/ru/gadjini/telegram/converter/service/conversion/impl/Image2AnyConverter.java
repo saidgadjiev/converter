@@ -10,9 +10,6 @@ import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -36,34 +33,22 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
             List.of(JP2), List.of(PNG, JPG, BMP, WEBP, TIFF, HEIC, HEIF, STICKER)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     private ImageMagickDevice imageDevice;
 
     @Autowired
-    public Image2AnyConverter(FileManager fileManager, TempFileService fileService, ImageMagickDevice imageDevice) {
+    public Image2AnyConverter(ImageMagickDevice imageDevice) {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
         this.imageDevice = imageDevice;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
-        return doConvert(fileQueueItem);
-    }
-
-    private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat() != PHOTO ? fileQueueItem.getFirstFileFormat().getExt() : "tmp");
+    public FileResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             normalize(fileQueueItem);
 
-            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
 

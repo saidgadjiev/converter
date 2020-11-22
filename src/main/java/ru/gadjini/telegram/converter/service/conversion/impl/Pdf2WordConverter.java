@@ -26,11 +26,8 @@ import ru.gadjini.telegram.converter.service.logger.SoutLg;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
@@ -52,28 +49,21 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.PDF), List.of(Format.DOC, Format.DOCX));
 
-    private TempFileService fileService;
-
-    private FileManager fileManager;
-
     private ProcessExecutor processExecutor;
 
     private AsposeExecutorService asposeExecutorService;
 
     @Autowired
-    public Pdf2WordConverter(TempFileService fileService, FileManager fileManager,
-                             ProcessExecutor processExecutor,
+    public Pdf2WordConverter(ProcessExecutor processExecutor,
                              AsposeExecutorService asposeExecutorService) {
         super(MAP);
-        this.fileService = fileService;
-        this.fileManager = fileManager;
         this.processExecutor = processExecutor;
         this.asposeExecutorService = asposeExecutorService;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         File logFile = processExecutor.getErrorLogFile();
 
         ConvertResult fileResult;
@@ -84,9 +74,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             log.log("Start pdf 2 word(%s, %s, %s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(), fileQueueItem.getTargetFormat());
 
             try {
-                Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-                fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-
                 try {
                     fileResult = doRightConvert(fileQueueItem, file, log);
                 } catch (Throwable e) {
@@ -168,7 +155,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
                 @Override
                 public void run() {
-                    SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                    SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                     try {
                         document.optimize();
                         document.optimizeResources();
@@ -225,9 +212,9 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
                 @Override
                 public void run() {
-                    SmartTempFile tempDir = fileService.createTempDir(fileQueueItem.getUserId(), TAG);
+                    SmartTempFile tempDir = getFileService().createTempDir(fileQueueItem.getUserId(), TAG);
                     try {
-                        SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                        SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                         try {
                             log.log("Slit dir: " + tempDir.getAbsolutePath());

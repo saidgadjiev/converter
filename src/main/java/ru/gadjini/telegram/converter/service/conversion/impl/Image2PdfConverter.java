@@ -5,15 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -38,40 +36,27 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
             List.of(JP2), List.of(PDF)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     private ImageMagickDevice magickDevice;
 
     private final Image2PdfDevice image2PdfDevice;
 
     @Autowired
-    public Image2PdfConverter(FileManager fileManager, TempFileService fileService,
-                              ImageMagickDevice magickDevice, Image2PdfDevice image2PdfDevice) {
+    public Image2PdfConverter(ImageMagickDevice magickDevice, Image2PdfDevice image2PdfDevice) {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
         this.magickDevice = magickDevice;
         this.image2PdfDevice = image2PdfDevice;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
-        return doConvert(fileQueueItem);
-    }
-
-    private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat() != PHOTO ? fileQueueItem.getFirstFileFormat().getExt() : "tmp");
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             normalize(fileQueueItem);
 
             SmartTempFile src = file;
             if (fileQueueItem.getFirstFileFormat() != PNG) {
-                SmartTempFile png = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
+                SmartTempFile png = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
                 try {
                     magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath());
                     src = png;
@@ -80,7 +65,7 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
                 }
             }
             magickDevice.changeFormatAndRemoveAlphaChannel(src.getAbsolutePath(), Format.PNG.getExt());
-            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
+            SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
             try {
                 image2PdfDevice.convert2Pdf(src.getAbsolutePath(), tempFile.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
 

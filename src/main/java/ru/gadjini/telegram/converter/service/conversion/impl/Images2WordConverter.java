@@ -37,7 +37,12 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public void createDownloads(ConversionQueueItem conversionQueueItem) {
+        images2PdfTiffConverter.createDownloads(conversionQueueItem);
+    }
+
+    @Override
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         Format originalFormat = fileQueueItem.getTargetFormat();
         try (FileResult fileResult = (FileResult) images2PdfTiffConverter.doConvert(fileQueueItem, Format.PDF)) {
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, originalFormat.getExt());

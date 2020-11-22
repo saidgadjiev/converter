@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.text.TextDetector;
 import ru.gadjini.telegram.converter.service.text.TextInfo;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.converter.utils.TextUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.nio.charset.StandardCharsets;
@@ -31,24 +31,21 @@ public class Text2TxtConverter extends BaseAny2AnyConverter {
             List.of(Format.TEXT), List.of(Format.TXT)
     );
 
-    private TempFileService fileService;
-
     private TextDetector textDetector;
 
     @Autowired
-    public Text2TxtConverter(TempFileService fileService, TextDetector textDetector) {
+    public Text2TxtConverter(TextDetector textDetector) {
         super(MAP);
-        this.fileService = fileService;
         this.textDetector = textDetector;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return toTxt(fileQueueItem);
     }
 
     private FileResult toTxt(ConversionQueueItem fileQueueItem) {
-        SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, Format.TXT.getExt());
+        SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, Format.TXT.getExt());
         try {
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
             LOGGER.debug("Text info({})", textInfo);

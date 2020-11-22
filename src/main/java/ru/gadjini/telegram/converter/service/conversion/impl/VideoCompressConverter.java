@@ -13,11 +13,8 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
@@ -46,10 +43,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FFmpegDevice fFmpegDevice;
 
-    private TempFileService fileService;
-
-    private FileManager fileManager;
-
     private LocalisationService localisationService;
 
     private UserService userService;
@@ -57,26 +50,20 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     private FFprobeDevice fFprobeDevice;
 
     @Autowired
-    public VideoCompressConverter(FFmpegDevice fFmpegDevice, TempFileService fileService, FileManager fileManager,
-                                  LocalisationService localisationService, UserService userService, FFprobeDevice fFprobeDevice) {
+    public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
-        this.fileService = fileService;
-        this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-
-            SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
                 String videoCodec = fFprobeDevice.getVideoCodec(file.getAbsolutePath());
                 String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0"};

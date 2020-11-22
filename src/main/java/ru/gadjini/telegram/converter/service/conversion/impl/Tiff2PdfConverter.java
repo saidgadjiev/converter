@@ -10,15 +10,13 @@ import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.PDF;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.TIFF;
 
 @Component
 @SuppressWarnings("CPD-START")
@@ -30,33 +28,20 @@ public class Tiff2PdfConverter extends BaseAny2AnyConverter {
             List.of(TIFF), List.of(PDF)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     private final Image2PdfDevice image2PdfDevice;
 
     @Autowired
-    public Tiff2PdfConverter(FileManager fileManager, TempFileService fileService, Image2PdfDevice image2PdfDevice) {
+    public Tiff2PdfConverter(Image2PdfDevice image2PdfDevice) {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
         this.image2PdfDevice = image2PdfDevice;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
-        return doConvert(fileQueueItem);
-    }
-
-    private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat() != PHOTO ? fileQueueItem.getFirstFileFormat().getExt() : "tmp");
+    public FileResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-
-            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
+            SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
             try {
                 image2PdfDevice.convert2Pdf(file.getAbsolutePath(), tempFile.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
 

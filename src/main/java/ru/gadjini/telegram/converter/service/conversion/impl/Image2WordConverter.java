@@ -6,12 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -27,35 +25,23 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
             List.of(Format.DOC, Format.DOCX)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     @Autowired
-    public Image2WordConverter(FileManager fileManager, TempFileService fileService) {
+    public Image2WordConverter() {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
-        return doConvertToWord(fileQueueItem);
-    }
-
-    private FileResult doConvertToWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat() != Format.PHOTO ? fileQueueItem.getFirstFileFormat().getExt() : "tmp");
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
             normalize(fileQueueItem);
 
             Document document = new Document();
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 documentBuilder.insertImage(file.getAbsolutePath());
-                SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     documentBuilder.getDocument().save(out.getAbsolutePath());
 

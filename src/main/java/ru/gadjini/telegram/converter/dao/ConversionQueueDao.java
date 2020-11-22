@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.dao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +15,11 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
+import ru.gadjini.telegram.smart.bot.commons.domain.DownloadingQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
-import ru.gadjini.telegram.smart.bot.commons.property.QueueProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
@@ -25,10 +27,7 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import java.sql.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
@@ -46,16 +45,16 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
 
     private FileLimitProperties fileLimitProperties;
 
-    private QueueProperties queueProperties;
+    private FileDownloadService fileDownloadService;
 
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
                               Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
-                              FileLimitProperties fileLimitProperties, QueueProperties queueProperties) {
+                              FileLimitProperties fileLimitProperties, FileDownloadService fileDownloadService) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
-        this.queueProperties = queueProperties;
+        this.fileDownloadService = fileDownloadService;
         for (Format value : Format.values()) {
             if (formats.containsKey(value.getCategory())) {
                 formatsSet.add(value);
@@ -123,27 +122,34 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
 
     @Override
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
-        return jdbcTemplate.query(
-                "WITH queue_items AS (\n" +
-                        "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
-                        "        SELECT id\n" +
-                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.attempts < ? AND qu.files[1].format IN(" + inFormats() + ")" +
-                        "        GROUP BY qu.id, qu.created_at\n" +
-                        "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
-                        QueueDao.POLL_ORDER_BY + "\n" +
-                        "        LIMIT ?)\n" +
-                        "    RETURNING *\n" +
-                        ")\n" +
-                        "SELECT cv.*, cc.files_json, 1 as queue_position\n" +
-                        "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n" +
-                        "ORDER BY cv.created_at",
-                ps -> {
-                    ps.setInt(1, queueProperties.getMaxAttempts());
-                    ps.setLong(2, fileLimitProperties.getLightFileMaxWeight());
-                    ps.setInt(3, limit);
-                },
-                (rs, rowNum) -> map(rs)
-        );
+        synchronized (this) {
+            List<ConversionQueueItem> result = new ArrayList<>();
+            List<ConversionQueueItem> allWaitingItems = getAllWaitingItems(weight);
+            int i = 0;
+            for (ConversionQueueItem waitingItem : allWaitingItems) {
+                Set<String> filesIds = new HashSet<>();
+                waitingItem.getFiles().forEach(tgFile -> {
+                    filesIds.add(tgFile.getFileId());
+                    if (StringUtils.isNotBlank(tgFile.getThumb())) {
+                        filesIds.add(tgFile.getThumb());
+                    }
+                });
+
+                List<DownloadingQueueItem> downloadingQueueItems = fileDownloadService.getDownloadsIfReadyElseNull(filesIds);
+
+                if (downloadingQueueItems != null) {
+                    waitingItem.setDownloadedFiles(downloadingQueueItems);
+                    result.add(waitingItem);
+                    ++i;
+                }
+
+                if (i == limit) {
+                    break;
+                }
+            }
+
+            return result;
+        }
     }
 
     public Long getTodayConversionsCount() {
@@ -289,6 +295,29 @@ public class ConversionQueueDao implements QueueDaoDelegate<ConversionQueueItem>
     @Override
     public String getQueueName() {
         return TYPE;
+    }
+
+    private List<ConversionQueueItem> getAllWaitingItems(SmartExecutorService.JobWeight weight) {
+        return jdbcTemplate.query("WITH queue_items AS (\n" +
+                        "    SELECT *\n" +
+                        "    FROM conversion_queue qu\n" +
+                        "    WHERE id IN (\n" +
+                        "        SELECT id\n" +
+                        "        FROM conversion_queue qu,\n" +
+                        "             unnest(qu.files) cf\n" +
+                        "        WHERE qu.status = 0\n" +
+                        "          AND qu.files[1].format IN (" + inFormats() + ")\n" +
+                        "        GROUP BY qu.id, qu.attempts\n" +
+                        "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
+                        QueueDao.POLL_ORDER_BY + ")\n" +
+                        ")\n" +
+                        "SELECT cv.*, cc.files_json, 1 as queue_position\n" +
+                        "FROM queue_items cv\n" +
+                        "         INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc\n" +
+                        "                    ON cv.id = cc.id",
+                ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
+                (rs, rowNum) -> map(rs)
+        );
     }
 
     private ConversionQueueItem map(ResultSet rs) throws SQLException {

@@ -9,9 +9,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -26,32 +23,23 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
             List.of(Format.TXT), List.of(Format.DOC, Format.DOCX)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     @Autowired
-    public Txt2WordConvert(FileManager fileManager, TempFileService fileService) {
+    public Txt2WordConvert() {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return toWord(fileQueueItem);
     }
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile txt = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, txt);
-
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
             try {
-                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     document.save(result.getAbsolutePath());
 

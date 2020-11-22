@@ -2,9 +2,6 @@ package ru.gadjini.telegram.converter.command.keyboard;
 
 import com.antkorwin.xsync.XSync;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +21,18 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
-import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -67,10 +59,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private ConversionMessageBuilder queueMessageBuilder;
 
-    private TempFileService fileService;
-
-    private FileManager fileManager;
-
     private MessageMediaService messageMediaService;
 
     private ConversionFormatService conversionFormatService;
@@ -84,8 +72,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         @Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService,
                         @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                         FormatService formatService, ConvertionService convertionService,
-                        ConversionMessageBuilder queueMessageBuilder,
-                        TempFileService fileService, FileManager fileManager, MessageMediaService messageMediaService,
+                        ConversionMessageBuilder queueMessageBuilder, MessageMediaService messageMediaService,
                         ConversionFormatService conversionFormatService, XSync<Long> longXSync, QueueJob conversionJob) {
         this.commandStateService = commandStateService;
         this.userService = userService;
@@ -95,8 +82,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         this.formatService = formatService;
         this.conversionService = convertionService;
         this.queueMessageBuilder = queueMessageBuilder;
-        this.fileService = fileService;
-        this.fileManager = fileManager;
         this.messageMediaService = messageMediaService;
         this.conversionFormatService = conversionFormatService;
         this.longXSync = longXSync;
@@ -266,9 +251,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         MessageMedia media = messageMediaService.getMedia(message, locale);
         if (media != null) {
             checkFormat(message.getFrom().getId(), media.getFormat(), media.getMimeType(), media.getFileName(), locale);
-            if (media.getFormat() == Format.HTML && isBaseUrlMissed(message.getChatId(), media.getFileId(), media.getFileSize())) {
-                convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
-            }
+
             convertState.addMedia(media);
         } else if (message.hasText()) {
             MessageMedia messageMedia = new MessageMedia();
@@ -283,23 +266,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         }
 
         return convertState;
-    }
-
-    private boolean isBaseUrlMissed(long chatId, String fileId, long fileSize) {
-        SmartTempFile file = fileService.createTempFile(chatId, fileId, TAG, Format.HTML.getExt());
-
-        try {
-            fileManager.downloadFileByFileId(fileId, fileSize, file);
-
-            Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
-            Elements base = parse.head().getElementsByTag("base");
-
-            return base == null || base.isEmpty();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            file.smartDelete();
-        }
     }
 
     private void check(Message message, Locale locale) {

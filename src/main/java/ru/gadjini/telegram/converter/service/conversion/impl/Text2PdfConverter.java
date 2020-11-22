@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.text.TextDetector;
 import ru.gadjini.telegram.converter.service.text.TextDirection;
@@ -16,7 +17,6 @@ import ru.gadjini.telegram.converter.service.text.TextInfo;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.converter.utils.TextUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.awt.*;
@@ -36,19 +36,16 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
             of(Format.TEXT), of(Format.PDF, Format.DOC, Format.DOCX)
     );
 
-    private TempFileService fileService;
-
     private TextDetector textDetector;
 
     @Autowired
-    public Text2PdfConverter(TempFileService fileService, TextDetector textDetector) {
+    public Text2PdfConverter(TextDetector textDetector) {
         super(MAP);
-        this.fileService = fileService;
         this.textDetector = textDetector;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return toWordOrPdf(fileQueueItem);
     }
 
@@ -74,7 +71,7 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
                 }
 
                 documentBuilder.write(text);
-                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 

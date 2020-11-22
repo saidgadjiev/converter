@@ -1,13 +1,16 @@
 package ru.gadjini.telegram.converter.domain;
 
-import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
+import ru.gadjini.telegram.smart.bot.commons.domain.DownloadingQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
+import ru.gadjini.telegram.smart.bot.commons.domain.WorkQueueItem;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConversionQueueItem extends QueueItem {
+public class ConversionQueueItem extends WorkQueueItem {
 
     public static final String TYPE = "conversion_queue";
 
@@ -28,6 +31,8 @@ public class ConversionQueueItem extends QueueItem {
     private String message;
 
     private String resultFileId;
+
+    private List<DownloadingQueueItem> downloadedFiles;
 
     public Format getTargetFormat() {
         return targetFormat;
@@ -79,6 +84,22 @@ public class ConversionQueueItem extends QueueItem {
 
     public String getFirstFileName() {
         return getFirstFile().getFileName();
+    }
+
+    public List<DownloadingQueueItem> getDownloadedFiles() {
+        return downloadedFiles;
+    }
+
+    public void setDownloadedFiles(List<DownloadingQueueItem> downloadedFiles) {
+        this.downloadedFiles = downloadedFiles;
+    }
+
+    public SmartTempFile getDownloadedFile(String fileId) {
+        DownloadingQueueItem queueItem = downloadedFiles.stream().filter(
+                downloadingQueueItem -> downloadingQueueItem.getFile().getFileId().equals(fileId)
+        ).findAny().orElseThrow();
+
+        return new SmartTempFile(new File(queueItem.getFilePath()), queueItem.isDeleteParentDir());
     }
 
     @Override

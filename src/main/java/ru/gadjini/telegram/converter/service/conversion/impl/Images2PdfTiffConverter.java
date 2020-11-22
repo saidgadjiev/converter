@@ -1,12 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
@@ -22,13 +17,13 @@ import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
-import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.converter.common.MessagesProperties.MESSAGE_CALCULATED;
 
@@ -37,15 +32,11 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private static final String TAG = "images2pdftiff";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Images2PdfTiffConverter.class);
-
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(Format.IMAGES), List.of(Format.PDF, Format.TIFF)
     );
 
     private TempFileService fileService;
-
-    private FileManager fileManager;
 
     private ImageMagickDevice magickDevice;
 
@@ -53,41 +44,48 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private UserService userService;
 
-    private MessageService messageService;
-
     private Image2PdfDevice image2PdfDevice;
 
     private ConversionMessageBuilder messageBuilder;
 
     private SmartInlineKeyboardService inlineKeyboardService;
 
+    private FileDownloadService fileDownloadService;
+
     @Autowired
-    public Images2PdfTiffConverter(TempFileService fileService, FileManager fileManager,
+    public Images2PdfTiffConverter(TempFileService fileService,
                                    ImageMagickDevice magickDevice,
                                    LocalisationService localisationService, UserService userService,
-                                   @Qualifier("messageLimits") MessageService messageService,
                                    Image2PdfDevice image2PdfDevice, ConversionMessageBuilder messageBuilder,
-                                   SmartInlineKeyboardService inlineKeyboardService) {
+                                   SmartInlineKeyboardService inlineKeyboardService, FileDownloadService fileDownloadService) {
         super(MAP);
         this.fileService = fileService;
-        this.fileManager = fileManager;
         this.magickDevice = magickDevice;
         this.localisationService = localisationService;
         this.userService = userService;
-        this.messageService = messageService;
         this.image2PdfDevice = image2PdfDevice;
         this.messageBuilder = messageBuilder;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.fileDownloadService = fileDownloadService;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public void createDownloads(ConversionQueueItem conversionQueueItem) {
+        Collection<TgFile> tgFiles = prepareFilesToDownload(conversionQueueItem);
+        fileDownloadService.createDownloads(tgFiles);
+    }
+
+    @Override
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return doConvert(fileQueueItem, fileQueueItem.getTargetFormat());
     }
 
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem, Format targetFormat) {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-        List<SmartTempFile> images = downloadImages(fileQueueItem, locale);
+        List<SmartTempFile> images = fileQueueItem.getDownloadedFiles()
+                .stream()
+                .map(downloadingQueueItem -> new SmartTempFile(new File(downloadingQueueItem.getFilePath()), downloadingQueueItem.isDeleteParentDir()))
+                .collect(Collectors.toList());
 
         try {
             String parentDir = images.iterator().next().getParent() + File.separator;
@@ -114,35 +112,27 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private List<SmartTempFile> downloadImages(ConversionQueueItem queueItem, Locale locale) {
-        List<SmartTempFile> images = new ArrayList<>();
-        SmartTempFile tempDir = fileService.createTempDir(queueItem.getUserId(), TAG);
+    private Collection<TgFile> prepareFilesToDownload(ConversionQueueItem queueItem) {
+        Collection<TgFile> tgFiles = queueItem.getFiles();
+        String tempDir = fileService.getTempDir(queueItem.getUserId(), TAG);
+        Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
 
-        downloadingStartProgress(queueItem, locale);
-        try {
-            int i = 0;
-            for (TgFile imageFile : queueItem.getFiles()) {
-                SmartTempFile downloadedImage = fileService.createTempFile(tempDir, queueItem.getUserId(), "File-" + i + "." + imageFile.getFormat().getExt());
-                images.add(downloadedImage);
-                Progress downloadProgress = progress(queueItem, i, queueItem.getFiles().size(), locale);
-                fileManager.downloadFileByFileId(imageFile.getFileId(), imageFile.getSize(), downloadProgress, downloadedImage);
-                ++i;
-            }
-        } catch (Exception ex) {
-            images.forEach(SmartTempFile::smartDelete);
-            tempDir.smartDelete();
-            throw ex;
+        int i = 0;
+        for (TgFile imageFile : queueItem.getFiles()) {
+            String path = fileService.getTempFile(tempDir, queueItem.getUserId(), TAG, imageFile.getFileId(), "File-" + i + "." + imageFile.getFormat().getExt());
+            imageFile.setFilePath(path);
+            Progress downloadProgress = progress(queueItem, i, queueItem.getFiles().size(), locale);
+            imageFile.setProgress(downloadProgress);
+            ++i;
         }
-        downloadingFinishedProgress(queueItem, locale);
 
-        return images;
+        return tgFiles;
     }
 
     private Progress progress(ConversionQueueItem queueItem, int current, int total, Locale locale) {
         Progress progress = new Progress();
         progress.setChatId(queueItem.getUserId());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        progress.setLocale(locale.getLanguage());
         progress.setProgressMessage(messageBuilder.getFilesDownloadingProgressMessage(queueItem, current, total, locale));
         progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
@@ -160,33 +150,5 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         }
 
         return progress;
-    }
-
-    private void downloadingFinishedProgress(ConversionQueueItem queueItem, Locale locale) {
-        try {
-            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
-                    ConversionStep.CONVERTING, locale);
-            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale);
-            messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
-                    .messageId(queueItem.getProgressMessageId())
-                    .text(progressMessage)
-                    .replyMarkup(conversionKeyboard).build());
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
-    }
-
-    private void downloadingStartProgress(ConversionQueueItem queueItem, Locale locale) {
-        try {
-            String progressMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, 0, queueItem.getFiles().size(), locale);
-            InlineKeyboardMarkup conversionKeyboard = inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale);
-            messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
-                    .messageId(queueItem.getProgressMessageId())
-                    .text(progressMessage)
-                    .replyMarkup(conversionKeyboard)
-                    .build());
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
     }
 }

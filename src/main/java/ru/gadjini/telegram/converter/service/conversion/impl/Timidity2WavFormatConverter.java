@@ -30,7 +30,7 @@ public class Timidity2WavFormatConverter extends BaseAudioConverter {
     }
 
     @Override
-    public void doConvert(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
+    public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
         timidityDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), "-Ow", "-o");
     }
 }

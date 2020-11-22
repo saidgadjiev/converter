@@ -11,9 +11,6 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.converter.utils.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.HashMap;
@@ -41,35 +38,25 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private FFmpegDevice fFmpegDevice;
 
-    private TempFileService fileService;
-
-    private FileManager fileManager;
-
     private FFprobeDevice fFprobeDevice;
 
     @Autowired
-    public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, TempFileService fileService,
-                                      FileManager fileManager, FFprobeDevice fFprobeDevice) {
+    public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
-        this.fileService = fileService;
-        this.fileManager = fileManager;
         this.fFprobeDevice = fFprobeDevice;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-
             List<FFprobeDevice.AudioStream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
             ConvertResults convertResults = new ConvertResults();
             for (FFprobeDevice.AudioStream audioStream : audioStreams) {
                 int streamIndex = audioStream.getIndex() - 1;
-                SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                 try {
                     String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)), Stream.of(FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);

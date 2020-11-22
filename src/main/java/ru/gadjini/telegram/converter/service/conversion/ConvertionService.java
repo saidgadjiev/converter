@@ -9,6 +9,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.job.ConversionWorkerFactory;
+import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -40,12 +42,15 @@ public class ConvertionService {
 
     private ConverterReplyKeyboardService replyKeyboardService;
 
+    private ConversionWorkerFactory conversionWorkerFactory;
+
     @Autowired
     public ConvertionService(SmartInlineKeyboardService inlineKeyboardService,
                              @Qualifier("messageLimits") MessageService messageService,
                              ConversionQueueService conversionQueueService, QueueService queueService,
                              ConversionMessageBuilder messageBuilder,
-                             CommandStateService commandStateService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService) {
+                             CommandStateService commandStateService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
+                             ConversionWorkerFactory conversionWorkerFactory) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;
         this.conversionQueueService = conversionQueueService;
@@ -53,10 +58,16 @@ public class ConvertionService {
         this.messageBuilder = messageBuilder;
         this.commandStateService = commandStateService;
         this.replyKeyboardService = replyKeyboardService;
+        this.conversionWorkerFactory = conversionWorkerFactory;
     }
 
     public void createConversion(User user, ConvertState convertState, Format targetFormat, Locale locale) {
         ConversionQueueItem queueItem = conversionQueueService.create(user, convertState, targetFormat);
+        Any2AnyConverter candidate = conversionWorkerFactory.getCandidate(queueItem);
+
+        if (candidate != null) {
+            candidate.createDownloads(queueItem);
+        }
 
         sendConversionQueuedMessage(queueItem, convertState, message -> {
             queueItem.setProgressMessageId(message.getMessageId());

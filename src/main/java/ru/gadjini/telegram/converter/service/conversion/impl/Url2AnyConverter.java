@@ -11,7 +11,6 @@ import ru.gadjini.telegram.converter.service.html.HtmlDevice;
 import ru.gadjini.telegram.converter.service.html.Url2PdfApiDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -26,24 +25,21 @@ public class Url2AnyConverter extends BaseAny2AnyConverter {
             List.of(Format.URL), List.of(Format.PDF, Format.PNG, Format.HTML)
     );
 
-    private TempFileService fileService;
-
     private HtmlDevice htmlDevice;
 
     @Autowired
-    public Url2AnyConverter(TempFileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
+    public Url2AnyConverter(@Qualifier("api") HtmlDevice htmlDevice) {
         super(MAP);
-        this.fileService = fileService;
         this.htmlDevice = htmlDevice;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return convertUrl(fileQueueItem);
     }
 
     private FileResult convertUrl(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         try {
             htmlDevice.convertUrl(fileQueueItem.getFirstFileId(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 

@@ -12,7 +12,6 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -36,16 +35,13 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            getFileManager().downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, file);
-
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                doConvert(file, out, fileQueueItem);
+                doConvertAudio(file, out, fileQueueItem);
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
                 SmartTempFile thumbFile = downloadThumb(fileQueueItem);
@@ -79,5 +75,5 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         }
     }
 
-    protected abstract void doConvert(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem);
+    protected abstract void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem);
 }

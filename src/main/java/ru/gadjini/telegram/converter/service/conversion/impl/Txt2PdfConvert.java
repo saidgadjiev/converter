@@ -12,9 +12,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.nio.charset.StandardCharsets;
@@ -30,28 +27,20 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
             List.of(Format.TXT), List.of(Format.PDF)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     @Autowired
-    public Txt2PdfConvert(FileManager fileManager, TempFileService fileService) {
+    public Txt2PdfConvert() {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return toPdf(fileQueueItem);
     }
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile txt = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, txt);
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);
@@ -63,7 +52,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
 
                 page.getParagraphs().add(text);
 
-                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
                     doc.save(result.getAbsolutePath());
 

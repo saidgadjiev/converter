@@ -9,9 +9,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -24,35 +21,26 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.PDF), List.of(Format.TIFF));
 
-    private TempFileService fileService;
-
-    private FileManager fileManager;
-
     @Autowired
-    public Pdf2TiffConverter(TempFileService fileService, FileManager fileManager) {
+    public Pdf2TiffConverter() {
         super(MAP);
-        this.fileService = fileService;
-        this.fileManager = fileManager;
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return toTiff(fileQueueItem);
     }
 
     private FileResult toTiff(ConversionQueueItem fileQueueItem) {
-        SmartTempFile pdfFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile pdfFile = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, pdfFile);
-
             Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
                 pdf.optimize();
                 pdf.optimizeResources();
                 TiffDevice tiffDevice = new TiffDevice();
-                SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
+                SmartTempFile tiff = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
                 try {
                     tiffDevice.process(pdf, tiff.getAbsolutePath());
 

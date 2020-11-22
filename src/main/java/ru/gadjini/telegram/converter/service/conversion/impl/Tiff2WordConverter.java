@@ -8,12 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -28,35 +26,27 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
             List.of(Format.TIFF), List.of(Format.DOC, Format.DOCX)
     );
 
-    private FileManager fileManager;
-
-    private TempFileService fileService;
-
     @Autowired
-    public Tiff2WordConverter(FileManager fileManager, TempFileService fileService) {
+    public Tiff2WordConverter() {
         super(MAP);
-        this.fileManager = fileManager;
-        this.fileService = fileService;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         return toWord(fileQueueItem);
     }
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile tiff = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, tiff);
             try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
                 DocumentBuilder documentBuilder = new DocumentBuilder();
                 try {
                     for (TiffFrame tiffFrame : image.getFrames()) {
                         documentBuilder.insertImage(tiffFrame.toBitmap());
                     }
-                    SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                    SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                     try {
                         documentBuilder.getDocument().save(result.getAbsolutePath());
 

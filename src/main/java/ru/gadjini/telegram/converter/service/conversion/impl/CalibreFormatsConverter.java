@@ -4,13 +4,11 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.SmartCalibre;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.HashMap;
@@ -55,27 +53,18 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
 
     private SmartCalibre convertDevice;
 
-    private FileManager fileManager;
-
-    private TempFileService tempFileService;
-
     @Autowired
-    public CalibreFormatsConverter(SmartCalibre convertDevice, FileManager fileManager, TempFileService tempFileService) {
+    public CalibreFormatsConverter(SmartCalibre convertDevice) {
         super(MAP);
         this.convertDevice = convertDevice;
-        this.fileManager = fileManager;
-        this.tempFileService = tempFileService;
     }
 
     @Override
-    public FileResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile in = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile in = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            Progress progress = progress(fileQueueItem.getUserId(), fileQueueItem);
-            fileManager.downloadFileByFileId(fileQueueItem.getFirstFileId(), fileQueueItem.getSize(), progress, in);
-
-            SmartTempFile file = tempFileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile file = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 convertDevice.convert(in.getAbsolutePath(), file.getAbsolutePath(), getOptions(fileQueueItem));
 
