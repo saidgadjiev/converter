@@ -15,10 +15,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
@@ -107,11 +104,12 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
 
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.DOWNLOADING, locale);
+        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.DOWNLOADING, Collections.emptySet(), locale);
         progress.setProgressMessage(progressMessage);
         progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
-        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.CONVERTING, locale);
+        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
+                ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
         progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 

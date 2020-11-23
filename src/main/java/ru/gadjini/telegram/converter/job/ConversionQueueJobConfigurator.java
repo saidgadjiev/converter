@@ -35,7 +35,7 @@ public class ConversionQueueJobConfigurator implements QueueJobConfigurator<Conv
 
     @Override
     public String getWaitingMessage(ConversionQueueItem queueItem, Locale locale) {
-        return messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.WAITING, locale);
+        return messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.WAITING, Collections.emptySet(), locale);
     }
 
     @Override

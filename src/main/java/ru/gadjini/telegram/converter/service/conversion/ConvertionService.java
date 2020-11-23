@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboar
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 
+import java.util.Collections;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -81,7 +82,7 @@ public class ConvertionService {
 
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
         String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem,
-                convertState.getWarnings(), ConversionStep.WAITING, new Locale(convertState.getUserLanguage()));
+                convertState.getWarnings(), ConversionStep.WAITING, Collections.emptySet(), new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(queueItem.getUserId())).text(queuedMessage)
                 .parseMode(ParseMode.HTML)
                 .replyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale)).build(), callback);

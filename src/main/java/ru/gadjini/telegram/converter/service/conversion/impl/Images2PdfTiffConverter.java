@@ -145,7 +145,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         } else {
             String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
-                    ConversionStep.CONVERTING, locale);
+                    ConversionStep.CONVERTING, Collections.emptySet(), locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         }
