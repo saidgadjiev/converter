@@ -1,22 +1,20 @@
 package ru.gadjini.telegram.converter.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.dao.ConversionReportDao;
 import ru.gadjini.telegram.converter.domain.ConversionReport;
-import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.WorkQueueDao;
 
 @Service
-public class ConversinoReportService {
+public class ConversionReportService {
 
     private ConversionReportDao fileReportDao;
 
     private WorkQueueDao conversionQueueDao;
 
     @Autowired
-    public ConversinoReportService(ConversionReportDao fileReportDao, WorkQueueDao conversionQueueDao) {
+    public ConversionReportService(ConversionReportDao fileReportDao, WorkQueueDao conversionQueueDao) {
         this.fileReportDao = fileReportDao;
         this.conversionQueueDao = conversionQueueDao;
     }

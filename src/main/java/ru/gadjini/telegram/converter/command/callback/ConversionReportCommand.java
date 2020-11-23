@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.request.Arg;
-import ru.gadjini.telegram.converter.service.ConversinoReportService;
+import ru.gadjini.telegram.converter.service.ConversionReportService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -22,7 +22,7 @@ import java.util.Locale;
 @Component
 public class ConversionReportCommand implements CallbackBotCommand {
 
-    private ConversinoReportService fileReportService;
+    private ConversionReportService fileReportService;
 
     private MessageService messageService;
 
@@ -31,7 +31,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
     private LocalisationService localisationService;
 
     @Autowired
-    public ConversionReportCommand(ConversinoReportService fileReportService, @Qualifier("messageLimits") MessageService messageService,
+    public ConversionReportCommand(ConversionReportService fileReportService, @Qualifier("messageLimits") MessageService messageService,
                                    UserService userService, LocalisationService localisationService) {
         this.fileReportService = fileReportService;
         this.messageService = messageService;
