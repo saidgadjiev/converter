@@ -159,7 +159,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             case WAITING:
                 return "<b>" + localisationService.getMessage(MessagesProperties.WAITING_STEP, locale) + "...</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + "</b>" + (completedSteps.contains(ConversionStep.DOWNLOADING) ? " " + iconCheck : "") + "\n" +
-                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>" + (completedSteps.contains(ConversionStep.DOWNLOADING) ? " " + iconCheck : "") + "\n" +
+                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>" + (completedSteps.contains(ConversionStep.CONVERTING) ? " " + iconCheck : "") + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.UPLOADING_STEP, locale) + "</b>";
             case DOWNLOADING:
                 return "<b>" + localisationService.getMessage(MessagesProperties.DOWNLOADING_STEP, locale) + " ...</b>\n" +

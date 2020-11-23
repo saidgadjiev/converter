@@ -25,10 +25,7 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import java.sql.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
@@ -125,7 +122,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " AND NOT EXISTS(select 1 FROM downloading_queue where producer_id = qu.id AND qu.status != 3)" +
+                        " AND NOT EXISTS(select 1 FROM downloading_queue dq where dq.producer_id = qu.id AND dq.status != 3)" +
                         "        GROUP BY qu.id, qu.attempts\n" +
                         "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         QueueDao.POLL_ORDER_BY + "\n" +
@@ -330,14 +327,20 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
         if (columns.contains(ConversionQueueItem.DOWNLOADS)) {
             PGobject downloadsArr = (PGobject) rs.getObject("downloads");
-            if (downloadsArr != null) {
-                try {
-                    List<DownloadingQueueItem> downloadingQueueItems = objectMapper.readValue(downloadsArr.getValue(), new TypeReference<>() {
-                    });
-                    fileQueueItem.setDownloadedFiles(downloadingQueueItems);
-                } catch (JsonProcessingException e) {
-                    throw new SQLException(e);
+            try {
+                List<Map<String, Object>> values = objectMapper.readValue(downloadsArr.getValue(), new TypeReference<>() {
+                });
+                List<DownloadingQueueItem> downloadingQueueItems = new ArrayList<>();
+                for (Map<String, Object> value : values) {
+                    DownloadingQueueItem downloadingQueueItem = new DownloadingQueueItem();
+                    downloadingQueueItem.setFilePath((String) value.get(DownloadingQueueItem.FILE_PATH));
+                    downloadingQueueItem.setFile(objectMapper.convertValue(value.get(DownloadingQueueItem.FILE), TgFile.class));
+                    downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadingQueueItem.DELETE_PARENT_DIR));
+                    downloadingQueueItems.add(downloadingQueueItem);
                 }
+                fileQueueItem.setDownloadedFiles(downloadingQueueItems);
+            } catch (JsonProcessingException e) {
+                throw new SQLException(e);
             }
         }
 

@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -62,17 +63,20 @@ public class ConvertionService {
         this.conversionWorkerFactory = conversionWorkerFactory;
     }
 
+    @Transactional
     public void createConversion(User user, ConvertState convertState, Format targetFormat, Locale locale) {
         ConversionQueueItem queueItem = conversionQueueService.create(user, convertState, targetFormat);
-        Any2AnyConverter candidate = conversionWorkerFactory.getCandidate(queueItem);
-
-        if (candidate != null) {
-            candidate.createDownloads(queueItem);
-        }
 
         sendConversionQueuedMessage(queueItem, convertState, message -> {
             queueItem.setProgressMessageId(message.getMessageId());
             queueService.setProgressMessageId(queueItem.getId(), message.getMessageId());
+
+            Any2AnyConverter candidate = conversionWorkerFactory.getCandidate(queueItem);
+
+            if (candidate != null) {
+                candidate.createDownloads(queueItem);
+            }
+
             messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                     .text(messageBuilder.getWelcomeMessage(locale))
                     .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())).build());

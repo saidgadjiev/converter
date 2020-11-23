@@ -75,18 +75,9 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId());
     }
 
-    public void deleteDownloads(ConversionQueueItem conversionQueueItem) {
-        if (conversionQueueItem.getDownloadedFiles() != null) {
-            fileDownloadService.deleteDownloads(conversionQueueItem.getId());
-        }
-    }
-
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        ConvertResult convertResult = doConvert(fileQueueItem);
-        deleteDownloads(fileQueueItem);
-
-        return convertResult;
+        return doConvert(fileQueueItem);
     }
 
     final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
