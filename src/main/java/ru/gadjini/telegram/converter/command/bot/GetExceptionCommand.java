@@ -10,19 +10,19 @@ import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.WorkQueueService;
 
 @Component
 public class GetExceptionCommand implements BotCommand {
 
-    private QueueService queueService;
+    private WorkQueueService queueService;
 
     private MessageService messageService;
 
     private UserService userService;
 
     @Autowired
-    public GetExceptionCommand(QueueService queueService, @Qualifier("messageLimits") MessageService messageService, UserService userService) {
+    public GetExceptionCommand(WorkQueueService queueService, @Qualifier("messageLimits") MessageService messageService, UserService userService) {
         this.queueService = queueService;
         this.messageService = messageService;
         this.userService = userService;

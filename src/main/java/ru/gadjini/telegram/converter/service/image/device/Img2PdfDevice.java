@@ -1,13 +1,10 @@
 package ru.gadjini.telegram.converter.service.image.device;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.condition.LinuxMacCondition;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 @Component("img2pdf")
-@Conditional(LinuxMacCondition.class)
 public class Img2PdfDevice implements Image2PdfDevice {
 
     private ProcessExecutor processExecutor;

@@ -20,7 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.WorkQueueService;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -35,7 +35,7 @@ public class ConvertionService {
 
     private ConversionQueueService conversionQueueService;
 
-    private QueueService queueService;
+    private WorkQueueService queueService;
 
     private ConversionMessageBuilder messageBuilder;
 
@@ -48,7 +48,7 @@ public class ConvertionService {
     @Autowired
     public ConvertionService(SmartInlineKeyboardService inlineKeyboardService,
                              @Qualifier("messageLimits") MessageService messageService,
-                             ConversionQueueService conversionQueueService, QueueService queueService,
+                             ConversionQueueService conversionQueueService, WorkQueueService queueService,
                              ConversionMessageBuilder messageBuilder,
                              CommandStateService commandStateService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                              ConversionWorkerFactory conversionWorkerFactory) {
