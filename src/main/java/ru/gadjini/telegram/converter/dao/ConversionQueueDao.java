@@ -14,7 +14,8 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.WorkQueueDaoDelegate;
-import ru.gadjini.telegram.smart.bot.commons.domain.DownloadingQueueItem;
+import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
+import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
@@ -330,12 +331,12 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
             try {
                 List<Map<String, Object>> values = objectMapper.readValue(downloadsArr.getValue(), new TypeReference<>() {
                 });
-                List<DownloadingQueueItem> downloadingQueueItems = new ArrayList<>();
+                List<DownloadQueueItem> downloadingQueueItems = new ArrayList<>();
                 for (Map<String, Object> value : values) {
-                    DownloadingQueueItem downloadingQueueItem = new DownloadingQueueItem();
-                    downloadingQueueItem.setFilePath((String) value.get(DownloadingQueueItem.FILE_PATH));
-                    downloadingQueueItem.setFile(objectMapper.convertValue(value.get(DownloadingQueueItem.FILE), TgFile.class));
-                    downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadingQueueItem.DELETE_PARENT_DIR));
+                    DownloadQueueItem downloadingQueueItem = new DownloadQueueItem();
+                    downloadingQueueItem.setFilePath((String) value.get(DownloadQueueItem.FILE_PATH));
+                    downloadingQueueItem.setFile(objectMapper.convertValue(value.get(DownloadQueueItem.FILE), TgFile.class));
+                    downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadQueueItem.DELETE_PARENT_DIR));
                     downloadingQueueItems.add(downloadingQueueItem);
                 }
                 fileQueueItem.setDownloadedFiles(downloadingQueueItems);

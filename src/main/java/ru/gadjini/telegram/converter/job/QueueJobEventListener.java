@@ -24,7 +24,6 @@ public class QueueJobEventListener implements ApplicationListener<QueueJobInitia
 
     private final Set<FormatCategory> categories;
 
-
     @Autowired
     public QueueJobEventListener(AsposeExecutorService asposeExecutorService, Set<FormatCategory> categories) {
         this.asposeExecutorService = asposeExecutorService;

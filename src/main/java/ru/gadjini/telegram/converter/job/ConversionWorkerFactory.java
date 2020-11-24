@@ -26,6 +26,7 @@ import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileUploadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
@@ -47,6 +48,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
     private FileDownloadService fileDownloadService;
 
+    private FileUploadService fileUploadService;
+
     private UserService userService;
 
     private SmartInlineKeyboardService smartInlineKeyboardService;
@@ -66,10 +69,12 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     private ConversionQueueService conversionQueueService;
 
     @Autowired
-    public ConversionWorkerFactory(UserService userService,
-                                   SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
+    public ConversionWorkerFactory(FileUploadService fileUploadService, UserService userService,
+                                   SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService,
+                                   @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                    @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
                                    AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
+        this.fileUploadService = fileUploadService;
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -215,7 +220,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     if (fileResult.getThumb() != null) {
                         sendDocumentBuilder.thumb(new InputFile(fileResult.getThumb(), fileResult.getThumb().getName()));
                     }
-                    sendFileResult = mediaMessageService.sendDocument(sendDocumentBuilder.build(), progress(fileQueueItem.getUserId(), fileQueueItem));
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendDocument.PATH, sendDocumentBuilder.build(),
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
 
                     break;
                 }
@@ -245,7 +251,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     }
                     SendAudio sendAudio = sendAudioBuilder.replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
-                    sendFileResult = mediaMessageService.sendAudio(sendAudio, progress(fileQueueItem.getUserId(), fileQueueItem));
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendAudio.PATH, sendAudio,
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
                     break;
                 }
                 case CONTAINER: {
@@ -266,7 +273,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     }
                     SendVoice sendVoice = sendVoiceBuilder.replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
-                    sendFileResult = mediaMessageService.sendVoice(sendVoice, progress(fileQueueItem.getUserId(), fileQueueItem));
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendVoice.PATH, sendVoice,
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
                     break;
             }
             if (sendFileResult != null) {

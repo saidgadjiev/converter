@@ -1,6 +1,6 @@
 package ru.gadjini.telegram.converter.domain;
 
-import ru.gadjini.telegram.smart.bot.commons.domain.DownloadingQueueItem;
+import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.domain.WorkQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -34,7 +34,7 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     private String resultFileId;
 
-    private List<DownloadingQueueItem> downloadedFiles;
+    private List<DownloadQueueItem> downloadedFiles;
 
     public Format getTargetFormat() {
         return targetFormat;
@@ -88,16 +88,16 @@ public class ConversionQueueItem extends WorkQueueItem {
         return getFirstFile().getFileName();
     }
 
-    public List<DownloadingQueueItem> getDownloadedFiles() {
+    public List<DownloadQueueItem> getDownloadedFiles() {
         return downloadedFiles;
     }
 
-    public void setDownloadedFiles(List<DownloadingQueueItem> downloadedFiles) {
+    public void setDownloadedFiles(List<DownloadQueueItem> downloadedFiles) {
         this.downloadedFiles = downloadedFiles;
     }
 
     public SmartTempFile getDownloadedFile(String fileId) {
-        DownloadingQueueItem queueItem = downloadedFiles.stream().filter(
+        DownloadQueueItem queueItem = downloadedFiles.stream().filter(
                 downloadingQueueItem -> downloadingQueueItem.getFile().getFileId().equals(fileId)
         ).findAny().orElseThrow();
 
