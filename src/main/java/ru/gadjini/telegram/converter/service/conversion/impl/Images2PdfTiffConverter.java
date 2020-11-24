@@ -72,7 +72,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
     @Override
     public void createDownloads(ConversionQueueItem conversionQueueItem) {
         Collection<TgFile> tgFiles = prepareFilesToDownload(conversionQueueItem);
-        fileDownloadService.createDownloads(tgFiles, conversionQueueItem.getId());
+        fileDownloadService.createDownloads(tgFiles, conversionQueueItem.getId(), conversionQueueItem.getUserId());
     }
 
     @Override

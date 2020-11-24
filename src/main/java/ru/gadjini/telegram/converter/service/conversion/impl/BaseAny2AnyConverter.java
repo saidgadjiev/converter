@@ -72,7 +72,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     @Override
     public void createDownloads(ConversionQueueItem conversionQueueItem) {
         conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem.getUserId(), conversionQueueItem));
-        fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId());
+        fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId());
     }
 
     @Override
