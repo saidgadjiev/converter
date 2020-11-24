@@ -66,11 +66,10 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     private ConversionQueueService conversionQueueService;
 
     @Autowired
-    public ConversionWorkerFactory(FileDownloadService fileDownloadService, UserService userService,
+    public ConversionWorkerFactory(UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                    @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
                                    AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
-        this.fileDownloadService = fileDownloadService;
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -79,6 +78,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         this.messageBuilder = messageBuilder;
         this.asposeExecutorService = asposeExecutorService;
         this.conversionQueueService = conversionQueueService;
+    }
+
+    @Autowired
+    public void setFileDownloadService(FileDownloadService fileDownloadService) {
+        this.fileDownloadService = fileDownloadService;
     }
 
     @Autowired
@@ -146,7 +150,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
         @Override
         public void cancel() {
-            fileDownloadService.cancelDownload(fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getSize(), fileQueueItem.getId());
+            fileDownloadService.cancelDownloads(fileQueueItem.getId());
             asposeExecutorService.cancel(fileQueueItem.getId());
         }
 

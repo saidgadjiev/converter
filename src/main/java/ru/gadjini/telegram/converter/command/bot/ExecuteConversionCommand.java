@@ -28,7 +28,7 @@ public class ExecuteConversionCommand implements BotCommand {
 
     @Override
     public void processMessage(Message message, String[] params) {
-        queueService.setWaitingAndDecrementAttempts(Integer.parseInt(params[0]));
+        queueService.setWaiting(Integer.parseInt(params[0]));
     }
 
     @Override
