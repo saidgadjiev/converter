@@ -24,15 +24,4 @@ public class ConvertResults implements ConvertResult {
     public ResultType resultType() {
         return ResultType.CONTAINER;
     }
-
-    @Override
-    public void close() {
-        for (ConvertResult convertResult : convertResults) {
-            try {
-                convertResult.close();
-            } catch (Exception e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-    }
 }

@@ -8,9 +8,4 @@ public class BusyConvertResult implements ConvertResult {
     public ResultType resultType() {
         return ResultType.BUSY;
     }
-
-    @Override
-    public void close() throws Exception {
-
-    }
 }

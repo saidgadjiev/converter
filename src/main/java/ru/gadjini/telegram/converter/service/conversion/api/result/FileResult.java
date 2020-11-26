@@ -57,12 +57,4 @@ public class FileResult implements ConvertResult {
     public String getCaption() {
         return caption;
     }
-
-    @Override
-    public void close() {
-        file.smartDelete();
-        if (thumb != null) {
-            thumb.smartDelete();
-        }
-    }
 }

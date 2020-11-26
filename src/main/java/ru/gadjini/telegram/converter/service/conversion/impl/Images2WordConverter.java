@@ -44,7 +44,8 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
     @Override
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         Format originalFormat = fileQueueItem.getTargetFormat();
-        try (FileResult fileResult = (FileResult) images2PdfTiffConverter.doConvert(fileQueueItem, Format.PDF)) {
+        FileResult fileResult = (FileResult) images2PdfTiffConverter.doConvert(fileQueueItem, Format.PDF);
+        try {
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, originalFormat.getExt());
             try {
                 Document document = new Document(fileResult.getFile().getAbsolutePath());
@@ -62,6 +63,8 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
+        } finally {
+            fileResult.getSmartFile().smartDelete();
         }
     }
 }

@@ -69,12 +69,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     private ConversionQueueService conversionQueueService;
 
     @Autowired
-    public ConversionWorkerFactory(FileUploadService fileUploadService, UserService userService,
+    public ConversionWorkerFactory(UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService,
                                    @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                    @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
                                    AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
-        this.fileUploadService = fileUploadService;
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -83,6 +82,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         this.messageBuilder = messageBuilder;
         this.asposeExecutorService = asposeExecutorService;
         this.conversionQueueService = conversionQueueService;
+    }
+
+    @Autowired
+    public void setFileUploadService(FileUploadService fileUploadService) {
+        this.fileUploadService = fileUploadService;
     }
 
     @Autowired
@@ -128,7 +132,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         }
 
         @Override
-        public void execute() throws Exception {
+        public void execute() {
             Any2AnyConverter candidate = getCandidate(fileQueueItem);
             if (candidate != null) {
                 String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
@@ -137,14 +141,13 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     mediaMessageService.sendDocument(new SendDocument(String.valueOf(fileQueueItem.getUserId()), new InputFile(fileQueueItem.getResultFileId())));
                 } else {
                     sendConvertingProgress(fileQueueItem);
-                    try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
-                        if (convertResult.resultType() == ResultType.BUSY) {
-                            LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getTargetFormat());
+                    ConvertResult convertResult = candidate.convert(fileQueueItem);
+                    if (convertResult.resultType() == ResultType.BUSY) {
+                        LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getTargetFormat());
 
-                            throw new BusyWorkerException();
-                        } else {
-                            sendResult(fileQueueItem, convertResult);
-                        }
+                        throw new BusyWorkerException();
+                    } else {
+                        sendResult(fileQueueItem, convertResult);
                     }
                 }
                 LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), size);
