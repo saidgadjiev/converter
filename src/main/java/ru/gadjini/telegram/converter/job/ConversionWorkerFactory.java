@@ -145,8 +145,10 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     if (convertResult.resultType() == ResultType.BUSY) {
                         LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getTargetFormat());
 
+                        sendWaitingProgress(fileQueueItem);
                         throw new BusyWorkerException();
                     } else {
+                        sendConvertingFinishedProgress(fileQueueItem);
                         sendResult(fileQueueItem, convertResult);
                     }
                 }
@@ -179,8 +181,23 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             return progress;
         }
 
+        private void sendWaitingProgress(ConversionQueueItem queueItem) {
+            Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
+            String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem,
+                    Collections.emptySet(), ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
+
+            try {
+                messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
+                        .messageId(queueItem.getProgressMessageId()).text(queuedMessage)
+                        .replyMarkup(smartInlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale))
+                        .build());
+            } catch (Exception e) {
+                LOGGER.error("Ignore exception\n" + e.getMessage(), e);
+            }
+        }
+
         private void sendConvertingProgress(ConversionQueueItem queueItem) {
-            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
             String message = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
                     ConversionStep.CONVERTING, Collections.emptySet(), locale);
 
@@ -195,8 +212,10 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             }
         }
 
-        private void sendUploadingProgress(ConversionQueueItem conversionQueueItem, Locale locale) {
-            String uploadingProgressMessage = messageBuilder.getUploadingProgressMessage(conversionQueueItem, locale);
+        private void sendConvertingFinishedProgress(ConversionQueueItem conversionQueueItem) {
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            String uploadingProgressMessage = messageBuilder.getConversionProcessingMessage(conversionQueueItem, Collections.emptySet(),
+                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING, ConversionStep.CONVERTING), locale);
             try {
                 messageService.editMessage(
                         EditMessageText.builder().chatId(String.valueOf(conversionQueueItem.getUserId()))
@@ -214,7 +233,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             switch (convertResult.resultType()) {
                 case FILE: {
                     FileResult fileResult = (FileResult) convertResult;
-                    sendUploadingProgress(fileQueueItem, locale);
                     SendDocument.SendDocumentBuilder sendDocumentBuilder = SendDocument.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
                             .document(new InputFile(fileResult.getFile(), fileResult.getFileName()))
                             .caption(fileResult.getCaption())
