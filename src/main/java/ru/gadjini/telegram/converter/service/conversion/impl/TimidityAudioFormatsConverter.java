@@ -18,7 +18,7 @@ public class TimidityAudioFormatsConverter extends BaseAudioConverter {
     private static final String TAG = "timidityaudio";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(List.of(MID), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WMA, OPUS, SPX, M4A));
+        put(List.of(MID), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WMA, OPUS, SPX, M4A, RA));
     }};
 
     private Timidity2WavFormatConverter wavFormatConverter;
