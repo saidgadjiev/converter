@@ -11,11 +11,9 @@ import java.util.function.Supplier;
 @Service
 public class AsposeExecutorService {
 
-    private static final int THREADS = 1;
+    private final ThreadPoolExecutor lightExecutorService = createThreadPool(2);
 
-    private final ThreadPoolExecutor lightExecutorService = createThreadPool(THREADS);
-
-    private final ThreadPoolExecutor heavyExecutorService = createThreadPool(THREADS);
+    private final ThreadPoolExecutor heavyExecutorService = createThreadPool(1);
 
     private final Map<Integer, CompletableFuture<Boolean>> callbacks = new ConcurrentHashMap<>();
 
@@ -24,11 +22,7 @@ public class AsposeExecutorService {
         callbacks.put(asposeTask.getId(), completableFuture);
         synchronized (heavyExecutorService) {
             if (asposeTask.getWeight() == SmartExecutorService.JobWeight.LIGHT) {
-                if (heavyExecutorService.getActiveCount() < heavyExecutorService.getCorePoolSize()) {
-                    completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), heavyExecutorService);
-                } else {
-                    completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), lightExecutorService);
-                }
+                completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), lightExecutorService);
             } else {
                 completableFuture.completeAsync(new AsposeTaskSupplier(asposeTask), heavyExecutorService);
             }

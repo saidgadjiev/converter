@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.conversion.OomHandler;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
@@ -43,7 +44,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Pdf2WordConverter.class);
 
-    private static final int LIGHT_FILE_PAGES = 150;
+    private static final int LIGHT_FILE_PAGES = 120;
 
     public static final String TAG = "pdf2";
 
@@ -53,12 +54,14 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private AsposeExecutorService asposeExecutorService;
 
+    private OomHandler oomHandler;
+
     @Autowired
-    public Pdf2WordConverter(ProcessExecutor processExecutor,
-                             AsposeExecutorService asposeExecutorService) {
+    public Pdf2WordConverter(ProcessExecutor processExecutor, AsposeExecutorService asposeExecutorService, OomHandler oomHandler) {
         super(MAP);
         this.processExecutor = processExecutor;
         this.asposeExecutorService = asposeExecutorService;
+        this.oomHandler = oomHandler;
     }
 
     @Override
@@ -77,6 +80,9 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 try {
                     fileResult = doRightConvert(fileQueueItem, file, log);
                 } catch (Throwable e) {
+                    if (oomHandler.isOom(e)) {
+                        return oomHandler.handleOom(fileQueueItem, e);
+                    }
                     LOGGER.error(e.getMessage(), e);
                     log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
 
@@ -113,9 +119,10 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             try {
                 try {
                     fileResult = doRightConvert(fileQueueItem, file, log);
-                } catch (OutOfMemoryError e) {
-                    throw e;
                 } catch (Throwable e) {
+                    if (oomHandler.isOom(e)) {
+                        return oomHandler.handleOom(fileQueueItem, e);
+                    }
                     LOGGER.error(e.getMessage(), e);
                     log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
 
