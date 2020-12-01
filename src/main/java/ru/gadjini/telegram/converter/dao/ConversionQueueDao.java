@@ -17,6 +17,7 @@ import ru.gadjini.telegram.smart.bot.commons.dao.WorkQueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.QueueProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -43,13 +44,16 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     private FileLimitProperties fileLimitProperties;
 
+    private QueueProperties queueProperties;
+
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
                               Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
-                              FileLimitProperties fileLimitProperties) {
+                              FileLimitProperties fileLimitProperties, QueueProperties queueProperties) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
+        this.queueProperties = queueProperties;
         for (Format value : Format.values()) {
             if (formats.containsKey(value.getCategory())) {
                 formatsSet.add(value);
@@ -121,8 +125,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " AND NOT EXISTS(select 1 FROM downloading_queue dq where dq.producer_id = qu.id AND dq.status != 3)" +
+                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.attempts < ? AND qu.files[1].format IN(" + inFormats() + ") " +
+                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = ? AND dq.producer_id = qu.id AND dq.status != 3)" +
                         "        GROUP BY qu.id, qu.attempts\n" +
                         "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         QueueDao.POLL_ORDER_BY + "\n" +
@@ -130,11 +134,13 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT cv.*, cc.files_json, 1 as queue_position, " +
-                        "(SELECT json_agg(ds) FROM (SELECT * FROM downloading_queue WHERE producer = ? AND producer_id = cv.id) as ds) as downloads\n" +
+                        "(SELECT json_agg(ds) FROM (SELECT * FROM " + DownloadQueueItem.NAME + " dq WHERE dq.producer = ? AND dq.producer_id = cv.id) as ds) as downloads\n" +
                         "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id",
                 ps -> {
-                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
+                    ps.setInt(1, queueProperties.getMaxAttempts());
                     ps.setString(2, getQueueName());
+                    ps.setLong(3, fileLimitProperties.getLightFileMaxWeight());
+                    ps.setString(4, getQueueName());
                 },
                 (rs, rowNum) -> map(rs)
         );
@@ -326,7 +332,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         }
 
         if (columns.contains(ConversionQueueItem.DOWNLOADS)) {
-            PGobject downloadsArr = (PGobject) rs.getObject("downloads");
+            PGobject downloadsArr = (PGobject) rs.getObject(ConversionQueueItem.DOWNLOADS);
             try {
                 List<Map<String, Object>> values = objectMapper.readValue(downloadsArr.getValue(), new TypeReference<>() {
                 });
