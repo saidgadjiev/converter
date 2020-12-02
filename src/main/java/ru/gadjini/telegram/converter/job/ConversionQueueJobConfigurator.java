@@ -29,11 +29,6 @@ public class ConversionQueueJobConfigurator implements QueueJobConfigurator<Conv
     }
 
     @Override
-    public boolean shouldBeDeletedAfterCompleted(ConversionQueueItem queueItem) {
-        return false;
-    }
-
-    @Override
     public String getWaitingMessage(ConversionQueueItem queueItem, Locale locale) {
         return messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.WAITING, Collections.emptySet(), locale);
     }

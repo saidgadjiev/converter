@@ -11,10 +11,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.domain.ConversionReport;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.WorkQueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
+import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.QueueProperties;
@@ -283,6 +285,22 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
                     return null;
                 }
+        );
+    }
+
+    @Override
+    public boolean isDeleteCompletedShouldBeDelegated() {
+        return true;
+    }
+
+    @Override
+    public List<ConversionQueueItem> deleteCompleted() {
+        return jdbcTemplate.query(
+                "WITH del AS(DELETE FROM " + getQueueName() + " qu WHERE qu.status = ? AND qu.completed_at + " + QueueDao.DELETE_COMPLETED_INTERVAL + " < now() " +
+                        " AND NOT EXISTS(select true from " + ConversionReport.TYPE + " cr WHERE qu.id = cr.queue_item_id) RETURNING *)" +
+                        "SELECT * FROM del",
+                ps -> ps.setInt(1, QueueItem.Status.COMPLETED.getCode()),
+                (rs, rowNum) -> map(rs)
         );
     }
 
