@@ -21,7 +21,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
-import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
+import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -65,7 +65,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private XSync<Long> longXSync;
 
-    private QueueJob conversionJob;
+    private WorkQueueJob conversionJob;
 
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService,
@@ -73,7 +73,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                         FormatService formatService, ConvertionService convertionService,
                         ConversionMessageBuilder queueMessageBuilder, MessageMediaService messageMediaService,
-                        ConversionFormatService conversionFormatService, XSync<Long> longXSync, QueueJob conversionJob) {
+                        ConversionFormatService conversionFormatService, XSync<Long> longXSync, WorkQueueJob conversionJob) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
