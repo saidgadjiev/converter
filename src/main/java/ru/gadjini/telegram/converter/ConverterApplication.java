@@ -25,7 +25,9 @@ import java.util.TimeZone;
         BotApiProperties.class,
         FileLimitProperties.class,
         FileManagerProperties.class,
-        FloodControlProperties.class,
+        DownloadFloodControlProperties.class,
+        UploadFloodControlProperties.class,
+        MediaLimitProperties.class,
         QueueProperties.class
 })
 @EnableScheduling
