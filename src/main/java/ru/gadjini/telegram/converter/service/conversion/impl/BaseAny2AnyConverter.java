@@ -3,33 +3,29 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.job.DownloadExtra;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
-import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
-import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.converter.service.progress.ProgressBuilder;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     private final Map<List<Format>, List<Format>> map;
 
-    private ConversionMessageBuilder messageBuilder;
-
-    private SmartInlineKeyboardService inlineKeyboardService;
-
-    private UserService userService;
-
     private TempFileService fileService;
 
     private FileDownloadService fileDownloadService;
+
+    private ProgressBuilder progressBuilder;
 
     protected BaseAny2AnyConverter(Map<List<Format>, List<Format>> map) {
         this.map = map;
@@ -41,18 +37,8 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @Autowired
-    public void setMessageBuilder(ConversionMessageBuilder messageBuilder) {
-        this.messageBuilder = messageBuilder;
-    }
-
-    @Autowired
-    public void setInlineKeyboardService(SmartInlineKeyboardService inlineKeyboardService) {
-        this.inlineKeyboardService = inlineKeyboardService;
+    public void setProgressBuilder(ProgressBuilder progressBuilder) {
+        this.progressBuilder = progressBuilder;
     }
 
     @Autowired
@@ -75,8 +61,13 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     @Override
     public void createDownloads(ConversionQueueItem conversionQueueItem) {
-        conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem.getUserId(), conversionQueueItem));
-        fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId());
+        conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem));
+
+        DownloadExtra extra = null;
+        if (conversionQueueItem.getFiles().size() > 0) {
+            extra = new DownloadExtra(conversionQueueItem.getFiles(), 0);
+        }
+        fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), extra);
     }
 
     @Override
@@ -92,23 +83,8 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         }
     }
 
-    private Progress progress(long chatId, ConversionQueueItem queueItem) {
-        Progress progress = new Progress();
-        progress.setChatId(chatId);
-
-        Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
-
-        progress.setProgressMessageId(queueItem.getProgressMessageId());
-        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.DOWNLOADING, Collections.emptySet(), locale);
-        progress.setProgressMessage(progressMessage);
-        progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
-
-        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
-                ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
-        progress.setAfterProgressCompletionMessage(completionMessage);
-        progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
-
-        return progress;
+    private Progress progress(ConversionQueueItem queueItem) {
+        return progressBuilder.buildFileDownloadProgress(queueItem);
     }
 
     private boolean isConvertAvailable(Format src, Format target) {

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.job.DownloadExtra;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
@@ -63,7 +64,9 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
     @Override
     public void createDownloads(ConversionQueueItem conversionQueueItem) {
         Collection<TgFile> tgFiles = prepareFilesToDownload(conversionQueueItem);
-        fileDownloadService().createDownloads(tgFiles, conversionQueueItem.getId(), conversionQueueItem.getUserId());
+
+        DownloadExtra extra = new DownloadExtra(conversionQueueItem.getFiles(), 0);
+        fileDownloadService().createDownload(tgFiles.iterator().next(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), extra);
     }
 
     @Override
@@ -136,7 +139,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         } else {
             String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
-                    ConversionStep.CONVERTING, Collections.emptySet(), locale);
+                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         }
