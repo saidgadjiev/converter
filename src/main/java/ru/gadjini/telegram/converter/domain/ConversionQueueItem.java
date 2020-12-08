@@ -99,7 +99,7 @@ public class ConversionQueueItem extends WorkQueueItem {
     public SmartTempFile getDownloadedFile(String fileId) {
         DownloadQueueItem queueItem = downloadedFiles.stream().filter(
                 downloadingQueueItem -> downloadingQueueItem.getFile().getFileId().equals(fileId)
-        ).findAny().orElseThrow();
+        ).findAny().orElseThrow(() -> new IllegalArgumentException("Downloaded file not found for " + fileId));
 
         return new SmartTempFile(new File(queueItem.getFilePath()), queueItem.isDeleteParentDir());
     }

@@ -138,12 +138,12 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             String calculated = localisationService.getMessage(MESSAGE_CALCULATED, locale);
             completionMessage = String.format(completionMessage, 0, calculated, calculated);
             progress.setAfterProgressCompletionMessage(completionMessage);
-            progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         } else {
             String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
                     ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
-            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale));
         }
 
         return progress;
