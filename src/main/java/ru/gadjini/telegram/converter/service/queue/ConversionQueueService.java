@@ -23,16 +23,16 @@ public class ConversionQueueService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionQueueService.class);
 
-    private ConversionQueueDao fileQueueDao;
+    private ConversionQueueDao conversionQueueDao;
 
     private LocalisationService localisationService;
 
     private FileLimitProperties fileLimitProperties;
 
     @Autowired
-    public ConversionQueueService(ConversionQueueDao fileQueueDao, LocalisationService localisationService,
+    public ConversionQueueService(ConversionQueueDao conversionQueueDao, LocalisationService localisationService,
                                   FileLimitProperties fileLimitProperties) {
-        this.fileQueueDao = fileQueueDao;
+        this.conversionQueueDao = conversionQueueDao;
         this.localisationService = localisationService;
         this.fileLimitProperties = fileLimitProperties;
     }
@@ -56,46 +56,50 @@ public class ConversionQueueService {
         fileQueueItem.setStatus(ConversionQueueItem.Status.WAITING);
         fileQueueItem.setTargetFormat(targetFormat);
 
-        fileQueueDao.create(fileQueueItem);
-        fileQueueItem.setQueuePosition(fileQueueDao.getQueuePosition(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
+        conversionQueueDao.create(fileQueueItem);
+        fileQueueItem.setQueuePosition(conversionQueueDao.getQueuePosition(fileQueueItem.getId(), fileQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
                 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT));
 
         return fileQueueItem;
     }
 
     public long count(ConversionQueueItem.Status status) {
-        return fileQueueDao.count(status);
+        return conversionQueueDao.count(status);
     }
 
     public void setResultFileId(int id, String fileId) {
-        fileQueueDao.setResultFileId(id, fileId);
+        conversionQueueDao.setResultFileId(id, fileId);
     }
 
     public void setFileId(int id, String fileId) {
-        fileQueueDao.setFileId(id, fileId);
+        conversionQueueDao.setFileId(id, fileId);
     }
 
     public long getTodayConversionsCount() {
-        return fileQueueDao.getTodayConversionsCount();
+        return conversionQueueDao.getTodayConversionsCount();
     }
 
     public long getYesterdayConversionsCount() {
-        return fileQueueDao.getYesterdayConversionsCount();
+        return conversionQueueDao.getYesterdayConversionsCount();
     }
 
     public long getWeeklyConversionsCount() {
-        return fileQueueDao.getWeeklyConversionsCount();
+        return conversionQueueDao.getWeeklyConversionsCount();
     }
 
     public long getMonthlyConversionsCount() {
-        return fileQueueDao.getMonthlyConversionsCount();
+        return conversionQueueDao.getMonthlyConversionsCount();
     }
 
     public long getAllConversionsCount() {
-        return fileQueueDao.getAllConversionsCount();
+        return conversionQueueDao.getAllConversionsCount();
     }
 
     public long getTodayDailyActiveUsersCount() {
-        return fileQueueDao.getTodayDailyActiveUsersCount();
+        return conversionQueueDao.getTodayDailyActiveUsersCount();
+    }
+
+    public void setProgressMessageIdAndTotalFilesToDownload(int id, int messageId, int totalFilesToDownload) {
+        conversionQueueDao.setProgressMessageIdAndTotalFilesToDownload(id, messageId, totalFilesToDownload);
     }
 }

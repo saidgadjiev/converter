@@ -7,6 +7,7 @@ import ru.gadjini.telegram.converter.job.DownloadExtra;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.progress.ProgressBuilder;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
@@ -60,7 +61,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     @Override
-    public void createDownloads(ConversionQueueItem conversionQueueItem) {
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
         conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem));
 
         DownloadExtra extra = null;
@@ -68,11 +69,25 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
             extra = new DownloadExtra(conversionQueueItem.getFiles(), 0);
         }
         fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), extra);
+
+        return conversionQueueItem.getFiles().size();
     }
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         return doConvert(fileQueueItem);
+    }
+
+    int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {
+        int total = createDownloads(conversionQueueItem);
+        if (StringUtils.isNotBlank(conversionQueueItem.getFirstFile().getThumb())) {
+            TgFile thumb = new TgFile();
+            thumb.setFileId(conversionQueueItem.getFirstFile().getThumb());
+            fileDownloadService().createDownload(thumb, conversionQueueItem.getId(), conversionQueueItem.getUserId());
+            ++total;
+        }
+
+        return total;
     }
 
     final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {

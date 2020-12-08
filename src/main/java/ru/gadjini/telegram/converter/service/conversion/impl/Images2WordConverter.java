@@ -37,8 +37,8 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public void createDownloads(ConversionQueueItem conversionQueueItem) {
-        images2PdfTiffConverter.createDownloads(conversionQueueItem);
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return images2PdfTiffConverter.createDownloads(conversionQueueItem);
     }
 
     @Override

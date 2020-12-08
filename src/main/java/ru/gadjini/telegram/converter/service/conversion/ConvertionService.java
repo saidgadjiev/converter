@@ -21,7 +21,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.WorkQueueService;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -36,8 +35,6 @@ public class ConvertionService {
 
     private ConversionQueueService conversionQueueService;
 
-    private WorkQueueService queueService;
-
     private ConversionMessageBuilder messageBuilder;
 
     private CommandStateService commandStateService;
@@ -49,14 +46,13 @@ public class ConvertionService {
     @Autowired
     public ConvertionService(SmartInlineKeyboardService inlineKeyboardService,
                              @Qualifier("messageLimits") MessageService messageService,
-                             ConversionQueueService conversionQueueService, WorkQueueService queueService,
+                             ConversionQueueService conversionQueueService,
                              ConversionMessageBuilder messageBuilder,
                              CommandStateService commandStateService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                              ConversionWorkerFactory conversionWorkerFactory) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;
         this.conversionQueueService = conversionQueueService;
-        this.queueService = queueService;
         this.messageBuilder = messageBuilder;
         this.commandStateService = commandStateService;
         this.replyKeyboardService = replyKeyboardService;
@@ -69,13 +65,13 @@ public class ConvertionService {
 
         sendConversionQueuedMessage(queueItem, convertState, message -> {
             queueItem.setProgressMessageId(message.getMessageId());
-            queueService.setProgressMessageId(queueItem.getId(), message.getMessageId());
-
             Any2AnyConverter candidate = conversionWorkerFactory.getCandidate(queueItem);
 
+            int totalFilesToDownload = 0;
             if (candidate != null) {
-                candidate.createDownloads(queueItem);
+                totalFilesToDownload = candidate.createDownloads(queueItem);
             }
+            conversionQueueService.setProgressMessageIdAndTotalFilesToDownload(queueItem.getId(), message.getMessageId(), totalFilesToDownload);
 
             messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                     .text(messageBuilder.getWelcomeMessage(locale))

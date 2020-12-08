@@ -48,6 +48,11 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
     }
 
     @Override
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
+    }
+
+    @Override
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 

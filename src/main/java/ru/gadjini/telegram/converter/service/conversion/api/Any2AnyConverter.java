@@ -6,7 +6,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 public interface Any2AnyConverter {
 
-    void createDownloads(ConversionQueueItem conversionQueueItem);
+    int createDownloads(ConversionQueueItem conversionQueueItem);
 
     ConvertResult convert(ConversionQueueItem fileQueueItem);
 

@@ -128,7 +128,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.attempts < ? AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = ? AND dq.producer_id = qu.id AND dq.status != 3)" +
+                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = ? AND dq.producer_id = qu.id AND dq.status != 3)\n" +
+                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = ? AND dq.producer_id = qu.id)\n" +
                         "        GROUP BY qu.id, qu.attempts\n" +
                         "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         QueueDao.POLL_ORDER_BY + "\n" +
@@ -284,6 +285,17 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                     }
 
                     return null;
+                }
+        );
+    }
+
+    public void setProgressMessageIdAndTotalFilesToDownload(int id, int progressMessageId, int totalFilesToDownload) {
+        jdbcTemplate.update(
+                "UPDATE conversion_queue SET progress_message_id = ?, total_files_to_download = ? where id = ?",
+                ps -> {
+                    ps.setInt(1, id);
+                    ps.setInt(2, progressMessageId);
+                    ps.setInt(3, totalFilesToDownload);
                 }
         );
     }

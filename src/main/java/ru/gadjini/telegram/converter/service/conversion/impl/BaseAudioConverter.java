@@ -35,6 +35,11 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
     }
 
     @Override
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
+    }
+
+    @Override
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
 
