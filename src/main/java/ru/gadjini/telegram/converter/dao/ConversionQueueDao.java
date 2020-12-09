@@ -132,8 +132,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.attempts < ? AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + TYPE + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
-                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + TYPE + "' AND dq.producer_id = qu.id)\n" +
+                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
+                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
                         "        GROUP BY qu.id, qu.attempts\n" +
                         "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         QueueDao.POLL_ORDER_BY + "\n" +
@@ -141,7 +141,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT cv.*, cc.files_json, 1 as queue_position, " +
-                        "(SELECT json_agg(ds) FROM (SELECT * FROM " + DownloadQueueItem.NAME + " dq WHERE dq.producer = '" + TYPE + "' AND dq.producer_id = cv.id) as ds) as downloads\n" +
+                        "(SELECT json_agg(ds) FROM (SELECT * FROM " + DownloadQueueItem.NAME + " dq WHERE dq.producer = '" + converter + "' AND dq.producer_id = cv.id) as ds) as downloads\n" +
                         "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id",
                 ps -> {
                     ps.setInt(1, queueProperties.getMaxAttempts());

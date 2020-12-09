@@ -8,7 +8,7 @@ WORKDIR /home/bot/app
 
 USER root
 
-ENV DEBIAN_FRONTEND noninteractive 
+ENV DEBIAN_FRONTEND noninteractive
 ENV USE_SANDBOX false
 
 RUN apt-get update -y -qq
@@ -45,7 +45,7 @@ USER root
 
 RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 RUN apt-get update -y -qq
-RUN apt-get -y -qq build-dep imagemagick 
+RUN apt-get -y -qq build-dep imagemagick
 RUN apt-get install -y -qq libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev libheif-dev
 
 RUN echo 'Imagemagick 7.0.10-19'
@@ -129,5 +129,5 @@ COPY ./target/app.jar .
 
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-Xss5m", "-Xmx4g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
-#ENTRYPOINT ["java", "-Xss5m", "-Xmx4g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+#ENTRYPOINT ["java", "-Xss5m", "-Xmx4g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xss5m", "-Xmx4g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
