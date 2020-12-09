@@ -62,6 +62,28 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     @Override
     public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return createDownloads0(conversionQueueItem);
+    }
+
+    @Override
+    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+        return doConvert(fileQueueItem);
+    }
+
+    int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {
+        int total = createDownloads0(conversionQueueItem);
+        if (StringUtils.isNotBlank(conversionQueueItem.getFirstFile().getThumb())) {
+            TgFile thumb = new TgFile();
+            thumb.setFileId(conversionQueueItem.getFirstFile().getThumb());
+            thumb.setFormat(Format.JPG);
+            fileDownloadService().createDownload(thumb, conversionQueueItem.getId(), conversionQueueItem.getUserId());
+            ++total;
+        }
+
+        return total;
+    }
+
+    private int createDownloads0(ConversionQueueItem conversionQueueItem) {
         conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem));
 
         DownloadExtra extra = null;
@@ -71,23 +93,6 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), extra);
 
         return conversionQueueItem.getFiles().size();
-    }
-
-    @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        return doConvert(fileQueueItem);
-    }
-
-    int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {
-        int total = createDownloads(conversionQueueItem);
-        if (StringUtils.isNotBlank(conversionQueueItem.getFirstFile().getThumb())) {
-            TgFile thumb = new TgFile();
-            thumb.setFileId(conversionQueueItem.getFirstFile().getThumb());
-            fileDownloadService().createDownload(thumb, conversionQueueItem.getId(), conversionQueueItem.getUserId());
-            ++total;
-        }
-
-        return total;
     }
 
     final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {

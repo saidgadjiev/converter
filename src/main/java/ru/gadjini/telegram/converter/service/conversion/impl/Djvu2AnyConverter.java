@@ -47,28 +47,28 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
         SmartTempFile in = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile file = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 try {
                     //Try convert with calibre
-                    calibreDevice.convert(in.getAbsolutePath(), file.getAbsolutePath());
+                    calibreDevice.convert(in.getAbsolutePath(), out.getAbsolutePath());
                 } catch (ProcessException ex) {
                     //Fail because djvu has no actual text and has scanned images. Trying do conversion with djvulibre
                     LOGGER.error("No text djvu({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId());
-                    SmartTempFile pdf = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
+                    SmartTempFile outPdf = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
 
                     try {
-                        djvuLibre.convert(in.getAbsolutePath(), pdf.getAbsolutePath(), "-format=pdf");
-                        calibreDevice.convert(pdf.getAbsolutePath(), file.getAbsolutePath(), "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+                        djvuLibre.convert(in.getAbsolutePath(), outPdf.getAbsolutePath(), "-format=pdf");
+                        calibreDevice.convert(outPdf.getAbsolutePath(), out.getAbsolutePath(), "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
                     } finally {
-                        pdf.smartDelete();
+                        outPdf.smartDelete();
                     }
                 }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, file, null);
+                return new FileResult(fileName, out, null);
             } catch (Throwable e) {
-                file.smartDelete();
+                out.smartDelete();
                 throw e;
             }
         } finally {

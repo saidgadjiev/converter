@@ -39,7 +39,7 @@ public class Url2AnyConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult convertUrl(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile file = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             htmlDevice.convertUrl(fileQueueItem.getFirstFileId(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 

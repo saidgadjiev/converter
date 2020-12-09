@@ -38,14 +38,14 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
         try {
             Workbook workbook = new Workbook(file.getAbsolutePath());
             try {
-                SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
-                    workbook.save(tempFile.getAbsolutePath(), SaveFormat.PDF);
+                    workbook.save(out.getAbsolutePath(), SaveFormat.PDF);
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
-                    return new FileResult(fileName, tempFile, null);
+                    return new FileResult(fileName, out, null);
                 } catch (Throwable e) {
-                    tempFile.smartDelete();
+                    out.smartDelete();
                     throw e;
                 }
             } finally {
