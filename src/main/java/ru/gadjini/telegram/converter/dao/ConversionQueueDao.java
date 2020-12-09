@@ -7,6 +7,7 @@ import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -47,6 +48,9 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     private FileLimitProperties fileLimitProperties;
 
     private QueueProperties queueProperties;
+
+    @Value("${converter:all}")
+    private String converter;
 
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
@@ -312,6 +316,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 ps -> ps.setInt(1, QueueItem.Status.COMPLETED.getCode()),
                 (rs, rowNum) -> map(rs)
         );
+    }
+
+    @Override
+    public String getProducerName() {
+        return converter;
     }
 
     @Override
