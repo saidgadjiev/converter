@@ -20,7 +20,6 @@ import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
-import ru.gadjini.telegram.smart.bot.commons.property.QueueProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -47,19 +46,16 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     private FileLimitProperties fileLimitProperties;
 
-    private QueueProperties queueProperties;
-
     @Value("${converter:all}")
     private String converter;
 
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
                               Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
-                              FileLimitProperties fileLimitProperties, QueueProperties queueProperties) {
+                              FileLimitProperties fileLimitProperties) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
-        this.queueProperties = queueProperties;
         for (Format value : Format.values()) {
             if (formats.containsKey(value.getCategory())) {
                 formatsSet.add(value);
@@ -131,7 +127,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.attempts < ? AND qu.files[1].format IN(" + inFormats() + ") " +
+                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.files[1].format IN(" + inFormats() + ") " +
                         " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
                         " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
                         "        GROUP BY qu.id, qu.attempts\n" +
@@ -143,11 +139,36 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "SELECT cv.*, cc.files_json, 1 as queue_position, " +
                         "(SELECT json_agg(ds) FROM (SELECT * FROM " + DownloadQueueItem.NAME + " dq WHERE dq.producer = '" + converter + "' AND dq.producer_id = cv.id) as ds) as downloads\n" +
                         "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id",
-                ps -> {
-                    ps.setInt(1, queueProperties.getMaxAttempts());
-                    ps.setLong(2, fileLimitProperties.getLightFileMaxWeight());
-                },
+                ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs, rowNum) -> map(rs)
+        );
+    }
+
+    @Override
+    public long countReadToComplete(SmartExecutorService.JobWeight weight) {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM " + TYPE + " WHERE id IN (\n" +
+                        "        SELECT id\n" +
+                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.files[1].format IN(" + inFormats() + ") " +
+                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
+                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
+                        "        GROUP BY qu.id\n" +
+                        "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?)\n",
+                ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
+                (rs) -> rs.next() ? rs.getLong("cnt") : 0
+        );
+    }
+
+    @Override
+    public long countProcessing(SmartExecutorService.JobWeight weight) {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM " + TYPE + " WHERE id IN (\n" +
+                        "        SELECT id\n" +
+                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 1 AND qu.files[1].format IN(" + inFormats() + ") " +
+                " GROUP BY qu.id\n" +
+                        " HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?)\n",
+                ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
+                (rs) -> rs.next() ? rs.getLong("cnt") : 0
         );
     }
 
