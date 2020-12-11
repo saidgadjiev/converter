@@ -43,7 +43,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
         try {
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
-            lines.forEach(builder::append);
+            lines.forEach(s -> builder.append(s).append("\n"));
 
             Document doc = new Document();
             try {
