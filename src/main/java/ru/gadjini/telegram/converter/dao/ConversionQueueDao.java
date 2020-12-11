@@ -393,20 +393,22 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
         if (columns.contains(ConversionQueueItem.DOWNLOADS)) {
             PGobject downloadsArr = (PGobject) rs.getObject(ConversionQueueItem.DOWNLOADS);
-            try {
-                List<Map<String, Object>> values = objectMapper.readValue(downloadsArr.getValue(), new TypeReference<>() {
-                });
-                List<DownloadQueueItem> downloadingQueueItems = new ArrayList<>();
-                for (Map<String, Object> value : values) {
-                    DownloadQueueItem downloadingQueueItem = new DownloadQueueItem();
-                    downloadingQueueItem.setFilePath((String) value.get(DownloadQueueItem.FILE_PATH));
-                    downloadingQueueItem.setFile(objectMapper.convertValue(value.get(DownloadQueueItem.FILE), TgFile.class));
-                    downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadQueueItem.DELETE_PARENT_DIR));
-                    downloadingQueueItems.add(downloadingQueueItem);
+            if (downloadsArr != null) {
+                try {
+                    List<Map<String, Object>> values = objectMapper.readValue(downloadsArr.getValue(), new TypeReference<>() {
+                    });
+                    List<DownloadQueueItem> downloadingQueueItems = new ArrayList<>();
+                    for (Map<String, Object> value : values) {
+                        DownloadQueueItem downloadingQueueItem = new DownloadQueueItem();
+                        downloadingQueueItem.setFilePath((String) value.get(DownloadQueueItem.FILE_PATH));
+                        downloadingQueueItem.setFile(objectMapper.convertValue(value.get(DownloadQueueItem.FILE), TgFile.class));
+                        downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadQueueItem.DELETE_PARENT_DIR));
+                        downloadingQueueItems.add(downloadingQueueItem);
+                    }
+                    fileQueueItem.setDownloadedFiles(downloadingQueueItems);
+                } catch (JsonProcessingException e) {
+                    throw new SQLException(e);
                 }
-                fileQueueItem.setDownloadedFiles(downloadingQueueItems);
-            } catch (JsonProcessingException e) {
-                throw new SQLException(e);
             }
         }
 
