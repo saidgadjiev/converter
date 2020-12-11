@@ -362,7 +362,9 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         fileQueueItem.setFiles(mapFiles(rs));
 
         Timestamp createdAt = rs.getTimestamp(ConversionQueueItem.CREATED_AT);
-        fileQueueItem.setCreatedAt(ZonedDateTime.of(createdAt.toLocalDateTime(), ZoneOffset.UTC));
+        if (createdAt != null) {
+            fileQueueItem.setCreatedAt(ZonedDateTime.of(createdAt.toLocalDateTime(), ZoneOffset.UTC));
+        }
 
         Timestamp startedAt = rs.getTimestamp(ConversionQueueItem.STARTED_AT);
         if (startedAt != null) {
