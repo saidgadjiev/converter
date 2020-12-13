@@ -33,18 +33,23 @@ public class FormatsConfiguration {
         documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF, XML));
         documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT, CSV, XML));
         documents.put(List.of(TXT), List.of(PDF, DOC, DOCX, CSV, XML));
+
         documents.put(List.of(CSV), List.of(TXT, XLSX, XLS));
         documents.put(List.of(XLS), List.of(PDF, CSV, XLSX));
         documents.put(List.of(XLSX), List.of(PDF, CSV, XLS));
-        documents.put(List.of(PPTX), List.of(PDF));
-        documents.put(List.of(PPT), List.of(PDF, PPS, POT));
-        documents.put(List.of(PPTM), List.of(PDF));
-        documents.put(List.of(POTX), List.of(PDF));
-        documents.put(List.of(POT), List.of(PDF));
-        documents.put(List.of(POTM), List.of(PDF));
-        documents.put(List.of(PPS), List.of(PDF));
-        documents.put(List.of(PPSX), List.of(PDF));
-        documents.put(List.of(PPSM), List.of(PDF));
+
+        documents.put(List.of(PPTX), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, ODP, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(PPT), List.of(PDF, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(PPTM), List.of(PDF, PPT, POT, POTX, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(POTX), List.of(PDF, PPT, PPTM, POT, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(POT), List.of(PDF, PPT, PPTM, POTX, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(POTM), List.of(PDF, PPT, PPTM, POT, POTX, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(PPS), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(PPSX), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(PPSM), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(ODP), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        documents.put(List.of(OTP), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, PPTX, ODP, XPS, TIFF, SWF, HTML));
+
         documents.put(List.of(AZW), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
         documents.put(List.of(AZW3), List.of(EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
         documents.put(List.of(AZW4), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));

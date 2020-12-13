@@ -26,15 +26,17 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>();
 
     static {
-        MAP.put(List.of(PPTX), List.of(PDF));
-        MAP.put(List.of(PPT), List.of(PDF, PPS, POT));
-        MAP.put(List.of(PPTM), List.of(PDF));
-        MAP.put(List.of(POTX), List.of(PDF));
-        MAP.put(List.of(POT), List.of(PDF));
-        MAP.put(List.of(POTM), List.of(PDF));
-        MAP.put(List.of(PPS), List.of(PDF));
-        MAP.put(List.of(PPSX), List.of(PDF));
-        MAP.put(List.of(PPSM), List.of(PDF));
+        MAP.put(List.of(PPTX), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, ODP, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(PPT), List.of(PDF, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(PPTM), List.of(PDF, PPT, POT, POTX, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(POTX), List.of(PDF, PPT, PPTM, POT, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(POT), List.of(PDF, PPT, PPTM, POTX, POTM, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(POTM), List.of(PDF, PPT, PPTM, POT, POTX, PPSX, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(PPS), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(PPSX), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSM, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(PPSM), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPS, ODP, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(ODP), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, PPTX, OTP, XPS, TIFF, SWF, HTML));
+        MAP.put(List.of(OTP), List.of(PDF, PPT, PPTM, POT, POTX, POTM, PPSX, PPSM, PPS, PPTX, ODP, XPS, TIFF, SWF, HTML));
     }
 
     @Autowired
@@ -75,8 +77,34 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
                 return SaveFormat.Pdf;
             case PPS:
                 return SaveFormat.Pps;
+            case PPT:
+                return SaveFormat.Ppt;
+            case PPTX:
+                return SaveFormat.Pptx;
             case POT:
                 return SaveFormat.Pot;
+            case POTX:
+                return SaveFormat.Potx;
+            case POTM:
+                return SaveFormat.Potm;
+            case PPSX:
+                return SaveFormat.Ppsx;
+            case PPSM:
+                return SaveFormat.Ppsm;
+            case ODP:
+                return SaveFormat.Odp;
+            case PPTM:
+                return SaveFormat.Pptm;
+            case XPS:
+                return SaveFormat.Xps;
+            case TIFF:
+                return SaveFormat.Tiff;
+            case HTML:
+                return SaveFormat.Html;
+            case SWF:
+                return SaveFormat.Swf;
+            case OTP:
+                return SaveFormat.Otp;
         }
 
         throw new IllegalArgumentException("Save format not found for " + format);
