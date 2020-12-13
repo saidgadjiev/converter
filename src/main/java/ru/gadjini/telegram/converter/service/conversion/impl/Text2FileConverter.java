@@ -21,38 +21,38 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class Text2TxtConverter extends BaseAny2AnyConverter {
+public class Text2FileConverter extends BaseAny2AnyConverter {
 
     private static final String TAG = "text2";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Text2TxtConverter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Text2FileConverter.class);
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.TEXT), List.of(Format.TXT)
+            List.of(Format.TEXT), List.of(Format.TXT, Format.CSV)
     );
 
     private TextDetector textDetector;
 
     @Autowired
-    public Text2TxtConverter(TextDetector textDetector) {
+    public Text2FileConverter(TextDetector textDetector) {
         super(MAP);
         this.textDetector = textDetector;
     }
 
     @Override
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
-        return toTxt(fileQueueItem);
+        return writeText2File(fileQueueItem);
     }
 
-    private FileResult toTxt(ConversionQueueItem fileQueueItem) {
-        SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, Format.TXT.getExt());
+    private FileResult writeText2File(ConversionQueueItem fileQueueItem) {
+        SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
             LOGGER.debug("Text info({})", textInfo);
             String text = TextUtils.removeAllEmojis(fileQueueItem.getFirstFileId(), textInfo.getDirection());
             FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TXT.getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result, null);
         } catch (Exception ex) {
             result.smartDelete();
