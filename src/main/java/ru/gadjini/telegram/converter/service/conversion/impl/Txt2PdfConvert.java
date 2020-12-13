@@ -24,7 +24,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
     public static final String TAG = "txt2";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.TXT), List.of(Format.PDF)
+            List.of(Format.TXT, Format.XML), List.of(Format.PDF)
     );
 
     @Autowired
