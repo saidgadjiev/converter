@@ -17,7 +17,9 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
     private static final String TAG = "rename2";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.XML), List.of(Format.TXT)
+            List.of(Format.XML), List.of(Format.TXT),
+            List.of(Format.TXT), List.of(Format.XML, Format.CSV),
+            List.of(Format.CSV), List.of(Format.TXT)
     );
 
     public RenameFormatsConverter() {
