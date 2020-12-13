@@ -37,7 +37,7 @@ public class FormatsConfiguration {
         documents.put(List.of(XLS), List.of(PDF, CSV, XLSX));
         documents.put(List.of(XLSX), List.of(PDF, CSV, XLS));
         documents.put(List.of(PPTX), List.of(PDF));
-        documents.put(List.of(PPT), List.of(PDF));
+        documents.put(List.of(PPT), List.of(PDF, PPS));
         documents.put(List.of(PPTM), List.of(PDF));
         documents.put(List.of(POTX), List.of(PDF));
         documents.put(List.of(POT), List.of(PDF));

@@ -27,7 +27,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
 
     static {
         MAP.put(List.of(PPTX), List.of(PDF));
-        MAP.put(List.of(PPT), List.of(PDF));
+        MAP.put(List.of(PPT), List.of(PDF, PPS));
         MAP.put(List.of(PPTM), List.of(PDF));
         MAP.put(List.of(POTX), List.of(PDF));
         MAP.put(List.of(POT), List.of(PDF));
@@ -44,20 +44,16 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
-        return toPdf(fileQueueItem);
-    }
-
-    private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
             Presentation presentation = new Presentation(file.getAbsolutePath());
             try {
-                SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    presentation.save(tempFile.getAbsolutePath(), SaveFormat.Pdf);
+                    presentation.save(tempFile.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                     return new FileResult(fileName, tempFile, null);
                 } catch (Throwable e) {
                     tempFile.smartDelete();
@@ -71,5 +67,16 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
         } finally {
             file.smartDelete();
         }
+    }
+
+    private int getSaveFormat(Format format) {
+        switch (format) {
+            case PDF:
+                return SaveFormat.Pdf;
+            case PPS:
+                return SaveFormat.Pps;
+        }
+
+        throw new IllegalArgumentException("Save format not found for " + format);
     }
 }
