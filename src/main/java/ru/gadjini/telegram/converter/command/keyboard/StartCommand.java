@@ -141,11 +141,17 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
                 if (isMultiTextMessage(associatedFormat, convertState)) {
                     convertState.getFirstFile().setFileId(convertState.getFirstFile().getFileId() + " " + text);
-                    commandStateService.setState(message.getChatId(), ConverterCommandNames.START_COMMAND, convertState);
-                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
-                            .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
-                            .build());
+                    if (!convertState.isTextAppendedMessageSent()) {
+                        convertState.setTextAppendedMessageSent(true);
+                        commandStateService.setState(message.getChatId(), ConverterCommandNames.START_COMMAND, convertState);
+
+                        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
+                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                                .build());
+                    } else {
+                        commandStateService.setState(message.getChatId(), ConverterCommandNames.START_COMMAND, convertState);
+                    }
                     return;
                 }
                 Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFirstFormat(), associatedFormat, text, locale);

@@ -20,6 +20,8 @@ public class ConvertState {
 
     private String mediaGroupId;
 
+    private boolean textAppendedMessageSent = false;
+
     public int getMessageId() {
         return messageId;
     }
@@ -70,6 +72,14 @@ public class ConvertState {
 
     public void setMediaGroupId(String mediaGroupId) {
         this.mediaGroupId = mediaGroupId;
+    }
+
+    public boolean isTextAppendedMessageSent() {
+        return textAppendedMessageSent;
+    }
+
+    public void setTextAppendedMessageSent(boolean textAppendedMessageSent) {
+        this.textAppendedMessageSent = textAppendedMessageSent;
     }
 
     @Override
