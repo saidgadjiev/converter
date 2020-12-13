@@ -27,7 +27,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
 
     static {
         MAP.put(List.of(PPTX), List.of(PDF));
-        MAP.put(List.of(PPT), List.of(PDF, PPS));
+        MAP.put(List.of(PPT), List.of(PDF, PPS, POT));
         MAP.put(List.of(PPTM), List.of(PDF));
         MAP.put(List.of(POTX), List.of(PDF));
         MAP.put(List.of(POT), List.of(PDF));
@@ -75,6 +75,8 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
                 return SaveFormat.Pdf;
             case PPS:
                 return SaveFormat.Pps;
+            case POT:
+                return SaveFormat.Pot;
         }
 
         throw new IllegalArgumentException("Save format not found for " + format);
