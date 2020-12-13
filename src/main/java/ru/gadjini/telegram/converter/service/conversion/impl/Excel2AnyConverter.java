@@ -13,6 +13,7 @@ import ru.gadjini.telegram.converter.utils.FormatMapUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,19 +23,23 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "excel2";
 
-    private static final Map<List<Format>, List<Format>> MAP;
+    private static final Map<List<Format>, List<Format>> MAP = new HashMap<>();
 
     static {
+        MAP.put(List.of(Format.MHTML), List.of(Format.CSV, Format.XLSX, Format.XLSM, Format.XLTX, Format.XLTM,
+                Format.XLAM, Format.TSV, Format.ODS, Format.XLSB, Format.XPS,
+                Format.TIFF, Format.SVG, Format.DIF, Format.NUMBERS, Format.FODS, Format.SXC, Format.XLS));
+
         Set<Format> asposeCellsSaveFormats = Set.of(Format.CSV, Format.XLSX, Format.XLSM, Format.XLTX, Format.XLTM,
                 Format.XLAM, Format.TSV, Format.HTML, Format.MHTML, Format.ODS, Format.XLSB, Format.PDF, Format.XPS,
                 Format.TIFF, Format.SVG, Format.DIF, Format.NUMBERS, Format.FODS, Format.SXC, Format.XLS);
 
         Set<Format> asposeCellsLoadFormats = Set.of(
-                Format.CSV, Format.XLSX, Format.XLS, Format.TSV, Format.HTML, Format.MHTML, Format.ODS,
+                Format.CSV, Format.XLSX, Format.XLS, Format.TSV, Format.HTML, Format.ODS,
                 Format.XLSB, Format.NUMBERS, Format.FODS, Format.SXC
         );
 
-        MAP = FormatMapUtils.buildMap(asposeCellsLoadFormats, asposeCellsSaveFormats);
+        MAP.putAll(FormatMapUtils.buildMap(asposeCellsLoadFormats, asposeCellsSaveFormats));
     }
 
     @Autowired
