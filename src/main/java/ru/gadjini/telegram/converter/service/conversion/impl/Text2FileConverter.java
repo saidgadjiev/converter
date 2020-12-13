@@ -28,7 +28,7 @@ public class Text2FileConverter extends BaseAny2AnyConverter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Text2FileConverter.class);
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.TEXT), List.of(Format.TXT, Format.CSV)
+            List.of(Format.TEXT), List.of(Format.TXT, Format.CSV, Format.XML)
     );
 
     private TextDetector textDetector;
