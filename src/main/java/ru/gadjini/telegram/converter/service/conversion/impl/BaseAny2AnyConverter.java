@@ -89,13 +89,19 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     private int createDownloads0(ConversionQueueItem conversionQueueItem) {
-        conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem));
-
-        DownloadExtra extra = null;
-        if (conversionQueueItem.getFiles().size() > 0) {
-            extra = new DownloadExtra(conversionQueueItem.getFiles(), 0);
+        if (conversionQueueItem.getFiles().size() > 1) {
+            int i = 0;
+            for (TgFile imageFile : conversionQueueItem.getFiles()) {
+                Progress downloadProgress = progressBuilder.buildFilesDownloadProgress(conversionQueueItem, i, conversionQueueItem.getFiles().size());
+                imageFile.setProgress(downloadProgress);
+                ++i;
+            }
+            DownloadExtra extra = new DownloadExtra(conversionQueueItem.getFiles(), 0);
+            fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), extra);
+        } else {
+            conversionQueueItem.getFirstFile().setProgress(progress(conversionQueueItem));
+            fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), null);
         }
-        fileDownloadService.createDownload(conversionQueueItem.getFirstFile(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), extra);
 
         return conversionQueueItem.getFiles().size();
     }

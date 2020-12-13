@@ -103,7 +103,7 @@ public class FormatsConfiguration {
         documents.put(List.of(TEXT), List.of(CSV, DOC, DOCX, PDF, TXT, XML));
         documents.put(List.of(CSV), List.of(DIF, FODS, HTML, MHTML, NUMBERS, ODS, PDF, SVG, SXC, TIFF, TSV, TXT, XLAM, XLS, XLSB, XLSM, XLSX, XLTM, XLTX, XPS));
         documents.put(List.of(XPS), List.of(DOC, DOCX, HTML, PDF, PPTX, SVG, XML, XPS));
-        documents.put(List.of(PDFS), List.of(MERGE));
+        documents.put(List.of(PDFS), List.of(MERGE_PDFS));
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new HashMap<>();
@@ -120,6 +120,7 @@ public class FormatsConfiguration {
         images.put(List.of(HEIC), List.of(BMP, DOC, DOCX, ICO, JP2, JPG, PDF, STICKER, SVG, TIFF, WEBP));
         images.put(List.of(PNG), List.of(BMP, DOC, DOCX, HEIC, HEIF, ICO, JP2, JPG, PDF, STICKER, SVG, TIFF, WEBP));
         images.put(List.of(WEBP), List.of(BMP, DOC, DOCX, HEIC, HEIF, ICO, JP2, JPG, PDF, PNG, STICKER, SVG, TIFF));
+        images.put(List.of(IMAGES), List.of(PDF, TIFF, DOC, DOCX));
         FORMATS.put(FormatCategory.IMAGES, images);
 
         Map<List<Format>, List<Format>> videos = new HashMap<>();

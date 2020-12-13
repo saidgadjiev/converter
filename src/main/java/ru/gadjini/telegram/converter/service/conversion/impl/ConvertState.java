@@ -18,6 +18,8 @@ public class ConvertState {
 
     private Set<String> warnings = new LinkedHashSet<>();
 
+    private Format multiMediaFormat;
+
     private boolean textAppendedMessageSent = false;
 
     public int getMessageId() {
@@ -70,6 +72,14 @@ public class ConvertState {
 
     public void setTextAppendedMessageSent(boolean textAppendedMessageSent) {
         this.textAppendedMessageSent = textAppendedMessageSent;
+    }
+
+    public Format getMultiMediaFormat() {
+        return multiMediaFormat;
+    }
+
+    public void setMultiMediaFormat(Format multiMediaFormat) {
+        this.multiMediaFormat = multiMediaFormat;
     }
 
     @Override

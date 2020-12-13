@@ -24,7 +24,7 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
     private static final String TAG = "pdfsmerge";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.PDFS), List.of(Format.MERGE)
+            List.of(Format.PDFS), List.of(Format.MERGE_PDFS)
     );
 
     private PdfUniteDevice pdfUniteDevice;

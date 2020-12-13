@@ -125,6 +125,9 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     multiMediaFormat = Format.PDFS;
                 }
                 if (multiMediaFormat != null) {
+                    if (convertState.getMultiMediaFormat() == null) {
+                        convertState.setMultiMediaFormat(multiMediaFormat);
+                    }
                     convertState.addMedia(media);
                     if (convertState.getFiles().size() < 3) {
                         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
@@ -157,10 +160,11 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     }
                     return;
                 }
-                Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFirstFormat(), associatedFormat, text, locale);
+                Format srcFormatToCheck = convertState.getMultiMediaFormat() != null ? convertState.getMultiMediaFormat() : convertState.getFirstFormat();
+                checkTargetFormat(message.getFrom().getId(), srcFormatToCheck, associatedFormat, text, locale);
                 conversionJob.removeAndCancelCurrentTasks(message.getFrom().getId());
 
-                conversionService.createConversion(message.getFrom(), convertState, targetFormat, locale);
+                conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale);
                 commandStateService.deleteState(message.getChatId(), ConverterCommandNames.START_COMMAND);
             } else {
                 messageService.sendMessage(
@@ -303,7 +307,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         return format;
     }
 
-    private Format checkTargetFormat(int userId, Format format, Format target, String text, Locale locale) {
+    private void checkTargetFormat(int userId, Format format, Format target, String text, Locale locale) {
         if (target == null) {
             LOGGER.warn("Target format is null({}, {})", userId, text);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
@@ -314,7 +318,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         }
         boolean result = conversionFormatService.isConvertAvailable(format, target);
         if (result) {
-            return target;
+            return;
         }
 
         LOGGER.warn("Conversion unavailable({}, {}, {})", userId, format, target);

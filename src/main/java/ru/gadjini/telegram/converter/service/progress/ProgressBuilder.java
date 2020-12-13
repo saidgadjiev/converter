@@ -29,6 +29,29 @@ public class ProgressBuilder {
         this.inlineKeyboardService = inlineKeyboardService;
     }
 
+    public Progress buildFilesDownloadProgress(ConversionQueueItem queueItem, int current, int total) {
+        Progress progress = new Progress();
+        progress.setChatId(queueItem.getUserId());
+        progress.setProgressMessageId(queueItem.getProgressMessageId());
+
+        Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
+        progress.setProgressMessage(messageBuilder.getFilesDownloadingProgressMessage(queueItem, current, total, locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
+
+        if (current + 1 < total) {
+            String completionMessage = messageBuilder.getFilesDownloadingProgressMessage(queueItem, current + 1, total, locale);
+            progress.setAfterProgressCompletionMessage(completionMessage);
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
+        } else {
+            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
+                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
+            progress.setAfterProgressCompletionMessage(completionMessage);
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale));
+        }
+
+        return progress;
+    }
+
     public Progress buildFileDownloadProgress(ConversionQueueItem queueItem) {
         Progress progress = new Progress();
         progress.setChatId(queueItem.getUserId());
