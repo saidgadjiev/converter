@@ -83,14 +83,6 @@ public class ConversionQueueService {
         return conversionQueueDao.getYesterdayConversionsCount();
     }
 
-    public long getWeeklyConversionsCount() {
-        return conversionQueueDao.getWeeklyConversionsCount();
-    }
-
-    public long getMonthlyConversionsCount() {
-        return conversionQueueDao.getMonthlyConversionsCount();
-    }
-
     public long getAllConversionsCount() {
         return conversionQueueDao.getAllConversionsCount();
     }

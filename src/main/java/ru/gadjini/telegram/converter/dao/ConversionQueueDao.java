@@ -165,7 +165,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "SELECT COUNT(*) as cnt FROM " + TYPE + " WHERE id IN (\n" +
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 1 AND qu.files[1].format IN(" + inFormats() + ") " +
-                " GROUP BY qu.id\n" +
+                        " GROUP BY qu.id\n" +
                         " HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?)\n",
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
@@ -182,22 +182,6 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     public Long getYesterdayConversionsCount() {
         return jdbcTemplate.query(
                 "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date - interval '1 days' AND status = 3 AND files[1].format IN(" + inFormats() + ")",
-                rs -> rs.next() ? rs.getLong("cnt") : -1
-        );
-    }
-
-    public Long getWeeklyConversionsCount() {
-        return jdbcTemplate.query(
-                "SELECT count(*) as cnt FROM conversion_queue " +
-                        "WHERE completed_at::date > current_date - interval '7 days' AND completed_at::date <= current_date AND status = 3 AND files[1].format IN(" + inFormats() + ")",
-                rs -> rs.next() ? rs.getLong("cnt") : -1
-        );
-    }
-
-    public Long getMonthlyConversionsCount() {
-        return jdbcTemplate.query(
-                "SELECT count(*) as cnt FROM conversion_queue " +
-                        "WHERE completed_at::date > current_date - interval '30 days' AND completed_at::date <= current_date AND status = 3 AND files[1].format IN(" + inFormats() + ")",
                 rs -> rs.next() ? rs.getLong("cnt") : -1
         );
     }

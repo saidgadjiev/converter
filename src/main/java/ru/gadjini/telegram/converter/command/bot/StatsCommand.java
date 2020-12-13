@@ -43,15 +43,13 @@ public class StatsCommand implements BotCommand {
             long errors = queueService.count(ConversionQueueItem.Status.EXCEPTION);
             long todayConversions = queueService.getTodayConversionsCount();
             long yesterdayConversions = queueService.getYesterdayConversionsCount();
-            long weeklyConversions = queueService.getWeeklyConversionsCount();
-            long monthlyConversions = queueService.getMonthlyConversionsCount();
             long allConversions = queueService.getAllConversionsCount();
             long activity = queueService.getTodayDailyActiveUsersCount();
 
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId())).text(localisationService.getMessage(
                             MessagesProperties.MESSAGE_CUSTOM_STATS, new Object[]{processing, waiting, errors, todayConversions, yesterdayConversions,
-                                    weeklyConversions, monthlyConversions, allConversions, activity},
+                                    allConversions, activity},
                             userService.getLocaleOrDefault(message.getFrom().getId())))
                             .parseMode(ParseMode.HTML).build()
             );
