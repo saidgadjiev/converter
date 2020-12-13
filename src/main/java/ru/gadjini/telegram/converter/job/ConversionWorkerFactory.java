@@ -116,8 +116,12 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     }
 
     private Format getCandidateFormat(ConversionQueueItem queueItem) {
-        if (queueItem.getFiles().size() > 1 && queueItem.getFiles().stream().allMatch(m -> m.getFormat().getCategory() == FormatCategory.IMAGES)) {
-            return Format.IMAGES;
+        if (queueItem.getFiles().size() > 1) {
+            if (queueItem.getFiles().stream().allMatch(m -> m.getFormat().getCategory() == FormatCategory.IMAGES)) {
+                return Format.IMAGES;
+            } else if (queueItem.getFiles().stream().allMatch(m -> m.getFormat() == Format.PDF)) {
+                return Format.PDFS;
+            }
         }
 
         return queueItem.getFirstFile().getFormat();

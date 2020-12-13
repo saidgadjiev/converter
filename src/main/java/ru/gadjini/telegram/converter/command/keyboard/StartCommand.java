@@ -118,15 +118,18 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 commandStateService.setState(message.getChatId(), ConverterCommandNames.START_COMMAND, convertState);
             } else if (isMediaMessage(message)) {
                 MessageMedia media = messageMediaService.getMedia(message, locale);
+                Format multiMediaFormat = null;
                 if (isMultiImageMessage(media, convertState)) {
+                    multiMediaFormat = Format.IMAGES;
+                } else if (isMultiPdfMessage(media, convertState)) {
+                    multiMediaFormat = Format.PDFS;
+                }
+                if (multiMediaFormat != null) {
                     convertState.addMedia(media);
-                    if (StringUtils.isNotBlank(message.getMediaGroupId()) && !Objects.equals(convertState.getMediaGroupId(), message.getMediaGroupId())) {
-                        convertState.setMediaGroupId(message.getMediaGroupId());
-                    }
                     if (convertState.getFiles().size() < 3) {
                         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_APPENDED, locale))
-                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale)).build());
+                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), multiMediaFormat, locale)).build());
                     }
                     commandStateService.setState(message.getChatId(), ConverterCommandNames.START_COMMAND, convertState);
                 } else {
@@ -250,7 +253,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         ConvertState convertState = new ConvertState();
         convertState.setMessageId(message.getMessageId());
         convertState.setUserLanguage(locale.getLanguage());
-        convertState.setMediaGroupId(message.getMediaGroupId());
 
         LOGGER.debug("Convert state({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
 
@@ -328,6 +330,13 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 && media.getFormat() != null
                 && media.getFormat().getCategory() == FormatCategory.IMAGES
                 && convertState.getFiles().stream().allMatch(m -> m.getFormat() != null && m.getFormat().getCategory() == FormatCategory.IMAGES);
+    }
+
+    private boolean isMultiPdfMessage(MessageMedia media, ConvertState convertState) {
+        return media != null
+                && media.getFormat() != null
+                && media.getFormat() == Format.PDF
+                && convertState.getFiles().stream().allMatch(m -> m.getFormat() != null && m.getFormat() == Format.PDF);
     }
 
     private boolean isMediaMessage(Message message) {

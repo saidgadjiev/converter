@@ -103,6 +103,7 @@ public class FormatsConfiguration {
         documents.put(List.of(TEXT), List.of(CSV, DOC, DOCX, PDF, TXT, XML));
         documents.put(List.of(CSV), List.of(DIF, FODS, HTML, MHTML, NUMBERS, ODS, PDF, SVG, SXC, TIFF, TSV, TXT, XLAM, XLS, XLSB, XLSM, XLSX, XLTM, XLTX, XPS));
         documents.put(List.of(XPS), List.of(DOC, DOCX, HTML, PDF, PPTX, SVG, XML, XPS));
+        documents.put(List.of(PDFS), List.of(MERGE));
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new HashMap<>();
