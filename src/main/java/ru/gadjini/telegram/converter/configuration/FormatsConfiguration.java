@@ -30,7 +30,7 @@ public class FormatsConfiguration {
         Map<List<Format>, List<Format>> documents = new LinkedHashMap<>();
         documents.put(List.of(DOC), List.of(PDF, DOCX, TXT, EPUB, RTF, TIFF));
         documents.put(List.of(DOCX), List.of(PDF, DOC, TXT, EPUB, RTF, TIFF));
-        documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
+        documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF, XML));
         documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT));
         documents.put(List.of(TXT), List.of(PDF, DOC, DOCX));
         documents.put(List.of(XLS, XLSX), List.of(PDF));
