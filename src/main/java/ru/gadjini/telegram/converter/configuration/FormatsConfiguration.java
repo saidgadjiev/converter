@@ -59,7 +59,7 @@ public class FormatsConfiguration {
         documents.put(List.of(SNB), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, TCR, TXT, TXTZ, ZIP));
         documents.put(List.of(TCR), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TXT, TXTZ, ZIP));
         documents.put(List.of(TXTZ), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, ZIP));
-        documents.put(List.of(XML), List.of(PDF, DOC, DOCX));
+        documents.put(List.of(XML), List.of(PDF, DOC, DOCX, TXT));
 
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
