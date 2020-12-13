@@ -33,7 +33,8 @@ public class FormatsConfiguration {
         documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF, XML));
         documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT));
         documents.put(List.of(TXT), List.of(PDF, DOC, DOCX));
-        documents.put(List.of(XLS, XLSX), List.of(PDF));
+        documents.put(List.of(XLS), List.of(PDF, CSV, XLSX));
+        documents.put(List.of(XLSX), List.of(PDF, CSV, XLS));
         documents.put(List.of(PPTX, PPT, PPTM, POTX, POT, POTM, PPS, PPSX, PPSM), List.of(PDF));
         documents.put(List.of(AZW), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
         documents.put(List.of(AZW3), List.of(EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));

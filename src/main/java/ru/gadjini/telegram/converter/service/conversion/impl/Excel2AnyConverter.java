@@ -20,7 +20,10 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "excel2";
 
-    private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.XLS, Format.XLSX), List.of(Format.PDF));
+    private static final Map<List<Format>, List<Format>> MAP = Map.of(
+            List.of(Format.XLS), List.of(Format.PDF, Format.CSV, Format.XLSX),
+            List.of(Format.XLSX), List.of(Format.PDF, Format.CSV, Format.XLS)
+    );
 
     @Autowired
     public Excel2AnyConverter() {
@@ -38,11 +41,11 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
         try {
             Workbook workbook = new Workbook(file.getAbsolutePath());
             try {
-                SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    workbook.save(out.getAbsolutePath(), SaveFormat.PDF);
+                    workbook.save(out.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                     return new FileResult(fileName, out, null);
                 } catch (Throwable e) {
                     out.smartDelete();
@@ -56,5 +59,20 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
         } finally {
             file.smartDelete();
         }
+    }
+
+    private int getSaveFormat(Format format) {
+        switch (format) {
+            case PDF:
+                return SaveFormat.PDF;
+            case CSV:
+                return SaveFormat.CSV;
+            case XLSX:
+                return SaveFormat.XLSX;
+            case XLS:
+                return 5;
+        }
+
+        throw new IllegalArgumentException("Save format not found for " + format);
     }
 }
