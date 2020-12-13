@@ -36,7 +36,15 @@ public class FormatsConfiguration {
         documents.put(List.of(CSV), List.of(TXT, XLSX, XLS));
         documents.put(List.of(XLS), List.of(PDF, CSV, XLSX));
         documents.put(List.of(XLSX), List.of(PDF, CSV, XLS));
-        documents.put(List.of(PPTX, PPT, PPTM, POTX, POT, POTM, PPS, PPSX, PPSM), List.of(PDF));
+        documents.put(List.of(PPTX), List.of(PDF));
+        documents.put(List.of(PPT), List.of(PDF));
+        documents.put(List.of(PPTM), List.of(PDF));
+        documents.put(List.of(POTX), List.of(PDF));
+        documents.put(List.of(POT), List.of(PDF));
+        documents.put(List.of(POTM), List.of(PDF));
+        documents.put(List.of(PPS), List.of(PDF));
+        documents.put(List.of(PPSX), List.of(PDF));
+        documents.put(List.of(PPSM), List.of(PDF));
         documents.put(List.of(AZW), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
         documents.put(List.of(AZW3), List.of(EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));
         documents.put(List.of(AZW4), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, TXTZ, ZIP));

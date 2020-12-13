@@ -12,23 +12,30 @@ import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
 public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "pp2";
 
-    private static final Map<List<Format>, List<Format>> MAP = Map.of(List.of(Format.PPTX,
-            Format.PPT,
-            Format.PPTM,
-            Format.POTX,
-            Format.POT,
-            Format.POTM,
-            Format.PPS,
-            Format.PPSX,
-            Format.PPSM), List.of(Format.PDF));
+    private static final Map<List<Format>, List<Format>> MAP = new HashMap<>();
+
+    static {
+        MAP.put(List.of(PPTX), List.of(PDF));
+        MAP.put(List.of(PPT), List.of(PDF));
+        MAP.put(List.of(PPTM), List.of(PDF));
+        MAP.put(List.of(POTX), List.of(PDF));
+        MAP.put(List.of(POT), List.of(PDF));
+        MAP.put(List.of(POTM), List.of(PDF));
+        MAP.put(List.of(PPS), List.of(PDF));
+        MAP.put(List.of(PPSX), List.of(PDF));
+        MAP.put(List.of(PPSM), List.of(PDF));
+    }
 
     @Autowired
     public PowerPoint2AnyConverter() {
