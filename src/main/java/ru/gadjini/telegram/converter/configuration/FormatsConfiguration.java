@@ -25,20 +25,21 @@ public class FormatsConfiguration {
 
     static {
         Map<List<Format>, List<Format>> audios = new HashMap<>();
-        audios.put(List.of(M4B), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(AMR), List.of(AAC, AIFF, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(OPUS), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(SPX), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(OGG), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(FLAC), List.of(AAC, AIFF, AMR, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(M4A), List.of(AAC, AIFF, AMR, FLAC, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(MP3), List.of(AAC, AIFF, AMR, FLAC, M4A, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(AIFF), List.of(AAC, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(WMA), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV));
-        audios.put(List.of(MID), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, WAV, WMA));
-        audios.put(List.of(AAC), List.of(AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(RA), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, SPX, VOICE, WAV, WMA));
-        audios.put(List.of(WAV), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WMA));
+        audios.put(List.of(M4B), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(AMR), List.of(AAC, AIFF, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(OPUS), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(SPX), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(OGG), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(FLAC), List.of(AAC, AIFF, AMR, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(M4A), List.of(AAC, AIFF, AMR, FLAC, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(MP3), List.of(AAC, AIFF, AMR, FLAC, M4A, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(AIFF), List.of(AAC, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(WMA), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, RM));
+        audios.put(List.of(MID), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, WAV, WMA, RM));
+        audios.put(List.of(AAC), List.of(AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(RA), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, SPX, VOICE, WAV, WMA, RM));
+        audios.put(List.of(WAV), List.of(AAC, AIFF, AMR, FLAC, M4A, MP3, OGG, OPUS, RA, SPX, VOICE, WMA, RM));
+        audios.put(List.of(RM), List.of(AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, M4A, VOICE, RA, AAC));
         FORMATS.put(FormatCategory.AUDIO, audios);
 
         Map<List<Format>, List<Format>> documents = new HashMap<>();

@@ -50,7 +50,8 @@ public class FormatMapUtils {
         formatCategories.sort(Comparator.comparing(Enum::name));
 
         for (FormatCategory formatCategory : formatCategories) {
-            result.keySet().stream().filter(f -> f.getCategory() == formatCategory).forEach(format -> {
+            result.keySet().stream().filter(f -> f.getCategory() == formatCategory).
+                    sorted(Comparator.comparing(Format::name)).forEach(format -> {
                 result.get(format).sort(Comparator.comparing(Format::name));
                 r.put(format, result.get(format));
             });
