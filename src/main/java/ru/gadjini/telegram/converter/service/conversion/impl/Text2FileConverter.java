@@ -53,7 +53,7 @@ public class Text2FileConverter extends BaseAny2AnyConverter {
             FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, result, null);
+            return new FileResult(fileName, result);
         } catch (Exception ex) {
             result.smartDelete();
             throw new ConvertException(ex);

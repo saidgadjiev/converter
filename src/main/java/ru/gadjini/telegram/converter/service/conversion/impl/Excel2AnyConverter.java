@@ -61,7 +61,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
                     workbook.save(out.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, out, null);
+                    return new FileResult(fileName, out);
                 } catch (Throwable e) {
                     out.smartDelete();
                     throw e;

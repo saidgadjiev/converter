@@ -22,6 +22,10 @@ public class FileResult implements ConvertResult {
         this(fileName, file, thumb, null);
     }
 
+    public FileResult(String fileName, SmartTempFile file, String caption) {
+        this(fileName, file, null, caption);
+    }
+
     public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb, String caption) {
         this.fileName = fileName;
         this.file = file;

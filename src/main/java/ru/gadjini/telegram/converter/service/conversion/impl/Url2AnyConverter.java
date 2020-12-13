@@ -44,7 +44,7 @@ public class Url2AnyConverter extends BaseAny2AnyConverter {
             htmlDevice.convertUrl(fileQueueItem.getFirstFileId(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, file, null);
+            return new FileResult(fileName, file);
         } catch (Exception ex) {
             file.smartDelete();
             throw new ConvertException(ex);

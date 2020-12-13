@@ -84,7 +84,7 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
                             }
 
                             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                            fileResultAtomicReference.set(new FileResult(fileName, result, null));
+                            fileResultAtomicReference.set(new FileResult(fileName, result));
                         } catch (Throwable e) {
                             result.smartDelete();
                             throw new ConvertException(e);

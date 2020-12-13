@@ -11,7 +11,7 @@ public class VoiceResult extends FileResult {
     }
 
     public VoiceResult(String fileName, SmartTempFile file, Integer duration, String caption) {
-        super(fileName, file, null, caption);
+        super(fileName, file, caption);
         this.duration = duration;
     }
 

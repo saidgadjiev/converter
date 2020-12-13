@@ -99,6 +99,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_CUSTOM_STATS = "message.custom.stats";
 
+    public static final String MESSAGE_PDF_IMAGES_UNZIP_BOT = "message.pdf.images.unzip.bot";
+
     public static final String MESSAGE_CONVERSION_STATS = "message.conversion.stats";
 
     public static final String MESSAGE_DONT_SEND_NEW_REQUEST = "message.dont.send.new.request";

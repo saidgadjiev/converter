@@ -70,7 +70,7 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
                 image2PdfDevice.convert2Pdf(src.getAbsolutePath(), tempFile.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, tempFile, null);
+                return new FileResult(fileName, tempFile);
             } catch (Throwable e) {
                 tempFile.smartDelete();
                 throw e;

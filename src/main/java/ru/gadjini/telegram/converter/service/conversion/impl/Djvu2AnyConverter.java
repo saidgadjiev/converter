@@ -66,7 +66,7 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
                 }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, out, null);
+                return new FileResult(fileName, out);
             } catch (Throwable e) {
                 out.smartDelete();
                 throw e;

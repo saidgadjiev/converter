@@ -5,7 +5,7 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 public class StickerResult extends FileResult {
 
     public StickerResult(SmartTempFile file) {
-        super(null, file, null);
+        super(null, file);
     }
 
     public ResultType resultType() {

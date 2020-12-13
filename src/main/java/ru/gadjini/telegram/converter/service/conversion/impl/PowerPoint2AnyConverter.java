@@ -50,7 +50,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
                     presentation.save(tempFile.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, tempFile, null);
+                    return new FileResult(fileName, tempFile);
                 } catch (Throwable e) {
                     tempFile.smartDelete();
                     throw e;

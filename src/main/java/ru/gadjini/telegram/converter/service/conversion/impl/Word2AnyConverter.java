@@ -53,7 +53,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
                     document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, result, null);
+                    return new FileResult(fileName, result);
                 } catch (Throwable e) {
                     result.smartDelete();
                     throw e;

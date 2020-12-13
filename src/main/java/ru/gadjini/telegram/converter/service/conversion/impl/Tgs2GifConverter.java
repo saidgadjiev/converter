@@ -44,7 +44,7 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
                 processExecutor.execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.GIF.getExt());
-                return new FileResult(fileName, result, null);
+                return new FileResult(fileName, result);
             } catch (Exception ex) {
                 result.smartDelete();
                 throw ex;

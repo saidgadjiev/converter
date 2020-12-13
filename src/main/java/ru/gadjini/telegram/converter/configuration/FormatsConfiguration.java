@@ -50,7 +50,7 @@ public class FormatsConfiguration {
         documents.put(List.of(POT), List.of(HTML, ODP, OTP, PDF, POTM, POTX, PPS, PPSM, PPSX, PPT, PPTM, PPTX, SWF, TIFF, XPS));
         documents.put(List.of(ODP), List.of(HTML, OTP, PDF, POT, POTM, POTX, PPS, PPSM, PPSX, PPT, PPTM, PPTX, SWF, TIFF, XPS));
         documents.put(List.of(CGM), List.of(DOC, DOCX, HTML, PDF, PPTX, SVG, XML, XPS));
-        documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, HTML, PPTX, SVG, TIFF, XML, XPS));
+        documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, HTML, PPTX, SVG, TIFF, XML, XPS, PNG, JPG));
         documents.put(List.of(RTF), List.of(AZW3, DOCX, EPUB, FB2, HTMLZ, LIT, LRF, MOBI, OEB, PDB, PDF, PMLZ, RB, SNB, TCR, TXT, TXTZ, ZIP));
         documents.put(List.of(PCL), List.of(DOC, DOCX, HTML, PDF, PPTX, SVG, XML, XPS));
         documents.put(List.of(PPSM), List.of(HTML, ODP, OTP, PDF, POT, POTM, POTX, PPS, PPSX, PPT, PPTM, PPTX, SWF, TIFF, XPS));

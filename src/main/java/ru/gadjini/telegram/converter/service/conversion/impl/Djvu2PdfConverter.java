@@ -43,7 +43,7 @@ public class Djvu2PdfConverter extends BaseAny2AnyConverter {
                 djvuLibre.convert(in.getAbsolutePath(), out.getAbsolutePath(), "-format=pdf");
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, out, null);
+                return new FileResult(fileName, out);
             } catch (Throwable e) {
                 out.smartDelete();
                 throw e;

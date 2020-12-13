@@ -45,7 +45,7 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
                     tiffDevice.process(pdf, tiff.getAbsolutePath());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
-                    return new FileResult(fileName, tiff, null);
+                    return new FileResult(fileName, tiff);
                 } catch (Throwable e) {
                     tiff.smartDelete();
                     throw e;
