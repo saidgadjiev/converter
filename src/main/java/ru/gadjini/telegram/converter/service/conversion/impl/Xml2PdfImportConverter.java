@@ -15,15 +15,15 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class Pdf2XmlConverter extends BaseAny2AnyConverter {
+public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
 
-    private static final String TAG = "pdf2xml";
+    private static final String TAG = "xml2pdfimport";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.PDF), List.of(Format.XML)
+            List.of(Format.XML), List.of(Format.PDF)
     );
 
-    public Pdf2XmlConverter() {
+    public Xml2PdfImportConverter() {
         super(MAP);
     }
 
@@ -34,11 +34,12 @@ public class Pdf2XmlConverter extends BaseAny2AnyConverter {
         try {
             Document document = new Document(pdf.getAbsolutePath());
             try {
-                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.XML.getExt());
+                document.bindXml(pdf.getAbsolutePath());
+                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF_IMPORT.getExt());
                 try {
-                    document.save(result.getAbsolutePath(), SaveFormat.Xml);
+                    document.save(result.getAbsolutePath(), SaveFormat.Pdf);
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.XML.getExt());
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF_IMPORT.getExt());
                     return new FileResult(fileName, result);
                 } catch (Throwable e) {
                     result.smartDelete();
