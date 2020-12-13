@@ -23,7 +23,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(Format.XLS), List.of(Format.PDF, Format.CSV, Format.XLSX),
             List.of(Format.XLSX), List.of(Format.PDF, Format.CSV, Format.XLS),
-            List.of(Format.CSV), List.of(Format.XLSX)
+            List.of(Format.CSV), List.of(Format.XLSX, Format.XLS)
     );
 
     @Autowired
