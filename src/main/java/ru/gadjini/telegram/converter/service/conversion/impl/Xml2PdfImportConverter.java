@@ -20,7 +20,7 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
     private static final String TAG = "xml2pdfimport";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.XML), List.of(Format.PDF)
+            List.of(Format.XML), List.of(Format.PDF_IMPORT)
     );
 
     public Xml2PdfImportConverter() {

@@ -27,15 +27,18 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
 
     static {
         MAP.put(List.of(Format.MHTML), List.of(Format.CSV, Format.XLSX, Format.XLSM, Format.XLTX, Format.XLTM,
+                Format.XLAM, Format.TSV, Format.ODS, Format.XLSB,
+                Format.DIF, Format.NUMBERS, Format.FODS, Format.SXC, Format.XLS));
+        MAP.put(List.of(Format.HTML), List.of(Format.CSV, Format.XLSX, Format.XLSM, Format.XLTX, Format.XLTM,
                 Format.XLAM, Format.TSV, Format.ODS, Format.XLSB, Format.XPS,
-                Format.TIFF, Format.SVG, Format.DIF, Format.NUMBERS, Format.FODS, Format.SXC, Format.XLS));
+                Format.DIF, Format.NUMBERS, Format.FODS, Format.SXC, Format.XLS));
 
         Set<Format> asposeCellsSaveFormats = Set.of(Format.CSV, Format.XLSX, Format.XLSM, Format.XLTX, Format.XLTM,
                 Format.XLAM, Format.TSV, Format.HTML, Format.MHTML, Format.ODS, Format.XLSB, Format.PDF, Format.XPS,
                 Format.TIFF, Format.SVG, Format.DIF, Format.NUMBERS, Format.FODS, Format.SXC, Format.XLS);
 
         Set<Format> asposeCellsLoadFormats = Set.of(
-                Format.CSV, Format.XLSX, Format.XLS, Format.TSV, Format.HTML, Format.ODS,
+                Format.CSV, Format.XLSX, Format.XLS, Format.TSV, Format.ODS,
                 Format.XLSB, Format.NUMBERS, Format.FODS, Format.SXC
         );
 

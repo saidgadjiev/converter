@@ -52,6 +52,11 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return isConvertAvailable(format, targetFormat);
     }
 
+    @Override
+    public Map<List<Format>, List<Format>> getConversionMap() {
+        return map;
+    }
+
     TempFileService getFileService() {
         return fileService;
     }

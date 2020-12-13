@@ -27,10 +27,10 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
 
     static {
         MAP.put(List.of(Format.DOC), List.of(Format.DOT, Format.DOCX, Format.DOCM, Format.DOTX, Format.DOTM, Format.XPS, Format.SVG, Format.PS, Format.PCL, Format.HTML, Format.MHTML, Format.ODT, Format.OTT, Format.TXT));
-        MAP.put(List.of(Format.DOT), List.of(Format.DOC, Format.DOCX, Format.DOCM, Format.DOTX, Format.DOTM, Format.XPS, Format.SVG, Format.PS, Format.PCL, Format.HTML, Format.MHTML, Format.ODT, Format.OTT, Format.TXT));
         MAP.put(List.of(Format.DOCX), List.of(Format.DOT, Format.DOC, Format.DOCM, Format.DOTX, Format.DOTM, Format.XPS, Format.SVG, Format.PS, Format.PCL, Format.HTML, Format.MHTML, Format.ODT, Format.OTT, Format.TXT));
+        MAP.put(List.of(Format.TXT), List.of(Format.DOT, Format.DOCM, Format.DOTX, Format.DOTM, Format.XPS, Format.SVG, Format.PS, Format.PCL, Format.HTML, Format.MHTML, Format.ODT, Format.OTT, Format.TXT));
 
-        Set<Format> loadFormats = Set.of(Format.DOT, Format.DOCM, Format.DOTX, Format.DOTM, Format.MHTML, Format.ODT, Format.OTT, Format.TXT);
+        Set<Format> loadFormats = Set.of(Format.DOT, Format.DOCM, Format.DOTX, Format.DOTM, Format.MHTML, Format.ODT, Format.OTT);
         Set<Format> saveFormats = Set.of(Format.DOC, Format.DOT, Format.DOCX, Format.DOCM, Format.DOTX, Format.DOTM, Format.XPS, Format.SVG, Format.PS, Format.PCL,
                 Format.HTML, Format.MHTML, Format.ODT, Format.OTT, Format.TXT);
 

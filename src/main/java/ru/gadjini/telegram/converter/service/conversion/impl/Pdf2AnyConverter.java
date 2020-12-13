@@ -25,7 +25,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
             List.of(Format.PCL), List.of(Format.HTML, Format.PPTX, Format.SVG, Format.XML, Format.XPS, Format.DOC, Format.DOCX, Format.PDF),
             List.of(Format.PS), List.of(Format.HTML, Format.PPTX, Format.SVG, Format.XML, Format.XPS, Format.DOC, Format.DOCX, Format.PDF),
             List.of(Format.XPS), List.of(Format.HTML, Format.PPTX, Format.SVG, Format.XML, Format.XPS, Format.DOC, Format.DOCX, Format.PDF),
-            List.of(Format.SVG), List.of(Format.HTML, Format.PPTX, Format.XML, Format.XPS, Format.DOC, Format.DOCX)
+            List.of(Format.SVG), List.of(Format.HTML, Format.PPTX, Format.XML, Format.XPS)
     );
 
     public Pdf2AnyConverter() {
