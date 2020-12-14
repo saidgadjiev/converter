@@ -83,7 +83,7 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
     private String[] getOptions(ConversionQueueItem queueItem) {
         if (Set.of(CBZ, CBR, CBC).contains(queueItem.getFirstFileFormat())) {
             return new String[]{
-                    "--dont-grayscale", "--landscape", "--dont-add-comic-pages-to-toc", "--disable-trim", "--title", FilenameUtils.removeExtension(queueItem.getFirstFileName())
+                    "--dont-grayscale", "--landscape", "--disable-trim", "--title", FilenameUtils.removeExtension(queueItem.getFirstFileName())
             };
         }
         return new String[]{
