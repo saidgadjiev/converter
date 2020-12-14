@@ -12,8 +12,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
+import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.exception.CorruptedFileException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
@@ -22,6 +24,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -30,6 +33,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.file.FileUploadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.service.localisation.ErrorCode;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
@@ -166,6 +170,15 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         public void cancel() {
             fileDownloadService.cancelDownloads(fileQueueItem.getId());
             asposeExecutorService.cancel(fileQueueItem.getId());
+        }
+
+        @Override
+        public ErrorCode getErrorCode(Throwable e) {
+            if (e instanceof CorruptedFileException || e instanceof ProcessException) {
+                return new ErrorCode(MessagesProperties.MESSAGE_DAMAGED_FILE);
+            }
+
+            return new ErrorCode(MessagesProperties.MESSAGE_CONVERSION_FAILED);
         }
 
         private Progress progress(long chatId, ConversionQueueItem queueItem) {
