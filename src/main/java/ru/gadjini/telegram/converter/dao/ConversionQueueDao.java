@@ -93,10 +93,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         return jdbcTemplate.query(
                 "SELECT COALESCE(queue_position, 1) as queue_position\n" +
                         "FROM (SELECT id, row_number() over (ORDER BY created_at) AS queue_position\n" +
-                        "      FROM " + TYPE + " c, unnest(c.files) cf\n" +
+                        "      FROM " + TYPE + " c\n" +
                         "      WHERE status = 0\n" +
                         "        AND files[1].format IN (" + inFormats() + ")\n" +
-                        "        GROUP BY c.id HAVING sum(cf.size)" + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
+                        "        AND (SELECT sum(f.size) from unnest(c.files) f) " + getSign(weight) + " ?\n" +
                         ") as file_q\n" +
                         "WHERE id = ?",
                 ps -> {
@@ -127,11 +127,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.files[1].format IN(" + inFormats() + ") " +
+                        "        FROM " + TYPE + " qu WHERE qu.status = 0 " +
+                        " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
+                        " AND qu.files[1].format IN(" + inFormats() + ") " +
                         " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
                         " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
-                        "        GROUP BY qu.id, qu.attempts\n" +
-                        "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         QueueDao.POLL_ORDER_BY + "\n" +
                         "        LIMIT " + limit + ")\n" +
                         "    RETURNING *\n" +
@@ -147,13 +147,13 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Override
     public long countReadToComplete(SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM " + TYPE + " WHERE id IN (\n" +
-                        "        SELECT id\n" +
-                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 0 AND qu.files[1].format IN(" + inFormats() + ") " +
+                "SELECT COUNT(id) as cnt\n" +
+                        "        FROM " + TYPE + " qu WHERE qu.status = 0 " +
+                        " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
+                        " AND qu.files[1].format IN(" + inFormats() + ") " +
                         " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
-                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
-                        "        GROUP BY qu.id\n" +
-                        "        HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?)\n",
+                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n"
+                ,
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
         );
@@ -162,11 +162,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Override
     public long countProcessing(SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM " + TYPE + " WHERE id IN (\n" +
-                        "        SELECT id\n" +
-                        "        FROM " + TYPE + " qu, unnest(qu.files) cf WHERE qu.status = 1 AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " GROUP BY qu.id\n" +
-                        " HAVING SUM(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?)\n",
+                "SELECT COUNT(id) as cnt\n" +
+                        "        FROM " + TYPE + " qu WHERE qu.status = 1 " +
+                        " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
+                        " AND qu.files[1].format IN(" + inFormats() + ")",
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
         );
@@ -238,9 +237,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "SELECT f.*, COALESCE(queue_place.queue_position, 1) as queue_position, cc.files_json\n" +
                         "FROM conversion_queue f\n" +
                         "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as queue_position\n" +
-                        "                     FROM conversion_queue c, unnest(c.files) cf\n" +
-                        "                     WHERE status = 0 AND files[1].format IN (" + inFormats() + ")" +
-                        "        GROUP BY c.id HAVING sum(cf.size) " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
+                        "                     FROM conversion_queue c\n" +
+                        "                     WHERE status = 0 " +
+                        " AND (SELECT sum(f.size) from unnest(c.files) f) " + getSign(weight) + " ?\n" +
+                        " AND files[1].format IN (" + inFormats() + ")" +
                         ") queue_place ON f.id = queue_place.id\n" +
                         "         INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE id = ? GROUP BY id) cc ON f.id = cc.id\n" +
                         "WHERE f.id = ?\n",
@@ -331,6 +331,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Override
     public String getQueueName() {
         return TYPE;
+    }
+
+    private String getSign(SmartExecutorService.JobWeight weight) {
+        return weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">";
     }
 
     private ConversionQueueItem map(ResultSet rs) throws SQLException {
