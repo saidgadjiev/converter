@@ -1,4 +1,4 @@
-version: '3'
+version: '2.4'
 services:
   converterapp:
     container_name: converterapp
@@ -12,6 +12,8 @@ services:
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
     ports:
       - 5005:5005
+    mem_limit: 4g
+    memswap_limit: 8g
     env_file:
       - .env
     depends_on:

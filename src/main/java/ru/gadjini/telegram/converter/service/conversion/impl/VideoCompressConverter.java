@@ -38,7 +38,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     private static final String TAG = "vcompress";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(List.of(MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV), List.of(COMPRESS));
+        put(List.of(TS, MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV), List.of(COMPRESS));
     }};
 
     private FFmpegDevice fFmpegDevice;
