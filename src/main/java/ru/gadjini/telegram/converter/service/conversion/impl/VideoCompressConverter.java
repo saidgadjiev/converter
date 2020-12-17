@@ -65,14 +65,19 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         try {
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
-                String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0"};
+                String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast"};
                 String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
 
-                List<FFprobeDevice.VideoStream> videoStreams = fFprobeDevice.getVideoStreams(file.getAbsolutePath());
-                int index = 0;
-                for (FFprobeDevice.VideoStream videoStream : videoStreams) {
-                    allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getOptionsByVideoStream(videoStream, index++))).toArray(String[]::new);
+                List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+                int videoStreamIndex = 0;
+                for (FFprobeDevice.Stream stream : allStreams) {
+                    if (FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()) || FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
+                        allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-map", "0:" + stream.getIndex())).toArray(String[]::new);
+                        if (FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
+                            allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getOptionsByVideoStream(stream, videoStreamIndex++))).toArray(String[]::new);
+                        }
+                    }
                 }
 
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
@@ -96,7 +101,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getOptionsByVideoStream(FFprobeDevice.VideoStream videoStream, int index) {
+    private String[] getOptionsByVideoStream(FFprobeDevice.Stream videoStream, int index) {
         if ("h264".equals(videoStream.getCodec())) {
             return new String[]{
                     "-c:v:" + index, "libx264"

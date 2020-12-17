@@ -16,6 +16,8 @@ public class FFprobeDevice {
 
     private static final Pattern CODEC_NAME_PATTERN = Pattern.compile("codec_name=(?<codec>[a-z1-9]+)");
 
+    private static final Pattern CODEC_TYPE_PATTERN = Pattern.compile("codec_type=(?<codectype>(audio|video))");
+
     private static final Pattern STREAM_LANGUAGE_PATTERN = Pattern.compile("TAG:language=(?<language>[a-z]+)");
 
     private ProcessExecutor processExecutor;
@@ -25,8 +27,8 @@ public class FFprobeDevice {
         this.processExecutor = processExecutor;
     }
 
-    public List<AudioStream> getAudioStreams(String in) {
-        List<AudioStream> streams = new ArrayList<>();
+    public List<Stream> getAudioStreams(String in) {
+        List<Stream> streams = new ArrayList<>();
         String result = processExecutor.executeWithResult(getAudioStreamsCommand(in));
         String[] streamInfos = result.split("\\[/STREAM]");
 
@@ -41,30 +43,35 @@ public class FFprobeDevice {
                     language = languageMatcher.group("language");
                 }
 
-                streams.add(new AudioStream(index, language));
+                streams.add(new Stream(index, language));
             }
         }
 
         return streams;
     }
 
-    public List<VideoStream> getVideoStreams(String in) {
-        List<VideoStream> streams = new ArrayList<>();
-        String result = processExecutor.executeWithResult(getVideoStreamsCommand(in));
+    public List<Stream> getAllStreams(String in) {
+        List<Stream> streams = new ArrayList<>();
+        String result = processExecutor.executeWithResult(getAllStreamsCommand(in));
         String[] streamInfos = result.split("\\[/STREAM]");
 
         for (String streamInfo : streamInfos) {
             Matcher indexesMatcher = STREAM_INDEXES_PATTERN.matcher(streamInfo);
-            Matcher codecMatcher = CODEC_NAME_PATTERN.matcher(streamInfo);
 
             if (indexesMatcher.find()) {
                 int index = Integer.parseInt(indexesMatcher.group("index"));
                 String codec = null;
+                Matcher codecMatcher = CODEC_NAME_PATTERN.matcher(streamInfo);
                 if (codecMatcher.find()) {
                     codec = codecMatcher.group("codec");
                 }
+                String codecType = null;
+                Matcher codecTypeMatcher = CODEC_TYPE_PATTERN.matcher(streamInfo);
+                if (codecTypeMatcher.find()) {
+                    codecType = codecTypeMatcher.group("codectype");
+                }
 
-                streams.add(new VideoStream(index, codec));
+                streams.add(new Stream(index, codec, codecType));
             }
         }
 
@@ -91,9 +98,9 @@ public class FFprobeDevice {
         };
     }
 
-    private String[] getVideoStreamsCommand(String in) {
+    private String[] getAllStreamsCommand(String in) {
         return new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=index,codec_name", in
+                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type", in
         };
     }
 
@@ -103,15 +110,34 @@ public class FFprobeDevice {
         };
     }
 
-    public static class VideoStream {
+    public static class Stream {
+
+        public static final String AUDIO_CODEC_TYPE = "audio";
+
+        public static final String VIDEO_CODEC_TYPE = "video";
 
         private int index;
 
         private String codec;
 
-        private VideoStream(int index, String codec) {
+        private String language;
+
+        private String codecType;
+
+        private Stream(int index, String codec, String language, String codecType) {
             this.index = index;
             this.codec = codec;
+            this.language = language;
+            this.codecType = codecType;
+        }
+
+
+        private Stream(int index, String language) {
+            this(index, null, language, null);
+        }
+
+        private Stream(int index, String codec, String codecType) {
+            this(index, codec, null, codecType);
         }
 
         public String getCodec() {
@@ -121,25 +147,13 @@ public class FFprobeDevice {
         public int getIndex() {
             return index;
         }
-    }
-
-    public static class AudioStream {
-
-        private int index;
-
-        private String language;
-
-        public AudioStream(int index, String language) {
-            this.index = index;
-            this.language = language;
-        }
-
-        public int getIndex() {
-            return index;
-        }
 
         public String getLanguage() {
             return language;
+        }
+
+        public String getCodecType() {
+            return codecType;
         }
     }
 }

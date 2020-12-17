@@ -57,9 +57,9 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            List<FFprobeDevice.AudioStream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
+            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
             ConvertResults convertResults = new ConvertResults();
-            for (FFprobeDevice.AudioStream audioStream : audioStreams) {
+            for (FFprobeDevice.Stream audioStream : audioStreams) {
                 int streamIndex = audioStream.getIndex() - 1;
                 SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
