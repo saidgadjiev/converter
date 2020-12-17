@@ -14,6 +14,8 @@ public class FFprobeDevice {
 
     private static final Pattern STREAM_INDEXES_PATTERN = Pattern.compile("index=(?<index>\\d+)");
 
+    private static final Pattern CODEC_NAME_PATTERN = Pattern.compile("codec_name=(?<codec>[a-z1-9]+)");
+
     private static final Pattern STREAM_LANGUAGE_PATTERN = Pattern.compile("TAG:language=(?<language>[a-z]+)");
 
     private ProcessExecutor processExecutor;
@@ -46,6 +48,29 @@ public class FFprobeDevice {
         return streams;
     }
 
+    public List<VideoStream> getVideoStreams(String in) {
+        List<VideoStream> streams = new ArrayList<>();
+        String result = processExecutor.executeWithResult(getVideoStreamsCommand(in));
+        String[] streamInfos = result.split("\\[/STREAM]");
+
+        for (String streamInfo : streamInfos) {
+            Matcher indexesMatcher = STREAM_INDEXES_PATTERN.matcher(streamInfo);
+            Matcher codecMatcher = CODEC_NAME_PATTERN.matcher(streamInfo);
+
+            if (indexesMatcher.find()) {
+                int index = Integer.parseInt(indexesMatcher.group("index"));
+                String codec = null;
+                if (codecMatcher.find()) {
+                    codec = codecMatcher.group("codec");
+                }
+
+                streams.add(new VideoStream(index, codec));
+            }
+        }
+
+        return streams;
+    }
+
     public String getVideoCodec(String in) {
         return processExecutor.executeWithResult(getCodecNameCommand(in)).replace("\n", "");
     }
@@ -66,31 +91,35 @@ public class FFprobeDevice {
         };
     }
 
+    private String[] getVideoStreamsCommand(String in) {
+        return new String[]{
+                "ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=index,codec_name", in
+        };
+    }
+
     private String[] getCodecNameCommand(String in) {
         return new String[]{
                 "ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", in
         };
     }
 
-    public static void main(String[] args) {
-        String str = "[STREAM]                   \n" +
-                "index=1                    \n" +
-                "TAG:language=           \n";
+    public static class VideoStream {
 
-        String arr[] = str.split("/STREAM");
-        Pattern pattern = Pattern.compile("index=(?<index>\\d+)");
-        Pattern languagePattern = Pattern.compile("TAG:language=(?<language>[a-z]+)");
-        for (String s : arr) {
-            Matcher matcher = pattern.matcher(s);
-            Matcher languageMatcher = languagePattern.matcher(s);
+        private int index;
 
-            if (matcher.find()) {
-                System.out.println(matcher.group("index"));
-            }
+        private String codec;
 
-            if (languageMatcher.find()) {
-                System.out.println(languageMatcher.group("language"));
-            }
+        private VideoStream(int index, String codec) {
+            this.index = index;
+            this.codec = codec;
+        }
+
+        public String getCodec() {
+            return codec;
+        }
+
+        public int getIndex() {
+            return index;
         }
     }
 

@@ -65,10 +65,16 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         try {
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
-                String videoCodec = fFprobeDevice.getVideoCodec(file.getAbsolutePath());
                 String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0"};
-                String[] specificOptions = getOptions(fileQueueItem.getFirstFileFormat(), videoCodec);
+                String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
+
+                List<FFprobeDevice.VideoStream> videoStreams = fFprobeDevice.getVideoStreams(file.getAbsolutePath());
+                int index = 0;
+                for (FFprobeDevice.VideoStream videoStream : videoStreams) {
+                    allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getOptionsByVideoStream(videoStream, index++))).toArray(String[]::new);
+                }
+
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
 
                 LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
@@ -90,15 +96,24 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getOptions(Format src, String videoCodec) {
-        if (src == _3GP) {
+    private String[] getOptionsByVideoStream(FFprobeDevice.VideoStream videoStream, int index) {
+        if ("h264".equals(videoStream.getCodec())) {
             return new String[]{
-                    "-vcodec", "h263", "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
+                    "-c:v:" + index, "libx264"
+            };
+        } else if ("mjpeg".equals(videoStream.getCodec())) {
+            return new String[]{
+                    "-c:v:" + index, "mjpeg"
             };
         }
-        if ("h264".equals(videoCodec)) {
+
+        return new String[0];
+    }
+
+    private String[] getOptionsBySrc(Format src) {
+        if (src == _3GP) {
             return new String[]{
-                    "-c:v", "libx264"
+                    "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
             };
         }
 
