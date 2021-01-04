@@ -72,17 +72,35 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
 
         try {
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            String[] selectAllStreamsOptions = new String[]{"-map", "0"};
+            String[] selectAllStreamsOptions = new String[]{"-map", "0", "-map", "-0:d", "-map", "-0:s"};
             try {
+                SmartTempFile subtitles = null;
                 try {
-                    String videoCodec = fFprobeDevice.getVideoCodec(file.getAbsolutePath());
-                    String[] copyCodecsOptions = getCopyCodecsOptions(fileQueueItem.getFirstFileFormat(), videoCodec);
-                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(selectAllStreamsOptions), Stream.of(copyCodecsOptions)).toArray(String[]::new));
-                } catch (ProcessException e) {
-                    LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
-                            fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                    String[] options = getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(selectAllStreamsOptions), Stream.of(options)).toArray(String[]::new));
+                    List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+                    if (allStreams.stream().anyMatch(stream -> Objects.equals(stream.getCodecType(), FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE))) {
+                        subtitles = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, SRT.getExt());
+                        fFmpegDevice.convert(file.getAbsolutePath(), subtitles.getAbsolutePath());
+                    }
+                    try {
+                        String[] allOptions = Stream.concat(Stream.of(selectAllStreamsOptions), Stream.of(getCopyCodecsOptions())).toArray(String[]::new);
+                        if (subtitles != null) {
+                            allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getSubtitlesFilterOptions(subtitles.getAbsolutePath()))).toArray(String[]::new);
+                        }
+                        fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
+                    } catch (ProcessException e) {
+                        LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
+                                fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+                        String[] options = getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+                        String[] allOptions = Stream.concat(Stream.of(options), Stream.of(selectAllStreamsOptions)).toArray(String[]::new);
+                        if (subtitles != null) {
+                            allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getSubtitlesFilterOptions(subtitles.getAbsolutePath()))).toArray(String[]::new);
+                        }
+                        fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
+                    }
+                } finally {
+                    if (subtitles != null) {
+                        subtitles.smartDelete();
+                    }
                 }
 
                 SmartTempFile thumbFile = downloadThumb(fileQueueItem);
@@ -97,16 +115,16 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private String[] getCopyCodecsOptions(Format target, String videoCodec) {
-        if (target == AVI && Objects.equals(videoCodec, "h264")) {
-            return new String[]{
-                    "-bsf:v", "h264_mp4toannexb", "-c:v", "copy", "-c:a", "copy"
-            };
-        } else {
-            return new String[]{
-                    "-c:v", "copy", "-c:a", "copy"
-            };
-        }
+    private String[] getSubtitlesFilterOptions(String subtitlesPath) {
+        return new String[]{
+                "-vf", "subtitles=" + subtitlesPath
+        };
+    }
+
+    private String[] getCopyCodecsOptions() {
+        return new String[]{
+                "-c:v", "copy", "-c:a", "copy", "-c:t", "copy"
+        };
     }
 
     private String[] getOptions(Format src, Format target) {

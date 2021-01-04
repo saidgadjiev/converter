@@ -78,9 +78,12 @@ RUN mkdir -p /usr/src/libaom && \
 
 RUN apt-get install -y libspeex-dev
 
+RUN apt-get install -y libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnappy-dev libsoxr-dev libwavpack-dev libtwolame-dev \
+libvidstab-dev libxml2-dev
+
 RUN cd /usr/src && \
-wget -O- http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj && \
-cd ffmpeg && \
+wget -O- http://ffmpeg.org/releases/ffmpeg-4.3.1.tar.bz2 | tar xj && \
+cd ffmpeg-4.3.1 && \
 PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
    ./configure \
   --prefix="/home/bot/ffmpeg_build" \
@@ -96,14 +99,31 @@ PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
   --enable-version3 \
   --enable-gpl \
   --enable-libass \
+  --enable-libbluray \
   --enable-libfdk-aac \
   --enable-libfreetype \
   --enable-libmp3lame \
+  --enable-libopenjpeg \
   --enable-libopus \
   --enable-libtheora \
+  --enable-libshine \
+  --enable-libsnappy \
+  --enable-libsoxr \
   --enable-libvorbis \
+  --enable-libwavpack \
+  --enable-libwebp \
+  --enable-libxml2 \
+  --enable-lzma \
+  --enable-zlib \
+  --enable-gmp \
+  --enable-libmfx \
+  --enable-libvidstab \
+  --enable-libtwolame \
   --enable-libvpx \
   --enable-libx264 \
+  --enable-fontconfig \
+  --enable-iconv \
+  --enable-bzlib \
   --enable-libaom \
   --enable-libx265 \
   --enable-nonfree && \
@@ -130,5 +150,5 @@ COPY ./target/app.jar .
 
 
 EXPOSE 8080
-#ENTRYPOINT ["java", "-Xss5m", "-Xmx4g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
-ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
+#ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]

@@ -18,10 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -65,18 +62,17 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         try {
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             try {
-                String[] options = new String[]{"-c:a", "copy", "-vf", "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast"};
+                List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+
+                String[] options = new String[]{"-c:a", "copy", "-c:t", "copy", "-vf",
+                        "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0", "-map", "-0:d"};
                 String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
 
-                List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
                 int videoStreamIndex = 0;
                 for (FFprobeDevice.Stream stream : allStreams) {
-                    if (FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()) || FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
-                        allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-map", "0:" + stream.getIndex())).toArray(String[]::new);
-                        if (FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
-                            allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getOptionsByVideoStream(stream, videoStreamIndex++))).toArray(String[]::new);
-                        }
+                    if (FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
+                        allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getOptionsByVideoStream(stream, videoStreamIndex++))).toArray(String[]::new);
                     }
                 }
 

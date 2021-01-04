@@ -16,7 +16,7 @@ public class FFprobeDevice {
 
     private static final Pattern CODEC_NAME_PATTERN = Pattern.compile("codec_name=(?<codec>[a-z1-9]+)");
 
-    private static final Pattern CODEC_TYPE_PATTERN = Pattern.compile("codec_type=(?<codectype>(audio|video))");
+    private static final Pattern CODEC_TYPE_PATTERN = Pattern.compile("codec_type=(?<codectype>(audio|video|subtitle|data|attachments))");
 
     private static final Pattern STREAM_LANGUAGE_PATTERN = Pattern.compile("TAG:language=(?<language>[a-z]+)");
 
@@ -115,6 +115,10 @@ public class FFprobeDevice {
         public static final String AUDIO_CODEC_TYPE = "audio";
 
         public static final String VIDEO_CODEC_TYPE = "video";
+
+        public static final String SUBTITLE_CODEC_TYPE = "subtitle";
+
+        public static final String DATA_CODEC_TYPE = "data";
 
         private int index;
 
