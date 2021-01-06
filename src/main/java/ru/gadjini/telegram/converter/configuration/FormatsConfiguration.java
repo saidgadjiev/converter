@@ -120,7 +120,6 @@ public class FormatsConfiguration {
         images.put(List.of(HEIC), List.of(BMP, DOC, DOCX, ICO, JP2, JPG, PDF, STICKER, SVG, TIFF, WEBP));
         images.put(List.of(PNG), List.of(BMP, DOC, DOCX, HEIC, HEIF, ICO, JP2, JPG, PDF, STICKER, SVG, TIFF, WEBP));
         images.put(List.of(WEBP), List.of(BMP, DOC, DOCX, HEIC, HEIF, ICO, JP2, JPG, PDF, PNG, STICKER, SVG, TIFF));
-        images.put(List.of(IMAGES), List.of(PDF, TIFF, DOC, DOCX));
         FORMATS.put(FormatCategory.IMAGES, images);
 
         Map<List<Format>, List<Format>> videos = new HashMap<>();

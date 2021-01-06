@@ -28,7 +28,6 @@ import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileUploadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -49,8 +48,6 @@ import java.util.Set;
 public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQueueItem> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionWorkerFactory.class);
-
-    private FileDownloadService fileDownloadService;
 
     private FileUploadService fileUploadService;
 
@@ -91,11 +88,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     @Autowired
     public void setFileUploadService(FileUploadService fileUploadService) {
         this.fileUploadService = fileUploadService;
-    }
-
-    @Autowired
-    public void setFileDownloadService(FileDownloadService fileDownloadService) {
-        this.fileDownloadService = fileDownloadService;
     }
 
     @Autowired
@@ -167,8 +159,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         }
 
         @Override
-        public void cancel() {
-            fileDownloadService.cancelDownloads(fileQueueItem.getId());
+        public void cancel(boolean canceledByUser) {
             asposeExecutorService.cancel(fileQueueItem.getId());
         }
 
