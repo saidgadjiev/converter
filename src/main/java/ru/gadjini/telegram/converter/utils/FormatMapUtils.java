@@ -24,7 +24,7 @@ public class FormatMapUtils {
         return map;
     }
 
-    public static void validateAndPrint(Set<Any2AnyConverter> converters) {
+    public static Map<FormatCategory, Map<List<Format>, List<Format>>> validateAndPrint(Set<Any2AnyConverter> converters) {
         System.out.println("Start checking");
         Map<String, Class<?>> keys = new HashMap<>();
         Map<Format, List<Format>> result = new HashMap<>();
@@ -57,41 +57,16 @@ public class FormatMapUtils {
             });
         }
 
-        FormatMapUtils.print(r);
+        Map<FormatCategory, Map<List<Format>, List<Format>>> formatCategory = new HashMap<>();
+        print(r, formatCategory);
 
-        System.out.println("OK");
+        return formatCategory;
     }
 
-    public static void print(Map<Format, List<Format>> formatMap) {
-        formatMap.forEach((formats, formats2) -> {
-            switch (formats.getCategory()) {
-                case DOCUMENTS:
-                    System.out.print("documents");
-                    break;
-                case IMAGES:
-                    System.out.print("images");
-                    break;
-                case WEB:
-                    System.out.print("web");
-                    break;
-                case VIDEO:
-                    System.out.print("videos");
-                    break;
-                case AUDIO:
-                    System.out.print("audios");
-                    break;
-            }
-            System.out.print(".put(List.of(");
-            System.out.print(formats);
-            System.out.print("), List.of(");
-            for (Iterator<Format> iterator = formats2.iterator(); iterator.hasNext(); ) {
-                System.out.print(iterator.next());
-                if (iterator.hasNext()) {
-                    System.out.print(", ");
-                }
-            }
-            System.out.print("));");
-            System.out.println();
+    private static void print(Map<Format, List<Format>> formatMap, Map<FormatCategory, Map<List<Format>, List<Format>>> formatCategory) {
+        formatMap.forEach((format, formats2) -> {
+            formatCategory.putIfAbsent(format.getCategory(), new HashMap<>());
+            formatCategory.get(format.getCategory()).put(List.of(format), formats2);
         });
     }
 }

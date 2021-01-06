@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -28,7 +29,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     private LocalisationService localisationService;
 
     @Autowired
-    public ReplyKeyboardServiceImpl(ConversionFormatService formatMapService, LocalisationService localisationService) {
+    public ReplyKeyboardServiceImpl(@Lazy ConversionFormatService formatMapService, LocalisationService localisationService) {
         this.formatMapService = formatMapService;
         this.localisationService = localisationService;
     }
