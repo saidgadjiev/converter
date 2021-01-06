@@ -19,8 +19,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_UNKNOWN_COMMAND = "message.unknown.command";
 
-    public static final String MESSAGE_EMPTY_FILE_NAME = "message.empty.file.name";
-
     public static final String MESSAGE_CHOOSE_ANOTHER_FORMAT = "message.choose.another.format";
 
     public static final String MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION = "message.choose.target.extension.default.conversion";
@@ -34,8 +32,6 @@ public class MessagesProperties {
     public static final String MESSAGE_UNSUPPORTED_FILE = "message.unsupported.file";
 
     public static final String MESSAGE_QUERY_ITEM_NOT_FOUND = "message.query.item.not.found";
-
-    public static final String MESSAGE_NO_BASE_URL_IN_HTML = "message.no.base.url.in.html";
 
     public static final String MESSAGE_CONVERT_WARNINGS = "message.convert.warnings";
 
@@ -88,8 +84,6 @@ public class MessagesProperties {
     public static final String ICON_CHECK = "icon.check";
 
     public static final String MESSAGE_FILES_APPENDED = "message.files.appended";
-
-    public static final String MESSAGE_CALCULATED = "message.calculated";
 
     public static final String MESSAGE_VIDEO_CONVERSION = "message.video.conversion";
 

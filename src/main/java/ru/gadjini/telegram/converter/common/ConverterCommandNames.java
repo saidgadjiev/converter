@@ -14,8 +14,6 @@ public class ConverterCommandNames {
 
     public static final String LANGUAGE_COMMAND_NAME = "language";
 
-    public static final String CANCEL_QUERY_COMMAND_NAME = "c";
-
     public static final String FORMATS_COMMAND = "formats";
 
     public static final String REPORT_COMMAND_NAME = "e";
