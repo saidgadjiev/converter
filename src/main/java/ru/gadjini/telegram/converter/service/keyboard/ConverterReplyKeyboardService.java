@@ -12,6 +12,8 @@ import java.util.Locale;
 
 public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
 
+    ReplyKeyboardMarkup getMergePdfsKeyboard(long chatId, Locale locale);
+
     ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale);
 
     ReplyKeyboardRemove removeKeyboard(long chatId);

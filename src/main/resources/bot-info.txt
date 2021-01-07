@@ -6,6 +6,7 @@ I can convert files, videos, stickers, links, text to other formats and compress
 
 Commands:
 start - restart the bot
+mergepdfs - merge pdf files
 language - change language
 formats - conversion formats
 help - help

@@ -179,11 +179,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
 
             progress.setProgressMessageId(queueItem.getProgressMessageId());
-            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.UPLOADING, Collections.emptySet(), locale);
+            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, ConversionStep.UPLOADING, Collections.emptySet(), locale);
             progress.setProgressMessage(progressMessage);
             progress.setProgressReplyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
-            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.COMPLETED, Collections.emptySet(), locale);
+            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, ConversionStep.COMPLETED, Collections.emptySet(), locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
 
             return progress;
@@ -192,7 +192,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         private void sendWaitingProgress(ConversionQueueItem queueItem) {
             Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
             String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem,
-                    Collections.emptySet(), ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
+                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
 
             try {
                 messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
@@ -206,7 +206,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
         private void sendConvertingProgress(ConversionQueueItem queueItem) {
             Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
-            String message = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
+            String message = messageBuilder.getConversionProcessingMessage(queueItem,
                     ConversionStep.CONVERTING, Collections.emptySet(), locale);
 
             try {
@@ -222,7 +222,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
         private void sendConvertingFinishedProgress(ConversionQueueItem conversionQueueItem) {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-            String uploadingProgressMessage = messageBuilder.getConversionProcessingMessage(conversionQueueItem, Collections.emptySet(),
+            String uploadingProgressMessage = messageBuilder.getConversionProcessingMessage(conversionQueueItem,
                     ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING, ConversionStep.CONVERTING), locale);
             try {
                 messageService.editMessage(

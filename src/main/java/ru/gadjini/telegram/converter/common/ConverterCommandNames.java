@@ -10,8 +10,6 @@ public class ConverterCommandNames {
 
     public static final String HELP_COMMAND = "help";
 
-    public static final String CONVERT_COMMAND_NAME = "conversion";
-
     public static final String LANGUAGE_COMMAND_NAME = "language";
 
     public static final String FORMATS_COMMAND = "formats";
@@ -31,4 +29,6 @@ public class ConverterCommandNames {
     public static final String SET_FILE_ID = "setfileid";
 
     public static final String GET_EXCEPTION = "exception";
+
+    public static final String MERGE_PDFS = "mergepdfs";
 }

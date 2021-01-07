@@ -19,7 +19,6 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -72,44 +71,42 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         }
     }
 
-    public String getChooseFormat(Set<String> warns, Locale locale) {
+    public String getChooseFormat(Locale locale) {
         StringBuilder message = new StringBuilder();
         if (FormatsConfiguration.DEFAULT_CONVERTER.equals(converter) || FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
             message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION, locale));
         } else {
             message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION, locale));
         }
-        String w = warns(warns, locale);
-        if (StringUtils.isNotBlank(w)) {
-            message.append("\n\n").append(w);
-        }
 
         return message.toString();
     }
 
     public String getFilesDownloadingProgressMessage(ConversionQueueItem queueItem, int current, int total, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, Collections.emptySet(), locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
 
         return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(current, total, queueItem.getTargetFormat(), locale);
     }
 
     @Override
     public String getUpdateStatusMessage(QueueItem queueItem, Locale locale) {
-        return getConversionProcessingMessage((ConversionQueueItem) queueItem, Collections.emptySet(), ConversionStep.WAITING, Collections.emptySet(), locale);
+        return getConversionProcessingMessage((ConversionQueueItem) queueItem, ConversionStep.WAITING, Collections.emptySet(), locale);
     }
 
-    public String getConversionProcessingMessage(ConversionQueueItem queueItem, Set<String> warns,
+    public String getConversionProcessingMessage(ConversionQueueItem queueItem,
                                                  ConversionStep conversionStep, Set<ConversionStep> completedSteps, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, warns, locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
 
         return progressingMessage + "\n\n" +
                 getProgressMessage(conversionStep, completedSteps, queueItem.getFirstFileFormat(), queueItem.getTargetFormat(), locale);
     }
 
-    private String getConversionProgressingMessage(ConversionQueueItem queueItem, Set<String> warns, Locale locale) {
+    private String getConversionProgressingMessage(ConversionQueueItem queueItem, Locale locale) {
         StringBuilder text = new StringBuilder();
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
             text.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.MERGE_PDFS) {
+            text.append(localisationService.getMessage(MessagesProperties.MESSAGE_MERGE_FILES_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else {
             String queuedMessageCode = queueItem.getFiles().size() > 1 ? MessagesProperties.MESSAGE_FILES_QUEUED : MessagesProperties.MESSAGE_FILE_QUEUED;
             text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().getName(), queueItem.getQueuePosition()}, locale));
@@ -129,10 +126,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                     .append(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_COUNT, new Object[]{queueItem.getFiles().size()}, locale));
         }
 
-        warns = new HashSet<>(warns);
-        warns.add(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
-
-        String w = warns(warns, locale);
+        String w = warns(Set.of(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale)), locale);
 
         if (StringUtils.isNotBlank(w)) {
             text.append("\n\n").append(w);
@@ -143,7 +137,10 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     private String getProgressMessage(ConversionStep conversionStep, Set<ConversionStep> completedSteps, Format srcFormat, Format targetFormat, Locale locale) {
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
-        String conversionMsgCode = targetFormat == Format.COMPRESS ? MessagesProperties.COMPRESSING_STEP : MessagesProperties.CONVERTING_STEP;
+        String conversionMsgCode = targetFormat == Format.COMPRESS
+                ? MessagesProperties.COMPRESSING_STEP
+                : targetFormat == Format.MERGE_PDFS ? MessagesProperties.MERGING_STEP
+                : MessagesProperties.CONVERTING_STEP;
 
         switch (conversionStep) {
             case WAITING:

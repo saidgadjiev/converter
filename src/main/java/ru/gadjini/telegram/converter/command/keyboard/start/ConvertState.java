@@ -1,12 +1,10 @@
-package ru.gadjini.telegram.converter.service.conversion.impl;
+package ru.gadjini.telegram.converter.command.keyboard.start;
 
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class ConvertState {
 
@@ -15,8 +13,6 @@ public class ConvertState {
     private List<MessageMedia> files = new ArrayList<>();
 
     private String userLanguage;
-
-    private Set<String> warnings = new LinkedHashSet<>();
 
     private Format multiMediaFormat;
 
@@ -36,18 +32,6 @@ public class ConvertState {
 
     public void setUserLanguage(String userLanguage) {
         this.userLanguage = userLanguage;
-    }
-
-    public void addWarn(String warn) {
-        warnings.add(warn);
-    }
-
-    public Set<String> getWarnings() {
-        return warnings;
-    }
-
-    public void deleteWarns() {
-        warnings.clear();
     }
 
     public void addMedia(MessageMedia media) {
@@ -80,14 +64,5 @@ public class ConvertState {
 
     public void setMultiMediaFormat(Format multiMediaFormat) {
         this.multiMediaFormat = multiMediaFormat;
-    }
-
-    @Override
-    public String toString() {
-        return "ConvertState{" +
-                ", messageId=" + messageId +
-                ", userLanguage='" + userLanguage + '\'' +
-                ", warnings=" + warnings +
-                '}';
     }
 }

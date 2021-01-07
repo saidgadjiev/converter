@@ -8,16 +8,13 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.job.ConversionWorkerFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.converter.service.conversion.impl.ConvertState;
-import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -37,30 +34,28 @@ public class ConvertionService {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private ConverterReplyKeyboardService replyKeyboardService;
-
     private ConversionWorkerFactory conversionWorkerFactory;
-
-    private LocalisationService localisationService;
 
     @Autowired
     public ConvertionService(SmartInlineKeyboardService inlineKeyboardService,
                              @Qualifier("messageLimits") MessageService messageService,
                              ConversionQueueService conversionQueueService,
                              ConversionMessageBuilder messageBuilder,
-                             @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
-                             ConversionWorkerFactory conversionWorkerFactory, LocalisationService localisationService) {
+                             ConversionWorkerFactory conversionWorkerFactory) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;
         this.conversionQueueService = conversionQueueService;
         this.messageBuilder = messageBuilder;
-        this.replyKeyboardService = replyKeyboardService;
         this.conversionWorkerFactory = conversionWorkerFactory;
-        this.localisationService = localisationService;
     }
 
     @Transactional
     public void createConversion(User user, ConvertState convertState, Format targetFormat, Locale locale) {
+        createConversion(user, convertState, targetFormat, locale, null);
+    }
+
+    @Transactional
+    public void createConversion(User user, ConvertState convertState, Format targetFormat, Locale locale, Consumer<Void> callback) {
         ConversionQueueItem queueItem = conversionQueueService.create(user, convertState, targetFormat);
 
         sendConversionQueuedMessage(queueItem, convertState, message -> {
@@ -72,16 +67,15 @@ public class ConvertionService {
                 totalFilesToDownload = candidate.createDownloads(queueItem);
             }
             conversionQueueService.setProgressMessageIdAndTotalFilesToDownload(queueItem.getId(), message.getMessageId(), totalFilesToDownload);
-
-            messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                    .text(localisationService.getMessage(MessagesProperties.EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST, locale))
-                    .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())).build());
+            if (callback != null) {
+                callback.accept(null);
+            }
         }, locale);
     }
 
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {
         String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem,
-                convertState.getWarnings(), ConversionStep.WAITING, Collections.emptySet(), new Locale(convertState.getUserLanguage()));
+                ConversionStep.WAITING, Collections.emptySet(), new Locale(convertState.getUserLanguage()));
         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(queueItem.getUserId())).text(queuedMessage)
                 .parseMode(ParseMode.HTML)
                 .replyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale)).build(), callback);

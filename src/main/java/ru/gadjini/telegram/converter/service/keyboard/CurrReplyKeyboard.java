@@ -34,6 +34,11 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
     }
 
     @Override
+    public ReplyKeyboardMarkup getMergePdfsKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.getMergePdfsKeyboard(chatId, locale));
+    }
+
+    @Override
     public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.getFormatsKeyboard(chatId, format, locale));
     }

@@ -43,7 +43,7 @@ public class ProgressBuilder {
             progress.setAfterProgressCompletionMessage(completionMessage);
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         } else {
-            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
+            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem,
                     ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale));
@@ -59,11 +59,11 @@ public class ProgressBuilder {
         Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
 
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(), ConversionStep.DOWNLOADING, Collections.emptySet(), locale);
+        String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, ConversionStep.DOWNLOADING, Collections.emptySet(), locale);
         progress.setProgressMessage(progressMessage);
         progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
-        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, Collections.emptySet(),
+        String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem,
                 ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
         progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale));

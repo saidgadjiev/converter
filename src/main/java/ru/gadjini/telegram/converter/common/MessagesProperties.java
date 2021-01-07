@@ -100,4 +100,24 @@ public class MessagesProperties {
     public static final String MESSAGE_DONT_SEND_NEW_REQUEST = "message.dont.send.new.request";
 
     public static final String EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST = "extra.message.dont.send.new.request";
+
+    public static final String MESSAGE_MERGE_PDFS_WELCOME = "message.merge.pdfs.welcome";
+
+    public static final String MERGE_COMMAND_NAME = "merge.command.name";
+
+    public static final String MERGE_COMMAND_DESCRIPTION = "merge.command.description";
+
+    public static final String MESSAGE_MERGE_PDFS_NO_FILES = "message.merge.pdfs.no.files";
+
+    public static final String CANCEL_MERGE_PDFS_COMMAND_NAME = "cancel.merge.pdfs.command.name";
+
+    public static final String MESSAGE_MERGE_PDFS_CANCELED = "message.merge.pdfs.canceled";
+
+    public static final String MESSAGE_MERGE_PDFS_NON_PDF_FILE = "message.merge.pdfs.non.pdf.file";
+
+    public static final String MESSAGE_MERGE_FILES_QUEUED = "message.merge.files.queued";
+
+    public static final String MERGING_STEP = "merging.step";
+
+    public static final String MESSAGE_MERGE_PDFS_MIN_2_FILES = "message.merge.pdfs.min.2.files";
 }
