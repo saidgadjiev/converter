@@ -110,7 +110,6 @@ PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
   --enable-libsnappy \
   --enable-libsoxr \
   --enable-libvorbis \
-  --enable-libwavpack \
   --enable-libwebp \
   --enable-libxml2 \
   --enable-lzma \
@@ -150,5 +149,5 @@ COPY ./target/app.jar .
 
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-#ENTRYPOINT ["java", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
+#ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
