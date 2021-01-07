@@ -24,10 +24,6 @@ RUN rm google-chrome-stable_current_amd64.deb
 # Locale
 ENV LC_ALL C.UTF-8
 
-RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
-RUN gdebi --n wkhtmltox_0.12.5-1.bionic_amd64.deb
-RUN rm wkhtmltox_0.12.5-1.bionic_amd64.deb
-
 RUN wget https://gif.ski/gifski-0.10.1.zip
 RUN unzip -j gifski-0.10.1.zip -d gifski
 RUN gdebi --n gifski/gifski_0.10.1_amd64.deb
@@ -56,79 +52,7 @@ tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \
 make install && \
 make distclean && ldconfig
 
-RUN apt-get update -y
-RUN apt-get install -y libopus-dev libmp3lame-dev libfdk-aac-dev libvpx-dev libx264-dev yasm libass-dev libtheora-dev libvorbis-dev libopencore-amrnb-dev libopencore-amrwb-dev mercurial cmake
-RUN cd /usr/src && \
-wget https://github.com/videolan/x265/archive/master.zip | unzip && \
-unzip master.zip && \
-rm /usr/src/master.zip && \
-cd x265-master/build/linux && \
-cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/home/bot/ffmpeg_build" -DENABLE_SHARED:bool=off ../../source && \
-make && make install
-
-ENV PATH="/home/bot/ffmpeg_build/bin/:${PATH}"
-
 RUN rm /usr/src/ImageMagick.tar.bz2
-
-RUN mkdir -p /usr/src/libaom && \
-  cd /usr/src/libaom && \
-  git clone https://aomedia.googlesource.com/aom && \
-  cmake ./aom && \
-  make && make install
-
-RUN apt-get install -y libspeex-dev
-
-RUN apt-get install -y libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnappy-dev libsoxr-dev libwavpack-dev libtwolame-dev \
-libvidstab-dev libxml2-dev
-
-RUN cd /usr/src && \
-wget -O- http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj && \
-cd ffmpeg && \
-PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
-   ./configure \
-  --prefix="/home/bot/ffmpeg_build" \
-  --pkg-config-flags="--static" \
-  --extra-cflags="-I/home/bot/ffmpeg_build/include" \
-  --extra-ldflags="-L/home/bot/ffmpeg_build/lib" \
-  --extra-libs="-lpthread -lm" \
-  --bindir="/home/bot/ffmpeg" \
-  --enable-pthreads \
-  --enable-libopencore-amrnb \
-  --enable-libopencore-amrwb \
-  --enable-libspeex \
-  --enable-version3 \
-  --enable-gpl \
-  --enable-libass \
-  --enable-libbluray \
-  --enable-libfdk-aac \
-  --enable-libfreetype \
-  --enable-libmp3lame \
-  --enable-libopenjpeg \
-  --enable-libopus \
-  --enable-libtheora \
-  --enable-libshine \
-  --enable-libsnappy \
-  --enable-libsoxr \
-  --enable-libvorbis \
-  --enable-libwebp \
-  --enable-libxml2 \
-  --enable-lzma \
-  --enable-zlib \
-  --enable-gmp \
-  --enable-libmfx \
-  --enable-libvidstab \
-  --enable-libtwolame \
-  --enable-libvpx \
-  --enable-libx264 \
-  --enable-fontconfig \
-  --enable-iconv \
-  --enable-bzlib \
-  --enable-libaom \
-  --enable-libx265 \
-  --enable-nonfree && \
-make -j 4 && make install
-
-ENV PATH="/home/bot/ffmpeg/:${PATH}"
 
 RUN echo 'calibre-5'
 RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin install_dir=/home/bot isolated=y

@@ -24,10 +24,6 @@ RUN rm google-chrome-stable_current_amd64.deb
 # Locale
 ENV LC_ALL C.UTF-8
 
-RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
-RUN gdebi --n wkhtmltox_0.12.5-1.bionic_amd64.deb
-RUN rm wkhtmltox_0.12.5-1.bionic_amd64.deb
-
 RUN wget https://gif.ski/gifski-0.10.1.zip
 RUN unzip -j gifski-0.10.1.zip -d gifski
 RUN gdebi --n gifski/gifski_0.10.1_amd64.deb
@@ -78,7 +74,7 @@ RUN mkdir -p /usr/src/libaom && \
 
 RUN apt-get install -y libspeex-dev
 
-RUN apt-get install -y libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnappy-dev libsoxr-dev libwavpack-dev libtwolame-dev \
+RUN apt-get install -y libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnappy-dev libsoxr-dev libtwolame-dev \
 libvidstab-dev libxml2-dev
 
 RUN cd /usr/src && \
