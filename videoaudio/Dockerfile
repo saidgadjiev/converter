@@ -82,8 +82,8 @@ RUN apt-get install -y libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnap
 libvidstab-dev libxml2-dev
 
 RUN cd /usr/src && \
-wget -O- http://ffmpeg.org/releases/ffmpeg-4.3.1.tar.bz2 | tar xj && \
-cd ffmpeg-4.3.1 && \
+wget -O- http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj && \
+cd ffmpeg && \
 PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
    ./configure \
   --prefix="/home/bot/ffmpeg_build" \
