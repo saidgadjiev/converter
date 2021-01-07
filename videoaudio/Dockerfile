@@ -11,15 +11,21 @@ USER root
 ENV DEBIAN_FRONTEND noninteractive
 ENV USE_SANDBOX false
 
-RUN apt-get update -y -qq
-RUN apt-get install -y -qq openjdk-11-jre build-essential curl wget git gdebi p7zip-rar locales rar zip unzip
+RUN apt-get update -y
+RUN apt-get install -y openjdk-11-jre build-essential curl wget git gdebi p7zip-rar locales rar zip unzip
 
 # Locale
 ENV LC_ALL C.UTF-8
 
+USER root
+
+RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 RUN apt-get update -y
-RUN apt-get install -y libopus-dev libmp3lame-dev libfdk-aac-dev libvpx-dev libx264-dev yasm libass-dev libtheora-dev \
-libvorbis-dev libopencore-amrnb-dev libopencore-amrwb-dev mercurial cmake
+RUN apt-get -y build-dep imagemagick
+RUN apt-get install -y libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev libheif-dev
+
+RUN apt-get update -y
+RUN apt-get install -y libopus-dev libmp3lame-dev libfdk-aac-dev libvpx-dev libx264-dev yasm libass-dev libtheora-dev libvorbis-dev libopencore-amrnb-dev libopencore-amrwb-dev mercurial cmake
 RUN cd /usr/src && \
 wget https://github.com/videolan/x265/archive/master.zip | unzip && \
 unzip master.zip && \
@@ -36,9 +42,7 @@ RUN mkdir -p /usr/src/libaom && \
   cmake ./aom && \
   make && make install
 
-RUN apt-get install -y libspeex-dev
-
-RUN apt-get install -y libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnappy-dev libsoxr-dev libtwolame-dev \
+RUN apt-get install -y libspeex-dev libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnappy-dev libsoxr-dev libtwolame-dev \
 libvidstab-dev libxml2-dev
 
 RUN cd /usr/src && \
@@ -99,5 +103,5 @@ COPY ./target/app.jar .
 
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-#ENTRYPOINT ["java", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
+#ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]

@@ -1,9 +1,11 @@
 version: '2.4'
 services:
-  converterapp:
-    container_name: converterapp
+  converter:
+    container_name: converter
     restart: always
-    build: ../../../
+    build:
+      context: ../../../
+      dockerfile: videoaudio/Dockerfile
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom
