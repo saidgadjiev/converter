@@ -17,8 +17,6 @@ RUN apt-get install -y openjdk-11-jre build-essential curl wget git gdebi p7zip-
 # Locale
 ENV LC_ALL C.UTF-8
 
-USER root
-
 RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 RUN apt-get update -y
 RUN apt-get -y build-dep imagemagick
