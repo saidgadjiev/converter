@@ -16,7 +16,7 @@ public class FormatsConfiguration {
 
     public static final String ALL_CONVERTER = "all";
 
-    public static final String DEFAULT_CONVERTER = "default";
+    public static final String DOCUMENT_CONVERTER = "document";
 
     public static final String VIDEO_CONVERTER = "video";
 
@@ -50,9 +50,9 @@ public class FormatsConfiguration {
     @Bean
     @ConditionalOnProperty(
             value = "converter",
-            havingValue = DEFAULT_CONVERTER
+            havingValue = DOCUMENT_CONVERTER
     )
-    public Map<FormatCategory, Map<List<Format>, List<Format>>> defaultFormats() {
+    public Map<FormatCategory, Map<List<Format>, List<Format>>> documentFormats() {
         return Map.of(
                 FormatCategory.DOCUMENTS, formats.get(FormatCategory.DOCUMENTS),
                 FormatCategory.IMAGES, formats.get(FormatCategory.IMAGES),

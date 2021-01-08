@@ -62,7 +62,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     public String getWelcomeMessage(Locale locale) {
         if (FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
             return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale);
-        } else if (FormatsConfiguration.DEFAULT_CONVERTER.equals(converter)) {
+        } else if (FormatsConfiguration.DOCUMENT_CONVERTER.equals(converter)) {
             return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_DOCUMENT_FILE, locale);
         } else if (FormatsConfiguration.AUDIO_CONVERTER.equals(converter)) {
             return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_AUDIO_FILE, locale);
@@ -73,7 +73,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     public String getChooseFormat(Locale locale) {
         StringBuilder message = new StringBuilder();
-        if (FormatsConfiguration.DEFAULT_CONVERTER.equals(converter) || FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
+        if (FormatsConfiguration.DOCUMENT_CONVERTER.equals(converter) || FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
             message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION, locale));
         } else {
             message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION, locale));

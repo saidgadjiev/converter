@@ -5,7 +5,7 @@ services:
     restart: always
     build:
       context: ../../../
-      dockerfile: videoaudio/Dockerfile
+      dockerfile: document/Dockerfile
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom

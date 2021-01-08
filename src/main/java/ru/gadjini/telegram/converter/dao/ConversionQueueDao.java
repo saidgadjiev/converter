@@ -180,7 +180,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     public Long getYesterdayConversionsCount() {
         return jdbcTemplate.query(
-                "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date - interval '1 days' AND status = 3 AND files[1].format IN(" + inFormats() + ")",
+                "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date - interval '1 days' AND status = 3 " +
+                        "AND files[1].format IN(" + inFormats() + ")",
                 rs -> rs.next() ? rs.getLong("cnt") : -1
         );
     }
@@ -194,7 +195,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     public Long getTodayDailyActiveUsersCount() {
         return jdbcTemplate.query(
-                "SELECT count(DISTINCT user_id) as cnt FROM conversion_queue WHERE completed_at::date = current_date AND status = 3 AND files[1].format IN(" + inFormats() + ")",
+                "SELECT count(DISTINCT user_id) as cnt FROM conversion_queue WHERE completed_at::date = current_date AND status = 3 " +
+                        "AND files[1].format IN(" + inFormats() + ")",
                 rs -> rs.next() ? rs.getLong("cnt") : -1
         );
     }
@@ -261,7 +263,9 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     @Override
     public List<ConversionQueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
-        return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE user_id = ? AND status IN (0, 1) RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+        return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE user_id = ? " +
+                        " AND files[1].format IN(" + inFormats() + ") " +
+                        " AND status IN (0, 1) RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
                 ps -> ps.setInt(1, userId),
                 (rs, rowNum) -> {
                     ConversionQueueItem fileQueueItem = new ConversionQueueItem();
@@ -315,12 +319,18 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Override
     public List<ConversionQueueItem> deleteCompleted() {
         return jdbcTemplate.query(
-                "WITH del AS(DELETE FROM " + getQueueName() + " qu WHERE qu.status = ? AND qu.completed_at + " + QueueDao.DELETE_COMPLETED_INTERVAL + " < now() " +
+                "WITH del AS(DELETE FROM conversion_queue qu WHERE qu.status = ? AND qu.completed_at + " + QueueDao.DELETE_COMPLETED_INTERVAL + " < now() " +
+                        " AND files[1].format IN(" + inFormats() + ") " +
                         " AND NOT EXISTS(select true from " + ConversionReport.TYPE + " cr WHERE qu.id = cr.queue_item_id) RETURNING *)" +
                         "SELECT * FROM del",
                 ps -> ps.setInt(1, QueueItem.Status.COMPLETED.getCode()),
                 (rs, rowNum) -> map(rs)
         );
+    }
+
+    @Override
+    public String getBaseAdditionalClause() {
+        return "AND files[1].format IN(" + inFormats() + ")";
     }
 
     @Override

@@ -76,7 +76,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public boolean accept(Message message) {
-        return Set.of(FormatsConfiguration.ALL_CONVERTER, FormatsConfiguration.DEFAULT_CONVERTER).contains(converter);
+        return Set.of(FormatsConfiguration.ALL_CONVERTER, FormatsConfiguration.DOCUMENT_CONVERTER).contains(converter);
     }
 
     @Override
