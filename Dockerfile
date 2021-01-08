@@ -11,11 +11,10 @@ USER root
 ENV DEBIAN_FRONTEND noninteractive
 ENV USE_SANDBOX false
 
-RUN apt-get update -y -qq
-RUN apt-get install -y -qq openjdk-11-jre build-essential curl wget git gdebi p7zip-rar locales rar zip unzip
+RUN apt-get update -y && apt-get install -y openjdk-11-jre build-essential curl wget git gdebi p7zip-rar locales rar zip unzip
 
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-RUN apt-get install -y -qq nodejs
+RUN apt-get install -y nodejs
 
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 RUN gdebi --n google-chrome-stable_current_amd64.deb
@@ -40,9 +39,8 @@ RUN wget https://github.com/jankovicsandras/imagetracerjava/raw/master/ImageTrac
 USER root
 
 RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-RUN apt-get update -y -qq
-RUN apt-get -y -qq build-dep imagemagick
-RUN apt-get install -y -qq libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev libheif-dev
+RUN apt-get update -y && apt-get -y build-dep imagemagick && \
+apt-get install -y libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev libheif-dev
 
 RUN echo 'Imagemagick 7.0.10-19'
 RUN cd /usr/src/ && \
