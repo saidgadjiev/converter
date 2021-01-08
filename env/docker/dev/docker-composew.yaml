@@ -1,11 +1,69 @@
 version: '2.4'
 services:
-  converter:
-    container_name: converter
+  videoconverter:
+    container_name: videoconverter
+    restart: always
+    build:
+      context: ../../../
+      dockerfile: videoaudio/Dockerfile
+    volumes:
+      - ../../../data/converter/logs:/home/bot/app/logs
+      - ../../../data/converter/oom:/home/bot/app/oom
+      - ../../../data/shr:/tmp/shr
+      - ../../../../fonts:/usr/share/fonts/converter
+      - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
+    ports:
+      - 5005:5005
+    mem_limit: 4g
+    memswap_limit: 8g
+    env_file:
+      - .env
+    depends_on:
+      - url2api
+  audioconverter:
+    container_name: audioconverter
+    restart: always
+    build:
+      context: ../../../
+      dockerfile: videoaudio/Dockerfile
+    volumes:
+      - ../../../data/converter/logs:/home/bot/app/logs
+      - ../../../data/converter/oom:/home/bot/app/oom
+      - ../../../data/shr:/tmp/shr
+      - ../../../../fonts:/usr/share/fonts/converter
+      - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
+    ports:
+      - 5005:5005
+    mem_limit: 4g
+    memswap_limit: 8g
+    env_file:
+      - .env
+    depends_on:
+      - url2api
+  documentconverter:
+    container_name: documentconverter
     restart: always
     build:
       context: ../../../
       dockerfile: document/Dockerfile
+    volumes:
+      - ../../../data/converter/logs:/home/bot/app/logs
+      - ../../../data/converter/oom:/home/bot/app/oom
+      - ../../../data/shr:/tmp/shr
+      - ../../../../fonts:/usr/share/fonts/converter
+      - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
+    ports:
+      - 5005:5005
+    mem_limit: 4g
+    memswap_limit: 8g
+    env_file:
+      - .env
+    depends_on:
+      - url2api
+  converter:
+    container_name: converter
+    restart: always
+    build: ../../../
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom
