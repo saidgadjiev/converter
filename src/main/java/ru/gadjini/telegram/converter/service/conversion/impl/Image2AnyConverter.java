@@ -50,7 +50,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
 
             SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
+                imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(), getOptions(fileQueueItem.getTargetFormat()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return fileQueueItem.getTargetFormat() == STICKER
@@ -73,5 +73,15 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
         if (fileQueueItem.getFirstFileFormat() == PHOTO) {
             fileQueueItem.getFirstFile().setFormat(JPG);
         }
+    }
+
+    private String[] getOptions(Format targetFormat) {
+        if (targetFormat == JPG) {
+            return new String[]{
+                    "-alpha", "remove"
+            };
+        }
+
+        return new String[0];
     }
 }
