@@ -6,17 +6,9 @@ public class ConverterCommandNames {
 
     }
 
-    public static final String START_COMMAND = "start";
-
-    public static final String HELP_COMMAND = "help";
-
-    public static final String LANGUAGE_COMMAND_NAME = "language";
-
     public static final String FORMATS_COMMAND = "formats";
 
     public static final String REPORT_COMMAND_NAME = "e";
-
-    public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
 
     public static final String CONVERSION_STATS_COMMAND = "cstats";
 

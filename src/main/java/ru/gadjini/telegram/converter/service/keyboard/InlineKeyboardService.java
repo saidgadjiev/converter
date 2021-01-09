@@ -21,9 +21,16 @@ public class InlineKeyboardService {
         this.smartInlineKeyboardService = smartInlineKeyboardService;
     }
 
+    public InlineKeyboardMarkup getManuallyCompressionSettingsKeyboard(Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackDelegate(locale)));
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.report(queueItemId, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.autoAudioCompressionMode(locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.manuallyAudioCompressionMode(locale)));
         return inlineKeyboardMarkup;
     }
 

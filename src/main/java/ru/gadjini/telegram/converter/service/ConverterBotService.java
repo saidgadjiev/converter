@@ -10,11 +10,11 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.CurrReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandExecutor;
@@ -94,11 +94,11 @@ public class ConverterBotService {
     }
 
     private boolean restoreCommand(long chatId, String command) {
-        if (StringUtils.isNotBlank(command) && command.startsWith(BotCommand.COMMAND_INIT_CHARACTER + ConverterCommandNames.START_COMMAND)) {
+        if (StringUtils.isNotBlank(command) && command.startsWith(BotCommand.COMMAND_INIT_CHARACTER + CommandNames.START_COMMAND_NAME)) {
             return false;
         }
         if (commandNavigator.isEmpty(chatId)) {
-            commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(ConverterCommandNames.START_COMMAND));
+            commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND_NAME));
             Locale locale = userService.getLocaleOrDefault((int) chatId);
             messageService.sendBotRestartedMessage(chatId, replyKeyboardService.removeKeyboard(chatId), locale);
 

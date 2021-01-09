@@ -1,15 +1,13 @@
 package ru.gadjini.telegram.converter.request;
 
-public enum Arg {
+public enum ConverterArg {
 
-    QUEUE_ITEM_ID("a"),
-    PREV_HISTORY_NAME("b"),
-    CALLBACK_DELEGATE("d"),
-    AUDIO_COMPRESS_MODE("e");
+    AUDIO_COMPRESS_MODE("e"),
+    GO_BACK("f");
 
     private final String key;
 
-    Arg(String key) {
+    ConverterArg(String key) {
         this.key = key;
     }
 

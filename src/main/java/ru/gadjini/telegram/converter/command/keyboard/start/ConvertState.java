@@ -1,5 +1,7 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
+import ru.gadjini.telegram.converter.service.conversion.impl.compressaudio.AudioCompressionMode;
+import ru.gadjini.telegram.converter.service.conversion.impl.compressaudio.state.AudioCompressSettingsStateName;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -17,6 +19,14 @@ public class ConvertState {
     private Format multiMediaFormat;
 
     private boolean textAppendedMessageSent = false;
+
+    private AudioCompressSettingsStateName audioCompressSettingsStateName = AudioCompressSettingsStateName.MAIN;
+
+    private int audioCompressSettingsMessageId;
+
+    private AudioCompressionMode audioCompressionMode = AudioCompressionMode.AUTO;
+
+    private String audioCompressionBitRate;
 
     public int getMessageId() {
         return messageId;
@@ -69,5 +79,37 @@ public class ConvertState {
 
     public void setMultiMediaFormat(Format multiMediaFormat) {
         this.multiMediaFormat = multiMediaFormat;
+    }
+
+    public AudioCompressSettingsStateName getAudioCompressSettingsStateName() {
+        return audioCompressSettingsStateName;
+    }
+
+    public void setAudioCompressSettingsStateName(AudioCompressSettingsStateName audioCompressSettingsStateName) {
+        this.audioCompressSettingsStateName = audioCompressSettingsStateName;
+    }
+
+    public int getAudioCompressSettingsMessageId() {
+        return audioCompressSettingsMessageId;
+    }
+
+    public void setAudioCompressSettingsMessageId(int audioCompressSettingsMessageId) {
+        this.audioCompressSettingsMessageId = audioCompressSettingsMessageId;
+    }
+
+    public AudioCompressionMode getAudioCompressionMode() {
+        return audioCompressionMode;
+    }
+
+    public void setAudioCompressionMode(AudioCompressionMode audioCompressionMode) {
+        this.audioCompressionMode = audioCompressionMode;
+    }
+
+    public String getAudioCompressionBitRate() {
+        return audioCompressionBitRate;
+    }
+
+    public void setAudioCompressionBitRate(String audioCompressionBitRate) {
+        this.audioCompressionBitRate = audioCompressionBitRate;
     }
 }

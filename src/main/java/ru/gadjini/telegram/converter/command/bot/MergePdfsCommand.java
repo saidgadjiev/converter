@@ -16,6 +16,7 @@ import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
@@ -98,7 +99,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public String getParentCommandName(long chatId) {
-        return ConverterCommandNames.START_COMMAND;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override
