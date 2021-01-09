@@ -41,4 +41,14 @@ public class ButtonFactory {
 
         return inlineKeyboardButton;
     }
+
+    public InlineKeyboardButton autoAudioCompressionMode(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.AUDIO_COMPRESSION_MODE_AUTO_COMMAND_NAME, locale));
+        inlineKeyboardButton.setCallbackData(ConverterCommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(Arg.QUEUE_ITEM_ID.getKey(), queryItemId)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
 }

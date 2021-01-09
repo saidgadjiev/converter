@@ -31,4 +31,6 @@ public class ConverterCommandNames {
     public static final String GET_EXCEPTION = "exception";
 
     public static final String MERGE_PDFS = "mergepdfs";
+
+    public static final String COMPRESS_AUDIO = "acompress";
 }

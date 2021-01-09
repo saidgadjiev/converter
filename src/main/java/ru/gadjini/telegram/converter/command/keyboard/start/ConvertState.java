@@ -38,6 +38,11 @@ public class ConvertState {
         files.add(media);
     }
 
+    public void setMedia(MessageMedia media) {
+        files.clear();
+        files.add(media);
+    }
+
     public List<MessageMedia> getFiles() {
         return files;
     }

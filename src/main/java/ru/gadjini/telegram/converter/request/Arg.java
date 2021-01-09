@@ -4,7 +4,8 @@ public enum Arg {
 
     QUEUE_ITEM_ID("a"),
     PREV_HISTORY_NAME("b"),
-    CALLBACK_DELEGATE("d");
+    CALLBACK_DELEGATE("d"),
+    AUDIO_COMPRESS_MODE("e");
 
     private final String key;
 
