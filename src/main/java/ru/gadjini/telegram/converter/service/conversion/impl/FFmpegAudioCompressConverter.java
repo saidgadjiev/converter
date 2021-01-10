@@ -41,14 +41,19 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
-        SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
-
-        if (settingsState.getBitrate().equals(AUTO_BITRATE)) {
+        String bitrate;
+        if (conversionQueueItem.getExtra() != null) {
+            SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
+            bitrate = settingsState.getBitrate();
+        } else {
+            bitrate = AUTO_BITRATE;
+        }
+        if (bitrate.equals(AUTO_BITRATE)) {
             long duration = fFprobeDevice.getDurationInSeconds(in.getAbsolutePath());
             long estimatedSize = conversionQueueItem.getSize() / 5;
             fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), getCompressOptions(autoBitrate(estimatedSize, duration)));
         } else {
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), settingsState.getBitrate());
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), bitrate);
         }
     }
 
