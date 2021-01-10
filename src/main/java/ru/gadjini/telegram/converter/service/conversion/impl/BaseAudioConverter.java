@@ -43,16 +43,15 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         try {
+            Format targetFormat = getTargetFormat(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
-                    fileQueueItem.getTargetFormat() == Format.COMPRESS
-                            ? fileQueueItem.getFirstFileFormat().getExt()
-                            : fileQueueItem.getTargetFormat().getExt());
+                    targetFormat.getExt());
             try {
                 doConvertAudio(file, out, fileQueueItem);
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 
                 SmartTempFile thumbFile = downloadThumb(fileQueueItem);
-                if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource()) && fileQueueItem.getTargetFormat().canBeSentAsAudio()
+                if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource()) && targetFormat.canBeSentAsAudio()
                         || fileQueueItem.getTargetFormat().equals(Format.VOICE)) {
                     if (fileQueueItem.getFirstFile().getDuration() == null) {
                         try {
@@ -80,6 +79,10 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         } finally {
             file.smartDelete();
         }
+    }
+
+    private Format getTargetFormat(Format src, Format target) {
+        return target == Format.COMPRESS ? src : target;
     }
 
     protected abstract void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem);

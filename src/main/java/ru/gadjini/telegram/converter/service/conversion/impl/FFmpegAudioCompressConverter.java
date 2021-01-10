@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -53,14 +54,18 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             long estimatedSize = conversionQueueItem.getSize() / 5;
             fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), getCompressOptions(autoBitrate(estimatedSize, duration)));
         } else {
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), bitrate);
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), getCompressOptions(bitrate));
         }
     }
 
     private String autoBitrate(long fileSize, long duration) {
-        double bitrate = fileSize * 8192.0 / duration;
+        double bitrate = MemoryUtils.toKbit(fileSize) * 8192.0 / duration / 1000 / getFactor();
 
         return String.valueOf(bitrate);
+    }
+
+    private int getFactor() {
+        return 6;
     }
 
     private String[] getCompressOptions(String bitrate) {
