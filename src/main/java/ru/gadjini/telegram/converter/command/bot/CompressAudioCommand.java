@@ -221,10 +221,10 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 ) + "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE, locale);
             }
         } else {
-            //TODO: validate
+            bitrate = validateBitrate(bitrate, locale);
             convertState.getSettings().setBitrate(bitrate);
             messageText = localisationService.getMessage(
-                    MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate() + "k"}, locale
+                    MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate()}, locale
             );
         }
         messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
@@ -234,6 +234,24 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
                 .build());
         commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
+    }
+
+    private String validateBitrate(String bitrate, Locale locale) {
+        if (bitrate.startsWith("-")) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE, locale));
+        }
+        bitrate = bitrate.replaceAll("[^\\d.]", "");
+        try {
+            double v = Double.parseDouble(bitrate);
+
+            if (v <= 0) {
+                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE, locale));
+            }
+        } catch (NumberFormatException ex) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE, locale));
+        }
+
+        return bitrate;
     }
 
     private void checkMedia(MessageMedia media, Locale locale) {

@@ -134,4 +134,8 @@ public class MessagesProperties {
     public static final String MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE_CHOSE = "message.audio.compression.auto.bitrate.chose";
 
     public static final String MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE = "message.audio.compression.auto.bitrate";
+
+    public static final String MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE = "message.audio.compression.bitrate.out.of.range";
+
+    public static final String MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE = "message.audio.compression.invalid.bitrate";
 }
