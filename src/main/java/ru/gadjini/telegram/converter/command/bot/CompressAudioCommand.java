@@ -4,7 +4,6 @@ import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -36,6 +35,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
+import java.util.Objects;
 
 @Component
 public class CompressAudioCommand implements BotCommand, NavigableBotCommand, CallbackBotCommand {
@@ -131,7 +131,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                     .text(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{
                                             FFmpegAudioCompressConverter.AUTO_BITRATE
-                                    }, locale) + "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE, locale))
+                                    }, locale) + "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale))
                                     .parseMode(ParseMode.HTML)
                                     .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
                                     .build(),
@@ -150,9 +150,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
     @Override
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
-        if (requestParams.contains(ConverterArg.AUTO_BIT_RATE.getKey())) {
-            setAutoBitrate(callbackQuery.getMessage().getChatId(), callbackQuery.getId());
-        } else if (requestParams.contains(ConverterArg.COMPRESS.getKey())) {
+        if (requestParams.contains(ConverterArg.COMPRESS.getKey())) {
             ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.COMPRESS_AUDIO, false, ConvertState.class);
 
             if (convertState != null) {
@@ -196,43 +194,22 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setMedia(media);
     }
 
-    private void setAutoBitrate(long chatId, String queryId) {
-        setBitrate(chatId, queryId, FFmpegAudioCompressConverter.AUTO_BITRATE);
-    }
-
     private void setBitrate(long chatId, String bitrate) {
-        setBitrate(chatId, null, bitrate);
-    }
-
-    private void setBitrate(long chatId, String queryId, String bitrate) {
         ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
         Locale locale = new Locale(convertState.getUserLanguage());
-        String messageText;
-        if (FFmpegAudioCompressConverter.AUTO_BITRATE.equals(bitrate)) {
-            if (FFmpegAudioCompressConverter.AUTO_BITRATE.equals(convertState.getSettings().getBitrate())) {
-                messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder().callbackQueryId(queryId)
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE_CHOSE,
-                                locale)).build());
-                return;
-            } else {
-                convertState.getSettings().setBitrate(bitrate);
-                messageText = localisationService.getMessage(
-                        MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate()}, locale
-                ) + "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE, locale);
-            }
-        } else {
-            bitrate = validateBitrate(bitrate, locale);
-            convertState.getSettings().setBitrate(bitrate);
-            messageText = localisationService.getMessage(
-                    MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate()}, locale
-            );
+
+        bitrate = validateBitrate(bitrate, locale);
+        if (!Objects.equals(bitrate, convertState.getSettings().getBitrate())) {
+            messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
+                    .messageId(convertState.getSettings().getMessageId())
+                    .text(localisationService.getMessage(
+                            MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{bitrate}, locale
+                    ) + "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale))
+                    .parseMode(ParseMode.HTML)
+                    .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
+                    .build());
         }
-        messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
-                .messageId(convertState.getSettings().getMessageId())
-                .text(messageText)
-                .parseMode(ParseMode.HTML)
-                .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
-                .build());
+        convertState.getSettings().setBitrate(bitrate);
         commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
     }
 

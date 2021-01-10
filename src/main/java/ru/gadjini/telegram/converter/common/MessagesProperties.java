@@ -125,19 +125,15 @@ public class MessagesProperties {
 
     public static final String MESSAGE_AUDIO_COMPRESSION_SETTINGS = "message.audio.compression.settings";
 
-    public static final String AUDIO_COMPRESSION_MODE_AUTO_COMMAND_NAME = "audio.compression.mode.auto.command.name";
-
     public static final String AUDIO_COMPRESSION_COMPRESS_COMMAND_NAME = "audio.compression.compress.command.name";
 
     public static final String MESSAGE_AUDIO_COMPRESS_WELCOME = "message.audio.compress.welcome";
 
     public static final String MESSAGE_AUDIO_COMPRESS_FILE_NOT_FOUND = "message.audio.compress.file.not.found";
 
-    public static final String MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE_CHOSE = "message.audio.compression.auto.bitrate.chose";
-
-    public static final String MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE = "message.audio.compression.auto.bitrate";
+    public static final String MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE = "message.audio.compression.choose.bitrate";
 
     public static final String MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE = "message.audio.compression.bitrate.out.of.range";
 
-    public static final String MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE = "message.audio.compression.invalid.bitrate";
+    public static final String MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE = "message.audio.compression.choose.bitrate";
 }

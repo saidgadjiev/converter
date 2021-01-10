@@ -35,17 +35,6 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton autoAudioCompressionBitrate(Locale locale) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.AUDIO_COMPRESSION_MODE_AUTO_COMMAND_NAME, locale));
-        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
-                        .add(ConverterArg.AUTO_BIT_RATE.getKey(), "a")
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
     public InlineKeyboardButton audioCompress(Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.AUDIO_COMPRESSION_COMPRESS_COMMAND_NAME, locale));
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
