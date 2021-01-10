@@ -57,7 +57,6 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup getAudioCompressionKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.AUDIO_COMPRESSION_COMPRESS_COMMAND_NAME, locale)));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;

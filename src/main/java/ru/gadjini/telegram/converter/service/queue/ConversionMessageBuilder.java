@@ -104,7 +104,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     private String getConversionProgressingMessage(ConversionQueueItem queueItem, Locale locale) {
         StringBuilder text = new StringBuilder();
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
-            text.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
+            text.append(localisationService.getMessage(MessagesProperties.MESSAGE_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.MERGE_PDFS) {
             text.append(localisationService.getMessage(MessagesProperties.MESSAGE_MERGE_FILES_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else {

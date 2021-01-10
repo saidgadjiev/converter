@@ -9,7 +9,7 @@ public class MessagesProperties {
 
     public static final String MESSAGE_FILES_QUEUED = "message.files.queued";
 
-    public static final String MESSAGE_VIDEO_COMPRESS_QUEUED = "message.video.compress.queued";
+    public static final String MESSAGE_COMPRESS_QUEUED = "message.compress.queued";
 
     public static final String MESSAGE_FILE_FORMAT = "message.file.format";
 

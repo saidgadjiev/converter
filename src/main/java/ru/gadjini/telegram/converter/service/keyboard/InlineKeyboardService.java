@@ -24,6 +24,7 @@ public class InlineKeyboardService {
     public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.autoAudioCompressionBitrate(locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.audioCompress(locale)));
         return inlineKeyboardMarkup;
     }
 
