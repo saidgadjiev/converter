@@ -30,8 +30,10 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
         StringBuilder info = new StringBuilder();
 
         info.append("/").append(CommandNames.START_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.START_COMMAND_DESCRIPTION, locale)).append("\n");
-        if (Set.of(FormatsConfiguration.AUDIO_CONVERTER, FormatsConfiguration.ALL_CONVERTER).contains(converter)) {
+        if (Set.of(FormatsConfiguration.DOCUMENT_CONVERTER, FormatsConfiguration.ALL_CONVERTER).contains(converter)) {
             info.append("/").append(ConverterCommandNames.MERGE_PDFS).append(" - ").append(localisationService.getMessage(MessagesProperties.MERGE_COMMAND_DESCRIPTION, locale)).append("\n");
+        }
+        if (Set.of(FormatsConfiguration.AUDIO_CONVERTER, FormatsConfiguration.ALL_CONVERTER).contains(converter)) {
             info.append("/").append(ConverterCommandNames.COMPRESS_AUDIO).append(" - ").append(localisationService.getMessage(MessagesProperties.COMPRESS_AUDIO_COMMAND_DESCRIPTION, locale)).append("\n");
         }
         info.append("/").append(CommandNames.LANGUAGE_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_DESCRIPTION, locale)).append("\n");
