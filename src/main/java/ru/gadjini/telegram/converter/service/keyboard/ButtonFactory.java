@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
-import ru.gadjini.telegram.converter.service.conversion.impl.compressaudio.AudioCompressionMode;
 import ru.gadjini.telegram.smart.bot.commons.command.impl.CallbackDelegate;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.request.Arg;
@@ -36,34 +35,12 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton autoAudioCompressionMode(Locale locale) {
+    public InlineKeyboardButton autoAudioCompressionBitrate(Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.AUDIO_COMPRESSION_MODE_AUTO_COMMAND_NAME, locale));
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
-                        .add(ConverterArg.AUDIO_COMPRESS_MODE.getKey(), AudioCompressionMode.AUTO.name())
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
-    public InlineKeyboardButton manuallyAudioCompressionMode(Locale locale) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.AUDIO_COMPRESSION_MODE_MANUALLY_COMMAND_NAME, locale));
-        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
-                        .add(ConverterArg.AUDIO_COMPRESS_MODE.getKey(), AudioCompressionMode.MANUALLY.name())
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
-    public InlineKeyboardButton goBackDelegate(Locale locale) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale));
-        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
-                        .add(ConverterArg.GO_BACK.getKey(), "g")
+                        .add(ConverterArg.AUTO_BIT_RATE.getKey(), "a")
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

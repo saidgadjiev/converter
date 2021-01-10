@@ -4,16 +4,19 @@ import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
+import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
-import ru.gadjini.telegram.converter.service.conversion.impl.compressaudio.AudioCompressionMode;
-import ru.gadjini.telegram.converter.service.conversion.impl.compressaudio.state.StateFatherAudioCompressSettingsState;
+import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
@@ -55,8 +58,6 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
     private MessageMediaService messageMediaService;
 
-    private StateFatherAudioCompressSettingsState stateFather;
-
     private XSync<Long> longXSync;
 
     @Autowired
@@ -65,7 +66,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                                 @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                                 CommandStateService commandStateService, ConvertionService convertionService,
                                 WorkQueueJob workQueueJob, MessageMediaService messageMediaService,
-                                StateFatherAudioCompressSettingsState stateFather, XSync<Long> longXSync) {
+                                XSync<Long> longXSync) {
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
@@ -75,7 +76,6 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         this.convertionService = convertionService;
         this.workQueueJob = workQueueJob;
         this.messageMediaService = messageMediaService;
-        this.stateFather = stateFather;
         this.longXSync = longXSync;
     }
 
@@ -136,19 +136,19 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                         commandStateService.deleteState(message.getChatId(), ConverterCommandNames.COMPRESS_AUDIO);
                     }
                 } else {
-                    stateFather.bitrate(message.getChatId(), text);
+                    setBitrate(message.getChatId(), text);
                 }
             } else {
                 ConvertState convertState = createState(message);
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{
-                                        AudioCompressionMode.AUTO.name(), AudioCompressionMode.AUTO.name()
+                                        FFmpegAudioCompressConverter.AUTO_BITRATE
                                 }, locale))
                                 .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
                                 .build(),
                         sent -> {
-                            convertState.setAudioCompressSettingsMessageId(sent.getMessageId());
+                            convertState.getSettings().setMessageId(sent.getMessageId());
                             commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
                         }
                 );
@@ -158,10 +158,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
     @Override
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
-        if (requestParams.contains(ConverterArg.AUDIO_COMPRESS_MODE.getKey())) {
-            stateFather.mode(callbackQuery, AudioCompressionMode.valueOf(requestParams.getString(ConverterArg.AUDIO_COMPRESS_MODE.getKey())));
-        } else if (requestParams.contains(ConverterArg.GO_BACK.getKey())) {
-            stateFather.goBack(callbackQuery.getMessage().getChatId());
+        if (requestParams.contains(ConverterArg.AUTO_BIT_RATE.getKey())) {
+            setAutoBitrate(callbackQuery.getMessage().getChatId(), callbackQuery.getId());
         }
     }
 
@@ -175,12 +173,53 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         convertState.setMessageId(message.getMessageId());
         convertState.setUserLanguage(locale.getLanguage());
+        convertState.setSettings(new SettingsState());
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         checkMedia(media, locale);
         convertState.setMedia(media);
 
         return convertState;
+    }
+
+    private void setAutoBitrate(long chatId, String queryId) {
+        setBitrate(chatId, queryId, FFmpegAudioCompressConverter.AUTO_BITRATE);
+    }
+
+    private void setBitrate(long chatId, String bitrate) {
+        setBitrate(chatId, null, bitrate);
+    }
+
+    private void setBitrate(long chatId, String queryId, String bitrate) {
+        ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
+        Locale locale = new Locale(convertState.getUserLanguage());
+        String messageText;
+        if (FFmpegAudioCompressConverter.AUTO_BITRATE.equals(bitrate)) {
+            if (FFmpegAudioCompressConverter.AUTO_BITRATE.equals(convertState.getSettings().getBitrate())) {
+                messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE_CHOSE,
+                                locale)).build());
+                return;
+            } else {
+                convertState.getSettings().setBitrate(bitrate);
+                messageText = localisationService.getMessage(
+                        MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate()}, locale
+                ) + "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE, locale);
+            }
+        } else {
+            //TODO: validate
+            convertState.getSettings().setBitrate(bitrate);
+            messageText = localisationService.getMessage(
+                    MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate()}, locale
+            );
+        }
+        messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
+                .messageId(convertState.getSettings().getMessageId())
+                .text(messageText)
+                .parseMode(ParseMode.HTML)
+                .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
+                .build());
+        commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
     }
 
     private void checkMedia(MessageMedia media, Locale locale) {

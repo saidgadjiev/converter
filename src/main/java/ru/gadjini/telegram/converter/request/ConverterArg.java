@@ -2,8 +2,7 @@ package ru.gadjini.telegram.converter.request;
 
 public enum ConverterArg {
 
-    AUDIO_COMPRESS_MODE("e"),
-    GO_BACK("f");
+    AUTO_BIT_RATE("e");
 
     private final String key;
 
