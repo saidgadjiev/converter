@@ -144,7 +144,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{
                                         FFmpegAudioCompressConverter.AUTO_BITRATE
-                                }, locale))
+                                }, locale) + "\n\n" + localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_AUTO_BITRATE, locale))
+                                .parseMode(ParseMode.HTML)
                                 .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
                                 .build(),
                         sent -> {
@@ -174,6 +175,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setMessageId(message.getMessageId());
         convertState.setUserLanguage(locale.getLanguage());
         convertState.setSettings(new SettingsState());
+        convertState.getSettings().setBitrate(FFmpegAudioCompressConverter.AUTO_BITRATE);
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         checkMedia(media, locale);
