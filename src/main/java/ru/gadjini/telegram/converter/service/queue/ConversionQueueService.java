@@ -55,6 +55,7 @@ public class ConversionQueueService {
         fileQueueItem.setUserId(user.getId());
         fileQueueItem.setReplyToMessageId(convertState.getMessageId());
         fileQueueItem.setStatus(ConversionQueueItem.Status.WAITING);
+        fileQueueItem.setExtra(convertState.getSettings());
         fileQueueItem.setTargetFormat(targetFormat);
 
         conversionQueueDao.create(fileQueueItem);

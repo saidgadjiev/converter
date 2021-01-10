@@ -3,6 +3,8 @@ package ru.gadjini.telegram.converter.dao;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,16 +48,19 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     private FileLimitProperties fileLimitProperties;
 
+    private Gson gson;
+
     @Value("${converter:all}")
     private String converter;
 
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
                               Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
-                              FileLimitProperties fileLimitProperties) {
+                              FileLimitProperties fileLimitProperties, Gson gson) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
+        this.gson = gson;
         for (Format value : Format.values()) {
             if (formats.containsKey(value.getCategory())) {
                 formatsSet.add(value);
@@ -68,8 +73,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE + " (user_id, files, reply_to_message_id, target_format, status)\n" +
-                            "    VALUES (?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE + " (user_id, files, reply_to_message_id, target_format, status, extra)\n" +
+                            "    VALUES (?, ?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
                     ps.setInt(1, queueItem.getUserId());
 
                     Object[] files = queueItem.getFiles().stream().map(TgFile::sqlObject).toArray();
@@ -79,6 +84,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                     ps.setInt(3, queueItem.getReplyToMessageId());
                     ps.setString(4, queueItem.getTargetFormat().name());
                     ps.setInt(5, queueItem.getStatus().getCode());
+                    if (queueItem.getExtra() == null) {
+                        ps.setNull(6, Types.VARCHAR);
+                    } else {
+                        ps.setString(6, gson.toJson(queueItem.getExtra()));
+                    }
 
                     return ps;
                 },
@@ -387,6 +397,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
         if (columns.contains(ConversionQueueItem.QUEUE_POSITION)) {
             fileQueueItem.setQueuePosition(rs.getInt(ConversionQueueItem.QUEUE_POSITION));
+        }
+
+        if (columns.contains(ConversionQueueItem.EXTRA)) {
+            fileQueueItem.setExtra(gson.fromJson(rs.getString(ConversionQueueItem.EXTRA), JsonElement.class));
         }
 
         if (columns.contains(ConversionQueueItem.DOWNLOADS)) {

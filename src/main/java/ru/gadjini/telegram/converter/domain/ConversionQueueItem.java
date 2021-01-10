@@ -26,6 +26,8 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     public static final String DOWNLOADS = "downloads";
 
+    public static final String EXTRA = "extra";
+
     private List<TgFile> files = new ArrayList<>();
 
     private Format targetFormat;
@@ -35,6 +37,8 @@ public class ConversionQueueItem extends WorkQueueItem {
     private String resultFileId;
 
     private List<DownloadQueueItem> downloadedFiles;
+
+    private Object extra;
 
     public Format getTargetFormat() {
         return targetFormat;
@@ -102,6 +106,14 @@ public class ConversionQueueItem extends WorkQueueItem {
         ).findAny().orElseThrow(() -> new IllegalArgumentException("Downloaded file not found for " + fileId));
 
         return new SmartTempFile(new File(queueItem.getFilePath()), queueItem.isDeleteParentDir());
+    }
+
+    public void setExtra(Object extra) {
+        this.extra = extra;
+    }
+
+    public Object getExtra() {
+        return extra;
     }
 
     @Override
