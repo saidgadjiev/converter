@@ -11,6 +11,7 @@ I can convert audios.
 Commands:
 start - restart the bot
 mergepdfs - merge pdf files
+acompress - Compress audio
 language - change language
 formats - conversion formats
 help - help

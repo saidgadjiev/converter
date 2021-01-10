@@ -107,6 +107,8 @@ public class MessagesProperties {
 
     public static final String MERGE_COMMAND_DESCRIPTION = "merge.command.description";
 
+    public static final String COMPRESS_AUDIO_COMMAND_DESCRIPTION = "compress.audio.command.description";
+
     public static final String MESSAGE_MERGE_PDFS_NO_FILES = "message.merge.pdfs.no.files";
 
     public static final String CANCEL_MERGE_PDFS_COMMAND_NAME = "cancel.merge.pdfs.command.name";
