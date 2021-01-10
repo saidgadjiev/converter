@@ -210,7 +210,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             //TODO: validate
             convertState.getSettings().setBitrate(bitrate);
             messageText = localisationService.getMessage(
-                    MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate()}, locale
+                    MessagesProperties.MESSAGE_AUDIO_COMPRESSION_SETTINGS, new Object[]{convertState.getSettings().getBitrate() + "k"}, locale
             );
         }
         messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
