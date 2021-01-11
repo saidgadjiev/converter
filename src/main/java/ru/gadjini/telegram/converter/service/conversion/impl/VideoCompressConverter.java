@@ -70,6 +70,9 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
                 String[] options = new String[]{"-c:a", "copy", "-c:t", "copy", "-c:s", "copy", "-vf",
                         "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0", "-map", "-0:d"};
+                if (fileQueueItem.getFirstFileFormat().equals(WEBM)) {
+                    options = Stream.concat(Stream.of(options), Stream.of("-deadline", "realtime")).toArray(String[]::new);
+                }
                 String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
 
@@ -108,6 +111,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         String codec = videoStream.getCodecName();
         if ("hevc".equals(codec)) {
             codec = "h264";
+        } else if ("vp9".equals(codec)) {
+            codec = "vp8";
         }
 
         return new String[]{
