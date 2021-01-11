@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,10 @@ import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -64,7 +68,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             try {
                 List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
-                String[] options = new String[]{"-c:a", "copy", "-c:t", "copy", "-vf",
+                String[] options = new String[]{"-c:a", "copy", "-c:t", "copy", "-c:s", "copy", "-vf",
                         "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0", "-map", "-0:d"};
                 String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
@@ -98,17 +102,17 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     }
 
     private String[] getOptionsByVideoStream(FFprobeDevice.Stream videoStream, int index) {
-        if ("h264".equals(videoStream.getCodec())) {
-            return new String[]{
-                    "-c:v:" + index, "libx264"
-            };
-        } else if ("mjpeg".equals(videoStream.getCodec())) {
-            return new String[]{
-                    "-c:v:" + index, "mjpeg"
-            };
+        if (StringUtils.isBlank(videoStream.getCodecName())) {
+            return new String[0];
+        }
+        String codec = videoStream.getCodecName();
+        if ("hevc".equals(codec)) {
+            codec = "h264";
         }
 
-        return new String[0];
+        return new String[]{
+                "-c:v:" + index, codec
+        };
     }
 
     private String[] getOptionsBySrc(Format src) {
