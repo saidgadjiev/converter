@@ -1,10 +1,13 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.utils.FFmpegHelper;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -34,6 +37,8 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         put(List.of(RA), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RM));
     }};
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudioCompressConverter.class);
+
     private FFmpegDevice fFmpegDevice;
 
     @Autowired
@@ -44,6 +49,12 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
 
     @Override
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
-        fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
+        try {
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), "-c:a", "copy");
+        } catch (ProcessException e) {
+            LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
+                    fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
+        }
     }
 }

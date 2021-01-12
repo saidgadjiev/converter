@@ -72,7 +72,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
 
         try {
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            String[] selectAllStreamsOptions = new String[]{"-map", "0", "-map", "-0:d", "-map", "-0:s"};
+            String[] selectAllStreamsOptions = new String[]{"-map", "0", "-map", "-0:d", "-map", "-0:s", "-map", "-0:t"};
             try {
                 SmartTempFile subtitles = null;
                 try {
@@ -123,7 +123,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
 
     private String[] getCopyCodecsOptions() {
         return new String[]{
-                "-c:v", "copy", "-c:a", "copy", "-c:t", "copy"
+                "-c:v", "copy"
         };
     }
 
