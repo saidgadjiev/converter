@@ -1,8 +1,11 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
@@ -25,8 +28,15 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private Gson gson;
+
     protected BaseAudioConverter(Map<List<Format>, List<Format>> map) {
         super(map);
+    }
+
+    @Autowired
+    public void setGson(Gson gson) {
+        this.gson = gson;
     }
 
     @Autowired
@@ -44,8 +54,23 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         try {
             Format targetFormat = getTargetFormat(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
-                    targetFormat.getExt());
+
+            SmartTempFile out;
+            if (fileQueueItem.getTargetFormat() == Format.COMPRESS) {
+                Format outTargetFormat = targetFormat;
+
+                if (fileQueueItem.getExtra() != null) {
+                    SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
+                    if (settingsState.getTargetFormat() != null) {
+                        outTargetFormat = settingsState.getTargetFormat();
+                    }
+                }
+                out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
+                        outTargetFormat.getExt());
+            } else {
+                out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
+                        targetFormat.getExt());
+            }
             try {
                 doConvertAudio(file, out, fileQueueItem);
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());

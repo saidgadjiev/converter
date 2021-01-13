@@ -123,7 +123,7 @@ public class MessagesProperties {
 
     public static final String MESSAGE_MERGE_PDFS_MIN_2_FILES = "message.merge.pdfs.min.2.files";
 
-    public static final String MESSAGE_AUDIO_COMPRESSION_SETTINGS = "message.audio.compression.settings";
+    public static final String MESSAGE_AUDIO_COMPRESSION_BITRATE = "message.audio.compression.bitrate";
 
     public static final String AUDIO_COMPRESSION_COMPRESS_COMMAND_NAME = "audio.compression.compress.command.name";
 
@@ -136,4 +136,18 @@ public class MessagesProperties {
     public static final String MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE = "message.audio.compression.bitrate.out.of.range";
 
     public static final String MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE = "message.audio.compression.choose.bitrate";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_OPUS_CONVERSION = "message.audio.compress.opus.conversion";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_SET = "message.audio.compress.prompt.opus.set";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_CANCELED = "message.audio.compress.prompt.opus.canceled";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE = "message.audio.compress.prompt.bitrate";
+
+    public static final String AUDIO_COMPRESS_CANCEL_OPUS_COMMAND_DESCRIPTION = "audio.compress.cancel.opus.command.description";
+
+    public static final String AUDIO_COMPRESS_OPUS_COMMAND_DESCRIPTION = "audio.compress.opus.command.description";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS = "message.audio.compress.prompt.opus";
 }

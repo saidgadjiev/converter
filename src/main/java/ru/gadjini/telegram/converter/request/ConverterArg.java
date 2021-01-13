@@ -2,7 +2,8 @@ package ru.gadjini.telegram.converter.request;
 
 public enum ConverterArg {
 
-    COMPRESS("f");
+    COMPRESS("f"),
+    OPUS_CONVERSION("h");
 
     private final String key;
 
