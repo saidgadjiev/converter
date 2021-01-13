@@ -53,24 +53,10 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         try {
-            Format targetFormat = getTargetFormat(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+            Format targetFormat = getTargetFormat(fileQueueItem);
 
-            SmartTempFile out;
-            if (fileQueueItem.getTargetFormat() == Format.COMPRESS) {
-                Format outTargetFormat = targetFormat;
-
-                if (fileQueueItem.getExtra() != null) {
-                    SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
-                    if (settingsState.getTargetFormat() != null) {
-                        outTargetFormat = settingsState.getTargetFormat();
-                    }
-                }
-                out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
-                        outTargetFormat.getExt());
-            } else {
-                out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
-                        targetFormat.getExt());
-            }
+            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
+                    targetFormat.getExt());
             try {
                 doConvertAudio(file, out, fileQueueItem);
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
@@ -106,8 +92,15 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private Format getTargetFormat(Format src, Format target) {
-        return target == Format.COMPRESS ? src : target;
+    private Format getTargetFormat(ConversionQueueItem fileQueueItem) {
+        if (fileQueueItem.getTargetFormat() == Format.COMPRESS && fileQueueItem.getExtra() != null) {
+            SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
+            if (settingsState.getTargetFormat() != null) {
+                return settingsState.getTargetFormat();
+            }
+        }
+
+        return fileQueueItem.getTargetFormat() == Format.COMPRESS ? fileQueueItem.getFirstFileFormat() : fileQueueItem.getTargetFormat();
     }
 
     protected abstract void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem);
