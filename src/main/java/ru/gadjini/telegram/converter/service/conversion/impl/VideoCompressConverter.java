@@ -68,8 +68,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             try {
                 List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
-                String[] options = new String[]{"-c:a", "copy", "-c:t", "copy", "-c:s", "copy", "-vf",
-                        "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0", "-map", "-0:d"};
+                String[] options = new String[]{"-c:a", "copy", "-c:s", "copy", "-vf",
+                        "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0", "-map", "-0:d", "-map", "-0:t"};
                 if (fileQueueItem.getFirstFileFormat().equals(WEBM)) {
                     options = Stream.concat(Stream.of(options), Stream.of("-deadline", "realtime")).toArray(String[]::new);
                 }
