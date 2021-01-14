@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -75,12 +76,10 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 }
                 String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
                 String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
-
-                int videoStreamIndex = 0;
-                for (FFprobeDevice.Stream stream : allStreams) {
-                    if (FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
-                        allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getOptionsByVideoStream(stream, videoStreamIndex++))).toArray(String[]::new);
-                    }
+                List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
+                for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
+                    allOptions = Stream.concat(Stream.of(allOptions),
+                            Stream.of(getOptionsByVideoStream(videoStreams.get(videoStreamIndex), videoStreamIndex++))).toArray(String[]::new);
                 }
 
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
