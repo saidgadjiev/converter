@@ -367,7 +367,9 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         fileQueueItem.setSuppressUserExceptions(rs.getBoolean(ConversionQueueItem.SUPPRESS_USER_EXCEPTIONS));
         fileQueueItem.setResultFileId(rs.getString(ConversionQueueItem.RESULT_FILE_ID));
 
-        fileQueueItem.setFiles(mapFiles(rs));
+        if (columns.contains(ConversionQueueItem.FILES_JSON)) {
+            fileQueueItem.setFiles(mapFiles(rs));
+        }
 
         Timestamp createdAt = rs.getTimestamp(ConversionQueueItem.CREATED_AT);
         if (createdAt != null) {
@@ -428,7 +430,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     }
 
     private List<TgFile> mapFiles(ResultSet rs) throws SQLException {
-        PGobject jsonArr = (PGobject) rs.getObject("files_json");
+        PGobject jsonArr = (PGobject) rs.getObject(ConversionQueueItem.FILES_JSON);
         if (jsonArr != null) {
             try {
                 List<List<TgFile>> lists = objectMapper.readValue(jsonArr.getValue(), new TypeReference<>() {

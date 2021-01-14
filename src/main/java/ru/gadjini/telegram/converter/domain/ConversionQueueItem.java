@@ -28,6 +28,8 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     public static final String EXTRA = "extra";
 
+    public static final String FILES_JSON = "files_json";
+
     private List<TgFile> files = new ArrayList<>();
 
     private Format targetFormat;
