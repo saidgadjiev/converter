@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.command.bot;
 
 import com.antkorwin.xsync.XSync;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -259,11 +261,26 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     private String buildSettingsMessage(ConvertState convertState) {
         StringBuilder message = new StringBuilder();
         Locale locale = new Locale(convertState.getUserLanguage());
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_AUDIO_FORMAT, new Object[] {convertState.getFirstFormat().getName()}, locale)).append("\n");
         if (Objects.equals(convertState.getSettings().getTargetFormat(), Format.OPUS)
                 && !Objects.equals(convertState.getFirstFormat(), Format.OPUS)) {
             message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_CONVERSION, locale)).append("\n");
         }
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n\n");
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n");
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE,
+                new Object[]{MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize())}, locale)).append("\n");
+        if (Objects.equals(convertState.getFirstFormat(), Format.OPUS)
+                || Objects.equals(convertState.getSettings().getTargetFormat(), Format.OPUS)) {
+            String estimatedSize = estimatedSize(convertState.getFirstFile().getDuration(), convertState.getSettings().getBitrate());
+
+            if (StringUtils.isNotBlank(estimatedSize)) {
+                message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE, new Object[]{estimatedSize}, locale)).append("\n\n");
+            } else {
+                message.append("\n");
+            }
+        } else {
+            message.append("\n");
+        }
 
         if (!Objects.equals(convertState.getFirstFormat(), Format.OPUS)) {
             if (Objects.equals(convertState.getSettings().getTargetFormat(), Format.OPUS)) {
@@ -278,5 +295,13 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale));
 
         return message.toString();
+    }
+
+    private String estimatedSize(Integer duration, String bitrate) {
+        if (duration == null) {
+            return null;
+        }
+
+        return MemoryUtils.humanReadableByteCount((long) (duration * Double.parseDouble(bitrate) * 1000 / 8));
     }
 }

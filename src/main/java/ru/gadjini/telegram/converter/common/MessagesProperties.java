@@ -150,4 +150,10 @@ public class MessagesProperties {
     public static final String AUDIO_COMPRESS_OPUS_COMMAND_DESCRIPTION = "audio.compress.opus.command.description";
 
     public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS = "message.audio.compress.prompt.opus";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE = "message.audio.compress.opus.estimated.size";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE = "message.audio.compress.original.size";
+
+    public static final String MESSAGE_AUDIO_COMPRESS_AUDIO_FORMAT = "message.audio.compress.audio.format";
 }
