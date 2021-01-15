@@ -70,18 +70,11 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
                     public void run() {
                         SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                         try {
-                            SmartTempFile tempDir = getFileService().createTempDir(fileQueueItem.getUserId(), TAG);
+                            PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
+                            pdfSaveOptions.setMemoryOptimization(true);
+                            pdfSaveOptions.setOptimizeOutput(true);
 
-                            try {
-                                PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
-                                pdfSaveOptions.setMemoryOptimization(true);
-                                pdfSaveOptions.setOptimizeOutput(true);
-                                pdfSaveOptions.setTempFolder(tempDir.getAbsolutePath());
-
-                                asposeDocument.save(result.getAbsolutePath(), pdfSaveOptions);
-                            } finally {
-                                tempDir.smartDelete();
-                            }
+                            asposeDocument.save(result.getAbsolutePath(), pdfSaveOptions);
 
                             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                             fileResultAtomicReference.set(new FileResult(fileName, result));

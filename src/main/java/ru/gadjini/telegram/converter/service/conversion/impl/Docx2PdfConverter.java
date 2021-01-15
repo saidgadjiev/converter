@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.words.Document;
+import com.aspose.words.PdfSaveOptions;
 import com.aspose.words.SaveFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -78,7 +79,10 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
                     public void run() {
                         SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                         try {
-                            doc.save(result.getAbsolutePath(), SaveFormat.PDF);
+                            PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
+                            pdfSaveOptions.setMemoryOptimization(true);
+                            pdfSaveOptions.setOptimizeOutput(true);
+                            doc.save(result.getAbsolutePath(), pdfSaveOptions);
 
                             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                             fileResultAtomicReference.set(new FileResult(fileName, result));
