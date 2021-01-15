@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component
 public class Docx2PdfConverter extends BaseAny2AnyConverter {
 
-    public static final String TAG = "word2";
+    public static final String TAG = "docx2pdf";
 
     private static final int LIGHT_FILE_PAGES = 120;
 
