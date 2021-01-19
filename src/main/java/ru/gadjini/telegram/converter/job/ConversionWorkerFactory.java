@@ -21,12 +21,10 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
-import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileUploadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -67,14 +65,12 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
     private AsposeExecutorService asposeExecutorService;
 
-    private ConversionQueueService conversionQueueService;
-
     @Autowired
     public ConversionWorkerFactory(UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService,
                                    @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                    @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
-                                   AsposeExecutorService asposeExecutorService, ConversionQueueService conversionQueueService) {
+                                   AsposeExecutorService asposeExecutorService) {
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -82,7 +78,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         this.messageService = messageService;
         this.messageBuilder = messageBuilder;
         this.asposeExecutorService = asposeExecutorService;
-        this.conversionQueueService = conversionQueueService;
     }
 
     @Autowired
@@ -237,7 +232,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
         private void sendResult(ConversionQueueItem fileQueueItem, ConvertResult convertResult) {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-            SendFileResult sendFileResult = null;
             switch (convertResult.resultType()) {
                 case FILE: {
                     FileResult fileResult = (FileResult) convertResult;
@@ -255,12 +249,14 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     break;
                 }
                 case STICKER: {
-                    SendSticker sendFileContext = SendSticker.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                    SendSticker sendSticker = SendSticker.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
                             .sticker(new InputFile(((FileResult) convertResult).getFile(), ((FileResult) convertResult).getFileName()))
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .build();
-                    sendFileResult = mediaMessageService.sendSticker(sendFileContext);
+
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendSticker.PATH, sendSticker,
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
 
                     break;
                 }
@@ -305,14 +301,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     fileUploadService.createUpload(fileQueueItem.getUserId(), SendVoice.PATH, sendVoice,
                             progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
                     break;
-            }
-            if (sendFileResult != null) {
-                try {
-                    LOGGER.debug("Result({}, {})", fileQueueItem.getId(), sendFileResult.getFileId());
-                    conversionQueueService.setResultFileId(fileQueueItem.getId(), sendFileResult.getFileId());
-                } catch (Exception ex) {
-                    LOGGER.error(ex.getMessage(), ex);
-                }
             }
         }
     }

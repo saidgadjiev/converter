@@ -4,8 +4,8 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 
 public class StickerResult extends FileResult {
 
-    public StickerResult(SmartTempFile file) {
-        super(null, file);
+    public StickerResult(String fileName, SmartTempFile file) {
+        super(fileName, file);
     }
 
     public ResultType resultType() {

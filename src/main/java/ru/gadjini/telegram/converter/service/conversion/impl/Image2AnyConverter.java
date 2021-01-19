@@ -14,6 +14,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -33,6 +34,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
             List.of(JP2), List.of(PNG, JPG, BMP, WEBP, TIFF, HEIC, HEIF, STICKER)
     );
 
+    private static final String[] STICKER_CONVERT_OPTIONS = new String[]{"-resize", "512x512>"};
+
     private ImageMagickDevice imageDevice;
 
     @Autowired
@@ -50,11 +53,15 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
 
             SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(), getOptions(fileQueueItem.getTargetFormat()));
+                String[] targetFormatOptions = getOptions(fileQueueItem.getTargetFormat());
+                String[] options = fileQueueItem.getTargetFormat() == STICKER
+                        ? Stream.concat(Stream.of(STICKER_CONVERT_OPTIONS), Stream.of(targetFormatOptions)).toArray(String[]::new)
+                        : targetFormatOptions;
+                imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(), options);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return fileQueueItem.getTargetFormat() == STICKER
-                        ? new StickerResult(tempFile)
+                        ? new StickerResult(fileName, tempFile)
                         : new FileResult(fileName, tempFile);
             } catch (Throwable e) {
                 tempFile.smartDelete();
