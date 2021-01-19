@@ -79,7 +79,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
                 for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
                     allOptions = Stream.concat(Stream.of(allOptions),
-                            Stream.of(getOptionsByVideoStream(videoStreams.get(videoStreamIndex), videoStreamIndex++))).toArray(String[]::new);
+                            Stream.of(getOptionsByVideoStream(videoStreams.get(videoStreamIndex), videoStreamIndex))).toArray(String[]::new);
                 }
 
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
