@@ -84,7 +84,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                         //Try to copy video codecs
                         fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(allOptions), Stream.of(getVideoCodecsCopyOptions())).toArray(String[]::new));
                     } catch (ProcessException e1) {
-                        LOGGER.error("Error copy video codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
+                        LOGGER.debug("Error copy video codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                                 fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
                         String[] options = getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
                         allOptions = Stream.concat(Stream.of(options), Stream.of(allOptions)).toArray(String[]::new);
