@@ -27,8 +27,10 @@ public class UploadJobEventListener {
         SendFileResult sendFileResult = uploadCompleted.getSendFileResult();
         UploadQueueItem queueItem = uploadCompleted.getUploadQueueItem();
         try {
-            LOGGER.debug("Result({}, {})", queueItem.getProducerId(), sendFileResult.getFileId());
-            conversionQueueService.setResultFileId(queueItem.getProducerId(), sendFileResult.getFileId());
+            if (sendFileResult != null) {
+                LOGGER.debug("Result({}, {})", queueItem.getProducerId(), sendFileResult.getFileId());
+                conversionQueueService.setResultFileId(queueItem.getProducerId(), sendFileResult.getFileId());
+            }
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
         }
