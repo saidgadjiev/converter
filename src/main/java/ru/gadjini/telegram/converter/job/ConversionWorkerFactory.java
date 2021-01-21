@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
 
 @Component
 public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQueueItem> {
@@ -121,6 +122,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     public class ConversionWorker implements QueueWorker {
 
         private final ConversionQueueItem fileQueueItem;
+        private volatile Supplier<Boolean> cancelChecker;
+        private volatile boolean canceledByUser;
 
         private ConversionWorker(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
@@ -136,7 +139,9 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     mediaMessageService.sendDocument(new SendDocument(String.valueOf(fileQueueItem.getUserId()), new InputFile(fileQueueItem.getResultFileId())));
                 } else {
                     sendConvertingProgress(fileQueueItem);
-                    ConvertResult convertResult = candidate.convert(fileQueueItem);
+                    ConvertResult convertResult = candidate.convert(fileQueueItem,
+                            () -> cancelChecker != null && cancelChecker.get(),
+                            () -> canceledByUser);
                     if (convertResult.resultType() == ResultType.BUSY) {
                         LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getTargetFormat());
 
@@ -151,6 +156,16 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             } else {
                 throw new ConvertException("Candidate not found src " + fileQueueItem.getFirstFile().getFormat() + " target " + fileQueueItem.getTargetFormat());
             }
+        }
+
+        @Override
+        public void setCancelChecker(Supplier<Boolean> cancelChecker) {
+            this.cancelChecker = cancelChecker;
+        }
+
+        @Override
+        public void setCanceledByUser(boolean canceledByUser) {
+            this.canceledByUser = canceledByUser;
         }
 
         @Override
@@ -199,6 +214,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             }
         }
 
+        @SuppressWarnings("PMD")
         private void sendConvertingProgress(ConversionQueueItem queueItem) {
             Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
             String message = messageBuilder.getConversionProcessingMessage(queueItem,
@@ -210,11 +226,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                                 .messageId(queueItem.getProgressMessageId()).text(message)
                                 .replyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale))
                                 .build());
-            } catch (Exception e) {
-                LOGGER.error("Ignore exception\n" + e.getMessage(), e);
+            } catch (Exception ignore) {
             }
         }
 
+        @SuppressWarnings("PMD")
         private void sendConvertingFinishedProgress(ConversionQueueItem conversionQueueItem) {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             String uploadingProgressMessage = messageBuilder.getConversionProcessingMessage(conversionQueueItem,
@@ -225,8 +241,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                                 .messageId(conversionQueueItem.getProgressMessageId()).text(uploadingProgressMessage)
                                 .replyMarkup(smartInlineKeyboardService.getWaitingKeyboard(conversionQueueItem.getId(), locale))
                                 .build());
-            } catch (Exception e) {
-                LOGGER.error("Ignore exception\n" + e.getMessage(), e);
+            } catch (Exception ignore) {
             }
         }
 

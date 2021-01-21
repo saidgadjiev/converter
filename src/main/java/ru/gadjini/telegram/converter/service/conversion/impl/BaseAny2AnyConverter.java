@@ -17,6 +17,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
@@ -71,11 +72,17 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
+    public ConvertResult convert(ConversionQueueItem fileQueueItem, Supplier<Boolean> cancelChecker, Supplier<Boolean> canceledByUserChecker) {
         try {
             return doConvert(fileQueueItem);
         } finally {
-            fileQueueItem.getDownloadedFiles().forEach(SmartTempFile::smartDelete);
+            if (cancelChecker.get()) {
+                if (canceledByUserChecker.get()) {
+                    doDeleteFiles(fileQueueItem);
+                }
+            } else {
+                doDeleteFiles(fileQueueItem);
+            }
         }
     }
 
@@ -90,6 +97,10 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         }
 
         return total;
+    }
+
+    private void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFiles().forEach(SmartTempFile::smartDelete);
     }
 
     private int createDownloads0(ConversionQueueItem conversionQueueItem) {

@@ -284,7 +284,9 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private void check(Message message, Locale locale) {
         if (message.hasDocument() || message.hasText() || message.hasPhoto()
-                || message.hasSticker() || message.hasVideo() || message.hasAudio() || message.hasVoice()) {
+                || message.hasSticker() || message.hasVideo() || message.hasAudio() || message.hasVoice()
+                || message.hasVideoNote()
+        ) {
             return;
         }
 
