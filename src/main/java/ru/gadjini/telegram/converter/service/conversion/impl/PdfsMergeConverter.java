@@ -42,7 +42,7 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
-        List<SmartTempFile> pdfs = fileQueueItem.getDownloadedFiles();
+        List<SmartTempFile> pdfs = fileQueueItem.getDownloadedFilesWithoutThumbs();
 
         SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
         try {

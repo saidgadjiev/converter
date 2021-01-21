@@ -72,7 +72,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem, Format targetFormat) {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-        List<SmartTempFile> images = fileQueueItem.getDownloadedFiles();
+        List<SmartTempFile> images = fileQueueItem.getDownloadedFilesWithoutThumbs();
 
         try {
             String parentDir = images.iterator().next().getParent() + File.separator;
