@@ -99,6 +99,11 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         }
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private String[] getOptionsByVideoStream(FFprobeDevice.Stream videoStream, int index) {
         if (StringUtils.isBlank(videoStream.getCodecName())) {
             return new String[0];

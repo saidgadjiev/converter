@@ -99,10 +99,6 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return total;
     }
 
-    private void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFilesWithoutThumbs().forEach(SmartTempFile::smartDelete);
-    }
-
     private int createDownloads0(ConversionQueueItem conversionQueueItem) {
         if (conversionQueueItem.getFiles().size() > 1) {
             int i = 0;
@@ -148,4 +144,8 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     protected abstract ConvertResult doConvert(ConversionQueueItem conversionQueueItem);
+
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+
+    }
 }

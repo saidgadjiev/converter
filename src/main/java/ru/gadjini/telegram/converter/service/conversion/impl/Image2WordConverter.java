@@ -59,6 +59,11 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
         }
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private void normalize(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFirstFileFormat() == Format.PHOTO) {
             fileQueueItem.getFirstFile().setFormat(Format.JPG);

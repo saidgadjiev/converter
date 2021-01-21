@@ -55,6 +55,11 @@ public class Html2AnyConverter extends BaseAny2AnyConverter {
         }
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private String getOutputType(Format target) {
         switch (target) {
             case PDF:

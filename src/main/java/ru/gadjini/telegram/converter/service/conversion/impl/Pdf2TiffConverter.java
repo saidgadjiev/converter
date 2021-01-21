@@ -53,4 +53,9 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
             pdf.dispose();
         }
     }
+
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
 }

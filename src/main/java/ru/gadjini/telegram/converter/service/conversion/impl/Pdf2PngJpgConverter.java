@@ -76,6 +76,11 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
         }
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private String[] getOptions(Format format) {
         if (format == Format.PNG) {
             return new String[]{

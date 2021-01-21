@@ -88,6 +88,11 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         }
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private Format getTargetFormat(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getTargetFormat() == Format.COMPRESS && fileQueueItem.getExtra() != null) {
             SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);

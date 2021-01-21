@@ -42,7 +42,7 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
-        List<SmartTempFile> pdfs = fileQueueItem.getDownloadedFilesWithoutThumbs();
+        List<SmartTempFile> pdfs = fileQueueItem.getDownloadedFiles();
 
         SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
         try {
@@ -55,5 +55,10 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
             result.smartDelete();
             throw e;
         }
+    }
+
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFiles().forEach(SmartTempFile::smartDelete);
     }
 }

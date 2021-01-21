@@ -67,4 +67,9 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
             fileResult.getSmartFile().smartDelete();
         }
     }
+
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        images2PdfTiffConverter.doDeleteFiles(fileQueueItem);
+    }
 }

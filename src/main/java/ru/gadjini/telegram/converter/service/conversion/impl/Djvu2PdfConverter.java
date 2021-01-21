@@ -48,4 +48,9 @@ public class Djvu2PdfConverter extends BaseAny2AnyConverter {
             throw e;
         }
     }
+
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
 }

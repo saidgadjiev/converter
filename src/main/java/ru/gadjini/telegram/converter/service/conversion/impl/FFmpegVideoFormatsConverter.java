@@ -127,6 +127,11 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         }
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private String[] getSubtitlesFilterOptions(String subtitlesPath) {
         return new String[]{
                 "-vf", "subtitles=" + subtitlesPath

@@ -104,7 +104,7 @@ public class ConversionQueueItem extends WorkQueueItem {
         this.downloadQueueItems = downloadQueueItems;
     }
 
-    public List<SmartTempFile> getDownloadedFilesWithoutThumbs() {
+    public List<SmartTempFile> getDownloadedFiles() {
         return files == null ? Collections.emptyList() :
                 files.stream()
                         .map(file -> getDownloadedFile(file.getFileId()))

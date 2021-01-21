@@ -142,6 +142,11 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         return fileResult;
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private ConvertResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) throws Exception {
         AtomicReference<FileResult> fileResultAtomicReference = new AtomicReference<>();
 

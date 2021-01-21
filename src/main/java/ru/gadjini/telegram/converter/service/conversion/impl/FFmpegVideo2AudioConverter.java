@@ -95,6 +95,11 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private String[] getExtractAudioOptions(int streamIndex) {
         return new String[]{
                 "-map", "0:a:" + streamIndex

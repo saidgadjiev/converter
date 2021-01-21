@@ -72,7 +72,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem, Format targetFormat) {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-        List<SmartTempFile> images = fileQueueItem.getDownloadedFilesWithoutThumbs();
+        List<SmartTempFile> images = fileQueueItem.getDownloadedFiles();
 
         try {
             String parentDir = images.iterator().next().getParent() + File.separator;
@@ -95,6 +95,11 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }
+    }
+
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFiles().forEach(SmartTempFile::smartDelete);
     }
 
     private Collection<TgFile> prepareFilesToDownload(ConversionQueueItem queueItem) {

@@ -50,6 +50,11 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
         }
     }
 
+    @Override
+    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
     private String[] command(String in, String out) {
         return new String[]{"node", "tgs-to-gif/cli.js", in, "--out", out};
     }
