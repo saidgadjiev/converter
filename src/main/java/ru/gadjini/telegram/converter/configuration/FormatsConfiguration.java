@@ -71,7 +71,7 @@ public class FormatsConfiguration {
     }
 
     @Bean
-    public Set<FormatCategory> formatCategories() {
+    public Set<FormatCategory> formatCategories(Map<FormatCategory, Map<List<Format>, List<Format>>> formats) {
         return formats.keySet();
     }
 }
