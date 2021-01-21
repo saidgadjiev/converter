@@ -71,8 +71,6 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            file.smartDelete();
         }
     }
 

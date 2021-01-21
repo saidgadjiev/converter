@@ -56,8 +56,6 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
             }
         } catch (Exception e) {
             throw new ConvertException(e);
-        } finally {
-            file.smartDelete();
         }
     }
 

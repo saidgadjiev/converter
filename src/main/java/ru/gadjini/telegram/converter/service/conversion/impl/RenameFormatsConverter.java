@@ -30,20 +30,16 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
     protected ConvertResult doConvert(ConversionQueueItem conversionQueueItem) {
         SmartTempFile src = conversionQueueItem.getDownloadedFile(conversionQueueItem.getFirstFileId());
 
+        SmartTempFile out = getFileService().createTempFile(conversionQueueItem.getUserId(), conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());
+
         try {
-            SmartTempFile out = getFileService().createTempFile(conversionQueueItem.getUserId(), conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());
+            src.renameTo(out.getFile());
 
-            try {
-                src.renameTo(out.getFile());
-
-                String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFirstFileName(), conversionQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, out);
-            } catch (Throwable e) {
-                out.smartDelete();
-                throw e;
-            }
-        } finally {
-            src.smartDelete();
+            String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFirstFileName(), conversionQueueItem.getTargetFormat().getExt());
+            return new FileResult(fileName, out);
+        } catch (Throwable e) {
+            out.smartDelete();
+            throw e;
         }
     }
 }

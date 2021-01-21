@@ -63,8 +63,6 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
             }
         } catch (Throwable ex) {
             throw new ConvertException(ex);
-        } finally {
-            file.smartDelete();
         }
     }
 

@@ -8,7 +8,9 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ConversionQueueItem extends WorkQueueItem {
 
@@ -38,7 +40,7 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     private String resultFileId;
 
-    private List<DownloadQueueItem> downloadedFiles;
+    private List<DownloadQueueItem> downloadQueueItems;
 
     private Object extra;
 
@@ -94,16 +96,23 @@ public class ConversionQueueItem extends WorkQueueItem {
         return getFirstFile().getFileName();
     }
 
-    public List<DownloadQueueItem> getDownloadedFiles() {
-        return downloadedFiles;
+    public List<DownloadQueueItem> getDownloadQueueItems() {
+        return downloadQueueItems;
     }
 
-    public void setDownloadedFiles(List<DownloadQueueItem> downloadedFiles) {
-        this.downloadedFiles = downloadedFiles;
+    public void setDownloadQueueItems(List<DownloadQueueItem> downloadQueueItems) {
+        this.downloadQueueItems = downloadQueueItems;
+    }
+
+    public List<SmartTempFile> getDownloadedFiles() {
+        return downloadQueueItems == null ? Collections.emptyList() :
+                downloadQueueItems.stream()
+                        .map(downloadQueueItem -> new SmartTempFile(new File(downloadQueueItem.getFilePath()), downloadQueueItem.isDeleteParentDir()))
+                        .collect(Collectors.toList());
     }
 
     public SmartTempFile getDownloadedFile(String fileId) {
-        DownloadQueueItem queueItem = downloadedFiles.stream().filter(
+        DownloadQueueItem queueItem = downloadQueueItems.stream().filter(
                 downloadingQueueItem -> downloadingQueueItem.getFile().getFileId().equals(fileId)
         ).findAny().orElseThrow(() -> new IllegalArgumentException("Downloaded file not found for " + fileId));
 

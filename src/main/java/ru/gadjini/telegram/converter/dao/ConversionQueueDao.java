@@ -419,7 +419,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadQueueItem.DELETE_PARENT_DIR));
                         downloadingQueueItems.add(downloadingQueueItem);
                     }
-                    fileQueueItem.setDownloadedFiles(downloadingQueueItems);
+                    fileQueueItem.setDownloadQueueItems(downloadingQueueItems);
                 } catch (JsonProcessingException e) {
                     throw new SQLException(e);
                 }

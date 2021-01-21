@@ -64,42 +64,38 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
+        SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
-            try {
-                List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
-                String[] options = new String[]{"-c:a", "copy", "-c:s", "copy", "-vf",
-                        "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0", "-map", "-0:d", "-map", "-0:t"};
-                if (fileQueueItem.getFirstFileFormat().equals(WEBM)) {
-                    options = Stream.concat(Stream.of(options), Stream.of("-deadline", "realtime")).toArray(String[]::new);
-                }
-                String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
-                String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
-                List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
-                for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
-                    allOptions = Stream.concat(Stream.of(allOptions),
-                            Stream.of(getOptionsByVideoStream(videoStreams.get(videoStreamIndex), videoStreamIndex))).toArray(String[]::new);
-                }
-
-                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
-
-                LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
-                        fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()));
-
-                if (fileQueueItem.getSize() <= out.length()) {
-                    Locale localeOrDefault = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                    throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, localeOrDefault)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
-                }
-
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-                return new FileResult(fileName, out);
-            } catch (Throwable e) {
-                out.smartDelete();
-                throw e;
+            String[] options = new String[]{"-c:a", "copy", "-c:s", "copy", "-vf",
+                    "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map", "0", "-map", "-0:d", "-map", "-0:t"};
+            if (fileQueueItem.getFirstFileFormat().equals(WEBM)) {
+                options = Stream.concat(Stream.of(options), Stream.of("-deadline", "realtime")).toArray(String[]::new);
             }
-        } finally {
-            file.smartDelete();
+            String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
+            String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
+            List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
+            for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
+                allOptions = Stream.concat(Stream.of(allOptions),
+                        Stream.of(getOptionsByVideoStream(videoStreams.get(videoStreamIndex), videoStreamIndex))).toArray(String[]::new);
+            }
+
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
+
+            LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
+                    fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()));
+
+            if (fileQueueItem.getSize() <= out.length()) {
+                Locale localeOrDefault = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, localeOrDefault)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+            }
+
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
+            return new FileResult(fileName, out);
+        } catch (Throwable e) {
+            out.smartDelete();
+            throw e;
         }
     }
 

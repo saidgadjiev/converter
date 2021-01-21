@@ -34,27 +34,23 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
     private FileResult toTiff(ConversionQueueItem fileQueueItem) {
         SmartTempFile pdfFile = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
+        Document pdf = new Document(pdfFile.getAbsolutePath());
         try {
-            Document pdf = new Document(pdfFile.getAbsolutePath());
+            pdf.optimize();
+            pdf.optimizeResources();
+            TiffDevice tiffDevice = new TiffDevice();
+            SmartTempFile tiff = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
             try {
-                pdf.optimize();
-                pdf.optimizeResources();
-                TiffDevice tiffDevice = new TiffDevice();
-                SmartTempFile tiff = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
-                try {
-                    tiffDevice.process(pdf, tiff.getAbsolutePath());
+                tiffDevice.process(pdf, tiff.getAbsolutePath());
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
-                    return new FileResult(fileName, tiff);
-                } catch (Throwable e) {
-                    tiff.smartDelete();
-                    throw e;
-                }
-            } finally {
-                pdf.dispose();
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
+                return new FileResult(fileName, tiff);
+            } catch (Throwable e) {
+                tiff.smartDelete();
+                throw e;
             }
         } finally {
-            pdfFile.smartDelete();
+            pdf.dispose();
         }
     }
 }

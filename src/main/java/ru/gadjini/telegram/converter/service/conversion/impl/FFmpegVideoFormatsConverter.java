@@ -70,64 +70,60 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
+        SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+        String[] selectAllStreamsOptions = new String[]{"-map", "0", "-map", "-0:d", "-map", "-0:s", "-map", "-0:t"};
         try {
-            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-            String[] selectAllStreamsOptions = new String[]{"-map", "0", "-map", "-0:d", "-map", "-0:s", "-map", "-0:t"};
+            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            String[] allOptions = Stream.of(selectAllStreamsOptions).toArray(String[]::new);
             try {
-                List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-                String[] allOptions = Stream.of(selectAllStreamsOptions).toArray(String[]::new);
+                //Try to copy video audio codecs
+                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(allOptions), Stream.of(getVideoAudioCodecsCopyOptions())).toArray(String[]::new));
+            } catch (ProcessException e) {
                 try {
-                    //Try to copy video audio codecs
-                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(allOptions), Stream.of(getVideoAudioCodecsCopyOptions())).toArray(String[]::new));
-                } catch (ProcessException e) {
+                    //Try to copy video codecs
+                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(allOptions), Stream.of(getVideoCodecsCopyOptions())).toArray(String[]::new));
+                } catch (ProcessException e1) {
+                    LOGGER.debug("Error copy video codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
+                            fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+                    String[] options = getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+                    allOptions = Stream.concat(Stream.of(options), Stream.of(allOptions)).toArray(String[]::new);
+
+                    SmartTempFile subtitles = null;
                     try {
-                        //Try to copy video codecs
-                        fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(allOptions), Stream.of(getVideoCodecsCopyOptions())).toArray(String[]::new));
-                    } catch (ProcessException e1) {
-                        LOGGER.debug("Error copy video codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
-                                fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                        String[] options = getOptions(fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                        allOptions = Stream.concat(Stream.of(options), Stream.of(allOptions)).toArray(String[]::new);
-
-                        SmartTempFile subtitles = null;
+                        if (allStreams.stream().anyMatch(stream -> Objects.equals(stream.getCodecType(), FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE))) {
+                            subtitles = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, SRT.getExt());
+                            fFmpegDevice.convert(file.getAbsolutePath(), subtitles.getAbsolutePath());
+                        }
+                        if (subtitles != null) {
+                            allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getSubtitlesFilterOptions(subtitles.getAbsolutePath()))).toArray(String[]::new);
+                        }
                         try {
-                            if (allStreams.stream().anyMatch(stream -> Objects.equals(stream.getCodecType(), FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE))) {
-                                subtitles = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, SRT.getExt());
-                                fFmpegDevice.convert(file.getAbsolutePath(), subtitles.getAbsolutePath());
-                            }
-                            if (subtitles != null) {
-                                allOptions = Stream.concat(Stream.of(allOptions), Stream.of(getSubtitlesFilterOptions(subtitles.getAbsolutePath()))).toArray(String[]::new);
-                            }
-                            try {
-                                //Try to copy audio codecs
-                                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(allOptions), Stream.of(getAudioCodecsCopyOptions())).toArray(String[]::new));
-                            } catch (ProcessException e2) {
-                                //Without copying
-                                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
-                            }
-                        } catch (Throwable throwable) {
-                            if (subtitles != null) {
-                                subtitles.smartDelete();
-                            }
+                            //Try to copy audio codecs
+                            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), Stream.concat(Stream.of(allOptions), Stream.of(getAudioCodecsCopyOptions())).toArray(String[]::new));
+                        } catch (ProcessException e2) {
+                            //Without copying
+                            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
+                        }
+                    } catch (Throwable throwable) {
+                        if (subtitles != null) {
+                            subtitles.smartDelete();
+                        }
 
-                            throw throwable;
-                        } finally {
-                            if (subtitles != null) {
-                                subtitles.smartDelete();
-                            }
+                        throw throwable;
+                    } finally {
+                        if (subtitles != null) {
+                            subtitles.smartDelete();
                         }
                     }
                 }
-
-                SmartTempFile thumbFile = downloadThumb(fileQueueItem);
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, out, thumbFile);
-            } catch (Throwable e) {
-                out.smartDelete();
-                throw e;
             }
-        } finally {
-            file.smartDelete();
+
+            SmartTempFile thumbFile = downloadThumb(fileQueueItem);
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+            return new FileResult(fileName, out, thumbFile);
+        } catch (Throwable e) {
+            out.smartDelete();
+            throw e;
         }
     }
 

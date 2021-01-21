@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
@@ -73,10 +72,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem, Format targetFormat) {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-        List<SmartTempFile> images = fileQueueItem.getDownloadedFiles()
-                .stream()
-                .map(downloadingQueueItem -> new SmartTempFile(new File(downloadingQueueItem.getFilePath()), downloadingQueueItem.isDeleteParentDir()))
-                .collect(Collectors.toList());
+        List<SmartTempFile> images = fileQueueItem.getDownloadedFiles();
 
         try {
             String parentDir = images.iterator().next().getParent() + File.separator;
@@ -98,8 +94,6 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            images.forEach(SmartTempFile::smartDelete);
         }
     }
 

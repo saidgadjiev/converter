@@ -52,43 +52,39 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
     @Override
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        Format targetFormat = getTargetFormat(fileQueueItem);
+
+        SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
+                targetFormat.getExt());
         try {
-            Format targetFormat = getTargetFormat(fileQueueItem);
+            doConvertAudio(file, out, fileQueueItem);
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 
-            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
-                    targetFormat.getExt());
-            try {
-                doConvertAudio(file, out, fileQueueItem);
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
-
-                SmartTempFile thumbFile = downloadThumb(fileQueueItem);
-                if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource()) && targetFormat.canBeSentAsAudio()
-                        || fileQueueItem.getTargetFormat().equals(Format.VOICE)) {
-                    if (fileQueueItem.getFirstFile().getDuration() == null) {
-                        try {
-                            long durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
-                            fileQueueItem.getFirstFile().setDuration((int) durationInSeconds);
-                        } catch (Exception e) {
-                            LOGGER.error(e.getMessage(), e);
-                            fileQueueItem.getFirstFile().setDuration(0);
-                        }
-                    }
-
-                    if (fileQueueItem.getTargetFormat() == Format.VOICE) {
-                        return new VoiceResult(fileName, out, fileQueueItem.getFirstFile().getDuration());
-                    } else {
-                        return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
-                                fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration());
+            SmartTempFile thumbFile = downloadThumb(fileQueueItem);
+            if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource()) && targetFormat.canBeSentAsAudio()
+                    || fileQueueItem.getTargetFormat().equals(Format.VOICE)) {
+                if (fileQueueItem.getFirstFile().getDuration() == null) {
+                    try {
+                        long durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
+                        fileQueueItem.getFirstFile().setDuration((int) durationInSeconds);
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage(), e);
+                        fileQueueItem.getFirstFile().setDuration(0);
                     }
                 }
 
-                return new FileResult(fileName, out, thumbFile);
-            } catch (Throwable e) {
-                out.smartDelete();
-                throw e;
+                if (fileQueueItem.getTargetFormat() == Format.VOICE) {
+                    return new VoiceResult(fileName, out, fileQueueItem.getFirstFile().getDuration());
+                } else {
+                    return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
+                            fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration());
+                }
             }
-        } finally {
-            file.smartDelete();
+
+            return new FileResult(fileName, out, thumbFile);
+        } catch (Throwable e) {
+            out.smartDelete();
+            throw e;
         }
     }
 

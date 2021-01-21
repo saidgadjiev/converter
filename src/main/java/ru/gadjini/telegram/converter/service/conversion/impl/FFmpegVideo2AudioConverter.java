@@ -56,46 +56,43 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
     public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        try {
-            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
-            ConvertResults convertResults = new ConvertResults();
-            for (int streamIndex = 0; streamIndex < audioStreams.size(); streamIndex++) {
-                FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
-                SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+        List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
+        ConvertResults convertResults = new ConvertResults();
+        for (int streamIndex = 0; streamIndex < audioStreams.size(); streamIndex++) {
+            FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
+            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
-                try {
-                    String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)), Stream.of(FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
-                    fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), options);
+            try {
+                String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)), Stream.of(FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
+                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), options);
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
 
-                    if (fileQueueItem.getTargetFormat().canBeSentAsAudio()
-                            || fileQueueItem.getTargetFormat() == VOICE) {
-                        long durationInSeconds = 0;
-                        try {
-                            durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
-                        } catch (Exception e) {
-                            LOGGER.error(e.getMessage(), e);
-                        }
-
-                        if (fileQueueItem.getTargetFormat().equals(VOICE)) {
-                            convertResults.addResult(new VoiceResult(fileName, out, (int) durationInSeconds, audioStream.getLanguage()));
-                        } else {
-                            convertResults.addResult(new AudioResult(fileName, out, null, null, downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
-                        }
-                    } else {
-                        convertResults.addResult(new FileResult(fileName, out, downloadThumb(fileQueueItem), audioStream.getLanguage()));
+                if (fileQueueItem.getTargetFormat().canBeSentAsAudio()
+                        || fileQueueItem.getTargetFormat() == VOICE) {
+                    long durationInSeconds = 0;
+                    try {
+                        durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage(), e);
                     }
-                } catch (Exception e) {
-                    out.smartDelete();
-                    throw e;
-                }
-            }
 
-            return convertResults;
-        } finally {
-            file.smartDelete();
+                    if (fileQueueItem.getTargetFormat().equals(VOICE)) {
+                        convertResults.addResult(new VoiceResult(fileName, out, (int) durationInSeconds, audioStream.getLanguage()));
+                    } else {
+                        convertResults.addResult(new AudioResult(fileName, out, null, null, downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
+                    }
+                } else {
+                    convertResults.addResult(new FileResult(fileName, out, downloadThumb(fileQueueItem), audioStream.getLanguage()));
+                }
+            } catch (Exception e) {
+                out.smartDelete();
+                throw e;
+            }
         }
+
+        return convertResults;
+
     }
 
     private String[] getExtractAudioOptions(int streamIndex) {

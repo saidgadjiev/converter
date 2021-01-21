@@ -67,8 +67,6 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            txt.smartDelete();
         }
     }
 }

@@ -104,8 +104,6 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
                 return oomHandler.handleOom(fileQueueItem, ex);
             }
             throw new ConvertException(ex);
-        } finally {
-            file.smartDelete();
         }
     }
 }

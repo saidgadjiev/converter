@@ -71,8 +71,6 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
             throw ex;
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            file.smartDelete();
         }
     }
 

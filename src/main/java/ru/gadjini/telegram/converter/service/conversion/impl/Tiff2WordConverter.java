@@ -39,31 +39,27 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
         SmartTempFile tiff = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        try {
-            try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
-                DocumentBuilder documentBuilder = new DocumentBuilder();
-                try {
-                    for (TiffFrame tiffFrame : image.getFrames()) {
-                        documentBuilder.insertImage(tiffFrame.toBitmap());
-                    }
-                    SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-                    try {
-                        documentBuilder.getDocument().save(result.getAbsolutePath());
-
-                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                        return new FileResult(fileName, result);
-                    } catch (Throwable e) {
-                        result.smartDelete();
-                        throw e;
-                    }
-                } finally {
-                    documentBuilder.getDocument().cleanup();
+        try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
+            DocumentBuilder documentBuilder = new DocumentBuilder();
+            try {
+                for (TiffFrame tiffFrame : image.getFrames()) {
+                    documentBuilder.insertImage(tiffFrame.toBitmap());
                 }
-            } catch (Exception ex) {
-                throw new ConvertException(ex);
+                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                try {
+                    documentBuilder.getDocument().save(result.getAbsolutePath());
+
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                    return new FileResult(fileName, result);
+                } catch (Throwable e) {
+                    result.smartDelete();
+                    throw e;
+                }
+            } finally {
+                documentBuilder.getDocument().cleanup();
             }
-        } finally {
-            tiff.smartDelete();
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
         }
     }
 }

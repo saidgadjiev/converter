@@ -92,8 +92,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             } catch (Throwable e) {
                 log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
                 throw new ProcessException(-1, e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout") + "\n" + ExceptionUtils.getStackTrace(e));
-            } finally {
-                file.smartDelete();
             }
         }
 

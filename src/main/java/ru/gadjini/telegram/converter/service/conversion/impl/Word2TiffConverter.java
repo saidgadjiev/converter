@@ -66,8 +66,6 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            file.smartDelete();
         }
     }
 }

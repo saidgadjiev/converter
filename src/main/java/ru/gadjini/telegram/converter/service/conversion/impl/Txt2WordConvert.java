@@ -54,8 +54,6 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            txt.smartDelete();
         }
     }
 }

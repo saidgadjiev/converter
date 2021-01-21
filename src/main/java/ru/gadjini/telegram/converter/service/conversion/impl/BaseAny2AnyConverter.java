@@ -72,7 +72,11 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        return doConvert(fileQueueItem);
+        try {
+            return doConvert(fileQueueItem);
+        } finally {
+            fileQueueItem.getDownloadedFiles().forEach(SmartTempFile::smartDelete);
+        }
     }
 
     int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {

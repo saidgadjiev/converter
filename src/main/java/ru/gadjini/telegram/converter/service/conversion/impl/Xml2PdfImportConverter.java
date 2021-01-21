@@ -50,8 +50,6 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
-        } finally {
-            pdf.smartDelete();
         }
     }
 }
