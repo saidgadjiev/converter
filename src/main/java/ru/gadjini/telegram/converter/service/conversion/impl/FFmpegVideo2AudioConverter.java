@@ -102,7 +102,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private String[] getExtractAudioOptions(int streamIndex) {
         return new String[]{
-                "-map", "0:a:" + streamIndex
+                "-map", "a:" + streamIndex
         };
     }
 }

@@ -70,7 +70,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             String[] options = new String[]{"-c:a", "copy", "-c:s", "copy", "-vf",
                     "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-deadline", "realtime", "-map",
-                    "0", "-map", "-0:d", "-map", "-0:t"};
+                    "0", "-map", "-d", "-map", "-t"};
             String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
             String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
             List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
@@ -121,7 +121,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int streamIndex) {
         String[] options = new String[]{
-                "-map", "0:v:" + streamIndex, "-c:v:" + streamIndex, "h264"
+                "-map", "v:" + streamIndex, "-c:v:" + streamIndex, "h264", "-vf", "[v:0]scale=ceil(iw/2)*2:ceil(ih/2)*2"
         };
 
         return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), options);
