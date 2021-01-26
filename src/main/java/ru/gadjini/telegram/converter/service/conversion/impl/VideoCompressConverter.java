@@ -69,14 +69,14 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
             String[] options = new String[]{"-c:a", "copy", "-c:s", "copy", "-vf",
-                    "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-map",
-                    "0", "-map", "-0:d", "-map", "-0:t", "-deadline", "realtime"};
+                    "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-deadline", "realtime", "-map",
+                    "0", "-map", "-0:d", "-map", "-0:t"};
             String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
             String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
             List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
-            for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
+            for (FFprobeDevice.Stream stream : videoStreams) {
                 allOptions = Stream.concat(Stream.of(allOptions),
-                        Stream.of(getOptionsByVideoStream(fileQueueItem.getFirstFileFormat(), videoStreams.get(videoStreamIndex), videoStreamIndex))).toArray(String[]::new);
+                        Stream.of(getOptionsByVideoStream(file, out, stream))).toArray(String[]::new);
             }
 
             fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
@@ -102,22 +102,28 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
     }
 
-    private String[] getOptionsByVideoStream(Format format, FFprobeDevice.Stream videoStream, int index) {
+    private String[] getOptionsByVideoStream(SmartTempFile in, SmartTempFile out, FFprobeDevice.Stream videoStream) {
         if (StringUtils.isBlank(videoStream.getCodecName())) {
             return new String[0];
         }
         String codec = videoStream.getCodecName();
-        if ("hevc".equals(codec)) {
+        if (isConvertiableToH264(in, out, videoStream.getIndex())) {
             codec = "h264";
         } else if ("vp9".equals(codec)) {
             codec = "vp8";
-        } else if (format == MP4 && "av1".contains(codec)) {
-            codec = "h264";
         }
 
         return new String[]{
-                "-c:v:" + index, codec
+                "-c:" + videoStream.getIndex(), codec
         };
+    }
+
+    private boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int index) {
+        String[] options = new String[]{
+                "-map", "0:" + index, "-c:" + index, "h264"
+        };
+
+        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), options);
     }
 
     private String[] getOptionsBySrc(Format src) {

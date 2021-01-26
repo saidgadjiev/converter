@@ -23,6 +23,12 @@ public class FFmpegDevice {
         processExecutor.execute(getConvertCommand(in, out, options), Set.of(139));
     }
 
+    public boolean isConvertable(String in, String out, String... options) {
+        String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 5);
+
+        return !result.contains("Conversion failed!");
+    }
+
     private String[] getConvertCommand(String in, String out, String... options) {
         List<String> cmd = new ArrayList<>();
         cmd.add("ffmpeg");
