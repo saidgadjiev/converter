@@ -65,7 +65,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-        String[] selectAllStreamsOptions = new String[]{"-map", "0", "-map", "-d", "-map", "-s", "-map", "-t"};
+        String[] selectAllStreamsOptions = new String[]{"-preset", "veryfast", "-deadline", "realtime", "-map", "0", "-map", "-d", "-map", "-s", "-map", "-t"};
         try {
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             String[] allOptions = Stream.concat(Stream.of(selectAllStreamsOptions),
