@@ -58,14 +58,15 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
         List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
         ConvertResults convertResults = new ConvertResults();
-        for (FFprobeDevice.Stream audioStream : audioStreams) {
+        for (int streamIndex = 0; streamIndex < audioStreams.size(); streamIndex++) {
+            FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
             SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             try {
-                String[] options = Stream.concat(Stream.of(getExtractAudioOptions(audioStream.getIndex())), Stream.of(FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
+                String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)), Stream.of(FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
                 fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), options);
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), String.valueOf(audioStream.getIndex()), fileQueueItem.getTargetFormat().getExt());
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
 
                 if (fileQueueItem.getTargetFormat().canBeSentAsAudio()
                         || fileQueueItem.getTargetFormat() == VOICE) {
@@ -101,7 +102,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private String[] getExtractAudioOptions(int streamIndex) {
         return new String[]{
-                "-map", "0:" + streamIndex
+                "-map", "0:a:" + streamIndex
         };
     }
 }
