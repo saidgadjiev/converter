@@ -121,7 +121,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int streamIndex) {
         String[] options = new String[]{
-                "-map", "v:" + streamIndex, "-c:v:" + streamIndex, "h264", "-vf", "[v:" + streamIndex + "]scale=ceil(iw/2)*2:ceil(ih/2)*2"
+                "-map", "v:" + streamIndex, "-c:v", "h264", "-vf", "scale=ceil(iw/2)*2:ceil(ih/2)*2"
         };
 
         return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), options);

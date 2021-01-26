@@ -80,6 +80,8 @@ public class FFprobeDevice {
 
         public static final String SUBTITLE_CODEC_TYPE = "subtitle";
 
+        public static final String AUDIO_CODEC_TYPE = "audio";
+
         private static final String LANGUAGE_TAG = "language";
 
         private int index;
