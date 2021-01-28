@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
-import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
-import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
-import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
+import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
@@ -316,6 +313,24 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     fileUploadService.createUpload(fileQueueItem.getUserId(), SendVoice.PATH, sendVoice,
                             progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
                     break;
+                case VIDEO: {
+                    VideoResult videoResult = (VideoResult) convertResult;
+                    SendVideo.SendVideoBuilder sendVideoBuilder = SendVideo.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .video(new InputFile(videoResult.getFile(), videoResult.getFileName()))
+                            .caption(videoResult.getCaption())
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
+                            .width(videoResult.getWidth())
+                            .height(videoResult.getHeight())
+                            .duration(videoResult.getDuration());
+                    if (videoResult.getThumb() != null) {
+                        sendVideoBuilder.thumb(new InputFile(videoResult.getThumb(), videoResult.getThumb().getName()));
+                    }
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendVideo.PATH, sendVideoBuilder.build(),
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
+
+                    break;
+                }
             }
         }
     }

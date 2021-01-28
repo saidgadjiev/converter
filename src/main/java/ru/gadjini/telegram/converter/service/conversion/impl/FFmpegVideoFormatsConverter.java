@@ -1,10 +1,12 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -23,7 +25,10 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  * WEBM -> MP4 very slow
  */
 @Component
+@SuppressWarnings("CPD-START")
 public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideoFormatsConverter.class);
 
     private static final String TAG = "ffmpegvideo";
 
@@ -91,10 +96,11 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                 }
             }
             fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
 
             SmartTempFile thumbFile = downloadThumb(fileQueueItem);
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, out, thumbFile);
+            return new VideoResult(fileName, out, thumbFile, whd.getWidth(), whd.getHeight(), whd.getDuration());
         } catch (Throwable e) {
             out.smartDelete();
             throw e;

@@ -8,6 +8,8 @@ public enum ResultType {
 
     VOICE,
 
+    VIDEO,
+
     STICKER,
 
     CONTAINER,

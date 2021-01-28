@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
@@ -13,6 +15,8 @@ import java.util.Map;
 
 @Service
 public class FFprobeDevice {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFprobeDevice.class);
 
     private static final String STREAMS_JSON_ATTR = "streams";
 
@@ -42,8 +46,34 @@ public class FFprobeDevice {
         }.getType());
     }
 
-    public String getVideoCodec(String in) {
-        return processExecutor.executeWithResult(getCodecNameCommand(in)).replace("\n", "");
+    public FFprobeResult probeVideoStream(String in, int index) {
+        String result = processExecutor.executeWithResult(getVideoStreamCommand(in, index));
+        JsonObject json = gson.fromJson(result, JsonObject.class);
+
+        return gson.fromJson(json, FFprobeResult.class);
+    }
+
+    public WHD getWHD(String in, int index) {
+        WHD whd = new WHD();
+        try {
+            FFprobeDevice.FFprobeResult probeVideoStream = probeVideoStream(in, index);
+            if (probeVideoStream != null) {
+                FFprobeDevice.Stream videoStream = probeVideoStream.getFirstStream();
+                if (videoStream != null) {
+                    whd.setWidth(videoStream.getWidth());
+                    whd.setHeight(videoStream.getHeight());
+                }
+                FFprobeDevice.FFprobeFormat fFprobeFormat = probeVideoStream.getFormat();
+                if (fFprobeFormat != null) {
+                    Integer duration = probeVideoStream.getFormat().getDuration() != null ? probeVideoStream.getFormat().getDuration().intValue() : null;
+                    whd.setDuration(duration);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+
+        return whd;
     }
 
     public long getDurationInSeconds(String in) {
@@ -54,6 +84,10 @@ public class FFprobeDevice {
 
     private String[] getDurationCommand(String in) {
         return new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", in};
+    }
+
+    private String[] getVideoStreamCommand(String in, int index) {
+        return new String[]{"ffprobe", "-v", "error", "-select_streams", "v:" + index, "-show_entries", "stream=width,height:format=duration", "-of", "json", in};
     }
 
     private String[] getAudioStreamsCommand(String in) {
@@ -68,10 +102,81 @@ public class FFprobeDevice {
         };
     }
 
-    private String[] getCodecNameCommand(String in) {
-        return new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", in
-        };
+    public static class WHD {
+
+        private Integer width;
+
+        private Integer height;
+
+        private Integer duration;
+
+        public Integer getWidth() {
+            return width;
+        }
+
+        public void setWidth(Integer width) {
+            this.width = width;
+        }
+
+        public Integer getHeight() {
+            return height;
+        }
+
+        public void setHeight(Integer height) {
+            this.height = height;
+        }
+
+        public Integer getDuration() {
+            return duration;
+        }
+
+        public void setDuration(Integer duration) {
+            this.duration = duration;
+        }
+    }
+
+    public static class FFprobeResult {
+
+        private List<Stream> streams;
+
+        private FFprobeFormat format;
+
+        public FFprobeFormat getFormat() {
+            return format;
+        }
+
+        public void setFormat(FFprobeFormat format) {
+            this.format = format;
+        }
+
+        public List<Stream> getStreams() {
+            return streams;
+        }
+
+        public void setStreams(List<Stream> streams) {
+            this.streams = streams;
+        }
+
+        public Stream getFirstStream() {
+            if (streams == null || streams.isEmpty()) {
+                return null;
+            }
+
+            return streams.iterator().next();
+        }
+    }
+
+    public static class FFprobeFormat {
+
+        private Double duration;
+
+        public Double getDuration() {
+            return duration;
+        }
+
+        public void setDuration(Double duration) {
+            this.duration = duration;
+        }
     }
 
     public static class Stream {
@@ -94,6 +199,10 @@ public class FFprobeDevice {
         @SerializedName("codec_type")
         private String codecType;
 
+        private Integer width;
+
+        private Integer height;
+
         public String getCodecName() {
             return codecName;
         }
@@ -108,6 +217,22 @@ public class FFprobeDevice {
 
         public String getCodecType() {
             return codecType;
+        }
+
+        public Integer getHeight() {
+            return height;
+        }
+
+        public void setHeight(Integer height) {
+            this.height = height;
+        }
+
+        public Integer getWidth() {
+            return width;
+        }
+
+        public void setWidth(Integer width) {
+            this.width = width;
         }
     }
 }
