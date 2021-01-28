@@ -1,3 +1,5 @@
 spring:
+  profiles:
+    active: @spring.profiles.active@
   messages:
     basename: messages,messages-common

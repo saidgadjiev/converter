@@ -9,6 +9,8 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <aspose.version>19.9</aspose.version>
         <aspose.pdf.version>19.9</aspose.pdf.version>
     </properties>
@@ -188,10 +190,14 @@
             </activation>
             <properties>
                 <aspose.pdf.version>19.1</aspose.pdf.version>
+                <spring.profiles.active>dev</spring.profiles.active>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
         </profile>
     </profiles>
 
