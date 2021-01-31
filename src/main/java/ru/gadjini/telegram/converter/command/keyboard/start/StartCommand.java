@@ -100,7 +100,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     messageService.sendMessage(
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                     .text(queueMessageBuilder.getChooseFormat(locale))
-                                    .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), Format.IMAGES, locale))
+                                    .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), Format.IMAGES, locale))
                                     .parseMode(ParseMode.HTML)
                                     .build()
                     );
@@ -109,7 +109,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                     .text(queueMessageBuilder.getChooseFormat(locale))
                                     .parseMode(ParseMode.HTML)
-                                    .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                                    .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                     .build()
                     );
                 }
@@ -130,14 +130,14 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     if (convertState.getFiles().size() < 3) {
                         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_APPENDED, locale))
-                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), multiMediaFormat, locale)).build());
+                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), multiMediaFormat, locale)).build());
                     }
                     commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
                 } else {
                     messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                             .text(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TYPE, locale))
                             .parseMode(ParseMode.HTML)
-                            .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                             .build());
                 }
             } else if (message.hasText()) {
@@ -151,7 +151,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
                         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
-                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                 .build());
                     } else {
                         commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
@@ -172,7 +172,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(queueMessageBuilder.getChooseFormat(locale))
-                                .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                 .parseMode(ParseMode.HTML)
                                 .build()
                 );
@@ -227,7 +227,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                             .text(queueMessageBuilder.getChooseFormat(locale))
-                            .replyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                             .parseMode(ParseMode.HTML)
                             .build()
             );

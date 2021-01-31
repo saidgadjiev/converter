@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.keyboard;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -14,11 +13,15 @@ import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartReplyKeyboardService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+
+import static ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService.keyboardRow;
+import static ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService.replyKeyboardMarkup;
 
 @Service
 @Qualifier("keyboard")
@@ -28,33 +31,33 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
     private LocalisationService localisationService;
 
+    private SmartReplyKeyboardService smartReplyKeyboardService;
+
     @Autowired
-    public ReplyKeyboardServiceImpl(@Lazy ConversionFormatService formatMapService, LocalisationService localisationService) {
+    public ReplyKeyboardServiceImpl(@Lazy ConversionFormatService formatMapService,
+                                    LocalisationService localisationService, SmartReplyKeyboardService smartReplyKeyboardService) {
         this.formatMapService = formatMapService;
         this.localisationService = localisationService;
+        this.smartReplyKeyboardService = smartReplyKeyboardService;
     }
 
     @Override
-    public ReplyKeyboard getMainMenu(long chatId, Locale locale) {
+    public ReplyKeyboard mainMenuKeyboard(long chatId, Locale locale) {
         return removeKeyboard(chatId);
     }
 
     @Override
+    public ReplyKeyboardMarkup smartFileFeatureKeyboard(long chatId, Locale locale) {
+        return smartReplyKeyboardService.smartFileFeatureKeyboard(locale);
+    }
+
+    @Override
     public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
-
-        List<String> languages = new ArrayList<>();
-        for (Locale l : localisationService.getSupportedLocales()) {
-            languages.add(StringUtils.capitalize(l.getDisplayLanguage(l)));
-        }
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(languages.toArray(new String[0])));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
-
-        return replyKeyboardMarkup;
+        return smartReplyKeyboardService.languageKeyboard(locale);
     }
 
     @Override
-    public ReplyKeyboardMarkup getAudioCompressionKeyboard(long chatId, Locale locale) {
+    public ReplyKeyboardMarkup audioCompressionKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
@@ -63,7 +66,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup getMergePdfsKeyboard(long chatId, Locale locale) {
+    public ReplyKeyboardMarkup mergePdfsKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.MERGE_COMMAND_NAME, locale)));
@@ -74,7 +77,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
+    public ReplyKeyboardMarkup formatsKeyboard(long chatId, Format format, Locale locale) {
         List<Format> targetFormats = new ArrayList<>(formatMapService.getTargetFormats(format));
         targetFormats.sort(Comparator.comparing(Format::getName));
 
@@ -95,10 +98,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
     @Override
     public ReplyKeyboardRemove removeKeyboard(long chatId) {
-        ReplyKeyboardRemove replyKeyboardRemove = new ReplyKeyboardRemove();
-        replyKeyboardRemove.setRemoveKeyboard(true);
-
-        return replyKeyboardRemove;
+        return smartReplyKeyboardService.removeKeyboard();
     }
 
 }

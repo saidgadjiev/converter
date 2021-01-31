@@ -10,6 +10,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.Locale;
 
+import static ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService.replyKeyboardMarkup;
+
 @Service
 @Qualifier("curr")
 public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
@@ -24,8 +26,13 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboard getMainMenu(long chatId, Locale locale) {
+    public ReplyKeyboard mainMenuKeyboard(long chatId, Locale locale) {
         return removeKeyboard(chatId);
+    }
+
+    @Override
+    public ReplyKeyboardMarkup smartFileFeatureKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.smartFileFeatureKeyboard(chatId, locale));
     }
 
     @Override
@@ -34,18 +41,18 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup getAudioCompressionKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.getAudioCompressionKeyboard(chatId, locale));
+    public ReplyKeyboardMarkup audioCompressionKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.audioCompressionKeyboard(chatId, locale));
     }
 
     @Override
-    public ReplyKeyboardMarkup getMergePdfsKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.getMergePdfsKeyboard(chatId, locale));
+    public ReplyKeyboardMarkup mergePdfsKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.mergePdfsKeyboard(chatId, locale));
     }
 
     @Override
-    public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.getFormatsKeyboard(chatId, format, locale));
+    public ReplyKeyboardMarkup formatsKeyboard(long chatId, Format format, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.formatsKeyboard(chatId, format, locale));
     }
 
     @Override

@@ -1,7 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -27,8 +25,6 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 @Component
 @SuppressWarnings("CPD-START")
 public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideoFormatsConverter.class);
 
     private static final String TAG = "ffmpegvideo";
 
