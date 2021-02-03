@@ -199,6 +199,14 @@
                 <spring.profiles.active>prod</spring.profiles.active>
             </properties>
         </profile>
+
+        <profile>
+            <id>load-test</id>
+            <properties>
+                <aspose.pdf.version>19.1</aspose.pdf.version>
+                <spring.profiles.active>load-test</spring.profiles.active>
+            </properties>
+        </profile>
     </profiles>
 
 </project>
