@@ -322,11 +322,12 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .width(videoResult.getWidth())
                             .height(videoResult.getHeight())
+                            .supportsStreaming(videoResult.isSupportsStreaming())
                             .duration(videoResult.getDuration());
                     if (videoResult.getThumb() != null) {
                         sendVideoBuilder.thumb(new InputFile(videoResult.getThumb(), videoResult.getThumb().getName()));
                     }
-                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendVideo.PATH, sendVideoBuilder.build(),
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendVideo.PATH, sendVideoBuilder.build(), videoResult.getFormat(),
                             progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
 
                     break;

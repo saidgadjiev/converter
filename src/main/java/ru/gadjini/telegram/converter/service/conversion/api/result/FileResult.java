@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.api.result;
 
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
 
@@ -14,12 +15,18 @@ public class FileResult implements ConvertResult {
 
     private String caption;
 
+    private Format format;
+
     public FileResult(String fileName, SmartTempFile file) {
-        this(fileName, file, null, null);
+        this(fileName, file, null, null, null);
     }
 
     public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb) {
-        this(fileName, file, thumb, null);
+        this(fileName, file, thumb, null, null);
+    }
+
+    public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb, Format format) {
+        this(fileName, file, thumb, null, format);
     }
 
     public FileResult(String fileName, SmartTempFile file, String caption) {
@@ -27,10 +34,15 @@ public class FileResult implements ConvertResult {
     }
 
     public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb, String caption) {
+        this(fileName, file, thumb, caption, null);
+    }
+
+    public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb, String caption, Format format) {
         this.fileName = fileName;
         this.file = file;
         this.thumb = thumb;
         this.caption = caption;
+        this.format = format;
     }
 
     public File getThumb() {
@@ -53,9 +65,8 @@ public class FileResult implements ConvertResult {
         this.fileName = fileName;
     }
 
-    @Override
-    public ResultType resultType() {
-        return ResultType.FILE;
+    public Format getFormat() {
+        return format;
     }
 
     public String getFileName() {
@@ -64,5 +75,10 @@ public class FileResult implements ConvertResult {
 
     public String getCaption() {
         return caption;
+    }
+
+    @Override
+    public ResultType resultType() {
+        return ResultType.FILE;
     }
 }

@@ -24,11 +24,12 @@ public class FFmpegDevice {
     }
 
     public boolean isConvertable(String in, String out, String... options) {
-        String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 5);
+        String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 3);
 
         return !result.contains("Conversion failed!")
                 && !result.contains("Unsupported audio codec")
-                && !result.contains("Could not find tag for codec");
+                && !result.contains("Could not find tag for codec")
+                && !result.contains("incompatible with output codec");
     }
 
     private String[] getConvertCommand(String in, String out, String... options) {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -88,10 +89,15 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 Locale localeOrDefault = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, localeOrDefault)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
-
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-            return new VideoResult(fileName, out, downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(), whd.getDuration());
+
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
+                return new VideoResult(fileName, out, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
+            } else {
+                return new FileResult(fileName, out, downloadThumb(fileQueueItem));
+            }
         } catch (Throwable e) {
             out.smartDelete();
             throw e;
