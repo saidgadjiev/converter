@@ -29,7 +29,8 @@ public class FFmpegDevice {
         return !result.contains("Conversion failed!")
                 && !result.contains("Unsupported audio codec")
                 && !result.contains("Could not find tag for codec")
-                && !result.contains("incompatible with output codec");
+                && !result.contains("incompatible with output codec")
+                && !result.contains("Error initializing output stream");
     }
 
     private String[] getConvertCommand(String in, String out, String... options) {
