@@ -1,6 +1,8 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.job.DownloadExtra;
@@ -20,6 +22,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseAny2AnyConverter.class);
 
     private final Map<List<Format>, List<Format>> map;
 
@@ -119,7 +123,13 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
         if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
-            return fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFile().getThumb());
+            SmartTempFile thumb = fileQueueItem.getDownloadedFileOrNull(fileQueueItem.getFirstFile().getThumb());
+
+            if (thumb == null) {
+                LOGGER.error("Downloaded thumb file not found({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getThumb());
+            }
+
+            return thumb;
         } else {
             return null;
         }

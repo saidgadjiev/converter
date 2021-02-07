@@ -119,6 +119,18 @@ public class ConversionQueueItem extends WorkQueueItem {
         return new SmartTempFile(new File(queueItem.getFilePath()), queueItem.isDeleteParentDir());
     }
 
+    public SmartTempFile getDownloadedFileOrNull(String fileId) {
+        DownloadQueueItem queueItem = downloadQueueItems.stream().filter(
+                downloadingQueueItem -> downloadingQueueItem.getFile().getFileId().equals(fileId)
+        ).findAny().orElse(null);
+
+        if (queueItem == null) {
+            return null;
+        }
+
+        return new SmartTempFile(new File(queueItem.getFilePath()), queueItem.isDeleteParentDir());
+    }
+
     public void setExtra(Object extra) {
         this.extra = extra;
     }
