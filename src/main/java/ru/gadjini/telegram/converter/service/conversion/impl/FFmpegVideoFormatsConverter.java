@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.converter.utils.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -67,14 +68,16 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-        String[] selectAllStreamsOptions = new String[]{"-preset", "veryfast", "-deadline", "realtime", "-map", "0", "-map", "-d", "-map", "-s", "-map", "-t"};
+        String[] selectAllStreamsOptions = new String[]{"-preset", "veryfast", "-deadline", "realtime", "-map", "a", "-map", "-d", "-map", "-s", "-map", "-t"};
         try {
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            FFmpegHelper.removeExtraVideoStreams(allStreams);
             String[] allOptions = Stream.concat(Stream.of(selectAllStreamsOptions),
                     Stream.of(getTargetFormatOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
             int audioStreamIndex = 0, videoStreamIndex = 0;
             for (FFprobeDevice.Stream stream : allStreams) {
                 if (FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
+                    allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-map", "v:" + stream.getIndex())).toArray(String[]::new);
                     if (isCopyable(file, out, fileQueueItem.getTargetFormat(), "v", videoStreamIndex)) {
                         allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-c:v:" + videoStreamIndex, "copy")).toArray(String[]::new);
                     } else {
@@ -125,14 +128,9 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     }
 
     private String[] getTargetFormatOptions(Format target) {
-        if (target == MPEG) {
+        if (target == MPEG || target == MPG) {
             return new String[]{
-                    "-f", "dvd"
-            };
-        }
-        if (target == MPG) {
-            return new String[]{
-                    "-f", "dvd"
+                    "-f", "mpegts"
             };
         }
         if (target == _3GP) {
