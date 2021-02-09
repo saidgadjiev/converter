@@ -77,7 +77,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
             int audioStreamIndex = 0, videoStreamIndex = 0;
             for (FFprobeDevice.Stream stream : allStreams) {
                 if (FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
-                    allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-map", "v:" + stream.getIndex())).toArray(String[]::new);
+                    allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-map", "v:" + videoStreamIndex)).toArray(String[]::new);
                     if (isCopyable(file, out, fileQueueItem.getTargetFormat(), "v", videoStreamIndex)) {
                         allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-c:v:" + videoStreamIndex, "copy")).toArray(String[]::new);
                     } else {
