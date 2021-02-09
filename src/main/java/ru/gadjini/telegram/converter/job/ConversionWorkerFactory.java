@@ -16,7 +16,6 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
-import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
@@ -62,21 +61,17 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
     private Set<Any2AnyConverter> any2AnyConverters = new LinkedHashSet<>();
 
-    private AsposeExecutorService asposeExecutorService;
-
     @Autowired
     public ConversionWorkerFactory(UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService,
                                    @Qualifier("forceMedia") MediaMessageService mediaMessageService,
-                                   @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder,
-                                   AsposeExecutorService asposeExecutorService) {
+                                   @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder) {
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.mediaMessageService = mediaMessageService;
         this.messageService = messageService;
         this.messageBuilder = messageBuilder;
-        this.asposeExecutorService = asposeExecutorService;
     }
 
     @Autowired
@@ -164,11 +159,6 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         @Override
         public void setCanceledByUser(boolean canceledByUser) {
             this.canceledByUser = canceledByUser;
-        }
-
-        @Override
-        public void cancel(boolean canceledByUser) {
-            asposeExecutorService.cancel(fileQueueItem.getId());
         }
 
         @Override

@@ -5,13 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.conversion.aspose.AsposeExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.event.QueueJobInitialization;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.event.QueueJobShuttingDown;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.event.TaskCanceled;
 
 import java.util.Set;
 
@@ -20,13 +16,10 @@ public class QueueJobEventListener implements ApplicationListener<QueueJobInitia
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionWorkerFactory.class);
 
-    private AsposeExecutorService asposeExecutorService;
-
     private final Set<FormatCategory> categories;
 
     @Autowired
-    public QueueJobEventListener(AsposeExecutorService asposeExecutorService, Set<FormatCategory> categories) {
-        this.asposeExecutorService = asposeExecutorService;
+    public QueueJobEventListener(Set<FormatCategory> categories) {
         this.categories = categories;
     }
 
@@ -35,16 +28,6 @@ public class QueueJobEventListener implements ApplicationListener<QueueJobInitia
         if (categories.contains(FormatCategory.DOCUMENTS)) {
             applyAsposeLicenses();
         }
-    }
-
-    @EventListener
-    public void afterTaskCanceled(TaskCanceled event) {
-        asposeExecutorService.cancel(event.getQueueItem().getId());
-    }
-
-    @EventListener
-    public void jobShuttingDown(QueueJobShuttingDown event) {
-        asposeExecutorService.shutdown();
     }
 
     private void applyAsposeLicenses() {
