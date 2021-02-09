@@ -13,6 +13,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.converter.utils.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -68,16 +69,16 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-
+            FFmpegHelper.removeExtraVideoStreams(allStreams);
             String[] options = new String[]{"-c:a", "copy", "-c:s", "copy", "-vf",
                     "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-deadline", "realtime", "-map",
-                    "0", "-map", "-d", "-map", "-t"};
+                    "a", "-map", "-d", "-map", "-t"};
             String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
             String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
             List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
             for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
-                allOptions = Stream.concat(Stream.of(allOptions),
-                        Stream.of(getOptionsByVideoStream(file, out, videoStreams.get(videoStreamIndex), videoStreamIndex))).toArray(String[]::new);
+                allOptions = Stream.concat(Stream.of("-map", "v:" + videoStreamIndex), Stream.concat(Stream.of(allOptions),
+                        Stream.of(getOptionsByVideoStream(file, out, videoStreams.get(videoStreamIndex), videoStreamIndex)))).toArray(String[]::new);
             }
 
             fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
