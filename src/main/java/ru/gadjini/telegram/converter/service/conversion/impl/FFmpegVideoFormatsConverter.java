@@ -14,6 +14,7 @@ import ru.gadjini.telegram.converter.utils.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,12 +92,18 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                 List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
                         .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                         .collect(Collectors.toList());
+                List<Integer> copyAudiosIndexes = new ArrayList<>();
                 for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
                     if (isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, audioStreamIndex)) {
-                        commandBuilder.copyAudio(audioStreamIndex);
+                        copyAudiosIndexes.add(audioStreamIndex);
                     } else {
                         addAudioCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), audioStreamIndex);
                     }
+                }
+                if (copyAudiosIndexes.size() == audioStreams.size()) {
+                    commandBuilder.copyAudio();
+                } else {
+                    copyAudiosIndexes.forEach(commandBuilder::copyAudio);
                 }
             }
             addTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
