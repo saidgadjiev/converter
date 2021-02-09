@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -45,6 +45,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
         put(List.of(TS, MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV), List.of(COMPRESS));
     }};
+
+    private static final String SCALE = "scale=ceil(iw/2)*2:ceil(ih/2)*2";
 
     private FFmpegDevice fFmpegDevice;
 
@@ -75,18 +77,27 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         try {
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegHelper.removeExtraVideoStreams(allStreams);
-            String[] options = new String[]{"-c:a", "copy", "-c:s", "copy", "-vf",
-                    "scale=-2:ceil(ih/3)*2", "-crf", "30", "-preset", "veryfast", "-deadline", "realtime", "-map",
-                    "a", "-map", "-d", "-map", "-t"};
-            String[] specificOptions = getOptionsBySrc(fileQueueItem.getFirstFileFormat());
-            String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
+
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+
             List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
             for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
-                allOptions = Stream.concat(Stream.of(allOptions), Stream.concat(Stream.of("-map", "v:" + videoStreamIndex),
-                        Stream.of(getOptionsByVideoStream(file, out, videoStreams.get(videoStreamIndex), videoStreamIndex)))).toArray(String[]::new);
+                commandBuilder.mapVideo(videoStreamIndex);
+                addVideoCodecOptions(commandBuilder, file, out, videoStreams.get(videoStreamIndex), videoStreamIndex);
+                commandBuilder.filterVideo(videoStreamIndex, SCALE);
             }
+            if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
+                commandBuilder.mapAudio().copyAudio();
+            }
+            if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
+                commandBuilder.mapSubtitles().copySubtitles();
+            }
+            commandBuilder.crf("30");
+            commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
+            commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
+            addOptionsBySrc(commandBuilder, fileQueueItem.getFirstFileFormat());
 
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
 
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                     fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(out.length()));
@@ -121,40 +132,33 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         return super.createDownloadsWithThumb(conversionQueueItem);
     }
 
-    private String[] getOptionsByVideoStream(SmartTempFile in, SmartTempFile out, FFprobeDevice.Stream videoStream,
-                                             int videoStreamIndex) {
+    private void addVideoCodecOptions(FFmpegCommandBuilder commandBuilder, SmartTempFile in, SmartTempFile out, FFprobeDevice.Stream videoStream,
+                                      int videoStreamIndex) {
         if (StringUtils.isBlank(videoStream.getCodecName())) {
-            return new String[0];
+            return;
         }
         String codec = videoStream.getCodecName();
-        if (!"h264".equals(codec)) {
+        if (!FFmpegCommandBuilder.H264_CODEC.equals(codec)) {
             if (isConvertiableToH264(in, out, videoStreamIndex)) {
-                codec = "h264";
-            } else if ("vp9".equals(codec)) {
-                codec = "vp8";
+                codec = FFmpegCommandBuilder.H264_CODEC;
+            } else if (FFmpegCommandBuilder.VP9_CODEC.equals(codec)) {
+                codec = FFmpegCommandBuilder.VP8_CODEC;
             }
         }
 
-        return new String[]{
-                "-c:v:" + videoStreamIndex, codec
-        };
+        commandBuilder.videoCodec(videoStreamIndex, codec);
     }
 
     private boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int streamIndex) {
-        String[] options = new String[]{
-                "-map", "v:" + streamIndex, "-c:v", "h264", "-vf", "scale=ceil(iw/2)*2:ceil(ih/2)*2"
-        };
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        commandBuilder.mapVideo(streamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(SCALE);
 
-        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), options);
+        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
     }
 
-    private String[] getOptionsBySrc(Format src) {
+    private void addOptionsBySrc(FFmpegCommandBuilder commandBuilder, Format src) {
         if (src == _3GP) {
-            return new String[]{
-                    "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
-            };
+            commandBuilder.ar("8000").ba("12.20k").ac("1").s("176x144");
         }
-
-        return new String[0];
     }
 }

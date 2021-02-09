@@ -20,8 +20,6 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     public static final String TARGET_FORMAT = "target_format";
 
-    public static final String MESSAGE = "message";
-
     public static final String FILES = "files";
 
     public static final String RESULT_FILE_ID = "result_file_id";
@@ -36,8 +34,6 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     private Format targetFormat;
 
-    private String message;
-
     private String resultFileId;
 
     private List<DownloadQueueItem> downloadQueueItems;
@@ -50,14 +46,6 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     public void setTargetFormat(Format targetFormat) {
         this.targetFormat = targetFormat;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public List<TgFile> getFiles() {

@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -16,7 +17,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -68,34 +69,41 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
-        String[] selectAllStreamsOptions = new String[]{"-preset", "veryfast", "-deadline", "realtime", "-map", "a", "-map", "-d", "-map", "-s", "-map", "-t"};
         try {
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegHelper.removeExtraVideoStreams(allStreams);
-            String[] allOptions = Stream.concat(Stream.of(selectAllStreamsOptions),
-                    Stream.of(getTargetFormatOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
-            int audioStreamIndex = 0, videoStreamIndex = 0;
-            for (FFprobeDevice.Stream stream : allStreams) {
-                if (FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(stream.getCodecType())) {
-                    allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-map", "v:" + videoStreamIndex)).toArray(String[]::new);
-                    if (isCopyable(file, out, fileQueueItem.getTargetFormat(), "v", videoStreamIndex)) {
-                        allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-c:v:" + videoStreamIndex, "copy")).toArray(String[]::new);
-                    } else {
-                        allOptions = Stream.concat(Stream.of(allOptions),
-                                Stream.of(getVideoCodecOptions(fileQueueItem.getTargetFormat(), videoStreamIndex))).toArray(String[]::new);
-                    }
-                    ++videoStreamIndex;
-                } else if (FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType())) {
-                    if (isCopyable(file, out, fileQueueItem.getTargetFormat(), "a", audioStreamIndex)) {
-                        allOptions = Stream.concat(Stream.of(allOptions), Stream.of("-c:a:" + audioStreamIndex, "copy")).toArray(String[]::new);
-                    } else {
-                        allOptions = Stream.concat(Stream.of(allOptions),
-                                Stream.of(getAudioCodecOptions(fileQueueItem.getTargetFormat(), audioStreamIndex))).toArray(String[]::new);
-                    }
-                    ++audioStreamIndex;
+
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+
+            List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                    .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                    .collect(Collectors.toList());
+            for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
+                commandBuilder.mapVideo(videoStreamIndex);
+                if (isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, videoStreamIndex)) {
+                    commandBuilder.copyVideo(videoStreamIndex);
+                } else {
+                    addVideoCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
                 }
             }
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), allOptions);
+            if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
+                commandBuilder.mapAudio();
+                List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
+                        .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
+                        .collect(Collectors.toList());
+                for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
+                    if (isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, audioStreamIndex)) {
+                        commandBuilder.copyAudio(audioStreamIndex);
+                    } else {
+                        addAudioCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), audioStreamIndex);
+                    }
+                }
+            }
+            addTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
+            commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
+            commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
+
+            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
@@ -119,71 +127,40 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     }
 
     private boolean isCopyable(SmartTempFile in, SmartTempFile out, Format targetFormat, String streamPrefix, int streamIndex) {
-        String[] options = new String[]{
-                "-map", streamPrefix + ":" + streamIndex, "-c:" + streamPrefix, "copy"
-        };
-        options = Stream.concat(Stream.of(options), Stream.of(getTargetFormatOptions(targetFormat))).toArray(String[]::new);
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        commandBuilder.map(streamPrefix, streamIndex).copy(streamPrefix);
+        addTargetFormatOptions(commandBuilder, targetFormat);
 
-        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), options);
+        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
     }
 
-    private String[] getTargetFormatOptions(Format target) {
+    private void addTargetFormatOptions(FFmpegCommandBuilder commandBuilder, Format target) {
         if (target == MPEG || target == MPG) {
-            return new String[]{
-                    "-f", "mpegts"
-            };
+            commandBuilder.f(FFmpegCommandBuilder.MPEGTS_FORMAT);
+        } else if (target == _3GP) {
+            commandBuilder.ar("8000").ba("12.20k").ac("1").s("176x144");
+        } else if (target == FLV) {
+            commandBuilder.f(FFmpegCommandBuilder.FLV_FORMAT).ar("44100");
+        } else if (target == MTS) {
+            commandBuilder.r("30000/1001");
         }
-        if (target == _3GP) {
-            return new String[]{
-                    "-ar", "8000", "-b:a", "12.20k", "-ac", "1", "-s", "176x144"
-            };
-        }
-        if (target == FLV) {
-            return new String[]{
-                    "-f", "flv", "-ar", "44100"
-            };
-        }
-        if (target == MTS) {
-            return new String[]{
-                    "-r", "30000/1001"
-            };
-        }
-
-        return new String[0];
     }
 
-    private String[] getAudioCodecOptions(Format target, int streamIndex) {
+    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
         if (target == MTS) {
-            return new String[]{
-                    "-c:a:" + streamIndex, "ac3"
-            };
+            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.AC3_CODEC);
         }
-
-        return new String[0];
     }
 
-    private String[] getVideoCodecOptions(Format target, int streamIndex) {
+    private void addVideoCodecOptions(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
         if (target == WEBM) {
-            return new String[]{
-                    "-c:v:" + streamIndex, "vp8"
-            };
+            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC);
+        } else if (target == _3GP) {
+            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H263_CODEC);
+        } else if (target == MTS) {
+            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H264_CODEC).bv(streamIndex, "21M");
+        } else if (target == WMV) {
+            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.WMV2);
         }
-        if (target == _3GP) {
-            return new String[]{
-                    "-c:v:" + streamIndex, "h263"
-            };
-        }
-        if (target == MTS) {
-            return new String[]{
-                    "-c:v:" + streamIndex, "h264", "-b:v:" + streamIndex, "21M"
-            };
-        }
-        if (target == WMV) {
-            return new String[]{
-                    "-c:v:" + streamIndex, "wmv2"
-            };
-        }
-
-        return new String[0];
     }
 }
