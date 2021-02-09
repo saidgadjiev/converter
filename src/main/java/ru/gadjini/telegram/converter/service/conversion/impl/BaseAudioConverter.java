@@ -12,9 +12,11 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VoiceResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -28,10 +30,24 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private ConversionMessageBuilder messageBuilder;
+
+    private UserService userService;
+
     private Gson gson;
 
     protected BaseAudioConverter(Map<List<Format>, List<Format>> map) {
         super(map);
+    }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @Autowired
+    public void setMessageBuilder(ConversionMessageBuilder messageBuilder) {
+        this.messageBuilder = messageBuilder;
     }
 
     @Autowired
@@ -73,11 +89,15 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
                     }
                 }
 
+                String caption = null;
+                if (fileQueueItem.getTargetFormat() == Format.COMPRESS) {
+                    caption = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), out.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+                }
                 if (fileQueueItem.getTargetFormat() == Format.VOICE) {
-                    return new VoiceResult(fileName, out, fileQueueItem.getFirstFile().getDuration());
+                    return new VoiceResult(fileName, out, fileQueueItem.getFirstFile().getDuration(), caption);
                 } else {
                     return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
-                            fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration());
+                            fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration(), caption);
                 }
             }
 

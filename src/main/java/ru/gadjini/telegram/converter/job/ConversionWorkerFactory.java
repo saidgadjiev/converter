@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -250,6 +251,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     SendDocument.SendDocumentBuilder sendDocumentBuilder = SendDocument.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
                             .document(new InputFile(fileResult.getFile(), fileResult.getFileName()))
                             .caption(fileResult.getCaption())
+                            .parseMode(ParseMode.HTML)
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     if (fileResult.getThumb() != null) {
@@ -279,6 +281,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .performer(audioResult.getAudioPerformer())
                             .caption(audioResult.getCaption())
+                            .parseMode(ParseMode.HTML)
                             .title(audioResult.getAudioTitle());
                     if (audioResult.getThumb() != null) {
                         sendAudioBuilder.thumb(new InputFile(audioResult.getThumb(), audioResult.getThumb().getName()));
@@ -304,6 +307,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     SendVoice.SendVoiceBuilder sendVoiceBuilder = SendVoice.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
                             .voice(new InputFile(voiceResult.getFile(), voiceResult.getFileName()))
                             .caption(voiceResult.getCaption())
+                            .parseMode(ParseMode.HTML)
                             .replyToMessageId(fileQueueItem.getReplyToMessageId());
                     if (voiceResult.getDuration() != null) {
                         sendVoiceBuilder.duration(voiceResult.getDuration());
@@ -318,6 +322,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     SendVideo.SendVideoBuilder sendVideoBuilder = SendVideo.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
                             .video(new InputFile(videoResult.getFile(), videoResult.getFileName()))
                             .caption(videoResult.getCaption())
+                            .parseMode(ParseMode.HTML)
                             .replyToMessageId(fileQueueItem.getReplyToMessageId())
                             .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
                             .width(videoResult.getWidth())

@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.converter.utils.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -53,13 +54,17 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private ConversionMessageBuilder messageBuilder;
+
     @Autowired
-    public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService, FFprobeDevice fFprobeDevice) {
+    public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
+                                  FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
+        this.messageBuilder = messageBuilder;
     }
 
     @Override
@@ -77,7 +82,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             String[] allOptions = Stream.concat(Stream.of(specificOptions), Stream.of(options)).toArray(String[]::new);
             List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
             for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
-                allOptions = Stream.concat(Stream.of("-map", "v:" + videoStreamIndex), Stream.concat(Stream.of(allOptions),
+                allOptions = Stream.concat(Stream.of(allOptions), Stream.concat(Stream.of("-map", "v:" + videoStreamIndex),
                         Stream.of(getOptionsByVideoStream(file, out, videoStreams.get(videoStreamIndex), videoStreamIndex)))).toArray(String[]::new);
             }
 
@@ -92,12 +97,13 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             }
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
+            String compessionInfo = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), out.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
                 return new VideoResult(fileName, out, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), compessionInfo);
             } else {
-                return new FileResult(fileName, out, downloadThumb(fileQueueItem));
+                return new FileResult(fileName, out, downloadThumb(fileQueueItem), compessionInfo);
             }
         } catch (Throwable e) {
             out.smartDelete();
@@ -121,10 +127,12 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             return new String[0];
         }
         String codec = videoStream.getCodecName();
-        if (isConvertiableToH264(in, out, videoStreamIndex)) {
-            codec = "h264";
-        } else if ("vp9".equals(codec)) {
-            codec = "vp8";
+        if (!"h264".equals(codec)) {
+            if (isConvertiableToH264(in, out, videoStreamIndex)) {
+                codec = "h264";
+            } else if ("vp9".equals(codec)) {
+                codec = "vp8";
+            }
         }
 
         return new String[]{

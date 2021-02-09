@@ -46,6 +46,11 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         LOGGER.debug("Message builder converter({})", converter);
     }
 
+    public String getCompressionInfoMessage(long sourceSize, long resultSize, Locale locale) {
+        return localisationService.getMessage(MessagesProperties.MESSAGE_COMPRESSED_SIZE,
+                new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
+    }
+
     public String getUnsupportedCategoryMessage(FormatCategory category, Locale locale) {
         String msgCode = MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT;
         if (category == FormatCategory.VIDEO) {

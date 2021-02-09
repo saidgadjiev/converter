@@ -6,10 +6,6 @@ public class VoiceResult extends FileResult {
 
     private final Integer duration;
 
-    public VoiceResult(String fileName, SmartTempFile file, Integer duration) {
-        this(fileName, file, duration, null);
-    }
-
     public VoiceResult(String fileName, SmartTempFile file, Integer duration, String caption) {
         super(fileName, file, caption);
         this.duration = duration;

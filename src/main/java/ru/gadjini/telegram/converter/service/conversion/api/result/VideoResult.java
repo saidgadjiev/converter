@@ -12,7 +12,13 @@ public class VideoResult extends FileResult {
 
     public VideoResult(String fileName, SmartTempFile file, Format format, SmartTempFile thumb, Integer width,
                        Integer height, Integer duration, boolean supportsStreaming) {
-        super(fileName, file, thumb, format);
+        this(fileName, file, format, thumb, width, height, duration, supportsStreaming, null);
+    }
+
+
+    public VideoResult(String fileName, SmartTempFile file, Format format, SmartTempFile thumb, Integer width,
+                       Integer height, Integer duration, boolean supportsStreaming, String caption) {
+        super(fileName, file, thumb, caption, format);
         this.width = width;
         this.height = height;
         this.duration = duration;

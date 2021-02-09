@@ -25,10 +25,6 @@ public class FileResult implements ConvertResult {
         this(fileName, file, thumb, null, null);
     }
 
-    public FileResult(String fileName, SmartTempFile file, SmartTempFile thumb, Format format) {
-        this(fileName, file, thumb, null, format);
-    }
-
     public FileResult(String fileName, SmartTempFile file, String caption) {
         this(fileName, file, null, caption);
     }

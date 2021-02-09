@@ -156,4 +156,6 @@ public class MessagesProperties {
     public static final String MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE = "message.audio.compress.original.size";
 
     public static final String MESSAGE_AUDIO_COMPRESS_AUDIO_FORMAT = "message.audio.compress.audio.format";
+
+    public static final String MESSAGE_COMPRESSED_SIZE = "message.compressed.size";
 }
