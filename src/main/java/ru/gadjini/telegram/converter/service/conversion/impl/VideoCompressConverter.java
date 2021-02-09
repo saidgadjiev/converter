@@ -15,7 +15,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
-import ru.gadjini.telegram.converter.utils.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -58,15 +58,18 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
+    private FFmpegHelper fFmpegHelper;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
-                                  FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder) {
+                                  FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder, FFmpegHelper fFmpegHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.messageBuilder = messageBuilder;
+        this.fFmpegHelper = fFmpegHelper;
     }
 
     @Override
@@ -90,7 +93,12 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 commandBuilder.mapAudio().copyAudio();
             }
             if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
-                commandBuilder.mapSubtitles().copySubtitles();
+                if (fFmpegHelper.isSubtitlesCopyable(file, out)) {
+                    commandBuilder.mapSubtitles().copySubtitles();
+                } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getFirstFileFormat())) {
+                    commandBuilder.mapSubtitles();
+                    FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getFirstFileFormat());
+                }
             }
             commandBuilder.crf("30");
             commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);

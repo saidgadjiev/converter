@@ -10,7 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
-import ru.gadjini.telegram.converter.utils.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -53,11 +53,14 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private FFmpegHelper fFmpegHelper;
+
     @Autowired
-    public FFmpegVideoFormatsConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+    public FFmpegVideoFormatsConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegHelper fFmpegHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.fFmpegHelper = fFmpegHelper;
     }
 
     @Override
@@ -104,6 +107,14 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                     commandBuilder.copyAudio();
                 } else {
                     copyAudiosIndexes.forEach(commandBuilder::copyAudio);
+                }
+            }
+            if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
+                if (fFmpegHelper.isSubtitlesCopyable(file, out)) {
+                    commandBuilder.mapSubtitles().copySubtitles();
+                } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getTargetFormat())) {
+                    commandBuilder.mapSubtitles();
+                    FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
                 }
             }
             addTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());

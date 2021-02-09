@@ -29,6 +29,12 @@ public class FFmpegCommandBuilder {
 
     public static final String WMV2 = "wmv2";
 
+    public static final String MOV_TEXT_CODEC = "mov_text";
+
+    public static final String WEBVTT_CODEC = "webvtt";
+
+    public static final String SRT_CODEC = "srt";
+
     private List<String> options = new ArrayList<>();
 
     public FFmpegCommandBuilder map(String streamSpecifier, int index) {
@@ -48,6 +54,13 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder copySubtitles() {
         options.add("-c:s");
         options.add("copy");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder subtitlesCodec(String codec) {
+        options.add("-c:s");
+        options.add(codec);
 
         return this;
     }
