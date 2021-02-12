@@ -58,6 +58,7 @@ public class ConverterApplication {
         LOGGER.debug("Default locale({})", Locale.getDefault().getDisplayName());
         LOGGER.debug("Heap size({}mb)", Runtime.getRuntime().totalMemory() / mb);
         LOGGER.debug("Max heap size({}mb)", Runtime.getRuntime().maxMemory() / mb);
+        LOGGER.debug("Available processors({})", Runtime.getRuntime().availableProcessors());
     }
 
     private static void setDefaultLocaleAndTZ() {
