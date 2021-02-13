@@ -46,7 +46,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         put(List.of(TS, MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV), List.of(COMPRESS));
     }};
 
-    private static final String SCALE = "scale=ceil(iw/2)*2:ceil(ih/2)*2";
+    private static final String SCALE = "scale=-2:ceil(ih/3)*2";
 
     private FFmpegDevice fFmpegDevice;
 
