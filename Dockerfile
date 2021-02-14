@@ -144,4 +144,12 @@ COPY ./target/app.jar .
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
-#ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+#ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", \
+"-XX:HeapDumpPath=/home/bot/app/oom", \
+"-Dcom.sun.management.jmxremote", \
+"-Dcom.sun.management.jmxremote.authenticate=false", \
+"-Dcom.sun.management.jmxremote.ssl=false", \
+"-Dcom.sun.management.jmxremote.port=9010", \
+"-Dcom.sun.management.jmxremote.rmi.port=9010", \
+"-Djava.rmi.server.hostname=192.168.99.100", \
+"-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
