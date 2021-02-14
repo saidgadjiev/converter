@@ -11,7 +11,7 @@ USER root
 ENV DEBIAN_FRONTEND noninteractive
 ENV USE_SANDBOX false
 
-RUN apt-get update -y && apt-get install -y openjdk-11-jre build-essential curl wget git gdebi p7zip-rar locales rar zip unzip
+RUN apt-get update -y && apt-get install -y openjdk-11-jdk build-essential curl wget git gdebi p7zip-rar locales rar zip unzip
 
 # Locale
 ENV LC_ALL C.UTF-8
