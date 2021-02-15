@@ -42,7 +42,7 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
                 SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
-                    pdfSaveOptions.setMemoryOptimization(true);
+                    //pdfSaveOptions.setMemoryOptimization(true);
                     pdfSaveOptions.setOptimizeOutput(true);
 
                     asposeDocument.save(result.getAbsolutePath(), pdfSaveOptions);
