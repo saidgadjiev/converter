@@ -15,5 +15,7 @@ public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
 
     ReplyKeyboardMarkup formatsKeyboard(long chatId, Format format, Locale locale);
 
+    ReplyKeyboardMarkup videoEditKeyboard(long chatId, Locale locale);
+
     ReplyKeyboardRemove removeKeyboard(long chatId);
 }

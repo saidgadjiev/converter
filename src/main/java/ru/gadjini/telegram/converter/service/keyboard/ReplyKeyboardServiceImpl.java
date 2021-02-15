@@ -97,6 +97,15 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
+    public ReplyKeyboardMarkup videoEditKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
     public ReplyKeyboardRemove removeKeyboard(long chatId) {
         return smartReplyKeyboardService.removeKeyboard();
     }
