@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.keyboard;
 
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -20,6 +21,18 @@ public class InlineKeyboardService {
     public InlineKeyboardService(ButtonFactory buttonFactory, SmartInlineKeyboardService smartInlineKeyboardService) {
         this.buttonFactory = buttonFactory;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
+    }
+
+    public InlineKeyboardMarkup getVideoEditSettingsKeyboard(List<String> resolutions, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        List<List<String>> lists = Lists.partition(resolutions, 3);
+        for (List<String> list : lists) {
+            for (String resolution : list) {
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.resolutionButton(resolution)));
+            }
+        }
+
+        return inlineKeyboardMarkup;
     }
 
     public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(Format fileFormat, Format targetFormat, Locale locale) {

@@ -67,4 +67,14 @@ public class ButtonFactory {
 
         return inlineKeyboardButton;
     }
+
+    public InlineKeyboardButton resolutionButton(String resolution) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(resolution);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
 }

@@ -160,4 +160,6 @@ public class MessagesProperties {
     public static final String MESSAGE_COMPRESSED_SIZE = "message.compressed.size";
 
     public static final String MESSAGE_VIDEO_EDIT_WELCOME = "message.video.edit.welcome";
+
+    public static final String MESSAGE_VIDEO_EDIT_SETTINGS = "message.video.edit.settings";
 }

@@ -10,6 +10,8 @@ public class SettingsState {
 
     private Format targetFormat;
 
+    private String resolution;
+
     public String getBitrate() {
         return bitrate;
     }
@@ -32,5 +34,13 @@ public class SettingsState {
 
     public void setTargetFormat(Format targetFormat) {
         this.targetFormat = targetFormat;
+    }
+
+    public String getResolution() {
+        return resolution;
+    }
+
+    public void setResolution(String resolution) {
+        this.resolution = resolution;
     }
 }
