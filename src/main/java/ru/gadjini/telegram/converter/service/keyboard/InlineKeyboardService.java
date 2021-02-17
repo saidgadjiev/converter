@@ -31,6 +31,7 @@ public class InlineKeyboardService {
                 inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.resolutionButton(resolution)));
             }
         }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.editVideoButton(locale)));
 
         return inlineKeyboardMarkup;
     }

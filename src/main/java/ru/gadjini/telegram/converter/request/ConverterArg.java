@@ -4,7 +4,8 @@ public enum ConverterArg {
 
     COMPRESS("f"),
     OPUS_CONVERSION("h"),
-    RESOLUTION("i");
+    RESOLUTION("i"),
+    EDIT_VIDEO("l");
 
     private final String key;
 

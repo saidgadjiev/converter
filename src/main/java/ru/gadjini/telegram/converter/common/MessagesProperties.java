@@ -162,4 +162,6 @@ public class MessagesProperties {
     public static final String MESSAGE_VIDEO_EDIT_WELCOME = "message.video.edit.welcome";
 
     public static final String MESSAGE_VIDEO_EDIT_SETTINGS = "message.video.edit.settings";
+
+    public static final String EDIT_VIDEO_COMMAND_DESCRIPTION = "edit.video.command.description";
 }
