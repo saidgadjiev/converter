@@ -153,7 +153,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     @Override
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(ConverterArg.COMPRESS.getKey())) {
-            ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.COMPRESS_AUDIO, false, ConvertState.class);
+            ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
+                    ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
 
             if (convertState != null) {
                 workQueueJob.removeAndCancelCurrentTasks(callbackQuery.getMessage().getChatId());
@@ -162,7 +163,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
             }
         } else if (requestParams.contains(ConverterArg.OPUS_CONVERSION.getKey())) {
-            ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.COMPRESS_AUDIO, false, ConvertState.class);
+            ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
+                    ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
 
             if (convertState != null) {
                 boolean opusConversion = requestParams.getBoolean(ConverterArg.OPUS_CONVERSION.getKey());

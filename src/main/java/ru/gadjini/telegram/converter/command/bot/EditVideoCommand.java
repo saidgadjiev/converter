@@ -14,17 +14,20 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
+import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
+import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
@@ -55,12 +58,17 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private InlineKeyboardService inlineKeyboardService;
 
+    private WorkQueueJob workQueueJob;
+
+    private ConvertionService convertionService;
+
     @Autowired
     public EditVideoCommand(@Qualifier("messageLimits") MessageService messageService, UserService userService,
                             LocalisationService localisationService,
                             @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
                             XSync<Long> longXSync, CommandStateService commandStateService,
-                            MessageMediaService messageMediaService, InlineKeyboardService inlineKeyboardService) {
+                            MessageMediaService messageMediaService, InlineKeyboardService inlineKeyboardService,
+                            ConvertionService convertionService) {
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
@@ -69,6 +77,12 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         this.commandStateService = commandStateService;
         this.messageMediaService = messageMediaService;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.convertionService = convertionService;
+    }
+
+    @Autowired
+    public void setWorkQueueJob(WorkQueueJob workQueueJob) {
+        this.workQueueJob = workQueueJob;
     }
 
     @Override
@@ -111,6 +125,16 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                 setResolution(callbackQuery.getMessage().getChatId(), resolution);
             } else {
                 //TODO: отправлять сообщение чтобы выбрали разрешение с клавиатуры
+            }
+        } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
+            ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
+                    ConverterCommandNames.EDIT_VIDEO, true, ConvertState.class);
+
+            if (convertState != null) {
+                workQueueJob.removeAndCancelCurrentTasks(callbackQuery.getMessage().getChatId());
+                convertionService.createConversion(callbackQuery.getFrom(), convertState, Format.EDIT_VIDEO, new Locale(convertState.getUserLanguage()));
+                commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.EDIT_VIDEO);
+                messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
             }
         }
     }
