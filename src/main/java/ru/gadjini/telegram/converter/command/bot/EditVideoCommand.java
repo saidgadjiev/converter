@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
@@ -29,6 +30,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Component
 public class EditVideoCommand implements BotCommand, NavigableBotCommand, CallbackBotCommand {
@@ -124,11 +126,12 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                 ConvertState convertState = createState(message, locale);
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(buildSettingsMessage(convertState, locale))
+                                .text(buildSettingsMessage(convertState))
                                 .parseMode(ParseMode.HTML)
                                 .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, locale))
                                 .build(),
                         sent -> {
+                            convertState.getSettings().setMessageId(sent.getMessageId());
                             commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
                         }
                 );
@@ -138,16 +141,28 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private void setResolution(long chatId, String resolution) {
         ConvertState convertState = commandStateService.getState(chatId,
-                ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
+                ConverterCommandNames.EDIT_VIDEO, true, ConvertState.class);
 
+        String oldResolution = convertState.getSettings().getResolution();
         convertState.getSettings().setResolution(resolution);
-
+        if (!Objects.equals(resolution, oldResolution)) {
+            updateSettingsMessage(chatId, convertState);
+        }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }
 
-    private String buildSettingsMessage(ConvertState convertState, Locale locale) {
+    private void updateSettingsMessage(long chatId, ConvertState convertState) {
+        messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
+                .messageId(convertState.getSettings().getMessageId())
+                .text(buildSettingsMessage(convertState))
+                .parseMode(ParseMode.HTML)
+                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage())))
+                .build());
+    }
+
+    private String buildSettingsMessage(ConvertState convertState) {
         return localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
-                new Object[]{convertState.getSettings().getResolution()}, locale);
+                new Object[]{convertState.getSettings().getResolution()}, new Locale(convertState.getUserLanguage()));
     }
 
     private ConvertState createState(Message message, Locale locale) {
