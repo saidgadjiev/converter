@@ -6,14 +6,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
@@ -22,12 +25,13 @@ import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.List;
 import java.util.Locale;
 
 @Component
-public class EditVideoCommand implements BotCommand, NavigableBotCommand {
+public class EditVideoCommand implements BotCommand, NavigableBotCommand, CallbackBotCommand {
 
     private static final String DEFAULT_RESOLUTION = "144p";
 
@@ -93,6 +97,23 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand {
     }
 
     @Override
+    public String getName() {
+        return ConverterCommandNames.EDIT_VIDEO;
+    }
+
+    @Override
+    public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
+        if (requestParams.contains(ConverterArg.RESOLUTION.getKey())) {
+            String resolution = requestParams.getString(ConverterArg.RESOLUTION.getKey());
+            if (AVAILABLE_RESOLUTIONS.contains(resolution)) {
+                setResolution(callbackQuery.getMessage().getChatId(), resolution);
+            } else {
+                //TODO: отправлять сообщение чтобы выбрали разрешение с клавиатуры
+            }
+        }
+    }
+
+    @Override
     public void processNonCommandUpdate(Message message, String text) {
         longXSync.execute(message.getChatId(), () -> {
             ConvertState existsState = commandStateService.getState(message.getChatId(),
@@ -113,6 +134,15 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand {
                 );
             }
         });
+    }
+
+    private void setResolution(long chatId, String resolution) {
+        ConvertState convertState = commandStateService.getState(chatId,
+                ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
+
+        convertState.getSettings().setResolution(resolution);
+
+        commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }
 
     private String buildSettingsMessage(ConvertState convertState, Locale locale) {
