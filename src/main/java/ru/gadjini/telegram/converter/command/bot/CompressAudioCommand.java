@@ -184,9 +184,9 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     public void leave(long chatId) {
         ConvertState state = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, false, ConvertState.class);
         if (state != null) {
+            commandStateService.deleteState(chatId, ConverterCommandNames.COMPRESS_AUDIO);
             messageService.removeInlineKeyboard(chatId, state.getSettings().getMessageId());
         }
-        commandStateService.deleteState(chatId, ConverterCommandNames.COMPRESS_AUDIO);
     }
 
     private void updateSettingsMessage(long chatId, ConvertState convertState) {
@@ -215,11 +215,10 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     }
 
     private void updateState(ConvertState convertState, Message message) {
-        MessageMedia media = messageMediaService.getMedia(message, new Locale(convertState.getUserLanguage()));
+        Locale locale = new Locale(convertState.getUserLanguage());
+        MessageMedia media = messageMediaService.getMedia(message, locale);
 
-        if (media == null || media.getFormat().getCategory() != FormatCategory.AUDIO) {
-            return;
-        }
+        checkMedia(media, locale);
         convertState.setMedia(media);
     }
 

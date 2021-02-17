@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -29,6 +30,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
@@ -187,9 +189,30 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                                 commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
                             }
                     );
+                } else {
+                    updateState(existsState, message);
+                    updateSettingsMessage(message.getChatId(), existsState);
+                    commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
                 }
             }
         });
+    }
+
+    @Override
+    public void leave(long chatId) {
+        ConvertState state = commandStateService.getState(chatId, ConverterCommandNames.EDIT_VIDEO, false, ConvertState.class);
+        if (state != null) {
+            commandStateService.deleteState(chatId, ConverterCommandNames.EDIT_VIDEO);
+            messageService.removeInlineKeyboard(chatId, state.getSettings().getMessageId());
+        }
+    }
+
+    private void updateState(ConvertState convertState, Message message) {
+        Locale locale = new Locale(convertState.getUserLanguage());
+        MessageMedia media = messageMediaService.getMedia(message, locale);
+
+        checkMedia(media, locale);
+        convertState.setMedia(media);
     }
 
     private void setResolution(long chatId, String resolution) {
@@ -226,8 +249,15 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         convertState.getSettings().setResolution(DEFAULT_RESOLUTION);
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
+        checkMedia(media, locale);
         convertState.setMedia(media);
 
         return convertState;
+    }
+
+    private void checkMedia(MessageMedia media, Locale locale) {
+        if (media == null || media.getFormat().getCategory() != FormatCategory.VIDEO) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale));
+        }
     }
 }
