@@ -164,4 +164,10 @@ public class MessagesProperties {
     public static final String MESSAGE_VIDEO_EDIT_SETTINGS = "message.video.edit.settings";
 
     public static final String EDIT_VIDEO_COMMAND_DESCRIPTION = "edit.video.command.description";
+
+    public static final String MESSAGE_CHOOSE_VIDEO_RESOLUTION = "message.choose.video.resolution";
+
+    public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
+
+    public static final String MESSAGE_SEND_VIDEO_TO_EDIT = "message.send.video.to.edit";
 }

@@ -4,6 +4,7 @@ import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -121,11 +122,22 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(ConverterArg.RESOLUTION.getKey())) {
             String resolution = requestParams.getString(ConverterArg.RESOLUTION.getKey());
+
+            String answerCallbackQuery;
             if (AVAILABLE_RESOLUTIONS.contains(resolution)) {
                 setResolution(callbackQuery.getMessage().getChatId(), resolution);
+                answerCallbackQuery = localisationService.getMessage(MessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+                        userService.getLocaleOrDefault(callbackQuery.getFrom().getId()));
             } else {
-                //TODO: отправлять сообщение чтобы выбрали разрешение с клавиатуры
+                answerCallbackQuery = localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION,
+                        userService.getLocaleOrDefault(callbackQuery.getFrom().getId()));
             }
+            messageService.sendAnswerCallbackQuery(
+                    AnswerCallbackQuery.builder()
+                            .callbackQueryId(callbackQuery.getId())
+                            .text(answerCallbackQuery)
+                            .build()
+            );
         } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
             ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
                     ConverterCommandNames.EDIT_VIDEO, true, ConvertState.class);
@@ -142,23 +154,40 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         longXSync.execute(message.getChatId(), () -> {
+            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
             ConvertState existsState = commandStateService.getState(message.getChatId(),
                     ConverterCommandNames.EDIT_VIDEO, false, ConvertState.class);
-
-            if (existsState == null) {
-                Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-                ConvertState convertState = createState(message, locale);
-                messageService.sendMessage(
-                        SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(buildSettingsMessage(convertState))
-                                .parseMode(ParseMode.HTML)
-                                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, locale))
-                                .build(),
-                        sent -> {
-                            convertState.getSettings().setMessageId(sent.getMessageId());
-                            commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
-                        }
-                );
+            if (message.hasText()) {
+                if (existsState == null) {
+                    messageService.sendMessage(
+                            SendMessage.builder()
+                                    .chatId(String.valueOf(message.getChatId()))
+                                    .text(localisationService.getMessage(MessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale))
+                                    .build()
+                    );
+                } else {
+                    messageService.sendMessage(
+                            SendMessage.builder()
+                                    .chatId(String.valueOf(message.getChatId()))
+                                    .text(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
+                                    .build()
+                    );
+                }
+            } else {
+                if (existsState == null) {
+                    ConvertState convertState = createState(message, locale);
+                    messageService.sendMessage(
+                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                    .text(buildSettingsMessage(convertState))
+                                    .parseMode(ParseMode.HTML)
+                                    .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, locale))
+                                    .build(),
+                            sent -> {
+                                convertState.getSettings().setMessageId(sent.getMessageId());
+                                commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
+                            }
+                    );
+                }
             }
         });
     }
