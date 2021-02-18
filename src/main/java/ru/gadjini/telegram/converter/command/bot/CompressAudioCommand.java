@@ -262,7 +262,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     private String buildSettingsMessage(ConvertState convertState) {
         StringBuilder message = new StringBuilder();
         Locale locale = new Locale(convertState.getUserLanguage());
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_AUDIO_FORMAT, new Object[] {convertState.getFirstFormat().getName()}, locale)).append("\n");
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[] {convertState.getFirstFormat().getName()}, locale)).append("\n");
         if (Objects.equals(convertState.getSettings().getTargetFormat(), Format.OPUS)
                 && !Objects.equals(convertState.getFirstFormat(), Format.OPUS)) {
             message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_CONVERSION, locale)).append("\n");

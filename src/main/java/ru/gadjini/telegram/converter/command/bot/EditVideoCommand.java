@@ -237,8 +237,25 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
     }
 
     private String buildSettingsMessage(ConvertState convertState) {
-        return localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
-                new Object[]{convertState.getSettings().getResolution()}, new Locale(convertState.getUserLanguage()));
+        StringBuilder message = new StringBuilder();
+
+        Locale locale = new Locale(convertState.getUserLanguage());
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_RESOLUTION,
+                new Object[]{convertState.getSettings().getResolution()}, locale)).append("\n");
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT,
+                new Object[] {convertState.getFirstFormat().getName()}, locale)).append("\n");
+
+        if (convertState.getFirstFile().getHeight() != null) {
+            message.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_CURRENT_RESOLUTION,
+                    new Object[] {toResolutionString(convertState.getFirstFile().getHeight())}, locale)).append("\n");
+        }
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale));
+
+        return message.toString();
+    }
+
+    private String toResolutionString(int height) {
+        return height + "p";
     }
 
     private ConvertState createState(Message message, Locale locale) {

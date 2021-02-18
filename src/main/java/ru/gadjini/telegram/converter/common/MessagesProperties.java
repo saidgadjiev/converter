@@ -155,13 +155,9 @@ public class MessagesProperties {
 
     public static final String MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE = "message.audio.compress.original.size";
 
-    public static final String MESSAGE_AUDIO_COMPRESS_AUDIO_FORMAT = "message.audio.compress.audio.format";
-
     public static final String MESSAGE_COMPRESSED_SIZE = "message.compressed.size";
 
     public static final String MESSAGE_VIDEO_EDIT_WELCOME = "message.video.edit.welcome";
-
-    public static final String MESSAGE_VIDEO_EDIT_SETTINGS = "message.video.edit.settings";
 
     public static final String EDIT_VIDEO_COMMAND_DESCRIPTION = "edit.video.command.description";
 
@@ -170,4 +166,14 @@ public class MessagesProperties {
     public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
 
     public static final String MESSAGE_SEND_VIDEO_TO_EDIT = "message.send.video.to.edit";
+
+    public static final String MESSAGE_VIDEO_EDIT_SETTINGS_RESOLUTION = "message.video.edit.settings.resolution";
+
+    public static final String MESSAGE_VIDEO_EDIT_SETTINGS_CURRENT_RESOLUTION = "message.video.edit.settings.current.resolution";
+
+    public static final String MESSAGE_VIDEO_EDIT_SETTINGS_CHOOSE_RESOLUTION = "message.video.edit.settings.choose.resolution";
+
+    public static final String MESSAGE_VIDEO_WILL_BE_EDITED = "message.video.will.be.edited";
+
+    public static final String VIDEO_EDITING_STEP = "video.editing.step";
 }
