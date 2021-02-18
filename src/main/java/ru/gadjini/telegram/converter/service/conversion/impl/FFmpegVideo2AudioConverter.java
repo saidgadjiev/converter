@@ -6,12 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
+import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
-import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,8 +33,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
     private static final String TAG = "ffmpegvideo";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(List.of(MP4, _3GP, AVI, TS, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WMV),
-                List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RA));
+        put(Format.filter(FormatCategory.VIDEO), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RA));
     }};
 
     private FFmpegDevice fFmpegDevice;
