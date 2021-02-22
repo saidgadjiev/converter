@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.common;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
@@ -21,6 +22,50 @@ public class FFmpegHelper {
     @Autowired
     public FFmpegHelper(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
+    }
+
+    public boolean isCopyable(SmartTempFile in, SmartTempFile out, Format targetFormat, String streamPrefix, int streamIndex) {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        commandBuilder.map(streamPrefix, streamIndex).copy(streamPrefix);
+        addTargetFormatOptions(commandBuilder, targetFormat);
+
+        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+    }
+
+    public void addTargetFormatOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+        if (target == MPEG || target == MPG) {
+            commandBuilder.f(FFmpegCommandBuilder.MPEGTS_FORMAT);
+        } else if (target == _3GP) {
+            commandBuilder.ar("8000").ba("12.20k").ac("1").s("176x144");
+        } else if (target == FLV) {
+            commandBuilder.f(FFmpegCommandBuilder.FLV_FORMAT).ar("44100");
+        } else if (target == MTS) {
+            commandBuilder.r("30000/1001");
+        }
+    }
+
+    public void addFastestVideoCodecOptions(FFmpegCommandBuilder commandBuilder, SmartTempFile in, SmartTempFile out, FFprobeDevice.Stream videoStream,
+                                             int videoStreamIndex, String h264Scale) {
+        if (StringUtils.isBlank(videoStream.getCodecName())) {
+            return;
+        }
+        String codec = videoStream.getCodecName();
+        if (!FFmpegCommandBuilder.H264_CODEC.equals(codec)) {
+            if (isConvertiableToH264(in, out, videoStreamIndex, h264Scale)) {
+                codec = FFmpegCommandBuilder.H264_CODEC;
+            } else if (FFmpegCommandBuilder.VP9_CODEC.equals(codec)) {
+                codec = FFmpegCommandBuilder.VP8_CODEC;
+            }
+        }
+
+        commandBuilder.videoCodec(videoStreamIndex, codec);
+    }
+
+    public boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int streamIndex, String scale) {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        commandBuilder.mapVideo(streamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
+
+        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
     }
 
     public boolean isSubtitlesCopyable(SmartTempFile in, SmartTempFile out) {

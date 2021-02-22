@@ -84,7 +84,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                     .collect(Collectors.toList());
             for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
                 commandBuilder.mapVideo(videoStreamIndex);
-                if (isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, videoStreamIndex)) {
+                if (fFmpegHelper.isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, videoStreamIndex)) {
                     commandBuilder.copyVideo(videoStreamIndex);
                 } else {
                     addVideoCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
@@ -97,7 +97,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                         .collect(Collectors.toList());
                 List<Integer> copyAudiosIndexes = new ArrayList<>();
                 for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
-                    if (isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, audioStreamIndex)) {
+                    if (fFmpegHelper.isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, audioStreamIndex)) {
                         copyAudiosIndexes.add(audioStreamIndex);
                     } else {
                         addAudioCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), audioStreamIndex);
@@ -117,7 +117,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                     FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
                 }
             }
-            addTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
+            fFmpegHelper.addTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
             commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
             commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 
@@ -142,26 +142,6 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
         fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
-    }
-
-    private boolean isCopyable(SmartTempFile in, SmartTempFile out, Format targetFormat, String streamPrefix, int streamIndex) {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-        commandBuilder.map(streamPrefix, streamIndex).copy(streamPrefix);
-        addTargetFormatOptions(commandBuilder, targetFormat);
-
-        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
-    }
-
-    private void addTargetFormatOptions(FFmpegCommandBuilder commandBuilder, Format target) {
-        if (target == MPEG || target == MPG) {
-            commandBuilder.f(FFmpegCommandBuilder.MPEGTS_FORMAT);
-        } else if (target == _3GP) {
-            commandBuilder.ar("8000").ba("12.20k").ac("1").s("176x144");
-        } else if (target == FLV) {
-            commandBuilder.f(FFmpegCommandBuilder.FLV_FORMAT).ar("44100");
-        } else if (target == MTS) {
-            commandBuilder.r("30000/1001");
-        }
     }
 
     private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {

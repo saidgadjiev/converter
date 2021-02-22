@@ -86,7 +86,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
             for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
                 commandBuilder.mapVideo(videoStreamIndex);
-                addVideoCodecOptions(commandBuilder, file, out, videoStreams.get(videoStreamIndex), videoStreamIndex);
+                fFmpegHelper.addFastestVideoCodecOptions(commandBuilder, file, out, videoStreams.get(videoStreamIndex), videoStreamIndex, SCALE);
                 commandBuilder.filterVideo(videoStreamIndex, SCALE);
             }
             if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
@@ -103,7 +103,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             commandBuilder.crf("30");
             commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
             commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
-            addOptionsBySrc(commandBuilder, fileQueueItem.getFirstFileFormat());
+            fFmpegHelper.addTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
 
             fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
 
@@ -138,35 +138,5 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     @Override
     public int createDownloads(ConversionQueueItem conversionQueueItem) {
         return super.createDownloadsWithThumb(conversionQueueItem);
-    }
-
-    private void addVideoCodecOptions(FFmpegCommandBuilder commandBuilder, SmartTempFile in, SmartTempFile out, FFprobeDevice.Stream videoStream,
-                                      int videoStreamIndex) {
-        if (StringUtils.isBlank(videoStream.getCodecName())) {
-            return;
-        }
-        String codec = videoStream.getCodecName();
-        if (!FFmpegCommandBuilder.H264_CODEC.equals(codec)) {
-            if (isConvertiableToH264(in, out, videoStreamIndex)) {
-                codec = FFmpegCommandBuilder.H264_CODEC;
-            } else if (FFmpegCommandBuilder.VP9_CODEC.equals(codec)) {
-                codec = FFmpegCommandBuilder.VP8_CODEC;
-            }
-        }
-
-        commandBuilder.videoCodec(videoStreamIndex, codec);
-    }
-
-    private boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int streamIndex) {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-        commandBuilder.mapVideo(streamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(SCALE);
-
-        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
-    }
-
-    private void addOptionsBySrc(FFmpegCommandBuilder commandBuilder, Format src) {
-        if (src == _3GP) {
-            commandBuilder.ar("8000").ba("12.20k").ac("1").s("176x144");
-        }
     }
 }
