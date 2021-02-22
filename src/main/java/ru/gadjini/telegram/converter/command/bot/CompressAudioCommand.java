@@ -4,6 +4,7 @@ import com.antkorwin.xsync.XSync;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,6 +15,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
@@ -62,6 +64,9 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
     private XSync<Long> longXSync;
 
+    @Value("${converter:all}")
+    private String converter;
+
     @Autowired
     public CompressAudioCommand(@Qualifier("messageLimits") MessageService messageService, UserService userService,
                                 LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
@@ -79,6 +84,11 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         this.workQueueJob = workQueueJob;
         this.messageMediaService = messageMediaService;
         this.longXSync = longXSync;
+    }
+
+    @Override
+    public boolean accept(Message message) {
+        return FormatsConfiguration.ALL_CONVERTER.equals(converter) || FormatsConfiguration.AUDIO_CONVERTER.equals(converter);
     }
 
     @Override

@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.command.bot;
 import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -14,6 +15,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -65,6 +67,9 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private ConvertionService convertionService;
 
+    @Value("${converter:all}")
+    private String converter;
+
     @Autowired
     public EditVideoCommand(@Qualifier("messageLimits") MessageService messageService, UserService userService,
                             LocalisationService localisationService,
@@ -81,6 +86,11 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         this.messageMediaService = messageMediaService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.convertionService = convertionService;
+    }
+
+    @Override
+    public boolean accept(Message message) {
+        return FormatsConfiguration.ALL_CONVERTER.equals(converter) || FormatsConfiguration.VIDEO_CONVERTER.equals(converter);
     }
 
     @Autowired
