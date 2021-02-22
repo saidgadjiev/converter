@@ -77,8 +77,7 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 
             SmartTempFile thumbFile = downloadThumb(fileQueueItem);
-            if (FileSource.AUDIO.equals(fileQueueItem.getFirstFile().getSource()) && targetFormat.canBeSentAsAudio()
-                    || fileQueueItem.getTargetFormat().equals(Format.VOICE)) {
+            if (targetFormat.canBeSentAsAudio() || fileQueueItem.getTargetFormat().equals(Format.VOICE)) {
                 if (fileQueueItem.getFirstFile().getDuration() == null) {
                     try {
                         long durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
