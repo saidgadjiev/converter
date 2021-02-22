@@ -33,7 +33,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
     private static final String TAG = "ffmpegvideo";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(Format.filter(FormatCategory.VIDEO), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RA));
+        put(filter(FormatCategory.VIDEO), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RA));
     }};
 
     private FFmpegDevice fFmpegDevice;

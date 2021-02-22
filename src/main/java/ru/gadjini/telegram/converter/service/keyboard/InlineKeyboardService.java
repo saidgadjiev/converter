@@ -4,9 +4,11 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -27,9 +29,11 @@ public class InlineKeyboardService {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         List<List<String>> lists = Lists.partition(resolutions, 3);
         for (List<String> list : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (String resolution : list) {
-                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.resolutionButton(resolution)));
+                buttons.add(buttonFactory.resolutionButton(resolution));
             }
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
         }
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.editVideoButton(locale)));
 

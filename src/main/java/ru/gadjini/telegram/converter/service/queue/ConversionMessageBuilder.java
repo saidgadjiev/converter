@@ -51,6 +51,15 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
     }
 
+    public String getResolutionChangedInfoMessage(Integer sourceHeight, Integer targetHeight, Locale locale) {
+        if (sourceHeight == null || targetHeight == null) {
+            return null;
+        }
+
+        return localisationService.getMessage(MessagesProperties.VIDEO_EDITING_RESOLUTION_CHANGED,
+                new Object[]{sourceHeight + "p", targetHeight + "p"}, locale);
+    }
+
     public String getUnsupportedCategoryMessage(FormatCategory category, Locale locale) {
         String msgCode = MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT;
         if (category == FormatCategory.VIDEO) {

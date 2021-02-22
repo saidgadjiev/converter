@@ -2,27 +2,33 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
+import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT_VIDEO;
 
 @Component
 public class VideoEditor extends BaseAny2AnyConverter {
@@ -33,6 +39,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
             Format.filter(FormatCategory.VIDEO), List.of(EDIT_VIDEO)
     );
 
+    private ConversionMessageBuilder messageBuilder;
+
+    private UserService userService;
+
     private FFprobeDevice fFprobeDevice;
 
     private FFmpegDevice fFmpegDevice;
@@ -41,13 +51,19 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private Gson gson;
 
+    private LocalisationService localisationService;
+
     @Autowired
-    public VideoEditor(FFprobeDevice fFprobeDevice, FFmpegDevice fFmpegDevice, FFmpegHelper fFmpegHelper, Gson gson) {
+    public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
+                       FFmpegDevice fFmpegDevice, FFmpegHelper fFmpegHelper, Gson gson, LocalisationService localisationService) {
         super(MAP);
+        this.messageBuilder = messageBuilder;
+        this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
         this.fFmpegHelper = fFmpegHelper;
         this.gson = gson;
+        this.localisationService = localisationService;
     }
 
     @Override
@@ -56,9 +72,17 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
         SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
+            SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
+            Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
+
+            if (Objects.equals(srcWhd.getHeight(), height)) {
+                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
+                        new Object[]{settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+            }
+
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegHelper.removeExtraVideoStreams(allStreams);
-            SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
 
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
@@ -66,7 +90,6 @@ public class VideoEditor extends BaseAny2AnyConverter {
                     .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
 
-            String height = settingsState.getResolution().replace("p", "");
             String scale = "scale=-2:" + height;
             for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
                 commandBuilder.mapVideo(videoStreamIndex);
@@ -92,7 +115,15 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
-            return new FileResult(fileName, out, downloadThumb(fileQueueItem));
+            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
+            String resolutionChangedInfo = messageBuilder.getResolutionChangedInfoMessage(srcWhd.getHeight(),
+                    height, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                return new VideoResult(fileName, out, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), targetWhd.getWidth(), height,
+                        targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), resolutionChangedInfo);
+            } else {
+                return new FileResult(fileName, out, downloadThumb(fileQueueItem), resolutionChangedInfo);
+            }
         } catch (Throwable e) {
             out.smartDelete();
             throw e;

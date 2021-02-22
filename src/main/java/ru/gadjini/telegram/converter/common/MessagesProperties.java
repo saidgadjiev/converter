@@ -176,4 +176,10 @@ public class MessagesProperties {
     public static final String MESSAGE_VIDEO_WILL_BE_EDITED = "message.video.will.be.edited";
 
     public static final String VIDEO_EDITING_STEP = "video.editing.step";
+
+    public static final String VIDEO_EDITING_RESOLUTION_CHANGED = "video.editing.resolution.changed";
+
+    public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME = "message.video.resolution.the.same";
+
+    public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME_CHOOSE_ANOTHER_ON_THE_KEYBOARD = "message.video.resolution.the.same.choose.another.on.the.keyboard";
 }
