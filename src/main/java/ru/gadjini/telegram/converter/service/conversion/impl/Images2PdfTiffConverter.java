@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.job.DownloadExtra;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
@@ -66,11 +66,11 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         return doConvert(fileQueueItem, fileQueueItem.getTargetFormat());
     }
 
-    public ConvertResult doConvert(ConversionQueueItem fileQueueItem, Format targetFormat) {
+    public ConversionResult doConvert(ConversionQueueItem fileQueueItem, Format targetFormat) {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
         List<SmartTempFile> images = fileQueueItem.getDownloadedFiles();
 

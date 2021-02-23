@@ -4,7 +4,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.device.BusyConvertResult;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.WorkQueueService;
 
@@ -24,7 +24,7 @@ public class OomHandler {
         return i != -1;
     }
 
-    public ConvertResult handleOom(ConversionQueueItem conversionQueueItem, Throwable e) {
+    public ConversionResult handleOom(ConversionQueueItem conversionQueueItem, Throwable e) {
         queueService.setException(conversionQueueItem.getId(), e);
 
         return new BusyConvertResult();

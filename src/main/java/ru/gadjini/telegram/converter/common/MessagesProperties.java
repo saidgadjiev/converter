@@ -181,5 +181,9 @@ public class MessagesProperties {
 
     public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME = "message.video.resolution.the.same";
 
-    public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME_CHOOSE_ANOTHER_ON_THE_KEYBOARD = "message.video.resolution.the.same.choose.another.on.the.keyboard";
+    public static final String MESSAGE_VIDEO_RESOLUTION_CANT_BE_INCREASED = "message.video.resolution.cant.be.increased";
+
+    public static final String MESSAGE_VIDEO_RESOLUTION_CANT_BE_INCREASED_ANSWER = "message.video.resolution.cant.be.increased.answer";
+
+    public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME_ANSWER = "message.video.resolution.the.same.answer";
 }

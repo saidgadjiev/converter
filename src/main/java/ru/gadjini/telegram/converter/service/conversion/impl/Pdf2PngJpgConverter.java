@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.P7ArchiveDevice;
 import ru.gadjini.telegram.converter.service.conversion.device.PdfToPpmDevice;
@@ -47,7 +47,7 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    protected ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {

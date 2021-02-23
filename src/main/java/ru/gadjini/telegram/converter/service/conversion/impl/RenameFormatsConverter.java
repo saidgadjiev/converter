@@ -2,7 +2,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -27,7 +27,7 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    protected ConvertResult doConvert(ConversionQueueItem conversionQueueItem) {
+    protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
         SmartTempFile src = conversionQueueItem.getDownloadedFile(conversionQueueItem.getFirstFileId());
 
         SmartTempFile out = getFileService().createTempFile(conversionQueueItem.getUserId(), conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());

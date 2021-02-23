@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.OomHandler;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.BusyConvertResult;
 import ru.gadjini.telegram.converter.service.logger.FileLg;
@@ -57,11 +57,11 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         File logFile = processExecutor.getErrorLogFile();
 
-        ConvertResult fileResult;
+        ConversionResult fileResult;
         boolean dirtyConvert = false;
 
         try (Lg log = logFile == null ? new SoutLg() : new FileLg(logFile)) {
@@ -97,10 +97,10 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         return fileResult;
     }
 
-    public ConvertResult convert(ConversionQueueItem fileQueueItem, SmartTempFile file) {
+    public ConversionResult convert(ConversionQueueItem fileQueueItem, SmartTempFile file) {
         File logFile = processExecutor.getErrorLogFile();
 
-        ConvertResult fileResult;
+        ConversionResult fileResult;
 
         try (Lg log = logFile == null ? new SoutLg() : new FileLg(logFile)) {
             LOGGER.debug("Log file({}, {})", fileQueueItem.getId(), logFile == null ? "sout" : logFile.getAbsolutePath());
@@ -139,7 +139,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
     }
 
-    private ConvertResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
+    private ConversionResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         Document document = new Document(file.getAbsolutePath());
         try {
             SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
@@ -171,7 +171,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private ConvertResult doDirtyConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
+    private ConversionResult doDirtyConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         log.log("Start dirty way pdf 2 word(%s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId());
         AtomicReference<FileResult> fileResultAtomicReference = new AtomicReference<>();
 

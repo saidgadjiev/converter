@@ -84,6 +84,9 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         if (targetFormats.remove(Format.COMPRESS)) {
             targetFormats.add(0, Format.COMPRESS);
         }
+        if (targetFormats.remove(Format.STREAM)) {
+            targetFormats.add(1, Format.STREAM);
+        }
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();

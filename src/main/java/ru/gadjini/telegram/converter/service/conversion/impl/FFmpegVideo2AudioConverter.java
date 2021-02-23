@@ -53,7 +53,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());

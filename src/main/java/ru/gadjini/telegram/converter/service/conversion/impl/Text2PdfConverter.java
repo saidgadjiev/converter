@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.text.TextDetector;
 import ru.gadjini.telegram.converter.service.text.TextDirection;
@@ -45,7 +45,7 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         return toWordOrPdf(fileQueueItem);
     }
 

@@ -5,7 +5,7 @@ import com.aspose.pdf.devices.TiffDevice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -27,7 +27,7 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         return toTiff(fileQueueItem);
     }
 

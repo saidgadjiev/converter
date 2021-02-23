@@ -5,7 +5,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
 
-public class FileResult implements ConvertResult {
+public class FileResult implements ConversionResult {
 
     private SmartTempFile file;
 

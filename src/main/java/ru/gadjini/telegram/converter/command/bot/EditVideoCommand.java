@@ -154,18 +154,29 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
             ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
                     ConverterCommandNames.EDIT_VIDEO, true, ConvertState.class);
 
-            if (Objects.equals(convertState.getFirstFile().getHeight() + "p", convertState.getSettings().getResolution())) {
+            Integer resolutionHeight = Integer.parseInt(convertState.getSettings().getResolution().replace("p", ""));
+            if (Objects.equals(convertState.getFirstFile().getHeight(), resolutionHeight)) {
                 messageService.sendAnswerCallbackQuery(
                         AnswerCallbackQuery.builder()
                                 .callbackQueryId(callbackQuery.getId())
-                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME_CHOOSE_ANOTHER_ON_THE_KEYBOARD,
-                                        new Object[] {convertState.getSettings().getResolution()}, new Locale(convertState.getUserLanguage())))
+                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME_ANSWER,
+                                        new Object[]{convertState.getSettings().getResolution()}, new Locale(convertState.getUserLanguage())))
+                                .showAlert(true)
+                                .build()
+                );
+            } else if (convertState.getFirstFile().getHeight() != null && resolutionHeight > convertState.getFirstFile().getHeight()) {
+                messageService.sendAnswerCallbackQuery(
+                        AnswerCallbackQuery.builder()
+                                .callbackQueryId(callbackQuery.getId())
+                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_CANT_BE_INCREASED_ANSWER,
+                                        new Object[]{convertState.getFirstFile().getHeight() + "p", convertState.getSettings().getResolution()},
+                                        new Locale(convertState.getUserLanguage())))
                                 .showAlert(true)
                                 .build()
                 );
             } else {
                 workQueueJob.removeAndCancelCurrentTasks(callbackQuery.getMessage().getChatId());
-                convertionService.createConversion(callbackQuery.getFrom(), convertState, Format.EDIT_VIDEO, new Locale(convertState.getUserLanguage()));
+                convertionService.createConversion(callbackQuery.getFrom(), convertState, Format.EDIT, new Locale(convertState.getUserLanguage()));
                 commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.EDIT_VIDEO);
                 messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
             }

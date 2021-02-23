@@ -8,7 +8,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT_VIDEO;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT;
 
 @Component
 public class VideoEditor extends BaseAny2AnyConverter {
@@ -36,7 +36,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
     private static final String TAG = "vedit";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            Format.filter(FormatCategory.VIDEO), List.of(EDIT_VIDEO)
+            Format.filter(FormatCategory.VIDEO), List.of(EDIT)
     );
 
     private ConversionMessageBuilder messageBuilder;
@@ -67,7 +67,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
     }
 
     @Override
-    protected ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
@@ -79,6 +79,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
             if (Objects.equals(srcWhd.getHeight(), height)) {
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
                         new Object[]{settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+            }
+            if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
+                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_CANT_BE_INCREASED,
+                        new Object[]{srcWhd.getHeight() + "p", settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
             }
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());

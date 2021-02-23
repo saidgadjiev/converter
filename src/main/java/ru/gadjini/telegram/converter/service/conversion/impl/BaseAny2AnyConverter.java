@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.job.DownloadExtra;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.progress.ProgressBuilder;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -76,7 +76,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     @Override
-    public ConvertResult convert(ConversionQueueItem fileQueueItem, Supplier<Boolean> cancelChecker, Supplier<Boolean> canceledByUserChecker) {
+    public ConversionResult convert(ConversionQueueItem fileQueueItem, Supplier<Boolean> cancelChecker, Supplier<Boolean> canceledByUserChecker) {
         try {
             return doConvert(fileQueueItem);
         } finally {
@@ -153,7 +153,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return Collections.emptyList();
     }
 
-    protected abstract ConvertResult doConvert(ConversionQueueItem conversionQueueItem);
+    protected abstract ConversionResult doConvert(ConversionQueueItem conversionQueueItem);
 
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
 

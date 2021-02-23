@@ -132,7 +132,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     mediaMessageService.sendDocument(new SendDocument(String.valueOf(fileQueueItem.getUserId()), new InputFile(fileQueueItem.getResultFileId())));
                 } else {
                     sendConvertingProgress(fileQueueItem);
-                    ConvertResult convertResult = candidate.convert(fileQueueItem,
+                    ConversionResult convertResult = candidate.convert(fileQueueItem,
                             () -> cancelChecker != null && cancelChecker.get(),
                             () -> canceledByUser);
                     if (convertResult.resultType() == ResultType.BUSY) {
@@ -233,7 +233,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             }
         }
 
-        private void sendResult(ConversionQueueItem fileQueueItem, ConvertResult convertResult) {
+        private void sendResult(ConversionQueueItem fileQueueItem, ConversionResult convertResult) {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             switch (convertResult.resultType()) {
                 case FILE: {
@@ -287,7 +287,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 }
                 case CONTAINER: {
                     ConvertResults convertResults = (ConvertResults) convertResult;
-                    for (ConvertResult result : convertResults.getConvertResults()) {
+                    for (ConversionResult result : convertResults.getConvertResults()) {
                         sendResult(fileQueueItem, result);
                     }
                     break;

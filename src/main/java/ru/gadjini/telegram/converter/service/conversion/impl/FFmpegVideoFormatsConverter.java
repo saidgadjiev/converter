@@ -4,13 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
-import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
-import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -69,70 +69,13 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     }
 
     @Override
-    public ConvertResult doConvert(ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+
         try {
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFmpegHelper.removeExtraVideoStreams(allStreams);
-
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-
-            List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
-                    .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
-                    .collect(Collectors.toList());
-            for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
-                commandBuilder.mapVideo(videoStreamIndex);
-                if (fFmpegHelper.isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, videoStreamIndex)) {
-                    commandBuilder.copyVideo(videoStreamIndex);
-                } else {
-                    addVideoCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
-                }
-            }
-            if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
-                commandBuilder.mapAudio();
-                List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
-                        .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
-                        .collect(Collectors.toList());
-                List<Integer> copyAudiosIndexes = new ArrayList<>();
-                for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
-                    if (fFmpegHelper.isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, audioStreamIndex)) {
-                        copyAudiosIndexes.add(audioStreamIndex);
-                    } else {
-                        addAudioCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), audioStreamIndex);
-                    }
-                }
-                if (copyAudiosIndexes.size() == audioStreams.size()) {
-                    commandBuilder.copyAudio();
-                } else {
-                    copyAudiosIndexes.forEach(commandBuilder::copyAudio);
-                }
-            }
-            if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
-                if (fFmpegHelper.isSubtitlesCopyable(file, out)) {
-                    commandBuilder.mapSubtitles().copySubtitles();
-                } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getTargetFormat())) {
-                    commandBuilder.mapSubtitles();
-                    FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
-                }
-            }
-            fFmpegHelper.addTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
-            commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-            commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
-
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
-
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-
-            if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
-
-                return new VideoResult(fileName, out, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming());
-            } else {
-                return new FileResult(fileName, out, downloadThumb(fileQueueItem));
-            }
+            return doConvert(file, out, fileQueueItem);
         } catch (Throwable e) {
             out.smartDelete();
             throw e;
@@ -142,6 +85,68 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
         fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+    }
+
+    public ConversionResult doConvert(SmartTempFile file, SmartTempFile out, ConversionQueueItem fileQueueItem) {
+        List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+        FFmpegHelper.removeExtraVideoStreams(allStreams);
+
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+        for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
+            commandBuilder.mapVideo(videoStreamIndex);
+            if (fFmpegHelper.isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, videoStreamIndex)) {
+                commandBuilder.copyVideo(videoStreamIndex);
+            } else {
+                addVideoCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
+            }
+        }
+        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
+            commandBuilder.mapAudio();
+            List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
+                    .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
+                    .collect(Collectors.toList());
+            List<Integer> copyAudiosIndexes = new ArrayList<>();
+            for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
+                if (fFmpegHelper.isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, audioStreamIndex)) {
+                    copyAudiosIndexes.add(audioStreamIndex);
+                } else {
+                    addAudioCodecOptions(commandBuilder, fileQueueItem.getTargetFormat(), audioStreamIndex);
+                }
+            }
+            if (copyAudiosIndexes.size() == audioStreams.size()) {
+                commandBuilder.copyAudio();
+            } else {
+                copyAudiosIndexes.forEach(commandBuilder::copyAudio);
+            }
+        }
+        if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
+            if (fFmpegHelper.isSubtitlesCopyable(file, out)) {
+                commandBuilder.mapSubtitles().copySubtitles();
+            } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getTargetFormat())) {
+                commandBuilder.mapSubtitles();
+                FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
+            }
+        }
+        fFmpegHelper.addTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
+        commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
+        commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
+
+        fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+
+        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+
+        if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
+
+            return new VideoResult(fileName, out, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
+                    whd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming());
+        } else {
+            return new FileResult(fileName, out, downloadThumb(fileQueueItem));
+        }
     }
 
     private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {

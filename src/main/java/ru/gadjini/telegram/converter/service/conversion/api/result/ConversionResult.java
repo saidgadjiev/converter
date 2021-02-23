@@ -1,6 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.api.result;
 
-public interface ConvertResult {
+public interface ConversionResult {
 
     ResultType resultType();
 }

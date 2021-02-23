@@ -121,7 +121,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             text.append(localisationService.getMessage(MessagesProperties.MESSAGE_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.MERGE_PDFS) {
             text.append(localisationService.getMessage(MessagesProperties.MESSAGE_MERGE_FILES_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
-        } else if (queueItem.getTargetFormat() == Format.EDIT_VIDEO) {
+        } else if (queueItem.getTargetFormat() == Format.EDIT) {
             text.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_WILL_BE_EDITED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else {
             String queuedMessageCode = queueItem.getFiles().size() > 1 ? MessagesProperties.MESSAGE_FILES_QUEUED : MessagesProperties.MESSAGE_FILE_QUEUED;
@@ -156,7 +156,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         String conversionMsgCode = targetFormat == Format.COMPRESS
                 ? MessagesProperties.COMPRESSING_STEP
                 : targetFormat == Format.MERGE_PDFS ? MessagesProperties.MERGING_STEP
-                : targetFormat == Format.EDIT_VIDEO ? MessagesProperties.VIDEO_EDITING_STEP
+                : targetFormat == Format.EDIT ? MessagesProperties.VIDEO_EDITING_STEP
                 : MessagesProperties.CONVERTING_STEP;
 
         switch (conversionStep) {
