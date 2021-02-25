@@ -16,6 +16,7 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
@@ -78,7 +79,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             String parentDir = images.iterator().next().getParent() + File.separator;
             magickDevice.changeFormatAndRemoveAlphaChannel(parentDir + "*", Format.PNG.getExt());
 
-            SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, targetFormat.getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, targetFormat.getExt());
             try {
                 String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
                 if (targetFormat == Format.PDF) {
@@ -104,11 +105,11 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private Collection<TgFile> prepareFilesToDownload(ConversionQueueItem queueItem) {
         Collection<TgFile> tgFiles = queueItem.getFiles();
-        String tempDir = getFileService().getTempDir(queueItem.getUserId(), TAG);
+        String tempDir = getFileService().getTempDir(FileTarget.DOWNLOAD, queueItem.getUserId(), TAG);
 
         int i = 0;
         for (TgFile imageFile : queueItem.getFiles()) {
-            String path = getFileService().getTempFile(tempDir, queueItem.getUserId(), TAG, imageFile.getFileId(), "File-" + i + "." + imageFile.getFormat().getExt());
+            String path = getFileService().getTempFile(FileTarget.DOWNLOAD, tempDir, queueItem.getUserId(), TAG, imageFile.getFileId(), "File-" + i + "." + imageFile.getFormat().getExt());
             imageFile.setFilePath(path);
             Progress downloadProgress = progressBuilder.buildFilesDownloadProgress(queueItem, i, queueItem.getFiles().size());
             imageFile.setProgress(downloadProgress);

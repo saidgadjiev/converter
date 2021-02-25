@@ -27,6 +27,7 @@ import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
@@ -142,7 +143,8 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
     private ConversionResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         Document document = new Document(file.getAbsolutePath());
         try {
-            SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                    fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 document.optimize();
                 document.optimizeResources();
@@ -177,9 +179,10 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
         Document document = new Document(file.getAbsolutePath());
         try {
-            SmartTempFile tempDir = getFileService().createTempDir(fileQueueItem.getUserId(), TAG);
+            SmartTempFile tempDir = getFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
             try {
-                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                        fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                 try {
                     log.log("Slit dir: " + tempDir.getAbsolutePath());

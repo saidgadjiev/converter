@@ -14,6 +14,7 @@ import ru.gadjini.telegram.converter.service.text.TextInfo;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.converter.utils.TextUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.nio.charset.StandardCharsets;
@@ -45,7 +46,7 @@ public class Text2FileConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult writeText2File(ConversionQueueItem fileQueueItem) {
-        SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
             LOGGER.debug("Text info({})", textInfo);

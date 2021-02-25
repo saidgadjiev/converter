@@ -14,6 +14,7 @@ import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.io.File;
@@ -51,11 +52,12 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile tempDir = getFileService().createTempDir(fileQueueItem.getUserId(), TAG);
+            SmartTempFile tempDir = getFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
             try {
                 pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p", getOptions(fileQueueItem.getTargetFormat()));
 
-                SmartTempFile result = getFileService().getTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.ZIP.getExt());
+                SmartTempFile result = getFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                        fileQueueItem.getFirstFileId(), TAG, Format.ZIP.getExt());
                 try {
                     p7ArchiveDevice.zip(tempDir.getAbsolutePath() + File.separator + "*", result.getAbsolutePath());
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.ZIP.getExt());

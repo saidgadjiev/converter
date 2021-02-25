@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.html.HtmlDevice;
 import ru.gadjini.telegram.converter.service.html.Url2PdfApiDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -40,14 +41,15 @@ public class Html2AnyConverter extends BaseAny2AnyConverter {
         SmartTempFile html = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile file = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                    fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                htmlDevice.convertHtml(html.getAbsolutePath(), file.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
+                htmlDevice.convertHtml(html.getAbsolutePath(), result.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, file);
+                return new FileResult(fileName, result);
             } catch (Throwable e) {
-                file.smartDelete();
+                result.smartDelete();
                 throw e;
             }
         } catch (Exception ex) {

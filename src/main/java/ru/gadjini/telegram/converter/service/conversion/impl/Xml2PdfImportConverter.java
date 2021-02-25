@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -35,7 +36,8 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
             Document document = new Document(pdf.getAbsolutePath());
             try {
                 document.bindXml(pdf.getAbsolutePath());
-                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF_IMPORT.getExt());
+                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                        fileQueueItem.getFirstFileId(), TAG, Format.PDF_IMPORT.getExt());
                 try {
                     document.save(result.getAbsolutePath(), SaveFormat.Pdf);
 

@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        SmartTempFile docFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.DOC.getExt());
+        SmartTempFile docFile = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.DOC.getExt());
         try {
             Document docx = new Document(file.getAbsolutePath());
             try {
@@ -49,7 +50,8 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
         try {
             Document doc = new Document(docFile.getAbsolutePath());
             try {
-                SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                        fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
                     PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
                     //pdfSaveOptions.setMemoryOptimization(true);

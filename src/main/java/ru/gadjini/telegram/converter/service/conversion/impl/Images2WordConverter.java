@@ -10,7 +10,8 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public class Images2WordConverter extends BaseAny2AnyConverter {
         Format originalFormat = fileQueueItem.getTargetFormat();
         FileResult fileResult = (FileResult) images2PdfTiffConverter.doConvert(fileQueueItem, Format.PDF);
         try {
-            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), TAG, originalFormat.getExt());
+            SmartTempFile result = fileService.createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, originalFormat.getExt());
             try {
                 Document document = new Document(fileResult.getFile().getAbsolutePath());
                 try {

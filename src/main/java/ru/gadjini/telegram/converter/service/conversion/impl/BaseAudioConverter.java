@@ -16,6 +16,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -69,17 +70,17 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         Format targetFormat = getTargetFormat(fileQueueItem);
 
-        SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
+        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
                 targetFormat.getExt());
         try {
-            doConvertAudio(file, out, fileQueueItem);
+            doConvertAudio(file, result, fileQueueItem);
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 
             SmartTempFile thumbFile = downloadThumb(fileQueueItem);
             if (targetFormat.canBeSentAsAudio() || fileQueueItem.getTargetFormat().equals(Format.VOICE)) {
                 if (fileQueueItem.getFirstFile().getDuration() == null) {
                     try {
-                        long durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
+                        long durationInSeconds = fFprobeDevice.getDurationInSeconds(result.getAbsolutePath());
                         fileQueueItem.getFirstFile().setDuration((int) durationInSeconds);
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage(), e);
@@ -89,19 +90,19 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
                 String caption = null;
                 if (fileQueueItem.getTargetFormat() == Format.COMPRESS) {
-                    caption = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), out.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+                    caption = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), result.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
                 }
                 if (fileQueueItem.getTargetFormat() == Format.VOICE) {
-                    return new VoiceResult(fileName, out, fileQueueItem.getFirstFile().getDuration(), caption);
+                    return new VoiceResult(fileName, result, fileQueueItem.getFirstFile().getDuration(), caption);
                 } else {
-                    return new AudioResult(fileName, out, fileQueueItem.getFirstFile().getAudioPerformer(),
+                    return new AudioResult(fileName, result, fileQueueItem.getFirstFile().getAudioPerformer(),
                             fileQueueItem.getFirstFile().getAudioTitle(), thumbFile, fileQueueItem.getFirstFile().getDuration(), caption);
                 }
             }
 
-            return new FileResult(fileName, out, thumbFile);
+            return new FileResult(fileName, result, thumbFile);
         } catch (Throwable e) {
-            out.smartDelete();
+            result.smartDelete();
             throw e;
         }
     }

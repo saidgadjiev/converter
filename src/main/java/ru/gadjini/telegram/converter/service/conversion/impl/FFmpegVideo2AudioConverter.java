@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
@@ -60,11 +61,12 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
         ConvertResults convertResults = new ConvertResults();
         for (int streamIndex = 0; streamIndex < audioStreams.size(); streamIndex++) {
             FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
-            SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                    fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             try {
                 String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)), Stream.of(FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
-                fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), options);
+                fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), options);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
 
@@ -72,21 +74,21 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
                         || fileQueueItem.getTargetFormat() == VOICE) {
                     long durationInSeconds = 0;
                     try {
-                        durationInSeconds = fFprobeDevice.getDurationInSeconds(out.getAbsolutePath());
+                        durationInSeconds = fFprobeDevice.getDurationInSeconds(result.getAbsolutePath());
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage(), e);
                     }
 
                     if (fileQueueItem.getTargetFormat().equals(VOICE)) {
-                        convertResults.addResult(new VoiceResult(fileName, out, (int) durationInSeconds, audioStream.getLanguage()));
+                        convertResults.addResult(new VoiceResult(fileName, result, (int) durationInSeconds, audioStream.getLanguage()));
                     } else {
-                        convertResults.addResult(new AudioResult(fileName, out, null, null, downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
+                        convertResults.addResult(new AudioResult(fileName, result, null, null, downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
                     }
                 } else {
-                    convertResults.addResult(new FileResult(fileName, out, downloadThumb(fileQueueItem), audioStream.getLanguage()));
+                    convertResults.addResult(new FileResult(fileName, result, downloadThumb(fileQueueItem), audioStream.getLanguage()));
                 }
             } catch (Exception e) {
-                out.smartDelete();
+                result.smartDelete();
                 throw e;
             }
         }

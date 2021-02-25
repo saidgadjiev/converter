@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -40,28 +41,29 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
 
         try {
             Document word = new Document(file.getAbsolutePath());
-            SmartTempFile pdfFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), "any2any", Format.PDF.getExt());
+            SmartTempFile pdfFile = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), "any2any", Format.PDF.getExt());
             try {
                 word.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
             } finally {
                 word.cleanup();
             }
             com.aspose.pdf.Document pdf = new com.aspose.pdf.Document(pdfFile.getAbsolutePath());
-            SmartTempFile tiff = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                    fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
             try {
                 try {
                     pdf.optimizeResources();
                     TiffDevice tiffDevice = new TiffDevice();
-                    tiffDevice.process(pdf, tiff.getAbsolutePath());
+                    tiffDevice.process(pdf, result.getAbsolutePath());
                 } finally {
                     pdf.dispose();
                     pdfFile.smartDelete();
                 }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
-                return new FileResult(fileName, tiff);
+                return new FileResult(fileName, result);
             } catch (Throwable e) {
-                tiff.smartDelete();
+                result.smartDelete();
                 throw e;
             }
         } catch (Exception ex) {

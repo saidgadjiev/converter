@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -56,7 +57,8 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
 
             SmartTempFile src = file;
             if (fileQueueItem.getFirstFileFormat() != PNG) {
-                SmartTempFile png = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
+                SmartTempFile png = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                        fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
                 try {
                     magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath());
                     src = png;
@@ -65,14 +67,15 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
                 }
             }
             magickDevice.changeFormatAndRemoveAlphaChannel(src.getAbsolutePath(), Format.PNG.getExt());
-            SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                    fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
             try {
-                image2PdfDevice.convert2Pdf(src.getAbsolutePath(), tempFile.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+                image2PdfDevice.convert2Pdf(src.getAbsolutePath(), result.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                return new FileResult(fileName, tempFile);
+                return new FileResult(fileName, result);
             } catch (Throwable e) {
-                tempFile.smartDelete();
+                result.smartDelete();
                 throw e;
             }
         } catch (ProcessException ex) {

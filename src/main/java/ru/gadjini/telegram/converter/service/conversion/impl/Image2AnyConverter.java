@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -51,20 +52,21 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
         try {
             normalize(fileQueueItem);
 
-            SmartTempFile tempFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                    fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 String[] targetFormatOptions = getOptions(fileQueueItem.getTargetFormat());
                 String[] options = fileQueueItem.getTargetFormat() == STICKER
                         ? Stream.concat(Stream.of(STICKER_CONVERT_OPTIONS), Stream.of(targetFormatOptions)).toArray(String[]::new)
                         : targetFormatOptions;
-                imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(), options);
+                imageDevice.convert2Image(file.getAbsolutePath(), result.getAbsolutePath(), options);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return fileQueueItem.getTargetFormat() == STICKER
-                        ? new StickerResult(fileName, tempFile)
-                        : new FileResult(fileName, tempFile);
+                        ? new StickerResult(fileName, result)
+                        : new FileResult(fileName, result);
             } catch (Throwable e) {
-                tempFile.smartDelete();
+                result.smartDelete();
                 throw e;
             }
         } catch (ProcessException ex) {

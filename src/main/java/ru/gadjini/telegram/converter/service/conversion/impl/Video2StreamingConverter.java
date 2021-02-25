@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
@@ -49,31 +50,31 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private ConversionResult doConvertStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
-        SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            FileUtils.copyFile(file.getFile(), out.getFile());
+            FileUtils.copyFile(file.getFile(), result.getFile());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
-            return new VideoResult(fileName, out, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+            return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
                     whd.getDuration(), true);
         } catch (Throwable e) {
-            out.smartDelete();
+            result.smartDelete();
             throw new ConvertException(e);
         }
     }
 
     private ConversionResult doConvertNonStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
-        SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            return fFmpegVideoFormatsConverter.doConvert(file, out, fileQueueItem);
+            return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem);
         } catch (Throwable e) {
-            out.smartDelete();
+            result.smartDelete();
             throw new ConvertException(e);
         }
     }

@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -39,14 +40,14 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
             pdf.optimize();
             pdf.optimizeResources();
             TiffDevice tiffDevice = new TiffDevice();
-            SmartTempFile tiff = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
+            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
             try {
-                tiffDevice.process(pdf, tiff.getAbsolutePath());
+                tiffDevice.process(pdf, result.getAbsolutePath());
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
-                return new FileResult(fileName, tiff);
+                return new FileResult(fileName, result);
             } catch (Throwable e) {
-                tiff.smartDelete();
+                result.smartDelete();
                 throw e;
             }
         } finally {

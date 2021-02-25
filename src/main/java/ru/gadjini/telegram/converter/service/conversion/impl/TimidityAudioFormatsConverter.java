@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.HashMap;
@@ -34,7 +35,8 @@ public class TimidityAudioFormatsConverter extends BaseAudioConverter {
 
     @Override
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
-        SmartTempFile outWavFile = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, WAV.getExt());
+        SmartTempFile outWavFile = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                fileQueueItem.getFirstFileId(), TAG, WAV.getExt());
         try {
             wavFormatConverter.doConvertAudio(in, outWavFile, fileQueueItem);
             fFmpegAudioFormatsConverter.doConvertAudio(outWavFile, out, fileQueueItem);

@@ -20,6 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
@@ -70,7 +71,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
             Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
@@ -97,14 +98,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
             String scale = "scale=-2:" + height;
             for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
                 commandBuilder.mapVideo(videoStreamIndex);
-                fFmpegHelper.addFastestVideoCodecOptions(commandBuilder, file, out, videoStreams.get(videoStreamIndex), videoStreamIndex, scale);
+                fFmpegHelper.addFastestVideoCodecOptions(commandBuilder, file, result, videoStreams.get(videoStreamIndex), videoStreamIndex, scale);
                 commandBuilder.filterVideo(videoStreamIndex, scale);
             }
             if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
                 commandBuilder.mapAudio().copyAudio();
             }
             if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
-                if (fFmpegHelper.isSubtitlesCopyable(file, out)) {
+                if (fFmpegHelper.isSubtitlesCopyable(file, result)) {
                     commandBuilder.mapSubtitles().copySubtitles();
                 } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getFirstFileFormat())) {
                     commandBuilder.mapSubtitles();
@@ -115,21 +116,21 @@ public class VideoEditor extends BaseAny2AnyConverter {
             commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
             fFmpegHelper.addTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
 
-            fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+            fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
-            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
+            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
             String resolutionChangedInfo = messageBuilder.getResolutionChangedInfoMessage(srcWhd.getHeight(),
                     height, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                return new VideoResult(fileName, out, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), targetWhd.getWidth(), height,
+                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), targetWhd.getWidth(), height,
                         targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), resolutionChangedInfo);
             } else {
-                return new FileResult(fileName, out, downloadThumb(fileQueueItem), resolutionChangedInfo);
+                return new FileResult(fileName, result, downloadThumb(fileQueueItem), resolutionChangedInfo);
             }
         } catch (Throwable e) {
-            out.smartDelete();
+            result.smartDelete();
             throw e;
         }
     }

@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.stream.Stream;
@@ -32,7 +33,7 @@ public class SmartCalibre implements ConvertDevice {
     @Override
     public void convert(String in, String out, String... options) {
         if (out.endsWith("doc")) {
-            SmartTempFile tempFile = tempFileService.createTempFile(TAG, Format.DOCX.getExt());
+            SmartTempFile tempFile = tempFileService.createTempFile(FileTarget.TEMP, TAG, Format.DOCX.getExt());
             try {
                 processExecutor.execute(buildCommand(in, tempFile.getAbsolutePath(), options));
 
@@ -48,7 +49,7 @@ public class SmartCalibre implements ConvertDevice {
                 tempFile.smartDelete();
             }
         } else if (in.endsWith("doc")) {
-            SmartTempFile tempFile = tempFileService.createTempFile(TAG, Format.DOCX.getExt());
+            SmartTempFile tempFile = tempFileService.createTempFile(FileTarget.TEMP, TAG, Format.DOCX.getExt());
             try {
                 Document document = new Document(in);
                 try {

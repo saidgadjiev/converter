@@ -10,6 +10,7 @@ import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -44,7 +45,7 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         List<SmartTempFile> pdfs = fileQueueItem.getDownloadedFiles();
 
-        SmartTempFile result = getFileService().createTempFile(fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
+        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
         try {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             pdfUniteDevice.mergePdfs(pdfs.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), result.getAbsolutePath());

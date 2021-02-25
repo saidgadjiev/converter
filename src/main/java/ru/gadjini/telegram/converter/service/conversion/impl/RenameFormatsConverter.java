@@ -6,6 +6,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -30,15 +31,16 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
         SmartTempFile src = conversionQueueItem.getDownloadedFile(conversionQueueItem.getFirstFileId());
 
-        SmartTempFile out = getFileService().createTempFile(conversionQueueItem.getUserId(), conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());
+        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
+                conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());
 
         try {
-            src.renameTo(out.getFile());
+            src.renameTo(result.getFile());
 
             String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFirstFileName(), conversionQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, out);
+            return new FileResult(fileName, result);
         } catch (Throwable e) {
-            out.smartDelete();
+            result.smartDelete();
             throw e;
         }
     }

@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -41,14 +42,15 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 documentBuilder.insertImage(file.getAbsolutePath());
-                SmartTempFile out = getFileService().createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                        fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    documentBuilder.getDocument().save(out.getAbsolutePath());
+                    documentBuilder.getDocument().save(result.getAbsolutePath());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, out);
+                    return new FileResult(fileName, result);
                 } catch (Throwable e) {
-                    out.smartDelete();
+                    result.smartDelete();
                     throw e;
                 }
             } finally {
