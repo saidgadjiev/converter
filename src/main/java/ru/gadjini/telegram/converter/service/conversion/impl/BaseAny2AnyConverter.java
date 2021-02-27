@@ -95,6 +95,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         if (StringUtils.isNotBlank(conversionQueueItem.getFirstFile().getThumb())) {
             TgFile thumb = new TgFile();
             thumb.setFileId(conversionQueueItem.getFirstFile().getThumb());
+            thumb.setSize(conversionQueueItem.getFirstFile().getThumbSize());
             thumb.setFormat(Format.JPG);
             fileDownloadService().createDownload(thumb, conversionQueueItem.getId(), conversionQueueItem.getUserId());
             ++total;

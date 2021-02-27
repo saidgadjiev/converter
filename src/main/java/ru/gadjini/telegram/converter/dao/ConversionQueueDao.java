@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.ServerProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -48,6 +49,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     private FileLimitProperties fileLimitProperties;
 
+    private ServerProperties serverProperties;
+
     private Gson gson;
 
     @Value("${converter:all}")
@@ -56,10 +59,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
                               Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
-                              FileLimitProperties fileLimitProperties, Gson gson) {
+                              FileLimitProperties fileLimitProperties, ServerProperties serverProperties, Gson gson) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
+        this.serverProperties = serverProperties;
         this.gson = gson;
         for (Format value : Format.values()) {
             if (formats.containsKey(value.getCategory())) {
@@ -133,6 +137,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     @Override
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+        String synchronizationColumn = DownloadQueueItem.getSynchronizationColumn(serverProperties.getNumber());
+
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
@@ -140,7 +146,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "        FROM " + TYPE + " qu WHERE qu.status = 0 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
                         " AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
+                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME +
+                        " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3 AND dq." + synchronizationColumn + " = true)\n" +
                         " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
                         QueueDao.POLL_ORDER_BY + "\n" +
                         "        LIMIT " + limit + ")\n" +

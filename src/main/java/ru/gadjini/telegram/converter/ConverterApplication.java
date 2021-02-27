@@ -28,6 +28,7 @@ import java.util.TimeZone;
         DownloadFloodControlProperties.class,
         UploadFloodControlProperties.class,
         MediaLimitProperties.class,
+        ServerProperties.class,
         WebhookProperties.class
 })
 @EnableScheduling
