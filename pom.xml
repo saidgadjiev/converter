@@ -210,27 +210,35 @@
 
     <profiles>
         <profile>
-            <id>dev</id>
+            <id>dev-primary</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
                 <aspose.pdf.version>19.1</aspose.pdf.version>
-                <spring.profiles.active>dev</spring.profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <properties>
-                <spring.profiles.active>prod</spring.profiles.active>
+                <spring.profiles.active>dev-primary</spring.profiles.active>
             </properties>
         </profile>
 
         <profile>
-            <id>load-test</id>
+            <id>dev-secondary</id>
             <properties>
                 <aspose.pdf.version>19.1</aspose.pdf.version>
-                <spring.profiles.active>load-test</spring.profiles.active>
+                <spring.profiles.active>dev-secondary</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>prod-primary</id>
+            <properties>
+                <spring.profiles.active>prod-primary</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>prod-secondary</id>
+            <properties>
+                <spring.profiles.active>prod-secondary</spring.profiles.active>
             </properties>
         </profile>
     </profiles>
