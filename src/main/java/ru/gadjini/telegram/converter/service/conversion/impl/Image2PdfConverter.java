@@ -57,17 +57,17 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
 
             SmartTempFile src = file;
             if (fileQueueItem.getFirstFileFormat() != PNG) {
-                SmartTempFile png = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                SmartTempFile png = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
                 try {
                     magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath());
                     src = png;
                 } finally {
-                    file.smartDelete();
+                    tempFileService().delete(file);
                 }
             }
             magickDevice.changeFormatAndRemoveAlphaChannel(src.getAbsolutePath(), Format.PNG.getExt());
-            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
             try {
                 image2PdfDevice.convert2Pdf(src.getAbsolutePath(), result.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
@@ -75,7 +75,7 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return new FileResult(fileName, result);
             } catch (Throwable e) {
-                result.smartDelete();
+                tempFileService().delete(result);
                 throw e;
             }
         } catch (ProcessException ex) {
@@ -87,7 +87,7 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     private void normalize(ConversionQueueItem fileQueueItem) {

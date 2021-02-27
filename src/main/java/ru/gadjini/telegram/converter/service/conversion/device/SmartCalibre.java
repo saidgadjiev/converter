@@ -46,7 +46,7 @@ public class SmartCalibre implements ConvertDevice {
             } catch (Exception e) {
                 throw new ProcessException(e);
             } finally {
-                tempFile.smartDelete();
+                tempFileService.delete(tempFile);
             }
         } else if (in.endsWith("doc")) {
             SmartTempFile tempFile = tempFileService.createTempFile(FileTarget.TEMP, TAG, Format.DOCX.getExt());
@@ -62,7 +62,7 @@ public class SmartCalibre implements ConvertDevice {
             } catch (Exception e) {
                 throw new ProcessException(e);
             } finally {
-                tempFile.smartDelete();
+                tempFileService.delete(tempFile);
             }
         } else {
             processExecutor.execute(buildCommand(in, out, options));

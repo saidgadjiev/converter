@@ -40,14 +40,14 @@ public class Url2AnyConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult convertUrl(ConversionQueueItem fileQueueItem) {
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             htmlDevice.convertUrl(fileQueueItem.getFirstFileId(), result.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result);
         } catch (Exception ex) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw new ConvertException(ex);
         }
     }

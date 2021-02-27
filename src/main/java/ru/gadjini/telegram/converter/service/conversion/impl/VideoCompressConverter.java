@@ -76,7 +76,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegHelper.removeExtraVideoStreams(allStreams);
@@ -125,14 +125,14 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), compessionInfo);
             }
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw e;
         }
     }
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     @Override

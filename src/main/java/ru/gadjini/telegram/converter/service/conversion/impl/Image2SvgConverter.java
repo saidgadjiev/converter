@@ -40,10 +40,10 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.SVG.getExt());
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.SVG.getExt());
             try {
                 if (fileQueueItem.getFirstFileFormat() != Format.PNG) {
-                    SmartTempFile tempFile = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PNG.getExt());
+                    SmartTempFile tempFile = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PNG.getExt());
                     try {
                         imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
                         imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
@@ -51,7 +51,7 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
                         return new FileResult(fileName, result);
                     } finally {
-                        tempFile.smartDelete();
+                        tempFileService().delete(tempFile);
                     }
                 } else {
                     imageTracer.trace(file.getAbsolutePath(), result.getAbsolutePath());
@@ -60,7 +60,7 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
                     return new FileResult(fileName, result);
                 }
             } catch (Throwable e) {
-                result.smartDelete();
+                tempFileService().delete(result);
                 throw e;
             }
         } catch (Exception ex) {
@@ -70,6 +70,6 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

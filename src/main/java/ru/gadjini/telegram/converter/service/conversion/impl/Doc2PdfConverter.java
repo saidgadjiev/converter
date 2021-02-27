@@ -40,7 +40,7 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
         try {
             Document asposeDocument = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
@@ -53,7 +53,7 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
 
                     return new FileResult(fileName, result);
                 } catch (Throwable e) {
-                    result.smartDelete();
+                    tempFileService().delete(result);
                     throw new ConvertException(e);
                 }
             } finally {
@@ -69,6 +69,6 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

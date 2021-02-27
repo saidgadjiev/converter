@@ -40,14 +40,14 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
             pdf.optimize();
             pdf.optimizeResources();
             TiffDevice tiffDevice = new TiffDevice();
-            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
             try {
                 tiffDevice.process(pdf, result.getAbsolutePath());
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
                 return new FileResult(fileName, result);
             } catch (Throwable e) {
-                result.smartDelete();
+                tempFileService().delete(result);
                 throw e;
             }
         } finally {
@@ -57,6 +57,6 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

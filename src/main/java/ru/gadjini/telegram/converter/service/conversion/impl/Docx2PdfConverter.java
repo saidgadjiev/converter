@@ -35,7 +35,7 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        SmartTempFile docFile = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.DOC.getExt());
+        SmartTempFile docFile = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.DOC.getExt());
         try {
             Document docx = new Document(file.getAbsolutePath());
             try {
@@ -44,13 +44,13 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
                 docx.cleanup();
             }
         } catch (Throwable e) {
-            docFile.smartDelete();
+            tempFileService().delete(docFile);
             throw new ConvertException(e);
         }
         try {
             Document doc = new Document(docFile.getAbsolutePath());
             try {
-                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
                     PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();
@@ -62,7 +62,7 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
 
                     return new FileResult(fileName, result);
                 } catch (Throwable e) {
-                    result.smartDelete();
+                    tempFileService().delete(result);
                     throw new ConvertException(e);
                 }
             } finally {
@@ -75,6 +75,6 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

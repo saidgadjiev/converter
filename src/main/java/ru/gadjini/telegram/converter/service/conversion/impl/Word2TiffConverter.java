@@ -41,14 +41,14 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
 
         try {
             Document word = new Document(file.getAbsolutePath());
-            SmartTempFile pdfFile = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), "any2any", Format.PDF.getExt());
+            SmartTempFile pdfFile = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), "any2any", Format.PDF.getExt());
             try {
                 word.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
             } finally {
                 word.cleanup();
             }
             com.aspose.pdf.Document pdf = new com.aspose.pdf.Document(pdfFile.getAbsolutePath());
-            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
             try {
                 try {
@@ -57,13 +57,13 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
                     tiffDevice.process(pdf, result.getAbsolutePath());
                 } finally {
                     pdf.dispose();
-                    pdfFile.smartDelete();
+                    tempFileService().delete(pdfFile);
                 }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.TIFF.getExt());
                 return new FileResult(fileName, result);
             } catch (Throwable e) {
-                result.smartDelete();
+                tempFileService().delete(result);
                 throw e;
             }
         } catch (Exception ex) {
@@ -73,6 +73,6 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

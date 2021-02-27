@@ -71,7 +71,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
             Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
@@ -130,7 +130,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), resolutionChangedInfo);
             }
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw e;
         }
     }

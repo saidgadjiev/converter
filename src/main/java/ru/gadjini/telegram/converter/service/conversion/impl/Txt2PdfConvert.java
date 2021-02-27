@@ -53,14 +53,14 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
 
                 page.getParagraphs().add(text);
 
-                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
                     doc.save(result.getAbsolutePath());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
                     return new FileResult(fileName, result);
                 } catch (Throwable e) {
-                    result.smartDelete();
+                    tempFileService().delete(result);
                     throw e;
                 }
             } finally {
@@ -73,6 +73,6 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

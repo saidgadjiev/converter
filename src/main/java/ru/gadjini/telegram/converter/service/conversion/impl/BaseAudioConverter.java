@@ -70,7 +70,7 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         Format targetFormat = getTargetFormat(fileQueueItem);
 
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
                 targetFormat.getExt());
         try {
             doConvertAudio(file, result, fileQueueItem);
@@ -102,14 +102,14 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
             return new FileResult(fileName, result, thumbFile);
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw e;
         }
     }
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     private Format getTargetFormat(ConversionQueueItem fileQueueItem) {

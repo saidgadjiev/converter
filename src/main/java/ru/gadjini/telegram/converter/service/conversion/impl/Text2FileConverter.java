@@ -46,7 +46,7 @@ public class Text2FileConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult writeText2File(ConversionQueueItem fileQueueItem) {
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFirstFileId());
             LOGGER.debug("Text info({})", textInfo);
@@ -56,7 +56,7 @@ public class Text2FileConverter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result);
         } catch (Exception ex) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw new ConvertException(ex);
         }
     }

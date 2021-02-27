@@ -62,7 +62,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return map;
     }
 
-    TempFileService getFileService() {
+    TempFileService tempFileService() {
         return fileService;
     }
 

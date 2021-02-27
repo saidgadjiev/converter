@@ -47,7 +47,7 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile in = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             try {
@@ -56,26 +56,26 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
             } catch (ProcessException ex) {
                 //Fail because djvu has no actual text and has scanned images. Trying do conversion with djvulibre
                 LOGGER.error("No text djvu({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId());
-                SmartTempFile outPdf = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
+                SmartTempFile outPdf = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
 
                 try {
                     djvuLibre.convert(in.getAbsolutePath(), outPdf.getAbsolutePath(), "-format=pdf");
                     calibreDevice.convert(outPdf.getAbsolutePath(), result.getAbsolutePath(), "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
                 } finally {
-                    outPdf.smartDelete();
+                    tempFileService().delete(outPdf);
                 }
             }
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result);
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw e;
         }
     }
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

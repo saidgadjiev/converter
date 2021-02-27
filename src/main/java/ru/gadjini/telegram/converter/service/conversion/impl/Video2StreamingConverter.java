@@ -50,7 +50,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private ConversionResult doConvertStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
@@ -61,20 +61,20 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
             return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
                     whd.getDuration(), true);
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw new ConvertException(e);
         }
     }
 
     private ConversionResult doConvertNonStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
             return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem);
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw new ConvertException(e);
         }
     }

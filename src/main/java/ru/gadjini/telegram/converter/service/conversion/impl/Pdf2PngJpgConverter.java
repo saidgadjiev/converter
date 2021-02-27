@@ -52,11 +52,11 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile tempDir = getFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
+            SmartTempFile tempDir = tempFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
             try {
                 pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p", getOptions(fileQueueItem.getTargetFormat()));
 
-                SmartTempFile result = getFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.ZIP.getExt());
                 try {
                     p7ArchiveDevice.zip(tempDir.getAbsolutePath() + File.separator + "*", result.getAbsolutePath());
@@ -65,11 +65,11 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
                     String caption = localisationService.getMessage(MessagesProperties.MESSAGE_PDF_IMAGES_UNZIP_BOT, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
                     return new FileResult(fileName, result, caption);
                 } catch (Throwable e) {
-                    result.smartDelete();
+                    tempFileService().delete(result);
                     throw e;
                 }
             } finally {
-                tempDir.smartDelete();
+                tempFileService().delete(tempDir);
             }
         } catch (ProcessException ex) {
             throw ex;
@@ -80,7 +80,7 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     private String[] getOptions(Format format) {

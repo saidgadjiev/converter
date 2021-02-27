@@ -52,7 +52,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
         try {
             normalize(fileQueueItem);
 
-            SmartTempFile result = getFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 String[] targetFormatOptions = getOptions(fileQueueItem.getTargetFormat());
@@ -66,7 +66,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
                         ? new StickerResult(fileName, result)
                         : new FileResult(fileName, result);
             } catch (Throwable e) {
-                result.smartDelete();
+                tempFileService().delete(result);
                 throw e;
             }
         } catch (ProcessException ex) {
@@ -78,7 +78,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     private void normalize(ConversionQueueItem fileQueueItem) {

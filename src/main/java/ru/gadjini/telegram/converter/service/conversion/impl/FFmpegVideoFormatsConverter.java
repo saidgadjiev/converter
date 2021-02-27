@@ -73,20 +73,20 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
             return doConvert(file, result, fileQueueItem);
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw e;
         }
     }
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     public ConversionResult doConvert(SmartTempFile file, SmartTempFile out, ConversionQueueItem fileQueueItem) {

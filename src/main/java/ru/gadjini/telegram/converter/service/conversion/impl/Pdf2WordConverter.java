@@ -137,13 +137,13 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     private ConversionResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         Document document = new Document(file.getAbsolutePath());
         try {
-            SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 document.optimize();
@@ -165,7 +165,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
                 return new FileResult(fileName, result);
             } catch (Throwable e) {
-                result.smartDelete();
+                tempFileService().delete(result);
                 throw e;
             }
         } finally {
@@ -179,9 +179,9 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
         Document document = new Document(file.getAbsolutePath());
         try {
-            SmartTempFile tempDir = getFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
+            SmartTempFile tempDir = tempFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
             try {
-                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                 try {
@@ -248,11 +248,11 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                     fileResultAtomicReference.set(new FileResult(fileName, result));
                 } catch (Throwable e) {
-                    result.smartDelete();
+                    tempFileService().delete(result);
                     throw new ConvertException(e);
                 }
             } finally {
-                tempDir.smartDelete();
+                tempFileService().delete(tempDir);
             }
         } finally {
             document.dispose();

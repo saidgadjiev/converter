@@ -36,7 +36,7 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
             Document document = new Document(pdf.getAbsolutePath());
             try {
                 document.bindXml(pdf.getAbsolutePath());
-                SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.PDF_IMPORT.getExt());
                 try {
                     document.save(result.getAbsolutePath(), SaveFormat.Pdf);
@@ -44,7 +44,7 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF_IMPORT.getExt());
                     return new FileResult(fileName, result);
                 } catch (Throwable e) {
-                    result.smartDelete();
+                    tempFileService().delete(result);
                     throw e;
                 }
             } finally {
@@ -57,6 +57,6 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }

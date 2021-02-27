@@ -45,7 +45,7 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         List<SmartTempFile> pdfs = fileQueueItem.getDownloadedFiles();
 
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, Format.PDF.getExt());
         try {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             pdfUniteDevice.mergePdfs(pdfs.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), result.getAbsolutePath());
@@ -53,13 +53,13 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
             String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + "." + Format.PDF.getExt();
             return new FileResult(fileName, result);
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw e;
         }
     }
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFiles().forEach(SmartTempFile::smartDelete);
+        fileQueueItem.getDownloadedFiles().forEach(file -> tempFileService().delete(file));
     }
 }

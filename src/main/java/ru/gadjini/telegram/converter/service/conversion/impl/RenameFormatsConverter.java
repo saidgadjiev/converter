@@ -31,7 +31,7 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
         SmartTempFile src = conversionQueueItem.getDownloadedFile(conversionQueueItem.getFirstFileId());
 
-        SmartTempFile result = getFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
                 conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());
 
         try {
@@ -40,13 +40,13 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFirstFileName(), conversionQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result);
         } catch (Throwable e) {
-            result.smartDelete();
+            tempFileService().delete(result);
             throw e;
         }
     }
 
     @Override
     protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()).smartDelete();
+        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 }
