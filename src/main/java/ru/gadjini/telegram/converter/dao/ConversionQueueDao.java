@@ -164,12 +164,15 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     @Override
     public long countReadToComplete(SmartExecutorService.JobWeight weight) {
+        String synchronizationColumn = DownloadQueueItem.getSynchronizationColumn(serverProperties.getNumber());
+
         return jdbcTemplate.query(
                 "SELECT COUNT(id) as cnt\n" +
                         "        FROM " + TYPE + " qu WHERE qu.status = 0 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
                         " AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND dq.status != 3)\n" +
+                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter
+                        + "' AND dq.producer_id = qu.id AND (dq.status != 3 or " + synchronizationColumn + " = false))\n" +
                         " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n"
                 ,
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
@@ -183,7 +186,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "SELECT COUNT(id) as cnt\n" +
                         "        FROM " + TYPE + " qu WHERE qu.status = 1 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
-                        " AND qu.files[1].format IN(" + inFormats() + ")",
+                        " AND qu.files[1].format IN(" + inFormats() + ") AND server = " + serverProperties.getNumber(),
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
         );
