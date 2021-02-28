@@ -5,12 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
-import ru.gadjini.telegram.converter.property.DetectLanguageProperties;
-import ru.gadjini.telegram.smart.bot.commons.property.*;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
 import javax.annotation.PostConstruct;
@@ -18,21 +15,7 @@ import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.TimeZone;
 
-@EnableConfigurationProperties(value = {
-        ConversionProperties.class,
-        DetectLanguageProperties.class,
-        BotProperties.class,
-        BotApiProperties.class,
-        FileLimitProperties.class,
-        FileManagerProperties.class,
-        DownloadFloodControlProperties.class,
-        UploadFloodControlProperties.class,
-        MediaLimitProperties.class,
-        ServerProperties.class,
-        WebhookProperties.class,
-        JobsProperties.class,
-        ProfileProperties.class
-})
+@ConfigurationPropertiesScan("ru.gadjini.telegram")
 @EnableScheduling
 @SpringBootApplication
 @ComponentScan("ru")
