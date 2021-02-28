@@ -141,7 +141,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
-                        "    UPDATE " + TYPE + " SET " + QueueDao.POLL_UPDATE_LIST + " WHERE id IN (\n" +
+                        "    UPDATE " + TYPE + " SET " + QueueDao.getUpdateList(serverProperties.getNumber()) + " WHERE id IN (\n" +
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " qu WHERE qu.status = 0 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
@@ -271,6 +271,27 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    @Override
+    public ConversionQueueItem deleteAndGetProcessingOrWaitingById(int id) {
+        return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE id = ? " +
+                        " AND status IN (0, 1) RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                ps -> ps.setInt(1, id),
+                (rs) -> {
+                    if (rs.next()) {
+                        ConversionQueueItem fileQueueItem = new ConversionQueueItem();
+
+                        fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
+                        fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
+                        fileQueueItem.setFiles(mapFiles(rs));
+
+                        return fileQueueItem;
                     }
 
                     return null;

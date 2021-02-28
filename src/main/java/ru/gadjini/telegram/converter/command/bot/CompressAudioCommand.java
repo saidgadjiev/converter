@@ -167,7 +167,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                     ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
 
             if (convertState != null) {
-                workQueueJob.removeAndCancelCurrentTasks(callbackQuery.getMessage().getChatId());
+                workQueueJob.cancelCurrentTasks(callbackQuery.getMessage().getChatId());
                 convertionService.createConversion(callbackQuery.getFrom(), convertState, Format.COMPRESS, new Locale(convertState.getUserLanguage()));
                 commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.COMPRESS_AUDIO);
                 messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());

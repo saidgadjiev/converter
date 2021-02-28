@@ -160,7 +160,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 }
                 Format srcFormatToCheck = convertState.getMultiMediaFormat() != null ? convertState.getMultiMediaFormat() : convertState.getFirstFormat();
                 checkTargetFormat(message.getFrom().getId(), srcFormatToCheck, associatedFormat, text, locale);
-                conversionJob.removeAndCancelCurrentTasks(message.getFrom().getId());
+                conversionJob.cancelCurrentTasks(message.getFrom().getId());
 
                 conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale, (Void) -> {
                     messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))

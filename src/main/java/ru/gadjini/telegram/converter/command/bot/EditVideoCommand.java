@@ -175,7 +175,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                                 .build()
                 );
             } else {
-                workQueueJob.removeAndCancelCurrentTasks(callbackQuery.getMessage().getChatId());
+                workQueueJob.cancelCurrentTasks(callbackQuery.getMessage().getChatId());
                 convertionService.createConversion(callbackQuery.getFrom(), convertState, Format.EDIT, new Locale(convertState.getUserLanguage()));
                 commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.EDIT_VIDEO);
                 messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());

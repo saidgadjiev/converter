@@ -1,1 +1,0 @@
-sshpass -p pswd ssh user@host -p22 'rm '$1

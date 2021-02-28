@@ -123,7 +123,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
                     if (mergePdfsState.getFiles().size() == 1) {
                         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_MERGE_PDFS_MIN_2_FILES, locale));
                     }
-                    workQueueJob.removeAndCancelCurrentTasks(message.getChatId());
+                    workQueueJob.cancelCurrentTasks(message.getChatId());
                     convertionService.createConversion(message.getFrom(), mergePdfsState, Format.MERGE_PDFS, locale);
                     commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
                 } else if (Objects.equals(cancelFilesCommandName, text)) {
