@@ -31,12 +31,12 @@ public class Url2PdfApiDevice implements HtmlDevice {
     }
 
     @Override
-    public void convertHtml(String html, String out, String outputType) {
+    public void convertHtml(String html, String out, String outputType) throws InterruptedException {
         processExecutor.execute(buildCommandByHtml(html, out, outputType));
     }
 
     @Override
-    public void convertUrl(String url, String out, String outputType) {
+    public void convertUrl(String url, String out, String outputType) throws InterruptedException {
         processExecutor.execute(buildCommandByUrl(prepareUrl(UrlUtils.appendScheme(url)), out, outputType));
     }
 

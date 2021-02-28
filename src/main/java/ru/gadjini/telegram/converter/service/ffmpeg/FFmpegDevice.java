@@ -19,11 +19,11 @@ public class FFmpegDevice {
         this.processExecutor = processExecutor;
     }
 
-    public void convert(String in, String out, String... options) {
+    public void convert(String in, String out, String... options) throws InterruptedException {
         processExecutor.execute(getConvertCommand(in, out, options), Set.of(139));
     }
 
-    public boolean isConvertable(String in, String out, String... options) {
+    public boolean isConvertable(String in, String out, String... options) throws InterruptedException {
         String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 3);
 
         return !result.contains("Conversion failed!")

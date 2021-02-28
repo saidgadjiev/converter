@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.DjvuLibre;
@@ -47,7 +48,7 @@ public class Djvu2PdfConverter extends BaseAny2AnyConverter {
             return new FileResult(fileName, result);
         } catch (Throwable e) {
             tempFileService().delete(result);
-            throw e;
+            throw new ConvertException(e);
         }
     }
 

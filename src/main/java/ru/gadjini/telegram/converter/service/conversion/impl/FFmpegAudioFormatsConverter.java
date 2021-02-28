@@ -5,8 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -50,11 +51,15 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     @Override
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
         try {
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), "-c:a", "copy");
-        } catch (ProcessException e) {
-            LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
-                    fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
+            try {
+                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), "-c:a", "copy");
+            } catch (ProcessException e) {
+                LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
+                        fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
+                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
+            }
+        } catch (InterruptedException e) {
+            throw new ConvertException(e);
         }
     }
 }

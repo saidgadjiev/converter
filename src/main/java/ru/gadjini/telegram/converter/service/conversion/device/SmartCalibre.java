@@ -31,7 +31,7 @@ public class SmartCalibre implements ConvertDevice {
     }
 
     @Override
-    public void convert(String in, String out, String... options) {
+    public void convert(String in, String out, String... options) throws InterruptedException {
         if (out.endsWith("doc")) {
             SmartTempFile tempFile = tempFileService.createTempFile(FileTarget.TEMP, TAG, Format.DOCX.getExt());
             try {

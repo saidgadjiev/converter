@@ -15,7 +15,7 @@ public class Img2PdfDevice implements Image2PdfDevice {
     }
 
     @Override
-    public void convert2Pdf(String in, String out, String pdfTitle) {
+    public void convert2Pdf(String in, String out, String pdfTitle) throws InterruptedException {
         processExecutor.execute(getCommand(in, out, pdfTitle));
     }
 

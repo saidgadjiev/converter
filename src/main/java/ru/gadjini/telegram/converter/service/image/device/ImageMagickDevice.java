@@ -18,15 +18,15 @@ public class ImageMagickDevice {
         this.processExecutor = processExecutor;
     }
 
-    public void convert2Image(String in, String out, String... options) {
+    public void convert2Image(String in, String out, String... options) throws InterruptedException {
         processExecutor.execute(get2ImageConvertCommand(in, out, options));
     }
 
-    public void convert2Tiff(String in, String out) {
+    public void convert2Tiff(String in, String out) throws InterruptedException {
         processExecutor.execute(getImagesConvertCommand(List.of(in), out));
     }
 
-    public void changeFormatAndRemoveAlphaChannel(String in, String format) {
+    public void changeFormatAndRemoveAlphaChannel(String in, String format) throws InterruptedException {
         processExecutor.execute(getChangeFormatAndRemoveAlphaCommand(in, format));
     }
 

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -82,6 +83,8 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
                     try {
                         long durationInSeconds = fFprobeDevice.getDurationInSeconds(result.getAbsolutePath());
                         fileQueueItem.getFirstFile().setDuration((int) durationInSeconds);
+                    } catch (InterruptedException e) {
+                        throw e;
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage(), e);
                         fileQueueItem.getFirstFile().setDuration(0);
@@ -103,7 +106,7 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
             return new FileResult(fileName, result, thumbFile);
         } catch (Throwable e) {
             tempFileService().delete(result);
-            throw e;
+            throw new ConvertException(e);
         }
     }
 
@@ -123,5 +126,5 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         return fileQueueItem.getTargetFormat() == Format.COMPRESS ? fileQueueItem.getFirstFileFormat() : fileQueueItem.getTargetFormat();
     }
 
-    protected abstract void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem);
+    protected abstract void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) throws InterruptedException;
 }

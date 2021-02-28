@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -80,7 +81,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
             return doConvert(file, result, fileQueueItem);
         } catch (Throwable e) {
             tempFileService().delete(result);
-            throw e;
+            throw new ConvertException(e);
         }
     }
 
@@ -89,7 +90,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
-    public ConversionResult doConvert(SmartTempFile file, SmartTempFile out, ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(SmartTempFile file, SmartTempFile out, ConversionQueueItem fileQueueItem) throws InterruptedException {
         List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         FFmpegHelper.removeExtraVideoStreams(allStreams);
 

@@ -18,7 +18,7 @@ public class PdfUniteDevice {
         this.processExecutor = processExecutor;
     }
 
-    public void mergePdfs(Collection<String> pdfs, String out) {
+    public void mergePdfs(Collection<String> pdfs, String out) throws InterruptedException {
         processExecutor.execute(buildMergeCommand(pdfs, out));
     }
 

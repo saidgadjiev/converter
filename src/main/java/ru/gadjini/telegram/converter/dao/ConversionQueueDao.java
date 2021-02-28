@@ -153,9 +153,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "        LIMIT " + limit + ")\n" +
                         "    RETURNING *\n" +
                         ")\n" +
-                        "SELECT cv.*, cc.files_json, 1 as queue_position, " +
-                        "(SELECT json_agg(ds) FROM (SELECT * FROM " + DownloadQueueItem.NAME + " dq WHERE dq.producer = '" + converter + "' AND dq.producer_id = cv.id) as ds) as downloads\n" +
-                        "FROM queue_items cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id",
+                        "SELECT cv.*, array_to_json(cv.files) as files_json, 1 as queue_position, " +
+                        "(SELECT json_agg(ds) FROM (SELECT * FROM " + DownloadQueueItem.NAME + " dq " +
+                        "WHERE dq.producer = '" + converter + "' AND dq.producer_id = cv.id) as ds) as downloads\n" +
+                        "FROM queue_items cv",
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs, rowNum) -> map(rs)
         );
@@ -253,7 +254,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
             return null;
         }
         return jdbcTemplate.query(
-                "SELECT f.*, COALESCE(queue_place.queue_position, 1) as queue_position, cc.files_json\n" +
+                "SELECT f.*, COALESCE(queue_place.queue_position, 1) as queue_position, array_to_json(f.files) as files_json\n" +
                         "FROM conversion_queue f\n" +
                         "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as queue_position\n" +
                         "                     FROM conversion_queue c\n" +
@@ -261,12 +262,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         " AND (SELECT sum(f.size) from unnest(c.files) f) " + getSign(weight) + " ?\n" +
                         " AND files[1].format IN (" + inFormats() + ")" +
                         ") queue_place ON f.id = queue_place.id\n" +
-                        "         INNER JOIN (SELECT id, json_agg(files) as files_json FROM conversion_queue WHERE id = ? GROUP BY id) cc ON f.id = cc.id\n" +
                         "WHERE f.id = ?\n",
                 ps -> {
                     ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
                     ps.setInt(2, id);
-                    ps.setInt(3, id);
                 },
                 rs -> {
                     if (rs.next()) {
@@ -281,17 +280,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Override
     public ConversionQueueItem deleteAndGetProcessingOrWaitingById(int id) {
         return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE id = ? " +
-                        " AND status IN (0, 1) RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                        " AND status IN (0, 1) RETURNING id, status, files, server) SELECT id, status, server, array_to_json(files) as files_json FROM del",
                 ps -> ps.setInt(1, id),
                 (rs) -> {
                     if (rs.next()) {
-                        ConversionQueueItem fileQueueItem = new ConversionQueueItem();
-
-                        fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
-                        fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
-                        fileQueueItem.setFiles(mapFiles(rs));
-
-                        return fileQueueItem;
+                        return mapDeleteItem(rs);
                     }
 
                     return null;
@@ -303,24 +296,16 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     public List<ConversionQueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
         return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE user_id = ? " +
                         " AND files[1].format IN(" + inFormats() + ") " +
-                        " AND status IN (0, 1) RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                        " AND status IN (0, 1) RETURNING id, status, files, server) SELECT id, status, server, array_to_json(files) as files_json FROM del",
                 ps -> ps.setInt(1, userId),
-                (rs, rowNum) -> {
-                    ConversionQueueItem fileQueueItem = new ConversionQueueItem();
-
-                    fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
-                    fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
-                    fileQueueItem.setFiles(mapFiles(rs));
-
-                    return fileQueueItem;
-                }
+                (rs, rowNum) -> mapDeleteItem(rs)
         );
     }
 
     @Override
     public ConversionQueueItem deleteAndGetById(int id) {
         return jdbcTemplate.query(
-                "WITH del AS(DELETE FROM conversion_queue WHERE id = ? RETURNING id, status, files) SELECT id, status, json_agg(files) as files_json FROM del GROUP BY id, status",
+                "WITH del AS(DELETE FROM conversion_queue WHERE id = ? RETURNING id, status, files) SELECT id, status, array_to_json(files) as files_json FROM del",
                 ps -> ps.setInt(1, id),
                 rs -> {
                     if (rs.next()) {
@@ -385,6 +370,17 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         return weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">";
     }
 
+    private ConversionQueueItem mapDeleteItem(ResultSet rs) throws SQLException {
+        ConversionQueueItem fileQueueItem = new ConversionQueueItem();
+
+        fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
+        fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
+        fileQueueItem.setFiles(mapFiles(rs));
+        fileQueueItem.setServer(rs.getInt(QueueItem.SERVER));
+
+        return fileQueueItem;
+    }
+
     private ConversionQueueItem map(ResultSet rs) throws SQLException {
         Set<String> columns = JdbcUtils.getColumnNames(rs.getMetaData());
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
@@ -394,6 +390,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         fileQueueItem.setUserId(rs.getInt(ConversionQueueItem.USER_ID));
         fileQueueItem.setSuppressUserExceptions(rs.getBoolean(ConversionQueueItem.SUPPRESS_USER_EXCEPTIONS));
         fileQueueItem.setResultFileId(rs.getString(ConversionQueueItem.RESULT_FILE_ID));
+        fileQueueItem.setServer(rs.getInt(QueueItem.SERVER));
 
         if (columns.contains(ConversionQueueItem.FILES_JSON)) {
             fileQueueItem.setFiles(mapFiles(rs));
@@ -460,10 +457,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         PGobject jsonArr = (PGobject) rs.getObject(ConversionQueueItem.FILES_JSON);
         if (jsonArr != null) {
             try {
-                List<List<TgFile>> lists = objectMapper.readValue(jsonArr.getValue(), new TypeReference<>() {
+                return objectMapper.readValue(jsonArr.getValue(), new TypeReference<>() {
                 });
-
-                return lists.iterator().next();
             } catch (JsonProcessingException e) {
                 throw new SQLException(e);
             }

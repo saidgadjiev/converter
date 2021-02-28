@@ -18,7 +18,7 @@ public class P7ArchiveDevice {
         this.processExecutor = processExecutor;
     }
 
-    public void zip(String filesParentDir, String out) {
+    public void zip(String filesParentDir, String out) throws InterruptedException {
         processExecutor.execute(buildZipCommand(filesParentDir, out));
     }
 

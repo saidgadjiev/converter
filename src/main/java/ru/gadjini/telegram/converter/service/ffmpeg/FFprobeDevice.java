@@ -30,7 +30,7 @@ public class FFprobeDevice {
         this.gson = gson;
     }
 
-    public List<Stream> getAudioStreams(String in) {
+    public List<Stream> getAudioStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getAudioStreamsCommand(in));
         JsonObject json = gson.fromJson(result, JsonObject.class);
 
@@ -38,7 +38,7 @@ public class FFprobeDevice {
         }.getType());
     }
 
-    public List<Stream> getAllStreams(String in) {
+    public List<Stream> getAllStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getAllStreamsCommand(in));
         JsonObject json = gson.fromJson(result, JsonObject.class);
 
@@ -46,14 +46,14 @@ public class FFprobeDevice {
         }.getType());
     }
 
-    public FFprobeResult probeVideoStream(String in, int index) {
+    public FFprobeResult probeVideoStream(String in, int index) throws InterruptedException {
         String result = processExecutor.executeWithResult(getVideoStreamCommand(in, index));
         JsonObject json = gson.fromJson(result, JsonObject.class);
 
         return gson.fromJson(json, FFprobeResult.class);
     }
 
-    public WHD getWHD(String in, int index) {
+    public WHD getWHD(String in, int index) throws InterruptedException {
         WHD whd = new WHD();
         try {
             FFprobeDevice.FFprobeResult probeVideoStream = probeVideoStream(in, index);
@@ -69,6 +69,8 @@ public class FFprobeDevice {
                     whd.setDuration(duration);
                 }
             }
+        } catch (InterruptedException e) {
+            throw e;
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
@@ -76,7 +78,7 @@ public class FFprobeDevice {
         return whd;
     }
 
-    public long getDurationInSeconds(String in) {
+    public long getDurationInSeconds(String in) throws InterruptedException {
         String duration = processExecutor.executeWithResult(getDurationCommand(in));
 
         return Math.round(Double.parseDouble(duration));

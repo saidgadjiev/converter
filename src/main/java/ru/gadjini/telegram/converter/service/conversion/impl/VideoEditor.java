@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -131,7 +132,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             }
         } catch (Throwable e) {
             tempFileService().delete(result);
-            throw e;
+            throw new ConvertException(e);
         }
     }
 }

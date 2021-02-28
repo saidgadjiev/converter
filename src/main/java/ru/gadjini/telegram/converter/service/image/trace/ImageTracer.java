@@ -14,7 +14,7 @@ public class ImageTracer {
         this.processExecutor = processExecutor;
     }
 
-    public void trace(String in, String out) {
+    public void trace(String in, String out) throws InterruptedException {
         processExecutor.execute(command(in, out));
     }
 

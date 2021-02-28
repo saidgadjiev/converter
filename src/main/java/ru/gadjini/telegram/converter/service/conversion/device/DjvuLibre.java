@@ -21,7 +21,7 @@ public class DjvuLibre implements ConvertDevice {
     }
 
     @Override
-    public void convert(String in, String out, String... options) {
+    public void convert(String in, String out, String... options) throws InterruptedException {
         processExecutor.execute(getCommand(in, out, options));
     }
 

@@ -18,7 +18,7 @@ public class TimidityDevice {
         this.processExecutor = processExecutor;
     }
 
-    public void convert(String in, String out, String... options) {
+    public void convert(String in, String out, String... options) throws InterruptedException {
         processExecutor.execute(getConvertCommand(in, out, options));
     }
 

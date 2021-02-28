@@ -24,7 +24,7 @@ public class FFmpegHelper {
         this.fFmpegDevice = fFmpegDevice;
     }
 
-    public boolean isCopyable(SmartTempFile in, SmartTempFile out, Format targetFormat, String streamPrefix, int streamIndex) {
+    public boolean isCopyable(SmartTempFile in, SmartTempFile out, Format targetFormat, String streamPrefix, int streamIndex) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
         commandBuilder.map(streamPrefix, streamIndex).copy(streamPrefix);
         addTargetFormatOptions(commandBuilder, targetFormat);
@@ -44,8 +44,9 @@ public class FFmpegHelper {
         }
     }
 
-    public void addFastestVideoCodecOptions(FFmpegCommandBuilder commandBuilder, SmartTempFile in, SmartTempFile out, FFprobeDevice.Stream videoStream,
-                                             int videoStreamIndex, String h264Scale) {
+    public void addFastestVideoCodecOptions(FFmpegCommandBuilder commandBuilder, SmartTempFile in, SmartTempFile out,
+                                            FFprobeDevice.Stream videoStream, int videoStreamIndex,
+                                            String h264Scale) throws InterruptedException {
         if (StringUtils.isBlank(videoStream.getCodecName())) {
             return;
         }
@@ -61,14 +62,14 @@ public class FFmpegHelper {
         commandBuilder.videoCodec(videoStreamIndex, codec);
     }
 
-    public boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int streamIndex, String scale) {
+    public boolean isConvertiableToH264(SmartTempFile in, SmartTempFile out, int streamIndex, String scale) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
         commandBuilder.mapVideo(streamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
 
         return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
     }
 
-    public boolean isSubtitlesCopyable(SmartTempFile in, SmartTempFile out) {
+    public boolean isSubtitlesCopyable(SmartTempFile in, SmartTempFile out) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
         commandBuilder.mapSubtitles().copySubtitles();
 

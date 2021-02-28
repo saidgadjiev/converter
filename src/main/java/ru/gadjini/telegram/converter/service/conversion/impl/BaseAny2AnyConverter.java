@@ -12,8 +12,8 @@ import ru.gadjini.telegram.converter.service.progress.ProgressBuilder;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
-import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.Collections;
@@ -76,7 +76,8 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     @Override
-    public ConversionResult convert(ConversionQueueItem fileQueueItem, Supplier<Boolean> cancelChecker, Supplier<Boolean> canceledByUserChecker) {
+    public ConversionResult convert(ConversionQueueItem fileQueueItem, Supplier<Boolean> cancelChecker,
+                                    Supplier<Boolean> canceledByUserChecker) {
         try {
             return doConvert(fileQueueItem);
         } finally {

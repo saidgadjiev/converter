@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -45,7 +46,11 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             bitrate = AUTO_BITRATE;
         }
 
-        fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), getCompressOptions(bitrate));
+        try {
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), getCompressOptions(bitrate));
+        } catch (InterruptedException e) {
+            throw new ConvertException(e);
+        }
     }
 
     private String[] getCompressOptions(String bitrate) {
