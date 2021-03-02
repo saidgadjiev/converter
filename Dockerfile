@@ -139,12 +139,11 @@ RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf 
 USER bot
 
 COPY ./license/license-19.lic ./license/
-COPY ./scripts/* ./scripts/
 COPY ./target/app.jar .
 
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
+#ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/home/bot/app/oom", "-jar", "app.jar"]
 #ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", \
 #"-XX:HeapDumpPath=/home/bot/app/oom", \
 #"-Dcom.sun.management.jmxremote", \
@@ -154,3 +153,5 @@ ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-XX
 #"-Dcom.sun.management.jmxremote.rmi.port=9010", \
 #"-Djava.rmi.server.hostname=192.168.99.100", \
 #"-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+
+ENTRYPOINT ["java", "-Xss10m", "-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]

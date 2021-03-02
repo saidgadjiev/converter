@@ -67,7 +67,6 @@ RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf 
 USER bot
 
 COPY ./license/license-19.lic ./license/
-COPY ./scripts/* ./scripts/
 COPY ./target/app.jar .
 
 

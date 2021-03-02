@@ -67,14 +67,11 @@ services:
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom
-      - ../../../data/shr:/tmp/shr
+      - ../../../data/media/downloads:/tmp/media/downloads
+      - ../../../data/media/uploads:/tmp/media/uploads
+      - ../../../data/media/temp:/tmp/media/temp
       - ../../../../fonts:/usr/share/fonts/converter
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
-    ports:
-      - 5005:5005
-      - 9010:9010
-    mem_limit: 4g
-    memswap_limit: 8g
     env_file:
       - .env
     depends_on:
