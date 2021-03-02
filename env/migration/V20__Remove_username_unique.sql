@@ -1,1 +1,0 @@
-ALTER TABLE tg_user DROP CONSTRAINT IF EXISTS tg_user_username_key;

@@ -1,1 +1,0 @@
-ALTER TABLE file_queue ADD COLUMN IF NOT EXISTS message text;

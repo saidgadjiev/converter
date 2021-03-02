@@ -1,1 +1,0 @@
-ALTER TYPE tg_file ADD ATTRIBUTE thumb varchar(256);

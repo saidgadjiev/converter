@@ -1,1 +1,0 @@
-ALTER TABLE rename_queue ADD COLUMN thumb tg_file;
