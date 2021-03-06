@@ -79,7 +79,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             String parentDir = images.iterator().next().getParent() + File.separator;
             magickDevice.changeFormatAndRemoveAlphaChannel(parentDir + "*", Format.PNG.getExt());
 
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, targetFormat.getExt());
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), TAG, targetFormat.getExt());
             try {
                 String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
                 if (targetFormat == Format.PDF) {

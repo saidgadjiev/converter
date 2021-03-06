@@ -72,7 +72,7 @@ public class Text2PdfConverter extends BaseAny2AnyConverter {
                 }
 
                 documentBuilder.write(text);
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 

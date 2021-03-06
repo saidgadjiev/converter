@@ -46,7 +46,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
                 document = new Document(file.getAbsolutePath());
             }
             try {
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                         TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));

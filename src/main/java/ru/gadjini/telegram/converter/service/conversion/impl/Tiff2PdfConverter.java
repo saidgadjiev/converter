@@ -42,7 +42,7 @@ public class Tiff2PdfConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
             try {
                 image2PdfDevice.convert2Pdf(file.getAbsolutePath(), result.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));

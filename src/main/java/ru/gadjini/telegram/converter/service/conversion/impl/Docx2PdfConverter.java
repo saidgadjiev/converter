@@ -50,7 +50,7 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
         try {
             Document doc = new Document(docFile.getAbsolutePath());
             try {
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
                     PdfSaveOptions pdfSaveOptions = new PdfSaveOptions();

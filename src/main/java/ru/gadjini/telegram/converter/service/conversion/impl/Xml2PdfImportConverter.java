@@ -36,7 +36,7 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
             Document document = new Document(pdf.getAbsolutePath());
             try {
                 document.bindXml(pdf.getAbsolutePath());
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.PDF_IMPORT.getExt());
                 try {
                     document.save(result.getAbsolutePath(), SaveFormat.Pdf);

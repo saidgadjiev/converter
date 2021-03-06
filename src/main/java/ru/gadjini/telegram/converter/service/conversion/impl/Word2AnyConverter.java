@@ -49,7 +49,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
         try {
             Document document = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 

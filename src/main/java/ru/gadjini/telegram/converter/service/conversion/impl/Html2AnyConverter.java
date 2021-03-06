@@ -41,7 +41,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter {
         SmartTempFile html = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 htmlDevice.convertHtml(html.getAbsolutePath(), result.getAbsolutePath(), getOutputType(fileQueueItem.getTargetFormat()));

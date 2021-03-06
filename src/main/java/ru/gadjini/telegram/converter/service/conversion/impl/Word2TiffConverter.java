@@ -48,7 +48,7 @@ public class Word2TiffConverter extends BaseAny2AnyConverter {
                 word.cleanup();
             }
             com.aspose.pdf.Document pdf = new com.aspose.pdf.Document(pdfFile.getAbsolutePath());
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, Format.TIFF.getExt());
             try {
                 try {

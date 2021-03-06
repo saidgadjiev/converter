@@ -46,7 +46,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
         try {
             Presentation presentation = new Presentation(file.getAbsolutePath());
             try {
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     presentation.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));

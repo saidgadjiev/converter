@@ -57,7 +57,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter {
         try {
             Workbook workbook = new Workbook(file.getAbsolutePath());
             try {
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     workbook.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));

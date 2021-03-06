@@ -71,7 +71,7 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
         Format targetFormat = getTargetFormat(fileQueueItem);
 
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG,
                 targetFormat.getExt());
         try {
             doConvertAudio(file, result, fileQueueItem);

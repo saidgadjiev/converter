@@ -56,7 +56,7 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
             try {
                 pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p", getOptions(fileQueueItem.getTargetFormat()));
 
-                SmartTempFile result = tempFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().getTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.ZIP.getExt());
                 try {
                     p7ArchiveDevice.zip(tempDir.getAbsolutePath() + File.separator + "*", result.getAbsolutePath());

@@ -53,7 +53,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
 
                 page.getParagraphs().add(text);
 
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
                     doc.save(result.getAbsolutePath());
 
