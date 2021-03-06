@@ -1,6 +1,8 @@
 package ru.gadjini.telegram.converter.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,8 @@ import java.util.Locale;
 
 @Service
 public class ConverterBotService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConverterBotService.class);
 
     private MessageService messageService;
 
@@ -98,6 +102,7 @@ public class ConverterBotService {
             return false;
         }
         if (commandNavigator.isEmpty(chatId)) {
+            LOGGER.debug("Bot restarted({}, {})", chatId, command);
             commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND_NAME));
             Locale locale = userService.getLocaleOrDefault((int) chatId);
             messageService.sendBotRestartedMessage(chatId, replyKeyboardService.removeKeyboard(chatId), locale);
