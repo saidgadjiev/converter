@@ -169,8 +169,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_VIDEO_EDIT_SETTINGS_RESOLUTION = "message.video.edit.settings.resolution";
 
-    public static final String MESSAGE_VIDEO_EDIT_SETTINGS_CURRENT_RESOLUTION = "message.video.edit.settings.current.resolution";
-
     public static final String MESSAGE_VIDEO_EDIT_SETTINGS_CHOOSE_RESOLUTION = "message.video.edit.settings.choose.resolution";
 
     public static final String MESSAGE_VIDEO_WILL_BE_EDITED = "message.video.will.be.edited";
