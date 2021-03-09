@@ -30,6 +30,24 @@ public class ImageMagickDevice {
         processExecutor.execute(getChangeFormatAndRemoveAlphaCommand(in, format));
     }
 
+    public void convert2Pdf(String in, String out, String pdfTitle) throws InterruptedException {
+        processExecutor.execute(get2PdfConvertCommand(List.of(in), out));
+    }
+
+    private String[] get2PdfConvertCommand(List<String> in, String out) {
+        List<String> command = new ArrayList<>(convertCommandName());
+        command.add(String.join(" ", in));
+        command.add("-resize");
+        command.add("595x843>");
+        command.add("-gravity");
+        command.add("center");
+        command.add("-page");
+        command.add("a4");
+        command.add(out);
+
+        return command.toArray(new String[0]);
+    }
+
     private String[] getChangeFormatAndRemoveAlphaCommand(String in, String format) {
         return new String[]{
                 "mogrify",

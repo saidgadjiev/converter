@@ -31,7 +31,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
     private static final String TAG = "images2pdftiff";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.IMAGES), List.of(Format.PDF, Format.TIFF)
+            List.of(Format.IMAGES), List.of(Format.PDF, Format.PDF_LOSSYY, Format.TIFF)
     );
 
     private ImageMagickDevice magickDevice;
@@ -82,7 +82,9 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), TAG, targetFormat.getExt());
             try {
                 String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
-                if (targetFormat == Format.PDF) {
+                if (targetFormat == Format.PDF_LOSSYY) {
+                    magickDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
+                } else if (targetFormat == Format.PDF) {
                     image2PdfDevice.convert2Pdf(parentDir + "*.png", result.getAbsolutePath(), fileName);
                 } else {
                     magickDevice.convert2Tiff(parentDir + "*.png", result.getAbsolutePath());

@@ -64,6 +64,8 @@ services:
     container_name: converter
     restart: always
     build: ../../../
+    ports:
+      - 5005:5005
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom
