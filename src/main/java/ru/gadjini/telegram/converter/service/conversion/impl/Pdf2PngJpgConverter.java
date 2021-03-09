@@ -56,17 +56,23 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
             try {
                 pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p", getOptions(fileQueueItem.getTargetFormat()));
 
-                SmartTempFile result = tempFileService().getTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
-                        fileQueueItem.getFirstFileId(), TAG, Format.ZIP.getExt());
-                try {
-                    p7ArchiveDevice.zip(tempDir.getAbsolutePath() + File.separator + "*", result.getAbsolutePath());
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.ZIP.getExt());
+                File[] files = tempDir.listFiles();
+                if (files != null && files.length == 1) {
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                    return new FileResult(fileName, new SmartTempFile(files[0], true));
+                } else {
+                    SmartTempFile result = tempFileService().getTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                            fileQueueItem.getFirstFileId(), TAG, Format.ZIP.getExt());
+                    try {
+                        p7ArchiveDevice.zip(tempDir.getAbsolutePath() + File.separator + "*", result.getAbsolutePath());
+                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.ZIP.getExt());
 
-                    String caption = localisationService.getMessage(MessagesProperties.MESSAGE_PDF_IMAGES_UNZIP_BOT, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-                    return new FileResult(fileName, result, caption);
-                } catch (Throwable e) {
-                    tempFileService().delete(result);
-                    throw e;
+                        String caption = localisationService.getMessage(MessagesProperties.MESSAGE_PDF_IMAGES_UNZIP_BOT, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+                        return new FileResult(fileName, result, caption);
+                    } catch (Throwable e) {
+                        tempFileService().delete(result);
+                        throw e;
+                    }
                 }
             } finally {
                 tempFileService().delete(tempDir);
