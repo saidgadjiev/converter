@@ -45,7 +45,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private static final String DEFAULT_RESOLUTION = "144p";
 
-    private static final List<String> AVAILABLE_RESOLUTIONS = List.of("720p", "480p", "360p", "240p", "64p", "32p", DEFAULT_RESOLUTION);
+    private static final List<String> AVAILABLE_RESOLUTIONS = List.of("720p", "480p", "360p", "240p", DEFAULT_RESOLUTION, "64p", "32p", "16p");
 
     private MessageService messageService;
 
@@ -252,6 +252,8 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                 new Object[]{convertState.getSettings().getResolution()}, locale));
         message.append("\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
+
+        message.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_WILL_BE_DECREASED_WARN, locale));
 
         message.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_CHOOSE_RESOLUTION, locale));
 

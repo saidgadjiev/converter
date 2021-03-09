@@ -52,12 +52,14 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
 
         try {
+            boolean deleteTempDir = true;
             SmartTempFile tempDir = tempFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
             try {
                 pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p", getOptions(fileQueueItem.getTargetFormat()));
 
                 File[] files = tempDir.listFiles();
                 if (files != null && files.length == 1) {
+                    deleteTempDir = false;
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                     return new FileResult(fileName, new SmartTempFile(files[0], true));
                 } else {
@@ -75,7 +77,9 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
                     }
                 }
             } finally {
-                tempFileService().delete(tempDir);
+                if (deleteTempDir) {
+                    tempFileService().delete(tempDir);
+                }
             }
         } catch (ProcessException ex) {
             throw ex;

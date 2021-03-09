@@ -26,7 +26,6 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getVideoEditSettingsKeyboard(List<String> resolutions, Locale locale) {
-        resolutions.sort(String::compareTo);
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         List<List<String>> lists = Lists.partition(resolutions, 3);
         for (List<String> list : lists) {
