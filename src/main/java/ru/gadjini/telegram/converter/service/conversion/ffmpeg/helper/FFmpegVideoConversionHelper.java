@@ -104,7 +104,7 @@ public class FFmpegVideoConversionHelper {
         if (target == MPEG || target == MPG) {
             commandBuilder.f(FFmpegCommandBuilder.MPEGTS_FORMAT);
         } else if (target == _3GP) {
-            commandBuilder.ar("8000").ba("12.20k").ac("1").s("176x144");
+            commandBuilder.ar("8000").ba("12.20k").ac("1");
         } else if (target == FLV) {
             commandBuilder.f(FFmpegCommandBuilder.FLV_FORMAT).ar("44100");
         } else if (target == MTS) {
@@ -116,7 +116,7 @@ public class FFmpegVideoConversionHelper {
         if (target == WEBM) {
             commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC);
         } else if (target == _3GP) {
-            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H263_CODEC);
+            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H263_CODEC).filterVideo(streamIndex, FFmpegCommandBuilder._3GP_SCALE);
         } else if (target == MTS) {
             commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H264_CODEC);
         } else if (target == WMV) {

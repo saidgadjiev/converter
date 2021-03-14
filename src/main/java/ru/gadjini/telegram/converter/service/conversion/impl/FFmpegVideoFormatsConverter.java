@@ -96,6 +96,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
+        String scale = fileQueueItem.getTargetFormat() == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
             commandBuilder.mapVideo(videoStreamIndex);
@@ -104,9 +105,9 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                 commandBuilder.copyVideo(videoStreamIndex);
             } else {
                 boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, out, videoStream,
-                        videoStreamIndex, FFmpegCommandBuilder.EVEN_SCALE);
-                if (videoConversionHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
-                        convertibleToH264, FFmpegCommandBuilder.EVEN_SCALE)) {
+                        videoStreamIndex, scale);
+                if (!videoConversionHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
+                        convertibleToH264, scale)) {
                     videoConversionHelper.addVideoCodecByTargetFormat(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
                 }
             }

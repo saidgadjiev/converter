@@ -29,9 +29,9 @@ public class FFmpegHelper {
         if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
             if (isSubtitlesCopyable(file, result)) {
                 commandBuilder.mapSubtitles().copySubtitles();
-            } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getFirstFileFormat())) {
+            } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getTargetFormat())) {
                 commandBuilder.mapSubtitles();
-                FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getFirstFileFormat());
+                FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
             }
         }
     }

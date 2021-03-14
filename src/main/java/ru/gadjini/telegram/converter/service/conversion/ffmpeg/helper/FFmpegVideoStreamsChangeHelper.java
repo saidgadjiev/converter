@@ -42,6 +42,6 @@ public class FFmpegVideoStreamsChangeHelper {
         fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
-        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
     }
 }
