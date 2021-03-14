@@ -113,7 +113,8 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         if (QueueItem.Status.PROCESSING.equals(queueItem.getStatus())) {
             conversionStep = ConversionStep.CONVERTING;
         } else if (QueueItem.Status.COMPLETED.equals(queueItem.getStatus())) {
-            conversionStep = ConversionStep.COMPLETED;
+            completedSteps.add(ConversionStep.DOWNLOADING);
+            completedSteps.add(ConversionStep.CONVERTING);
         } else {
             long downloadedCount = downloadQueueService.getDownloadedFilesCount(converter, queueItem.getId());
 
