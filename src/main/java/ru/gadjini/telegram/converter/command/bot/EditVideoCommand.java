@@ -45,7 +45,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private static final String DEFAULT_RESOLUTION = "144p";
 
-    private static final List<String> AVAILABLE_RESOLUTIONS = List.of("720p", "480p", "360p", "240p", DEFAULT_RESOLUTION, "64p", "32p", "16p");
+    private static final List<String> AVAILABLE_RESOLUTIONS = List.of("1080p", "720p", "480p", "360p", "240p", DEFAULT_RESOLUTION, "64p", "32p", "16p");
 
     private MessageService messageService;
 
