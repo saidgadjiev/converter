@@ -38,10 +38,10 @@ public class FFmpegVideoStreamsChangeHelper {
                 commandBuilder.filterVideo(videoStreamIndex, scale);
             }
         }
+        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
         videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
-        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
     }
 }

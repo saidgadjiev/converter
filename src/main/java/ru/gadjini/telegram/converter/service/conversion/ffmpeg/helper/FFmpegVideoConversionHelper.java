@@ -39,13 +39,15 @@ public class FFmpegVideoConversionHelper {
     public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
                                          SmartTempFile file, SmartTempFile out, ConversionQueueItem fileQueueItem) throws InterruptedException {
         if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
-            commandBuilder.mapAudio();
+            FFmpegCommandBuilder baseCommandToCheckCopyable = new FFmpegCommandBuilder(commandBuilder);
+
             List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
                     .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
             List<Integer> copyAudiosIndexes = new ArrayList<>();
+            commandBuilder.mapAudio();
             for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
-                if (isCopyable(file, out, fileQueueItem.getTargetFormat(), FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, audioStreamIndex)) {
+                if (isCopyableAudioCodecs(baseCommandToCheckCopyable, file, out, audioStreamIndex)) {
                     copyAudiosIndexes.add(audioStreamIndex);
                 } else {
                     addAudioCodecByTargetFormat(commandBuilder, fileQueueItem.getTargetFormat(), audioStreamIndex);
@@ -59,12 +61,19 @@ public class FFmpegVideoConversionHelper {
         }
     }
 
-    public boolean isCopyable(SmartTempFile in, SmartTempFile out, Format targetFormat, String streamPrefix, int streamIndex) throws InterruptedException {
+    private boolean isCopyableAudioCodecs(FFmpegCommandBuilder baseCommandBuilder, SmartTempFile in, SmartTempFile out,
+                                          int streamIndex) throws InterruptedException {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
+
+        commandBuilder.map(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, streamIndex).copy(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER);
+
+        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+    }
+
+    public boolean isCopyableVideoCodecs(SmartTempFile in, SmartTempFile out, Format targetFormat, int streamIndex) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-        if (FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER.equals(streamPrefix)) {
-            commandBuilder.mapVideo(0);
-        }
-        commandBuilder.map(streamPrefix, streamIndex).copy(streamPrefix);
+
+        commandBuilder.map(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, streamIndex).copy(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER);
         addVideoTargetFormatOptions(commandBuilder, targetFormat);
 
         return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
@@ -82,7 +91,7 @@ public class FFmpegVideoConversionHelper {
     }
 
     public boolean addFastestVideoCodec(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream videoStream,
-                                     int videoStreamIndex, boolean convertibleToH264, String h264Scale) {
+                                        int videoStreamIndex, boolean convertibleToH264, String h264Scale) {
         if (StringUtils.isBlank(videoStream.getCodecName())) {
             return false;
         }

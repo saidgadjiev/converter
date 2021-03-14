@@ -100,8 +100,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
             commandBuilder.mapVideo(videoStreamIndex);
-            if (videoConversionHelper.isCopyable(file, out, fileQueueItem.getTargetFormat(),
-                    FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, videoStreamIndex)) {
+            if (videoConversionHelper.isCopyableVideoCodecs(file, out, fileQueueItem.getTargetFormat(), videoStreamIndex)) {
                 commandBuilder.copyVideo(videoStreamIndex);
             } else {
                 boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, out, videoStream,
@@ -112,9 +111,9 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
                 }
             }
         }
+        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
         videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
         fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
-        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 

@@ -41,6 +41,12 @@ public class FFmpegCommandBuilder {
 
     private List<String> options = new ArrayList<>();
 
+    public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
+        this.options.addAll(commandBuilder.options);
+    }
+
+    public FFmpegCommandBuilder() {}
+
     public FFmpegCommandBuilder map(String streamSpecifier, int index) {
         options.add("-map");
         options.add(streamSpecifier + ":" + index);
