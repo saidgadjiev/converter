@@ -264,7 +264,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
         MessageMedia media = messageMediaService.getMedia(message, locale);
         if (media != null) {
-            checkFormat(message.getFrom().getId(), media.getFormat(), media.getMimeType(), media.getFileName(), locale);
+            checkSrcFormat(message.getFrom().getId(), media.getFormat(), media.getMimeType(), media.getFileName(), locale);
 
             convertState.addMedia(media);
         } else if (message.hasText()) {
@@ -272,7 +272,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
             messageMedia.setFileId(message.getText());
             messageMedia.setFileSize(message.getText().length());
             messageMedia.setFormat(formatService.getFormat(message.getText()));
-            checkFormat(message.getFrom().getId(), messageMedia.getFormat(), null, null, locale);
+            checkSrcFormat(message.getFrom().getId(), messageMedia.getFormat(), null, null, locale);
 
             convertState.addMedia(messageMedia);
         } else {
@@ -294,7 +294,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
-    private void checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
+    private void checkSrcFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
             LOGGER.warn("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
