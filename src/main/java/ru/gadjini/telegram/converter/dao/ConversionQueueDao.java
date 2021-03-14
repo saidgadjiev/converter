@@ -394,6 +394,9 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         fileQueueItem.setSuppressUserExceptions(rs.getBoolean(ConversionQueueItem.SUPPRESS_USER_EXCEPTIONS));
         fileQueueItem.setResultFileId(rs.getString(ConversionQueueItem.RESULT_FILE_ID));
         fileQueueItem.setServer(rs.getInt(QueueItem.SERVER));
+        if (columns.contains(ConversionQueueItem.TOTAL_FILES_TO_DOWNLOAD)) {
+            fileQueueItem.setTotalFilesToDownload(rs.getLong(ConversionQueueItem.TOTAL_FILES_TO_DOWNLOAD));
+        }
 
         if (columns.contains(ConversionQueueItem.FILES_JSON)) {
             fileQueueItem.setFiles(mapFiles(rs));

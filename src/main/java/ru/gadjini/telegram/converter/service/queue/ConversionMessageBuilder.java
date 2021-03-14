@@ -14,11 +14,12 @@ import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.DownloadQueueService;
 import ru.gadjini.telegram.smart.bot.commons.service.update.UpdateQueryStatusCommandMessageProvider;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -33,12 +34,15 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     private LocalisationService localisationService;
 
+    private DownloadQueueService downloadQueueService;
+
     @Value("${converter:all}")
     private String converter;
 
     @Autowired
-    public ConversionMessageBuilder(LocalisationService localisationService) {
+    public ConversionMessageBuilder(LocalisationService localisationService, DownloadQueueService downloadQueueService) {
         this.localisationService = localisationService;
+        this.downloadQueueService = downloadQueueService;
     }
 
     @PostConstruct
@@ -104,7 +108,21 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     @Override
     public String getUpdateStatusMessage(QueueItem queueItem, Locale locale) {
-        return getConversionProcessingMessage((ConversionQueueItem) queueItem, ConversionStep.WAITING, Collections.emptySet(), locale);
+        ConversionStep conversionStep = ConversionStep.WAITING;
+        Set<ConversionStep> completedSteps = new HashSet<>();
+        if (QueueItem.Status.PROCESSING.equals(queueItem.getStatus())) {
+            conversionStep = ConversionStep.CONVERTING;
+        } else if (QueueItem.Status.COMPLETED.equals(queueItem.getStatus())) {
+            conversionStep = ConversionStep.COMPLETED;
+        } else {
+            long downloadedCount = downloadQueueService.getDownloadedFilesCount(converter, queueItem.getId());
+
+            if (downloadedCount == ((ConversionQueueItem) queueItem).getTotalFilesToDownload()) {
+                completedSteps.add(ConversionStep.DOWNLOADING);
+            }
+        }
+
+        return getConversionProcessingMessage((ConversionQueueItem) queueItem, conversionStep, completedSteps, locale);
     }
 
     public String getConversionProcessingMessage(ConversionQueueItem queueItem,

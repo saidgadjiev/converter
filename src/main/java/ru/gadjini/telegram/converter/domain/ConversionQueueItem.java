@@ -31,6 +31,8 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     public static final String FILES_JSON = "files_json";
 
+    public static final String TOTAL_FILES_TO_DOWNLOAD = "total_files_to_download";
+
     private List<TgFile> files = new ArrayList<>();
 
     private Format targetFormat;
@@ -40,6 +42,8 @@ public class ConversionQueueItem extends WorkQueueItem {
     private List<DownloadQueueItem> downloadQueueItems;
 
     private Object extra;
+
+    private long totalFilesToDownload;
 
     public Format getTargetFormat() {
         return targetFormat;
@@ -134,6 +138,14 @@ public class ConversionQueueItem extends WorkQueueItem {
 
     public Object getExtra() {
         return extra;
+    }
+
+    public long getTotalFilesToDownload() {
+        return totalFilesToDownload;
+    }
+
+    public void setTotalFilesToDownload(long totalFilesToDownload) {
+        this.totalFilesToDownload = totalFilesToDownload;
     }
 
     @Override

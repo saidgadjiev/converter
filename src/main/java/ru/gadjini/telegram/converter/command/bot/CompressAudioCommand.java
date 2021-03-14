@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -172,7 +173,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             }
         } else if (requestParams.contains(ConverterArg.BITRATE.getKey())) {
             String bitrate = requestParams.getString(ConverterArg.BITRATE.getKey());
-            setBitrate(callbackQuery.getMessage().getChatId(), bitrate);
+            setBitrate(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), bitrate);
         }
     }
 
@@ -217,7 +218,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setMedia(media);
     }
 
-    private void setBitrate(long chatId, String bitrate) {
+    private void setBitrate(String queryId, long chatId, String bitrate) {
         ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
         Locale locale = new Locale(convertState.getUserLanguage());
 
@@ -228,6 +229,12 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             updateSettingsMessage(chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
+
+        messageService.sendAnswerCallbackQuery(
+                AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_COMPRESS_AUDIO_BITRATE_UPDATED, locale))
+                        .build()
+        );
     }
 
     private String validateBitrate(String bitrate, Locale locale) {
