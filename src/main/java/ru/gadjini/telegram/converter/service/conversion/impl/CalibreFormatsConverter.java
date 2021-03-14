@@ -79,11 +79,6 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
         }
     }
 
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
-
     private String[] getOptions(ConversionQueueItem queueItem) {
         if (Set.of(CBZ, CBR, CBC).contains(queueItem.getFirstFileFormat())) {
             return new String[]{

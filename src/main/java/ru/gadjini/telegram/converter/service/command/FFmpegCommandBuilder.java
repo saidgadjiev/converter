@@ -5,6 +5,8 @@ import java.util.List;
 
 public class FFmpegCommandBuilder {
 
+    public static final String EVEN_SCALE = "scale=-2:ceil(ih/2)*2";
+
     public static final String PRESET_VERY_FAST = "veryfast";
 
     public static final String DEADLINE_REALTIME = "realtime";

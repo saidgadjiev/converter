@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ConversionQueueItem extends WorkQueueItem {
@@ -95,6 +96,14 @@ public class ConversionQueueItem extends WorkQueueItem {
     public List<SmartTempFile> getDownloadedFiles() {
         return files == null ? Collections.emptyList() :
                 files.stream()
+                        .map(file -> getDownloadedFile(file.getFileId()))
+                        .collect(Collectors.toList());
+    }
+
+    public List<SmartTempFile> getDownloadedFilesWithoutThumb() {
+        return files == null ? Collections.emptyList() :
+                files.stream()
+                        .filter(tgFile -> !Objects.equals(tgFile.getFileId(), getFirstFile().getThumb()))
                         .map(file -> getDownloadedFile(file.getFileId()))
                         .collect(Collectors.toList());
     }

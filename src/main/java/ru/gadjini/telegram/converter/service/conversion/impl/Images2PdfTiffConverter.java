@@ -100,11 +100,6 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
         }
     }
 
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFiles().forEach(f -> tempFileService().delete(f));
-    }
-
     private Collection<TgFile> prepareFilesToDownload(ConversionQueueItem queueItem) {
         Collection<TgFile> tgFiles = queueItem.getFiles();
         String tempDir = tempFileService().getTempDir(FileTarget.TEMP, queueItem.getUserId(), TAG);

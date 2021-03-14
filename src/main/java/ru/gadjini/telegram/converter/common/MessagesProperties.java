@@ -181,7 +181,5 @@ public class MessagesProperties {
 
     public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME = "message.video.resolution.the.same";
 
-    public static final String MESSAGE_VIDEO_RESOLUTION_CANT_BE_INCREASED = "message.video.resolution.cant.be.increased";
-
     public static final String MESSAGE_VIDEO_RESOLUTION_WILL_BE_DECREASED_WARN = "message.video.resolution.will.be.decreased.warn";
 }

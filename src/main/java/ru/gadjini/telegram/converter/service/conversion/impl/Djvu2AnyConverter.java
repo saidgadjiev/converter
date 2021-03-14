@@ -74,9 +74,4 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
             throw new ConvertException(e);
         }
     }
-
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
 }

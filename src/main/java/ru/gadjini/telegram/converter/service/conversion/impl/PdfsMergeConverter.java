@@ -58,9 +58,4 @@ public class PdfsMergeConverter extends BaseAny2AnyConverter {
             throw new ConvertException(e);
         }
     }
-
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.getDownloadedFiles().forEach(file -> tempFileService().delete(file));
-    }
 }

@@ -80,6 +80,9 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
                                     Supplier<Boolean> canceledByUserChecker) {
         try {
             return doConvert(fileQueueItem);
+        } catch (Throwable e) {
+            doDeleteThumb(fileQueueItem);
+            throw e;
         } finally {
             if (cancelChecker.get()) {
                 if (canceledByUserChecker.get()) {
@@ -128,10 +131,12 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
             SmartTempFile thumb = fileQueueItem.getDownloadedFileOrNull(fileQueueItem.getFirstFile().getThumb());
 
             if (thumb == null) {
-                LOGGER.error("Downloaded thumb file not found({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getThumb());
+                LOGGER.error("Downloaded thumb file not found({}, {}, {})", fileQueueItem.getUserId(),
+                        fileQueueItem.getId(), fileQueueItem.getFirstFile().getThumb());
+                return null;
             }
 
-            return thumb;
+            return thumb.exists() ? thumb : null;
         } else {
             return null;
         }
@@ -155,9 +160,19 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return Collections.emptyList();
     }
 
-    protected abstract ConversionResult doConvert(ConversionQueueItem conversionQueueItem);
-
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-
+    private void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        fileQueueItem.getDownloadedFilesWithoutThumb().forEach(file -> tempFileService().delete(file));
     }
+
+    private void doDeleteThumb(ConversionQueueItem fileQueueItem) {
+        if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
+            SmartTempFile thumb = fileQueueItem.getDownloadedFileOrNull(fileQueueItem.getFirstFile().getThumb());
+
+            if (thumb != null) {
+                tempFileService().delete(thumb);
+            }
+        }
+    }
+
+    protected abstract ConversionResult doConvert(ConversionQueueItem conversionQueueItem);
 }

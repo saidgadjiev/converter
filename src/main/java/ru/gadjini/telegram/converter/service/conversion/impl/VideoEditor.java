@@ -12,7 +12,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -28,7 +28,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT;
 
@@ -49,23 +48,25 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegDevice fFmpegDevice;
 
-    private FFmpegHelper fFmpegHelper;
-
     private Gson gson;
 
     private LocalisationService localisationService;
 
+    private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
+
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
-                       FFmpegDevice fFmpegDevice, FFmpegHelper fFmpegHelper, Gson gson, LocalisationService localisationService) {
+                       FFmpegDevice fFmpegDevice, Gson gson,
+                       LocalisationService localisationService,
+                       FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
-        this.fFmpegHelper = fFmpegHelper;
         this.gson = gson;
         this.localisationService = localisationService;
+        this.videoStreamsChangeHelper = videoStreamsChangeHelper;
     }
 
     @Override
@@ -82,41 +83,12 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
                         new Object[]{settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
             }
-            if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
-                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_CANT_BE_INCREASED,
-                        new Object[]{srcWhd.getHeight() + "p", settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
-            }
-
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFmpegHelper.removeExtraVideoStreams(allStreams);
-
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-
-            List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
-                    .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
-                    .collect(Collectors.toList());
-
             String scale = "scale=-2:" + height;
-            for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
-                commandBuilder.mapVideo(videoStreamIndex);
-                fFmpegHelper.addFastestVideoCodecOptions(commandBuilder, file, result, videoStreams.get(videoStreamIndex), videoStreamIndex, scale);
-                commandBuilder.filterVideo(videoStreamIndex, scale);
-            }
-            if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
-                commandBuilder.mapAudio().copyAudio();
-            }
-            if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
-                if (fFmpegHelper.isSubtitlesCopyable(file, result)) {
-                    commandBuilder.mapSubtitles().copySubtitles();
-                } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getFirstFileFormat())) {
-                    commandBuilder.mapSubtitles();
-                    FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getFirstFileFormat());
-                }
-            }
-            commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-            commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
-            fFmpegHelper.addTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, scale, fileQueueItem);
+            if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
+                commandBuilder.crf("30");
+             }
             fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());

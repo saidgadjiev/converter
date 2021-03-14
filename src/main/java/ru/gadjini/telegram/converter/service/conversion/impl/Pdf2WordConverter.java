@@ -135,11 +135,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         return fileResult;
     }
 
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
-
     private ConversionResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         Document document = new Document(file.getAbsolutePath());
         try {

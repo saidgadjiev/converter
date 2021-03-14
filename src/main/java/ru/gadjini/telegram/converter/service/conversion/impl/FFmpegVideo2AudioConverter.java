@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
-import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -67,10 +67,13 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                 try {
-                    String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)), Stream.of(FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()))).toArray(String[]::new);
+                    String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)),
+                            Stream.of(FFmpegAudioConversionHelper.getAudioOptions(fileQueueItem.getTargetFormat())))
+                            .toArray(String[]::new);
                     fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), options);
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
+                            String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
 
                     if (fileQueueItem.getTargetFormat().canBeSentAsAudio()
                             || fileQueueItem.getTargetFormat() == VOICE) {
@@ -86,7 +89,8 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
                         if (fileQueueItem.getTargetFormat().equals(VOICE)) {
                             convertResults.addResult(new VoiceResult(fileName, result, (int) durationInSeconds, audioStream.getLanguage()));
                         } else {
-                            convertResults.addResult(new AudioResult(fileName, result, null, null, downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
+                            convertResults.addResult(new AudioResult(fileName, result, null, null,
+                                    downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
                         }
                     } else {
                         convertResults.addResult(new FileResult(fileName, result, downloadThumb(fileQueueItem), audioStream.getLanguage()));
@@ -101,11 +105,6 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
         } catch (Exception e) {
             throw new ConvertException(e);
         }
-    }
-
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     private String[] getExtractAudioOptions(int streamIndex) {

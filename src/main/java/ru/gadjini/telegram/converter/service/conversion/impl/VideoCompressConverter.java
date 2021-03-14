@@ -11,7 +11,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -59,18 +58,19 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private FFmpegHelper fFmpegHelper;
+    private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
 
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
-                                  FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder, FFmpegHelper fFmpegHelper) {
+                                  FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
+                                  FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.messageBuilder = messageBuilder;
-        this.fFmpegHelper = fFmpegHelper;
+        this.videoStreamsChangeHelper = videoStreamsChangeHelper;
     }
 
     @Override
@@ -79,32 +79,9 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFmpegHelper.removeExtraVideoStreams(allStreams);
-
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-
-            List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
-            for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
-                commandBuilder.mapVideo(videoStreamIndex);
-                fFmpegHelper.addFastestVideoCodecOptions(commandBuilder, file, result, videoStreams.get(videoStreamIndex), videoStreamIndex, SCALE);
-                commandBuilder.filterVideo(videoStreamIndex, SCALE);
-            }
-            if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
-                commandBuilder.mapAudio().copyAudio();
-            }
-            if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
-                if (fFmpegHelper.isSubtitlesCopyable(file, result)) {
-                    commandBuilder.mapSubtitles().copySubtitles();
-                } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getFirstFileFormat())) {
-                    commandBuilder.mapSubtitles();
-                    FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getFirstFileFormat());
-                }
-            }
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, SCALE, fileQueueItem);
             commandBuilder.crf("30");
-            commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-            commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
-            fFmpegHelper.addTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
 
             fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
 
@@ -132,11 +109,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             tempFileService().delete(result);
             throw new ConvertException(e);
         }
-    }
-
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
     }
 
     @Override

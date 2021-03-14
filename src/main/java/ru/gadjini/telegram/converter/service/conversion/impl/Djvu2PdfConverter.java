@@ -51,9 +51,4 @@ public class Djvu2PdfConverter extends BaseAny2AnyConverter {
             throw new ConvertException(e);
         }
     }
-
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
 }

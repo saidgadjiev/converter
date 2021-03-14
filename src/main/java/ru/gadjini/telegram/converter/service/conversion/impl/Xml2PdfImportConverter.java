@@ -53,10 +53,4 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }
-    }
-
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
-}
+    }}

@@ -67,9 +67,4 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
             throw new ConvertException(ex);
         }
     }
-
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
 }

@@ -65,11 +65,6 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
         }
     }
 
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
-
     private int getSaveFormat(Format format) {
         switch (format) {
             case PDF:

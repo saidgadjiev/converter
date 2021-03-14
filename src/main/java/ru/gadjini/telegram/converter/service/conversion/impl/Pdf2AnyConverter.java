@@ -65,11 +65,6 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
         }
     }
 
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
-
     private LoadOptions getLoadOptions(Format format) {
         switch (format) {
             case PDF:

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.conversion.common.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -56,7 +56,8 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
             } catch (ProcessException e) {
                 LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                         fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), FFmpegHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
+                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(),
+                        FFmpegAudioConversionHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
             }
         } catch (InterruptedException e) {
             throw new ConvertException(e);

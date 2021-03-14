@@ -85,11 +85,6 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
         }
     }
 
-    @Override
-    protected void doDeleteFiles(ConversionQueueItem fileQueueItem) {
-        tempFileService().delete(fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId()));
-    }
-
     private void normalize(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFirstFileFormat() == PHOTO) {
             fileQueueItem.getFirstFile().setFormat(JPG);
