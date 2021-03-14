@@ -15,6 +15,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VoiceResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
@@ -24,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
+
+    public static final Format DEFAULT_AUDIO_COMPRESS_FORMAT = Format.OPUS;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseAudioConverter.class);
 
@@ -104,6 +107,9 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
             }
 
             return new FileResult(fileName, result, thumbFile);
+        } catch (UserException e) {
+            tempFileService().delete(result);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
@@ -123,7 +129,7 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
             }
         }
 
-        return fileQueueItem.getTargetFormat() == Format.COMPRESS ? fileQueueItem.getFirstFileFormat() : fileQueueItem.getTargetFormat();
+        return fileQueueItem.getTargetFormat() == Format.COMPRESS ? DEFAULT_AUDIO_COMPRESS_FORMAT : fileQueueItem.getTargetFormat();
     }
 
     protected abstract void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) throws InterruptedException;

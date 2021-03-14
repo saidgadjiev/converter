@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
@@ -125,6 +126,9 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), compessionInfo);
             }
+        } catch (UserException e) {
+            tempFileService().delete(result);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

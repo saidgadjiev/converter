@@ -5,13 +5,18 @@ import com.google.gson.JsonElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
+import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -29,11 +34,18 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     private FFmpegDevice fFmpegDevice;
 
+    private UserService userService;
+
+    private LocalisationService localisationService;
+
     @Autowired
-    public FFmpegAudioCompressConverter(Gson gson, FFmpegDevice fFmpegDevice) {
+    public FFmpegAudioCompressConverter(Gson gson, FFmpegDevice fFmpegDevice,
+                                        UserService userService, LocalisationService localisationService) {
         super(MAP);
         this.gson = gson;
         this.fFmpegDevice = fFmpegDevice;
+        this.userService = userService;
+        this.localisationService = localisationService;
     }
 
     @Override
@@ -50,6 +62,11 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), getCompressOptions(bitrate));
         } catch (InterruptedException e) {
             throw new ConvertException(e);
+        }
+        if (in.length() <= out.length()) {
+            Locale localeOrDefault = userService.getLocaleOrDefault(conversionQueueItem.getUserId());
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INCOMPRESSIBLE_AUDIO, localeOrDefault))
+                    .setReplyToMessageId(conversionQueueItem.getReplyToMessageId());
         }
     }
 

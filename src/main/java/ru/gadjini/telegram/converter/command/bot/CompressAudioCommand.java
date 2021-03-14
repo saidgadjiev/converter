@@ -180,7 +180,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 boolean opusConversion = requestParams.getBoolean(ConverterArg.OPUS_CONVERSION.getKey());
 
                 if (opusConversion) {
-                    convertState.getSettings().setTargetFormat(Format.OPUS);
+                    convertState.getSettings().setTargetFormat(FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT);
                 } else {
                     convertState.getSettings().setTargetFormat(null);
                 }
@@ -215,7 +215,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setUserLanguage(locale.getLanguage());
         convertState.setSettings(new SettingsState());
         convertState.getSettings().setBitrate(FFmpegAudioCompressConverter.AUTO_BITRATE);
-        convertState.getSettings().setTargetFormat(Format.OPUS);
+        convertState.getSettings().setTargetFormat(FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT);
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         checkMedia(media, locale);
@@ -273,15 +273,15 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         StringBuilder message = new StringBuilder();
         Locale locale = new Locale(convertState.getUserLanguage());
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[] {convertState.getFirstFormat().getName()}, locale)).append("\n");
-        if (Objects.equals(convertState.getSettings().getTargetFormat(), Format.OPUS)
-                && !Objects.equals(convertState.getFirstFormat(), Format.OPUS)) {
+        if (Objects.equals(convertState.getSettings().getTargetFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)
+                && !Objects.equals(convertState.getFirstFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
             message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_CONVERSION, locale)).append("\n");
         }
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n");
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE,
                 new Object[]{MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize())}, locale)).append("\n");
-        if (Objects.equals(convertState.getFirstFormat(), Format.OPUS)
-                || Objects.equals(convertState.getSettings().getTargetFormat(), Format.OPUS)) {
+        if (Objects.equals(convertState.getFirstFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)
+                || Objects.equals(convertState.getSettings().getTargetFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
             String estimatedSize = estimatedSize(convertState.getFirstFile().getDuration(), convertState.getSettings().getBitrate());
 
             if (StringUtils.isNotBlank(estimatedSize)) {
@@ -293,8 +293,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             message.append("\n");
         }
 
-        if (!Objects.equals(convertState.getFirstFormat(), Format.OPUS)) {
-            if (Objects.equals(convertState.getSettings().getTargetFormat(), Format.OPUS)) {
+        if (!Objects.equals(convertState.getFirstFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
+            if (Objects.equals(convertState.getSettings().getTargetFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
                 message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_SET, locale)).append("\n");
             } else {
                 message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_CANCELED, locale)).append("\n");

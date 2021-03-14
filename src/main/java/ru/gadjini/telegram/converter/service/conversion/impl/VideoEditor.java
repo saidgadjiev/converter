@@ -130,6 +130,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), resolutionChangedInfo);
             }
+        } catch (UserException e) {
+            tempFileService().delete(result);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
