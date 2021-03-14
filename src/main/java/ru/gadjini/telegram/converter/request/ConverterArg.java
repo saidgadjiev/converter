@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.request;
 public enum ConverterArg {
 
     COMPRESS("f"),
+    BITRATE("g"),
     RESOLUTION("i"),
     EDIT_VIDEO("l");
 

@@ -39,9 +39,18 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(Locale locale) {
+    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(String currentBitrate, List<String> bitrates, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        List<List<String>> lists = Lists.partition(bitrates, 3);
+        for (List<String> list : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (String bitrate : list) {
+                buttons.add(buttonFactory.bitrateButton(currentBitrate, bitrate, locale));
+            }
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
+        }
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.audioCompress(locale)));
+
         return inlineKeyboardMarkup;
     }
 

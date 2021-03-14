@@ -168,4 +168,6 @@ public class MessagesProperties {
     public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME = "message.video.resolution.the.same";
 
     public static final String MESSAGE_VIDEO_RESOLUTION_WARN = "message.video.resolution.warn";
+
+    public static final String MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT = "message.compress.audio.output.format";
 }

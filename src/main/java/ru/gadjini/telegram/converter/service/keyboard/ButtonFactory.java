@@ -14,6 +14,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
+import java.util.Objects;
 
 @Service
 public class ButtonFactory {
@@ -41,6 +42,21 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
                         .add(ConverterArg.COMPRESS.getKey(), "a")
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton bitrateButton(String currentBitrate, String bitrate, Locale locale) {
+        String btnName = Objects.equals(currentBitrate, bitrate)
+                ? localisationService.getMessage(ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties.RED_CIRCLE_ICON, locale) + bitrate
+                : bitrate;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
+                        .add(ConverterArg.BITRATE.getKey(), bitrate)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;
