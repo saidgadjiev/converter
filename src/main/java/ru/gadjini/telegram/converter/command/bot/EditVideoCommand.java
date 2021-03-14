@@ -253,7 +253,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         message.append("\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
-        message.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_WILL_BE_DECREASED_WARN, locale));
+        message.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
 
         message.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_CHOOSE_RESOLUTION, locale));
 
