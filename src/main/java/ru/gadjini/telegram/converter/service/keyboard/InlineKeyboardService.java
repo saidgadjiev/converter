@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
 import java.util.ArrayList;
@@ -40,15 +39,8 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(Format fileFormat, Format targetFormat, Locale locale) {
+    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        if (fileFormat != Format.OPUS) {
-            if (targetFormat != Format.OPUS) {
-                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.opusConversion(locale)));
-            } else {
-                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelOpusConversion(locale)));
-            }
-        }
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.audioCompress(locale)));
         return inlineKeyboardMarkup;
     }

@@ -18,6 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -58,8 +59,10 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             bitrate = AUTO_BITRATE;
         }
 
+        String[] mapOptions = new String[]{"-map", "a"};
         try {
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), getCompressOptions(bitrate));
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(),
+                    Stream.concat(Stream.of(mapOptions), Stream.of(getCompressOptions(bitrate))).toArray(String[]::new));
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }

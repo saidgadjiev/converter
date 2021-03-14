@@ -143,8 +143,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                     .text(buildSettingsMessage(convertState))
                                     .parseMode(ParseMode.HTML)
-                                    .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getFirstFormat(),
-                                            convertState.getSettings().getTargetFormat(), locale))
+                                    .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(locale))
                                     .build(),
                             sent -> {
                                 convertState.getSettings().setMessageId(sent.getMessageId());
@@ -172,21 +171,6 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.COMPRESS_AUDIO);
                 messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
             }
-        } else if (requestParams.contains(ConverterArg.OPUS_CONVERSION.getKey())) {
-            ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
-                    ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
-
-            if (convertState != null) {
-                boolean opusConversion = requestParams.getBoolean(ConverterArg.OPUS_CONVERSION.getKey());
-
-                if (opusConversion) {
-                    convertState.getSettings().setTargetFormat(FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT);
-                } else {
-                    convertState.getSettings().setTargetFormat(null);
-                }
-                updateSettingsMessage(callbackQuery.getMessage().getChatId(), convertState);
-                commandStateService.setState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.COMPRESS_AUDIO, convertState);
-            }
         }
     }
 
@@ -204,8 +188,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 .messageId(convertState.getSettings().getMessageId())
                 .text(buildSettingsMessage(convertState))
                 .parseMode(ParseMode.HTML)
-                .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getFirstFormat(),
-                        convertState.getSettings().getTargetFormat(), new Locale(convertState.getUserLanguage())))
+                .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(new Locale(convertState.getUserLanguage())))
                 .build());
     }
 
@@ -215,7 +198,6 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setUserLanguage(locale.getLanguage());
         convertState.setSettings(new SettingsState());
         convertState.getSettings().setBitrate(FFmpegAudioCompressConverter.AUTO_BITRATE);
-        convertState.getSettings().setTargetFormat(FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT);
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         checkMedia(media, locale);
@@ -272,36 +254,20 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     private String buildSettingsMessage(ConvertState convertState) {
         StringBuilder message = new StringBuilder();
         Locale locale = new Locale(convertState.getUserLanguage());
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[] {convertState.getFirstFormat().getName()}, locale)).append("\n");
-        if (Objects.equals(convertState.getSettings().getTargetFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)
-                && !Objects.equals(convertState.getFirstFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
-            message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_CONVERSION, locale)).append("\n");
-        }
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{convertState.getFirstFormat().getName()}, locale)).append("\n");
+
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n");
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE,
                 new Object[]{MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize())}, locale)).append("\n");
-        if (Objects.equals(convertState.getFirstFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)
-                || Objects.equals(convertState.getSettings().getTargetFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
-            String estimatedSize = estimatedSize(convertState.getFirstFile().getDuration(), convertState.getSettings().getBitrate());
 
-            if (StringUtils.isNotBlank(estimatedSize)) {
-                message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE, new Object[]{estimatedSize}, locale)).append("\n\n");
-            } else {
-                message.append("\n");
-            }
+        String estimatedSize = estimatedSize(convertState.getFirstFile().getDuration(), convertState.getSettings().getBitrate());
+
+        if (StringUtils.isNotBlank(estimatedSize)) {
+            message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE, new Object[]{estimatedSize}, locale)).append("\n\n");
         } else {
             message.append("\n");
         }
 
-        if (!Objects.equals(convertState.getFirstFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
-            if (Objects.equals(convertState.getSettings().getTargetFormat(), FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT)) {
-                message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_SET, locale)).append("\n");
-            } else {
-                message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_CANCELED, locale)).append("\n");
-            }
-        } else {
-            message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS, locale)).append("\n");
-        }
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale)).append("\n\n");
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale));
 

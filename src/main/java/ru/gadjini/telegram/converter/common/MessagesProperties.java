@@ -61,8 +61,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_TEXT_APPENDED = "message.text.appended";
 
-    public static final String CONVERT_COMMAND_DESCRIPTION = "convert.command.description";
-
     public static final String LANGUAGE_COMMAND_DESCRIPTION = "language.command.description";
 
     public static final String START_COMMAND_DESCRIPTION = "start.command.description";
@@ -139,19 +137,7 @@ public class MessagesProperties {
 
     public static final String MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE = "message.audio.compression.choose.bitrate";
 
-    public static final String MESSAGE_AUDIO_COMPRESS_OPUS_CONVERSION = "message.audio.compress.opus.conversion";
-
-    public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_SET = "message.audio.compress.prompt.opus.set";
-
-    public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS_CANCELED = "message.audio.compress.prompt.opus.canceled";
-
     public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE = "message.audio.compress.prompt.bitrate";
-
-    public static final String AUDIO_COMPRESS_CANCEL_OPUS_COMMAND_DESCRIPTION = "audio.compress.cancel.opus.command.description";
-
-    public static final String AUDIO_COMPRESS_OPUS_COMMAND_DESCRIPTION = "audio.compress.opus.command.description";
-
-    public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_OPUS = "message.audio.compress.prompt.opus";
 
     public static final String MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE = "message.audio.compress.opus.estimated.size";
 

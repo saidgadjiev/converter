@@ -18,6 +18,7 @@ public class FFmpegAudioConversionHelper {
                     "-c:a", "libvorbis", "-q:a", "4"
             };
         }
+
         return new String[0];
     }
 }

@@ -15,6 +15,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -51,13 +52,18 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     @Override
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
         try {
+            String[] mapOptions = new String[]{"-map", "a"};
+
             try {
-                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), "-c:a", "copy");
+                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(),
+                        Stream.concat(Stream.of(mapOptions), Stream.of("-c:a", "copy")).toArray(String[]::new));
             } catch (ProcessException e) {
                 LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                         fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
                 fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(),
-                        FFmpegAudioConversionHelper.getAudioOptions(fileQueueItem.getTargetFormat()));
+                        Stream.concat(Stream.of(mapOptions),
+                                Stream.of(FFmpegAudioConversionHelper.getAudioOptions(fileQueueItem.getTargetFormat())))
+                                .toArray(String[]::new));
             }
         } catch (InterruptedException e) {
             throw new ConvertException(e);
