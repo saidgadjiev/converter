@@ -21,6 +21,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
 import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileUploadService;
@@ -165,6 +166,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         public ErrorCode getErrorCode(Throwable e) {
             if (e instanceof CorruptedFileException || e instanceof ProcessException) {
                 return new ErrorCode(MessagesProperties.MESSAGE_DAMAGED_FILE);
+            } else if (e instanceof ProcessTimedOutException) {
+                return new ErrorCode(MessagesProperties.CONVERSION_TIMED_OUT);
             }
 
             return new ErrorCode(MessagesProperties.MESSAGE_CONVERSION_FAILED);

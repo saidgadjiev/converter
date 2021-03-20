@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.SmartCalibre;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -55,10 +57,13 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
 
     private SmartCalibre convertDevice;
 
+    private ConversionProperties conversionProperties;
+
     @Autowired
-    public CalibreFormatsConverter(SmartCalibre convertDevice) {
+    public CalibreFormatsConverter(SmartCalibre convertDevice, ConversionProperties conversionProperties) {
         super(MAP);
         this.convertDevice = convertDevice;
+        this.conversionProperties = conversionProperties;
     }
 
     @Override
@@ -68,10 +73,14 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
-            convertDevice.convert(in.getAbsolutePath(), result.getAbsolutePath(), getOptions(fileQueueItem));
+            convertDevice.convert(in.getAbsolutePath(), result.getAbsolutePath(),
+                    conversionProperties.getCalibreLongConversionTimeOut(), getOptions(fileQueueItem));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result);
+        } catch (ProcessTimedOutException e) {
+            tempFileService().delete(result);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

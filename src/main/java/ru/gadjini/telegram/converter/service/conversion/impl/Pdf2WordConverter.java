@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.OomHandler;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -25,6 +26,7 @@ import ru.gadjini.telegram.converter.service.logger.Lg;
 import ru.gadjini.telegram.converter.service.logger.SoutLg;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
@@ -35,6 +37,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
@@ -50,11 +55,14 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private OomHandler oomHandler;
 
+    private ConversionProperties conversionProperties;
+
     @Autowired
-    public Pdf2WordConverter(ProcessExecutor processExecutor, OomHandler oomHandler) {
+    public Pdf2WordConverter(ProcessExecutor processExecutor, OomHandler oomHandler, ConversionProperties conversionProperties) {
         super(MAP);
         this.processExecutor = processExecutor;
         this.oomHandler = oomHandler;
+        this.conversionProperties = conversionProperties;
     }
 
     @Override
@@ -72,6 +80,8 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             try {
                 try {
                     fileResult = doRightConvert(fileQueueItem, file, log);
+                } catch (ProcessTimedOutException e) {
+                    throw e;
                 } catch (Throwable e) {
                     if (oomHandler.isOom(e)) {
                         return oomHandler.handleOom(fileQueueItem, e);
@@ -82,6 +92,9 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                     dirtyConvert = true;
                     fileResult = doDirtyConvert(fileQueueItem, file, log);
                 }
+            } catch (ProcessTimedOutException e) {
+                log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
+                throw e;
             } catch (Throwable e) {
                 log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
                 throw new ProcessException(-1, e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout") + "\n" + ExceptionUtils.getStackTrace(e));
@@ -98,67 +111,41 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         return fileResult;
     }
 
-    public ConversionResult convert(ConversionQueueItem fileQueueItem, SmartTempFile file) {
-        File logFile = processExecutor.getErrorLogFile();
-
-        ConversionResult fileResult;
-
-        try (Lg log = logFile == null ? new SoutLg() : new FileLg(logFile)) {
-            LOGGER.debug("Log file({}, {})", fileQueueItem.getId(), logFile == null ? "sout" : logFile.getAbsolutePath());
-            log.log("Start pdf 2 word(%s, %s, %s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(), fileQueueItem.getTargetFormat());
-
-            try {
-                try {
-                    fileResult = doRightConvert(fileQueueItem, file, log);
-                } catch (Throwable e) {
-                    if (oomHandler.isOom(e)) {
-                        return oomHandler.handleOom(fileQueueItem, e);
-                    }
-                    LOGGER.error(e.getMessage(), e);
-                    log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
-
-                    fileResult = doDirtyConvert(fileQueueItem, file, log);
-                }
-            } catch (Throwable e) {
-                log.log("%s\n%s", e.getMessage(), ExceptionUtils.getStackTrace(e));
-                throw new ProcessException(-1, e.getMessage() + "\n Log gile:" + (logFile != null ? logFile.getAbsolutePath() : "sout") + "\n" + ExceptionUtils.getStackTrace(e));
-            }
-        }
-
-        if (logFile != null) {
-            FileUtils.deleteQuietly(logFile);
-            if (logFile.exists()) {
-                LOGGER.debug("Log file not deleted({})", logFile.getAbsolutePath());
-            }
-        }
-
-        return fileResult;
-    }
-
     private ConversionResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         Document document = new Document(file.getAbsolutePath());
         try {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                document.optimize();
-                document.optimizeResources();
-                DocSaveOptions docSaveOptions = new DocSaveOptions();
-                docSaveOptions.setFormat(fileQueueItem.getTargetFormat() == Format.DOC ? DocSaveOptions.DocFormat.Doc : DocSaveOptions.DocFormat.DocX);
-                docSaveOptions.setMode(DocSaveOptions.RecognitionMode.Textbox);
-                docSaveOptions.CustomProgressHandler = new UnifiedSaveOptions.ConversionProgressEventHandler() {
+                CompletableFuture<ConversionResult> feature = CompletableFuture.supplyAsync(() -> {
+                    document.optimize();
+                    document.optimizeResources();
+                    DocSaveOptions docSaveOptions = new DocSaveOptions();
+                    docSaveOptions.setFormat(fileQueueItem.getTargetFormat() == Format.DOC ? DocSaveOptions.DocFormat.Doc : DocSaveOptions.DocFormat.DocX);
+                    docSaveOptions.setMode(DocSaveOptions.RecognitionMode.Textbox);
+                    docSaveOptions.CustomProgressHandler = new UnifiedSaveOptions.ConversionProgressEventHandler() {
 
-                    @Override
-                    public void invoke(UnifiedSaveOptions.ProgressEventHandlerInfo progressEventHandlerInfo) {
-                        log.log("EventType: " + progressEventHandlerInfo.EventType + ", Value: " +
-                                progressEventHandlerInfo.Value + ", MaxValue: " + progressEventHandlerInfo.MaxValue);
-                    }
-                };
-                document.save(result.getAbsolutePath(), docSaveOptions);
+                        @Override
+                        public void invoke(UnifiedSaveOptions.ProgressEventHandlerInfo progressEventHandlerInfo) {
+                            log.log("EventType: " + progressEventHandlerInfo.EventType + ", Value: " +
+                                    progressEventHandlerInfo.Value + ", MaxValue: " + progressEventHandlerInfo.MaxValue);
+                        }
+                    };
+                    document.save(result.getAbsolutePath(), docSaveOptions);
 
-                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
-                return new FileResult(fileName, result);
+                    return new FileResult(fileName, result);
+                });
+
+                try {
+                    return feature.get(conversionProperties.getPdfToWordLongConversionTimeOut(), TimeUnit.SECONDS);
+                } catch (TimeoutException e) {
+                    feature.cancel(true);
+                    throw new ProcessTimedOutException();
+                } catch (Exception e) {
+                    throw new ProcessException(e);
+                }
             } catch (Throwable e) {
                 tempFileService().delete(result);
                 throw e;

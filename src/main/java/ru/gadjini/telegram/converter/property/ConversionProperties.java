@@ -5,7 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("conversion")
 public class ConversionProperties {
 
-    private int calibreLongConversionTimeOut = 5 * 60;
+    private int calibreLongConversionTimeOut = 10 * 60;
+
+    private int pdfToWordLongConversionTimeOut = 10 * 60;
 
     private String server;
 
@@ -23,5 +25,13 @@ public class ConversionProperties {
 
     public void setCalibreLongConversionTimeOut(int calibreLongConversionTimeOut) {
         this.calibreLongConversionTimeOut = calibreLongConversionTimeOut;
+    }
+
+    public int getPdfToWordLongConversionTimeOut() {
+        return pdfToWordLongConversionTimeOut;
+    }
+
+    public void setPdfToWordLongConversionTimeOut(int pdfToWordLongConversionTimeOut) {
+        this.pdfToWordLongConversionTimeOut = pdfToWordLongConversionTimeOut;
     }
 }
