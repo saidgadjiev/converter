@@ -6,6 +6,7 @@ import ru.gadjini.telegram.converter.service.conversion.device.ConvertDevice;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component("jpeg2epub")
@@ -25,9 +26,12 @@ public class JpegEpubDevice implements ConvertDevice {
 
     private String[] getCommand(String in, String out, String... options) {
         List<String> command = new ArrayList<>();
-        command.add("bash");
-        command.add("-c");
-        command.add("python jpegtoepub.py --title \"Epub\" " + String.join(" ", options) + " " + in + " -o " + out);
+        command.add("python");
+        command.add("jpegtoepub.py");
+        command.addAll(Arrays.asList(options));
+        command.add(in);
+        command.add("-o");
+        command.add(out);
 
         return command.toArray(String[]::new);
     }
