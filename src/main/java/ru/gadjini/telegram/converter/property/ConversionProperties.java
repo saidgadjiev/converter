@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("conversion")
 public class ConversionProperties {
 
-    private int calibreLongConversionTimeOut = 5;
+    private int calibreLongConversionTimeOut = 5 * 60;
 
     private String server;
 
