@@ -32,10 +32,14 @@ public class SmartCalibre implements ConvertDevice {
 
     @Override
     public void convert(String in, String out, String... options) throws InterruptedException {
+        convert(in, out, null, options);
+    }
+
+    public void convert(String in, String out, Integer waitForSeconds, String... options) throws InterruptedException {
         if (out.endsWith("doc")) {
             SmartTempFile tempFile = tempFileService.createTempFile(FileTarget.TEMP, TAG, Format.DOCX.getExt());
             try {
-                processExecutor.execute(buildCommand(in, tempFile.getAbsolutePath(), options));
+                processExecutor.execute(buildCommand(in, tempFile.getAbsolutePath(), options), waitForSeconds);
 
                 Document document = new Document(tempFile.getAbsolutePath());
                 try {
@@ -58,14 +62,14 @@ public class SmartCalibre implements ConvertDevice {
                     document.cleanup();
                 }
 
-                processExecutor.execute(buildCommand(tempFile.getAbsolutePath(), out, options));
+                processExecutor.execute(buildCommand(tempFile.getAbsolutePath(), out, options), waitForSeconds);
             } catch (Exception e) {
                 throw new ProcessException(e);
             } finally {
                 tempFileService.delete(tempFile);
             }
         } else {
-            processExecutor.execute(buildCommand(in, out, options));
+            processExecutor.execute(buildCommand(in, out, options), waitForSeconds);
         }
     }
 

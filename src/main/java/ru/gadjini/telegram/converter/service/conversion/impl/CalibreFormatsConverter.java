@@ -26,7 +26,6 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
     private static final String TAG = "calibre2";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(List.of(PDF), List.of(EPUB));
         put(List.of(DOC, DOCX), List.of(EPUB, RTF));
         put(List.of(TXTZ), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TCR, TXT, ZIP));
         put(List.of(TCR), List.of(AZW3, EPUB, DOCX, FB2, HTMLZ, OEB, LIT, LRF, MOBI, PDB, PMLZ, RB, PDF, RTF, SNB, TXT, TXTZ, ZIP));

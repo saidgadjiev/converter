@@ -172,4 +172,6 @@ public class MessagesProperties {
     public static final String MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT = "message.compress.audio.output.format";
 
     public static final String MESSAGE_COMPRESS_AUDIO_BITRATE_UPDATED = "message.compress.audio.bitrate.updated";
+
+    public static final String MESSAGE_PDF_IMAGES_EPUB = "message.pdf.images.epub";
 }
