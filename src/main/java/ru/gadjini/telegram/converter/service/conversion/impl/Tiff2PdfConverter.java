@@ -7,6 +7,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
+import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -16,8 +17,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.List;
 import java.util.Map;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.PDF;
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.TIFF;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
 @SuppressWarnings("CPD-START")
@@ -26,15 +26,18 @@ public class Tiff2PdfConverter extends BaseAny2AnyConverter {
     public static final String TAG = "tiff2pdf";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(TIFF), List.of(PDF)
+            List.of(TIFF), List.of(PDF, PDF_LOSSLESS)
     );
 
     private final Image2PdfDevice image2PdfDevice;
 
+    private final ImageMagickDevice imageMagickDevice;
+
     @Autowired
-    public Tiff2PdfConverter(Image2PdfDevice image2PdfDevice) {
+    public Tiff2PdfConverter(Image2PdfDevice image2PdfDevice, ImageMagickDevice imageMagickDevice) {
         super(MAP);
         this.image2PdfDevice = image2PdfDevice;
+        this.imageMagickDevice = imageMagickDevice;
     }
 
     @Override
@@ -45,7 +48,11 @@ public class Tiff2PdfConverter extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, PDF.getExt());
             try {
-                image2PdfDevice.convert2Pdf(file.getAbsolutePath(), result.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+                if (fileQueueItem.getTargetFormat() == PDF_LOSSLESS) {
+                    image2PdfDevice.convert2Pdf(file.getAbsolutePath(), result.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+                } else {
+                    imageMagickDevice.convert2Pdf(file.getAbsolutePath(), result.getAbsolutePath(), FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
+                }
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return new FileResult(fileName, result);
