@@ -20,7 +20,6 @@ import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.OomHandler;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.device.BusyConvertResult;
 import ru.gadjini.telegram.converter.service.logger.FileLg;
 import ru.gadjini.telegram.converter.service.logger.Lg;
 import ru.gadjini.telegram.converter.service.logger.SoutLg;
@@ -40,7 +39,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class Pdf2WordConverter extends BaseAny2AnyConverter {
@@ -157,7 +155,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private ConversionResult doDirtyConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         log.log("Start dirty way pdf 2 word(%s, %s)", fileQueueItem.getUserId(), fileQueueItem.getId());
-        AtomicReference<FileResult> fileResultAtomicReference = new AtomicReference<>();
 
         Document document = new Document(file.getAbsolutePath());
         try {
@@ -167,68 +164,86 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                 try {
-                    log.log("Slit dir: " + tempDir.getAbsolutePath());
+                    CompletableFuture<FileResult> feature = CompletableFuture.supplyAsync(() -> {
+                        try {
+                            log.log("Slit dir: " + tempDir.getAbsolutePath());
 
-                    PdfFileEditor pdfFileEditor = new PdfFileEditor();
-                    pdfFileEditor.splitToPages(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "%NUM%.pdf");
-                    List<File> files = Arrays.asList(tempDir.listFiles());
-                    files.sort(Comparator.comparingInt(o -> Integer.parseInt(FilenameUtils.getBaseName(o.getName()))));
-                    log.log("Pages: " + files.size());
+                            PdfFileEditor pdfFileEditor = new PdfFileEditor();
+                            pdfFileEditor.splitToPages(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "%NUM%.pdf");
+                            List<File> files = Arrays.asList(tempDir.listFiles());
+                            files.sort(Comparator.comparingInt(o -> Integer.parseInt(FilenameUtils.getBaseName(o.getName()))));
+                            log.log("Pages: " + files.size());
 
-                    String firstWord = tempDir.getAbsolutePath() + File.separator + "1." + Format.DOC.getExt();
-                    Document firstPdf = new Document(files.get(0).getAbsolutePath());
-                    double width = firstPdf.getPageInfo().getWidth();
-                    double height = firstPdf.getPageInfo().getHeight();
+                            String firstWord = tempDir.getAbsolutePath() + File.separator + "1." + Format.DOC.getExt();
+                            Document firstPdf = new Document(files.get(0).getAbsolutePath());
+                            double width = firstPdf.getPageInfo().getWidth();
+                            double height = firstPdf.getPageInfo().getHeight();
 
-                    try {
-                        firstPdf.save(firstWord, SaveFormat.Doc);
-                    } finally {
-                        firstPdf.dispose();
-                    }
-                    com.aspose.words.Document destWord = new com.aspose.words.Document(firstWord);
-
-                    log.log("Start word initialized");
-                    try {
-                        for (int i = 1; i < files.size(); ++i) {
-                            int page = i + 1;
-                            log.log("Start " + page + "-th page");
-                            String wordPath = tempDir.getAbsolutePath() + File.separator + page + "." + Format.DOC.getExt();
-                            Document pdf = new Document(files.get(i).getAbsolutePath());
                             try {
-                                pdf.save(wordPath, SaveFormat.Doc);
-                            } catch (Throwable e) {
-                                log.log("Skip " + page + "\n%s\n", e.getMessage(), ExceptionUtils.getStackTrace(e));
+                                firstPdf.save(firstWord, SaveFormat.Doc);
                             } finally {
-                                pdf.dispose();
+                                firstPdf.dispose();
                             }
+                            com.aspose.words.Document destWord = new com.aspose.words.Document(firstWord);
 
-                            log.log("Saved to pdf " + page + "-th page");
-                            com.aspose.words.Document wordDoc = new com.aspose.words.Document(wordPath);
+                            log.log("Start word initialized");
                             try {
-                                destWord.appendDocument(wordDoc, ImportFormatMode.USE_DESTINATION_STYLES);
+                                for (int i = 1; i < files.size(); ++i) {
+                                    int page = i + 1;
+                                    log.log("Start " + page + "-th page");
+                                    String wordPath = tempDir.getAbsolutePath() + File.separator + page + "." + Format.DOC.getExt();
+                                    Document pdf = new Document(files.get(i).getAbsolutePath());
+                                    try {
+                                        pdf.save(wordPath, SaveFormat.Doc);
+                                    } catch (Throwable e) {
+                                        log.log("Skip " + page + "\n%s\n", e.getMessage(), ExceptionUtils.getStackTrace(e));
+                                    } finally {
+                                        pdf.dispose();
+                                    }
+
+                                    log.log("Saved to pdf " + page + "-th page");
+                                    com.aspose.words.Document wordDoc = new com.aspose.words.Document(wordPath);
+                                    try {
+                                        destWord.appendDocument(wordDoc, ImportFormatMode.USE_DESTINATION_STYLES);
+                                    } finally {
+                                        wordDoc.cleanup();
+                                    }
+                                    log.log("Processed " + page + "-th page");
+                                }
+
+                                destWord.getSections().forEach(nodes -> {
+                                    nodes.getPageSetup().setPageWidth(width);
+                                    nodes.getPageSetup().setPageHeight(height);
+
+                                    nodes.getPageSetup().setLeftMargin(ConvertUtil.millimeterToPoint(30));
+                                    nodes.getPageSetup().setBottomMargin(ConvertUtil.millimeterToPoint(20));
+                                    nodes.getPageSetup().setRightMargin(ConvertUtil.millimeterToPoint(15));
+                                    nodes.getPageSetup().setTopMargin(ConvertUtil.millimeterToPoint(20));
+                                });
+                                destWord.updatePageLayout();
+                                destWord.save(result.getAbsolutePath(), getWordSaveFormat(fileQueueItem.getTargetFormat()));
                             } finally {
-                                wordDoc.cleanup();
+                                destWord.cleanup();
                             }
-                            log.log("Processed " + page + "-th page");
+                        } catch (Throwable e) {
+                            throw new ConvertException(e);
                         }
 
-                        destWord.getSections().forEach(nodes -> {
-                            nodes.getPageSetup().setPageWidth(width);
-                            nodes.getPageSetup().setPageHeight(height);
+                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                        return new FileResult(fileName, result);
+                    });
 
-                            nodes.getPageSetup().setLeftMargin(ConvertUtil.millimeterToPoint(30));
-                            nodes.getPageSetup().setBottomMargin(ConvertUtil.millimeterToPoint(20));
-                            nodes.getPageSetup().setRightMargin(ConvertUtil.millimeterToPoint(15));
-                            nodes.getPageSetup().setTopMargin(ConvertUtil.millimeterToPoint(20));
-                        });
-                        destWord.updatePageLayout();
-                        destWord.save(result.getAbsolutePath(), getWordSaveFormat(fileQueueItem.getTargetFormat()));
-                    } finally {
-                        destWord.cleanup();
+                    try {
+                        return feature.get(conversionProperties.getPdfToWordLongConversionTimeOut(), TimeUnit.SECONDS);
+                    } catch (TimeoutException e) {
+                        feature.cancel(true);
+                        throw new ProcessTimedOutException();
+                    } catch (Exception e) {
+                        throw new ProcessException(e);
                     }
-
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    fileResultAtomicReference.set(new FileResult(fileName, result));
+                } catch (ProcessTimedOutException e) {
+                    tempFileService().delete(result);
+                    throw e;
                 } catch (Throwable e) {
                     tempFileService().delete(result);
                     throw new ConvertException(e);
@@ -239,8 +254,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
         } finally {
             document.dispose();
         }
-
-        return new BusyConvertResult();
     }
 
     private int getWordSaveFormat(Format format) {

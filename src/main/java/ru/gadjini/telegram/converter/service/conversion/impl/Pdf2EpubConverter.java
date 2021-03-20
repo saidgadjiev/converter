@@ -104,7 +104,7 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
                 pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p",
                         "-jpeg", "-jpegopt", "quality=70");
 
-                jpegEpubDevice.convert(tempDir.getAbsolutePath() + File.separator + "*.jpg", result.getAbsolutePath());
+                jpegEpubDevice.convert(tempDir.getAbsolutePath() + File.separator, result.getAbsolutePath());
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 String caption = localisationService.getMessage(MessagesProperties.MESSAGE_PDF_IMAGES_EPUB,

@@ -260,14 +260,17 @@ def main():
     parser.add_argument("--series", help="series name")
     parser.add_argument("--index", help="series index")
     parser.add_argument("--creator", help="Creator/Author")
-    parser.add_argument("file_names", nargs="+")
+    parser.add_argument("dirs", nargs="+")
     args = parser.parse_args()
     with Jpeg2Epub(args.title, title_sort=args.title_sort,
                    file_name=args.output,
                    series=args.series, series_idx=args.index,
                    creator=args.creator,  verbose=0) as j2e:
-        for file_name in args.file_names:
-            j2e.add_image_file(file_name)
+        for dir in args.dirs:
+            entries = os.listdir(dir)
+            for entry in entries:
+                file = dir + entry
+                j2e.add_image_file(file)
 
 
 if __name__ == "__main__":
