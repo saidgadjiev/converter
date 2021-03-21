@@ -220,7 +220,7 @@ class Jpeg2Epub(object):
         # create zip with default compression
         #self._zip_data = '/var/tmp/epubtmp/yy.zip'
         self._zip = zipfile.ZipFile(self._zip_data, "a",
-                                    zipfile.ZIP_DEFLATED, False)
+                                    zipfile.ZIP_DEFLATED, True)
         self.d['uuid'] = uuid.uuid4()
         self.d['nav_uuid'] = uuid.uuid4()
         self._add_mimetype()
@@ -267,7 +267,7 @@ def main():
                    series=args.series, series_idx=args.index,
                    creator=args.creator,  verbose=0) as j2e:
         for dir in args.dirs:
-            entries = os.listdir(dir)
+            entries = sorted(os.listdir(dir))
             for entry in entries:
                 file = dir + entry
                 j2e.add_image_file(file)
