@@ -12,7 +12,5 @@ public enum ResultType {
 
     STICKER,
 
-    CONTAINER,
-
-    BUSY
+    CONTAINER
 }

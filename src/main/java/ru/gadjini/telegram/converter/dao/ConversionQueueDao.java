@@ -149,7 +149,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME +
                         " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND (dq.status != 3 OR dq." + synchronizationColumn + " = false))\n" +
                         " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
-                        QueueDao.POLL_ORDER_BY + "\n" +
+                        " ORDER BY qu.id\n" +
                         "        LIMIT " + limit + ")\n" +
                         "    RETURNING *\n" +
                         ")\n" +
@@ -433,6 +433,10 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
         if (columns.contains(ConversionQueueItem.EXTRA)) {
             fileQueueItem.setExtra(gson.fromJson(rs.getString(ConversionQueueItem.EXTRA), JsonElement.class));
+        }
+
+        if (columns.contains(ConversionQueueItem.ATTEMPTS)) {
+            fileQueueItem.setAttempts(rs.getInt(ConversionQueueItem.ATTEMPTS));
         }
 
         if (columns.contains(ConversionQueueItem.DOWNLOADS)) {

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.conversion.OomHandler;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -26,12 +25,9 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
             List.of(Format.DOC), List.of(Format.PDF)
     );
 
-    private OomHandler oomHandler;
-
     @Autowired
-    public Doc2PdfConverter(OomHandler oomHandler) {
+    public Doc2PdfConverter() {
         super(MAP);
-        this.oomHandler = oomHandler;
     }
 
     @Override
@@ -60,9 +56,6 @@ public class Doc2PdfConverter extends BaseAny2AnyConverter {
                 asposeDocument.cleanup();
             }
         } catch (Throwable ex) {
-            if (oomHandler.isOom(ex)) {
-                return oomHandler.handleOom(fileQueueItem, ex);
-            }
             throw new ConvertException(ex);
         }
     }

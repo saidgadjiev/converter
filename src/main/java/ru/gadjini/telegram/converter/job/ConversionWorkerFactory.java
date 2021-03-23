@@ -19,7 +19,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
-import ru.gadjini.telegram.smart.bot.commons.exception.BusyWorkerException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
@@ -136,15 +135,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     ConversionResult convertResult = candidate.convert(fileQueueItem,
                             () -> cancelChecker != null && cancelChecker.get(),
                             () -> canceledByUser);
-                    if (convertResult.resultType() == ResultType.BUSY) {
-                        LOGGER.debug("Busy({}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFile().getFileId(), fileQueueItem.getTargetFormat());
 
-                        sendWaitingProgress(fileQueueItem);
-                        throw new BusyWorkerException();
-                    } else {
-                        sendConvertingFinishedProgress(fileQueueItem);
-                        sendResult(fileQueueItem, convertResult);
-                    }
+                    sendResult(fileQueueItem, convertResult);
                 }
                 LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), size);
             } else {
@@ -190,50 +182,21 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             return progress;
         }
 
-        private void sendWaitingProgress(ConversionQueueItem queueItem) {
-            Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
-            String queuedMessage = messageBuilder.getConversionProcessingMessage(queueItem,
-                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING), locale);
-
-            try {
-                messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
-                        .messageId(queueItem.getProgressMessageId()).text(queuedMessage)
-                        .replyMarkup(smartInlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale))
-                        .build());
-            } catch (Exception e) {
-                LOGGER.error("Ignore exception\n" + e.getMessage());
-            }
-        }
-
-        @SuppressWarnings("PMD")
         private void sendConvertingProgress(ConversionQueueItem queueItem) {
-            Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
-            String message = messageBuilder.getConversionProcessingMessage(queueItem,
-                    ConversionStep.CONVERTING, Collections.emptySet(), locale);
+            if (queueItem.getAttempts() == 1) {
+                Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
+                String message = messageBuilder.getConversionProcessingMessage(queueItem,
+                        ConversionStep.CONVERTING, Collections.emptySet(), locale);
 
-            try {
-                messageService.editMessage(
-                        EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
-                                .messageId(queueItem.getProgressMessageId()).text(message)
-                                .replyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale))
-                                .build());
-            } catch (Exception e) {
-                LOGGER.error("Ignore exception\n" + e.getMessage());
-            }
-        }
-
-        @SuppressWarnings("PMD")
-        private void sendConvertingFinishedProgress(ConversionQueueItem conversionQueueItem) {
-            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-            String uploadingProgressMessage = messageBuilder.getConversionProcessingMessage(conversionQueueItem,
-                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING, ConversionStep.CONVERTING), locale);
-            try {
-                messageService.editMessage(
-                        EditMessageText.builder().chatId(String.valueOf(conversionQueueItem.getUserId()))
-                                .messageId(conversionQueueItem.getProgressMessageId()).text(uploadingProgressMessage)
-                                .replyMarkup(smartInlineKeyboardService.getWaitingKeyboard(conversionQueueItem.getId(), locale))
-                                .build());
-            } catch (Exception ignore) {
+                try {
+                    messageService.editMessage(
+                            EditMessageText.builder().chatId(String.valueOf(queueItem.getUserId()))
+                                    .messageId(queueItem.getProgressMessageId()).text(message)
+                                    .replyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale))
+                                    .build());
+                } catch (Exception e) {
+                    LOGGER.error("Ignore exception\n" + e.getMessage());
+                }
             }
         }
 
