@@ -17,7 +17,8 @@ public class ConversionReportDao {
 
     public void create(ConversionReport fileReport) {
         jdbcTemplate.update(
-                "INSERT INTO " + ConversionReport.TYPE + "(user_id, queue_item_id) VALUES (?, ?) ON CONFLICT (user_id, queue_item_id) DO NOTHING",
+                "INSERT INTO " + ConversionReport.TYPE + "(user_id, queue_item_id) VALUES (?, ?) " +
+                        "ON CONFLICT (user_id, queue_item_id) DO NOTHING",
                 ps -> {
                     ps.setInt(1, fileReport.getUserId());
                     ps.setInt(2, fileReport.getQueueItemId());

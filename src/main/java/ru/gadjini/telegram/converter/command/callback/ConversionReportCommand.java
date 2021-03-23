@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
@@ -21,6 +19,8 @@ import java.util.Locale;
 
 @Component
 public class ConversionReportCommand implements CallbackBotCommand {
+
+    private static final int ANSWER_CACHE_TIME = 30 * 24 * 60;
 
     private ConversionReportService fileReportService;
 
@@ -49,20 +49,12 @@ public class ConversionReportCommand implements CallbackBotCommand {
         int itemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
 
-        if (fileReportService.createReport(callbackQuery.getFrom().getId(), itemId)) {
-            messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
-            messageService.sendMessage(
-                    SendMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
-                            .parseMode(ParseMode.HTML)
-                            .build()
-            );
-        } else {
-            messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
-            messageService.sendAnswerCallbackQuery(
-                    AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
-                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
-                            .showAlert(true).build());
-        }
+        messageService.sendAnswerCallbackQuery(
+                AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                        .cacheTime(ANSWER_CACHE_TIME)
+                        .showAlert(true).build());
+
+        fileReportService.createReport(callbackQuery.getFrom().getId(), itemId);
     }
 }
