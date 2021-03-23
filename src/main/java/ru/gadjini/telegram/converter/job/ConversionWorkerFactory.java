@@ -201,7 +201,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                         .replyMarkup(smartInlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale))
                         .build());
             } catch (Exception e) {
-                LOGGER.error("Ignore exception\n" + e.getMessage(), e);
+                LOGGER.error("Ignore exception\n" + e.getMessage());
             }
         }
 
@@ -217,7 +217,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                                 .messageId(queueItem.getProgressMessageId()).text(message)
                                 .replyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale))
                                 .build());
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                LOGGER.error("Ignore exception\n" + e.getMessage());
             }
         }
 
