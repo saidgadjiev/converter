@@ -30,7 +30,7 @@ public class Xml2PdfImportConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile pdf = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile pdf = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
             Document document = new Document(pdf.getAbsolutePath());

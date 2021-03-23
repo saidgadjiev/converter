@@ -37,7 +37,7 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.SVG.getExt());

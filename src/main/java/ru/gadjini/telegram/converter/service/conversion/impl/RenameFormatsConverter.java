@@ -29,7 +29,7 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
-        SmartTempFile src = conversionQueueItem.getDownloadedFile(conversionQueueItem.getFirstFileId());
+        SmartTempFile src = conversionQueueItem.getDownloadedFileOrThrow(conversionQueueItem.getFirstFileId());
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, conversionQueueItem.getUserId(),
                 conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());

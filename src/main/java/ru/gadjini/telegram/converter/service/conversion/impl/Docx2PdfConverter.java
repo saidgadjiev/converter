@@ -33,7 +33,7 @@ public class Docx2PdfConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         SmartTempFile docFile = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.DOC.getExt());
         try {

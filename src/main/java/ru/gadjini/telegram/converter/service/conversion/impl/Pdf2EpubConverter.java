@@ -68,7 +68,7 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
             return doConvertWithCalibre(file, fileQueueItem);

@@ -54,7 +54,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
         File logFile = processExecutor.getErrorLogFile();
 
         ConversionResult fileResult;

@@ -38,7 +38,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult htmlToPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile html = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile html = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),

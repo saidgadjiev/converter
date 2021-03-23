@@ -50,7 +50,7 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile in = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile in = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());

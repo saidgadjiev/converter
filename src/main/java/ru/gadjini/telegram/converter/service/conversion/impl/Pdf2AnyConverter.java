@@ -35,7 +35,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
             Document document;

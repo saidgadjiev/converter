@@ -38,7 +38,7 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile tiff = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile tiff = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
             DocumentBuilder documentBuilder = new DocumentBuilder();

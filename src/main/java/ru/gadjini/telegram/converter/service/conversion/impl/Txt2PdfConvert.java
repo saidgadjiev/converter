@@ -39,7 +39,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
     }
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile txt = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);

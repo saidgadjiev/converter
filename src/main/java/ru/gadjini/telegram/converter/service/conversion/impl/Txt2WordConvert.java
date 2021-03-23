@@ -35,7 +35,7 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
     }
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile txt = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());

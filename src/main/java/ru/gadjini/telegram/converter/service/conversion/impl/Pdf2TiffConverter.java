@@ -33,7 +33,7 @@ public class Pdf2TiffConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult toTiff(ConversionQueueItem fileQueueItem) {
-        SmartTempFile pdfFile = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile pdfFile = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         Document pdf = new Document(pdfFile.getAbsolutePath());
         try {

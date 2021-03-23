@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.domain;
 
+import org.apache.commons.lang3.StringUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.DownloadQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.domain.WorkQueueItem;
@@ -100,7 +101,7 @@ public class ConversionQueueItem extends WorkQueueItem {
     public List<SmartTempFile> getDownloadedFiles() {
         return files == null ? Collections.emptyList() :
                 files.stream()
-                        .map(file -> getDownloadedFile(file.getFileId()))
+                        .map(file -> getDownloadedFileOrThrow(file.getFileId()))
                         .collect(Collectors.toList());
     }
 
@@ -108,16 +109,18 @@ public class ConversionQueueItem extends WorkQueueItem {
         return files == null ? Collections.emptyList() :
                 files.stream()
                         .filter(tgFile -> !Objects.equals(tgFile.getFileId(), getFirstFile().getThumb()))
-                        .map(file -> getDownloadedFile(file.getFileId()))
+                        .map(file -> getDownloadedFileOrNull(file.getFileId()))
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList());
     }
 
-    public SmartTempFile getDownloadedFile(String fileId) {
-        DownloadQueueItem queueItem = downloadQueueItems.stream().filter(
-                downloadingQueueItem -> downloadingQueueItem.getFile().getFileId().equals(fileId)
-        ).findAny().orElseThrow(() -> new IllegalArgumentException("Downloaded file not found for " + fileId));
+    public SmartTempFile getDownloadedFileOrThrow(String fileId) {
+        SmartTempFile downloadedFile = getDownloadedFileOrNull(fileId);
+        if (downloadedFile == null) {
+            throw new IllegalArgumentException("Downloaded file not found for " + fileId);
+        }
 
-        return new SmartTempFile(new File(queueItem.getFilePath()), queueItem.isDeleteParentDir());
+        return downloadedFile;
     }
 
     public SmartTempFile getDownloadedFileOrNull(String fileId) {
@@ -126,6 +129,9 @@ public class ConversionQueueItem extends WorkQueueItem {
         ).findAny().orElse(null);
 
         if (queueItem == null) {
+            return null;
+        }
+        if (StringUtils.isBlank(queueItem.getFilePath())) {
             return null;
         }
 

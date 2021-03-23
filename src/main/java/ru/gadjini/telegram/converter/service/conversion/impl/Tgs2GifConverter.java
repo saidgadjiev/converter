@@ -38,7 +38,7 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult toGiff(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFile(fileQueueItem.getFirstFileId());
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, Format.GIF.getExt());
