@@ -29,7 +29,7 @@ public class FFmpegVideoStreamsChangeHelper {
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
             commandBuilder.mapVideo(videoStreamIndex);
-            boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, result, videoStream, videoStreamIndex, scale);
+            boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
             if (!videoConversionHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
                     convertibleToH264, scale)) {
                 commandBuilder.videoCodec(videoStreamIndex, videoStream.getCodecName());

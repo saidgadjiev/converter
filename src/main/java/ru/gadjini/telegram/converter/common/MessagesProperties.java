@@ -31,13 +31,11 @@ public class MessagesProperties {
 
     public static final String MESSAGE_UNSUPPORTED_FILE = "message.unsupported.file";
 
-    public static final String MESSAGE_QUERY_ITEM_NOT_FOUND = "message.query.item.not.found";
-
     public static final String MESSAGE_CONVERT_WARNINGS = "message.convert.warnings";
 
     public static final String MESSAGE_FORMATS = "message.formats";
 
-    public static final String MESSAGE_REPLY = "message.reply";
+    public static final String MESSAGE_CONVERSION_REPORT = "message.conversion.report";
 
     public static final String REPORT_COMMAND_DESCRIPTION = "report.command.description";
 

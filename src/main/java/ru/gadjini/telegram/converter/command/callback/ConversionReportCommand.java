@@ -51,7 +51,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
 
         messageService.sendAnswerCallbackQuery(
                 AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_REPORT, locale))
                         .cacheTime(ANSWER_CACHE_TIME)
                         .showAlert(true).build());
 

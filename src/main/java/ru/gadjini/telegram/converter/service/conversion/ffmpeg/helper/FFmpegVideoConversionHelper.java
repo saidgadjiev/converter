@@ -79,11 +79,7 @@ public class FFmpegVideoConversionHelper {
         return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
     }
 
-    public boolean isConvertibleToH264(SmartTempFile in, SmartTempFile out, FFprobeDevice.Stream videoStream,
-                                       int videoStreamIndex, String scale) throws InterruptedException {
-        if (FFmpegCommandBuilder.H264_CODEC.equals(videoStream.getCodecName())) {
-            return true;
-        }
+    public boolean isConvertibleToH264(SmartTempFile in, SmartTempFile out, int videoStreamIndex, String scale) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
         commandBuilder.mapVideo(videoStreamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
 

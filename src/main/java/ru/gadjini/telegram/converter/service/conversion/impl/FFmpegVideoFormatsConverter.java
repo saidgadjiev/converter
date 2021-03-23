@@ -103,8 +103,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
             if (videoConversionHelper.isCopyableVideoCodecs(file, out, fileQueueItem.getTargetFormat(), videoStreamIndex)) {
                 commandBuilder.copyVideo(videoStreamIndex);
             } else {
-                boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, out, videoStream,
-                        videoStreamIndex, scale);
+                boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, out, videoStreamIndex, scale);
                 if (!videoConversionHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
                         convertibleToH264, scale)) {
                     videoConversionHelper.addVideoCodecByTargetFormat(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
