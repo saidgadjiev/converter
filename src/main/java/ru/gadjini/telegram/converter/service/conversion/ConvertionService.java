@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -15,6 +14,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -38,7 +38,7 @@ public class ConvertionService {
 
     @Autowired
     public ConvertionService(SmartInlineKeyboardService inlineKeyboardService,
-                             @Qualifier("messageLimits") MessageService messageService,
+                             @TgMessageLimitsControl MessageService messageService,
                              ConversionQueueService conversionQueueService,
                              ConversionMessageBuilder messageBuilder,
                              ConversionWorkerFactory conversionWorkerFactory) {

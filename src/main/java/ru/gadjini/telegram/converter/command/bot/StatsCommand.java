@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.command.bot;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -10,6 +9,7 @@ import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -28,7 +28,7 @@ public class StatsCommand implements BotCommand {
 
     @Autowired
     public StatsCommand(UserService userService, LocalisationService localisationService,
-                        ConversionQueueService queueService, @Qualifier("messageLimits") MessageService messageService) {
+                        ConversionQueueService queueService, @TgMessageLimitsControl MessageService messageService) {
         this.userService = userService;
         this.localisationService = localisationService;
         this.queueService = queueService;

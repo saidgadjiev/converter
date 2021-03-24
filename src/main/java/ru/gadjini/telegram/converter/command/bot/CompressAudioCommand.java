@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.command.bot;
 import com.antkorwin.xsync.XSync;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -22,6 +21,8 @@ import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
@@ -72,9 +73,9 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     private String converter;
 
     @Autowired
-    public CompressAudioCommand(@Qualifier("messageLimits") MessageService messageService, UserService userService,
+    public CompressAudioCommand(@TgMessageLimitsControl MessageService messageService, UserService userService,
                                 LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
-                                @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
+                                @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                                 CommandStateService commandStateService, ConvertionService convertionService,
                                 WorkQueueJob workQueueJob, MessageMediaService messageMediaService,
                                 XSync<Long> longXSync) {
@@ -93,11 +94,6 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     @Override
     public boolean accept(Message message) {
         return FormatsConfiguration.ALL_CONVERTER.equals(converter) || FormatsConfiguration.AUDIO_CONVERTER.equals(converter);
-    }
-
-    @Override
-    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
-
     }
 
     @Override
@@ -160,7 +156,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     }
 
     @Override
-    public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processNonCommandCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(ConverterArg.COMPRESS.getKey())) {
             ConvertState convertState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
                     ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);

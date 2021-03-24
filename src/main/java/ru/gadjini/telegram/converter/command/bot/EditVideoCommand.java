@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.command.bot;
 
 import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -20,6 +19,8 @@ import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
@@ -71,9 +72,9 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
     private String converter;
 
     @Autowired
-    public EditVideoCommand(@Qualifier("messageLimits") MessageService messageService, UserService userService,
+    public EditVideoCommand(@TgMessageLimitsControl MessageService messageService, UserService userService,
                             LocalisationService localisationService,
-                            @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
+                            @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             XSync<Long> longXSync, CommandStateService commandStateService,
                             MessageMediaService messageMediaService, InlineKeyboardService inlineKeyboardService,
                             ConvertionService convertionService) {
@@ -131,7 +132,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
     }
 
     @Override
-    public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processNonCommandCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(ConverterArg.RESOLUTION.getKey())) {
             String resolution = requestParams.getString(ConverterArg.RESOLUTION.getKey());
 

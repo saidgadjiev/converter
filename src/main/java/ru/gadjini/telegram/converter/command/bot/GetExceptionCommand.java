@@ -2,11 +2,11 @@ package ru.gadjini.telegram.converter.command.bot;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -22,7 +22,7 @@ public class GetExceptionCommand implements BotCommand {
     private UserService userService;
 
     @Autowired
-    public GetExceptionCommand(WorkQueueService queueService, @Qualifier("messageLimits") MessageService messageService, UserService userService) {
+    public GetExceptionCommand(WorkQueueService queueService, @TgMessageLimitsControl MessageService messageService, UserService userService) {
         this.queueService = queueService;
         this.messageService = messageService;
         this.userService = userService;

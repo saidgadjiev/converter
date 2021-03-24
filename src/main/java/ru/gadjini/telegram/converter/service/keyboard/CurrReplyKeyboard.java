@@ -5,16 +5,18 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.dao.command.keyboard.ReplyKeyboardDao;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardHolderService;
 
 import java.util.Locale;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService.replyKeyboardMarkup;
 
 @Service
-@Qualifier("curr")
-public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
+@KeyboardHolder
+public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKeyboardHolderService {
 
     private ReplyKeyboardDao replyKeyboardDao;
 
@@ -68,6 +70,7 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService {
         return replyKeyboardRemove;
     }
 
+    @Override
     public ReplyKeyboardMarkup getCurrentReplyKeyboard(long chatId) {
         return replyKeyboardDao.get(chatId);
     }

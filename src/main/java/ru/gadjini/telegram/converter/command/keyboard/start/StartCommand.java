@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,6 +15,9 @@ import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.CommandStart;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
@@ -36,6 +38,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 @Component
+@CommandStart
 public class StartCommand implements NavigableBotCommand, BotCommand {
 
     public static final String TAG = "convert";
@@ -68,8 +71,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService,
-                        @Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService,
-                        @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
+                        @TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
+                        @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                         FormatService formatService, ConvertionService convertionService,
                         ConversionMessageBuilder queueMessageBuilder, MessageMediaService messageMediaService,
                         ConversionFormatService conversionFormatService, XSync<Long> longXSync, WorkQueueJob conversionJob) {

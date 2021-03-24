@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gadjini.telegram.converter.filter.*;
 import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.smart.bot.commons.filter.*;
+import ru.gadjini.telegram.smart.bot.commons.filter.subscription.ChannelSubscriptionFilter;
 
 @Configuration
 public class BotConfiguration {
@@ -21,12 +21,12 @@ public class BotConfiguration {
     }
 
     @Bean
-    public BotFilter botFilter(ConverterBotFilter any2AnyBotFilter,
-                               UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
+    public BotFilter botFilter(UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
                                MediaFilter mediaFilter, LastActivityFilter activityFilter,
-                               SubscriptionFilter subscriptionFilter) {
+                               ChannelSubscriptionFilter subscriptionFilter) {
         updateFilter.setNext(mediaFilter).setNext(startCommandFilter).setNext(subscriptionFilter)
-                .setNext(activityFilter).setNext(any2AnyBotFilter);
+                .setNext(activityFilter);
+
         return updateFilter;
     }
 }

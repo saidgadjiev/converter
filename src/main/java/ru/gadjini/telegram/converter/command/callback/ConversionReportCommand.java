@@ -1,13 +1,13 @@
 package ru.gadjini.telegram.converter.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.service.ConversionReportService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.request.Arg;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -31,7 +31,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
     private LocalisationService localisationService;
 
     @Autowired
-    public ConversionReportCommand(ConversionReportService fileReportService, @Qualifier("messageLimits") MessageService messageService,
+    public ConversionReportCommand(ConversionReportService fileReportService, @TgMessageLimitsControl MessageService messageService,
                                    UserService userService, LocalisationService localisationService) {
         this.fileReportService = fileReportService;
         this.messageService = messageService;
@@ -45,7 +45,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
     }
 
     @Override
-    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         int itemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
 

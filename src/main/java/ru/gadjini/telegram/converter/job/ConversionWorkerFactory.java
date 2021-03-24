@@ -19,6 +19,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
@@ -65,7 +66,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     public ConversionWorkerFactory(UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService,
                                    @Qualifier("forceMedia") MediaMessageService mediaMessageService,
-                                   @Qualifier("messageLimits") MessageService messageService, ConversionMessageBuilder messageBuilder) {
+                                   @TgMessageLimitsControl MessageService messageService, ConversionMessageBuilder messageBuilder) {
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;

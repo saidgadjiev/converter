@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.command.bot;
 
 import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -14,6 +13,8 @@ import ru.gadjini.telegram.converter.common.MessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
@@ -56,8 +57,8 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
     private XSync<Long> longXSync;
 
     @Autowired
-    public MergePdfsCommand(@Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService,
-                            UserService userService, @Qualifier("curr") ConverterReplyKeyboardService replyKeyboardService,
+    public MergePdfsCommand(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
+                            UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             MessageMediaService messageMediaService, CommandStateService commandStateService,
                             ConvertionService convertionService, XSync<Long> longXSync) {
         this.messageService = messageService;
