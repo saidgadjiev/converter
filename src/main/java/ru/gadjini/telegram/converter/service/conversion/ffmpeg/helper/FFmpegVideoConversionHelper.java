@@ -119,7 +119,7 @@ public class FFmpegVideoConversionHelper {
 
     public void addVideoCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
         if (target == WEBM) {
-            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC);
+            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC).bv(streamIndex, "1M");
         } else if (target == _3GP) {
             commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H263_CODEC).filterVideo(streamIndex, FFmpegCommandBuilder._3GP_SCALE);
         } else if (target == MTS) {

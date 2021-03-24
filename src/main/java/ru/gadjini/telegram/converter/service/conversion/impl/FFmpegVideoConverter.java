@@ -30,7 +30,7 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  */
 @Component
 @SuppressWarnings("CPD-START")
-public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
+public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
     private static final String TAG = "ffmpegvideo";
 
@@ -60,8 +60,8 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
     private FFmpegVideoConversionHelper videoConversionHelper;
 
     @Autowired
-    public FFmpegVideoFormatsConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                       FFmpegHelper fFmpegHelper, FFmpegVideoConversionHelper videoConversionHelper) {
+    public FFmpegVideoConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
+                                FFmpegHelper fFmpegHelper, FFmpegVideoConversionHelper videoConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
@@ -111,6 +111,7 @@ public class FFmpegVideoFormatsConverter extends BaseAny2AnyConverter {
             }
         }
         videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
+        commandBuilder.crf("10");
         videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
         fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);

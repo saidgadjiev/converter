@@ -28,10 +28,10 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegVideoFormatsConverter fFmpegVideoFormatsConverter;
+    private FFmpegVideoConverter fFmpegVideoFormatsConverter;
 
     @Autowired
-    public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoFormatsConverter fFmpegVideoFormatsConverter) {
+    public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoFormatsConverter = fFmpegVideoFormatsConverter;
