@@ -200,6 +200,12 @@
             <artifactId>smart-work-bot-commons</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>ru.gadjini.telegram</groupId>
+            <artifactId>smart-bot-commons</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <profiles>

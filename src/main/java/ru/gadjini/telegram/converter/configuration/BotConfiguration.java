@@ -23,9 +23,9 @@ public class BotConfiguration {
     @Bean
     public BotFilter botFilter(UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
                                MediaFilter mediaFilter, LastActivityFilter activityFilter,
-                               ChannelSubscriptionFilter subscriptionFilter) {
+                               ChannelSubscriptionFilter subscriptionFilter, UpdatesHandlerFilter updatesHandlerFilter) {
         updateFilter.setNext(mediaFilter).setNext(startCommandFilter).setNext(subscriptionFilter)
-                .setNext(activityFilter);
+                .setNext(activityFilter).setNext(updatesHandlerFilter);
 
         return updateFilter;
     }
