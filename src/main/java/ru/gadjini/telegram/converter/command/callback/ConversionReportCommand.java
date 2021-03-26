@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.ConversionReportService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
@@ -51,7 +51,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
 
         messageService.sendAnswerCallbackQuery(
                 AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_REPORT, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERSION_REPORT, locale))
                         .cacheTime(ANSWER_CACHE_TIME)
                         .showAlert(true).build());
 

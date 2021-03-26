@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -60,7 +60,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup audioCompressionKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
     }
@@ -69,9 +69,9 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup mergePdfsKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.MERGE_COMMAND_NAME, locale)));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_MERGE_PDFS_COMMAND_NAME, locale)));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.CANCEL_MERGE_PDFS_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
     }
@@ -94,7 +94,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         for (List<Format> list : lists) {
             keyboard.add(keyboardRow(list.stream().map(Format::getName).toArray(String[]::new)));
         }
-        keyboard.add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        keyboard.add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
     }
@@ -103,7 +103,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup videoEditKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
     }

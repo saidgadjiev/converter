@@ -14,7 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
@@ -102,7 +102,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_WELCOME, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_WELCOME, locale))
                         .replyMarkup(replyKeyboardService.audioCompressionKeyboard(message.getChatId(), locale))
                         .build()
         );
@@ -200,7 +200,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.getSettings().setBitrate(FFmpegAudioCompressConverter.AUTO_BITRATE);
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
-        checkMedia(media, MessagesProperties.MESSAGE_AUDIO_COMPRESS_FILE_NOT_FOUND, locale);
+        checkMedia(media, ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_FILE_NOT_FOUND, locale);
         convertState.setMedia(media);
 
         return convertState;
@@ -210,7 +210,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         Locale locale = new Locale(convertState.getUserLanguage());
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
-        checkMedia(media, MessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale);
+        checkMedia(media, ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale);
         convertState.setMedia(media);
     }
 
@@ -228,24 +228,24 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
         messageService.sendAnswerCallbackQuery(
                 AnswerCallbackQuery.builder().callbackQueryId(queryId)
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_COMPRESS_AUDIO_BITRATE_UPDATED, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_BITRATE_UPDATED, locale))
                         .build()
         );
     }
 
     private String validateBitrate(String bitrate, Locale locale) {
         if (bitrate.startsWith("-")) {
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE, locale));
         }
         bitrate = bitrate.replaceAll("[^\\d.]", "");
         try {
             double v = Double.parseDouble(bitrate);
 
             if (v <= 0) {
-                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE, locale));
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE, locale));
             }
         } catch (NumberFormatException ex) {
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE, locale));
         }
 
         return bitrate;
@@ -260,23 +260,23 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     private String buildSettingsMessage(ConvertState convertState) {
         StringBuilder message = new StringBuilder();
         Locale locale = new Locale(convertState.getUserLanguage());
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT, locale)).append("\n");
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{convertState.getFirstFormat().getName()}, locale)).append("\n");
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT, locale)).append("\n");
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{convertState.getFirstFormat().getName()}, locale)).append("\n");
 
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n");
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE,
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n");
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE,
                 new Object[]{MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize())}, locale)).append("\n");
 
         String estimatedSize = estimatedSize(convertState.getFirstFile().getDuration(), convertState.getSettings().getBitrate());
 
         if (StringUtils.isNotBlank(estimatedSize)) {
-            message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE, new Object[]{estimatedSize}, locale)).append("\n\n");
+            message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE, new Object[]{estimatedSize}, locale)).append("\n\n");
         } else {
             message.append("\n");
         }
 
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale)).append("\n\n");
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale));
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale)).append("\n\n");
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE, locale));
 
         return message.toString();
     }

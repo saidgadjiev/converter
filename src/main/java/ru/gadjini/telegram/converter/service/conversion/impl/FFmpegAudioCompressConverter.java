@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -68,7 +68,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         }
         if (in.length() <= out.length()) {
             Locale localeOrDefault = userService.getLocaleOrDefault(conversionQueueItem.getUserId());
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INCOMPRESSIBLE_AUDIO, localeOrDefault))
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_AUDIO, localeOrDefault))
                     .setReplyToMessageId(conversionQueueItem.getReplyToMessageId());
         }
     }

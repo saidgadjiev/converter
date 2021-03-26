@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -132,13 +132,13 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                     convertState.addMedia(media);
                     if (convertState.getFiles().size() < 3) {
                         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_FILES_APPENDED, locale))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILES_APPENDED, locale))
                                 .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), multiMediaFormat, locale)).build());
                     }
                     commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
                 } else {
                     messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TYPE, locale))
+                            .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TYPE, locale))
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                             .build());
@@ -153,7 +153,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
 
                         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_TEXT_APPENDED, locale))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TEXT_APPENDED, locale))
                                 .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                 .build());
                     } else {
@@ -167,7 +167,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
                 conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale, (Void) -> {
                     messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(MessagesProperties.EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST, locale))
+                            .text(localisationService.getMessage(ConverterMessagesProperties.EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST, locale))
                             .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())).build());
                 });
                 commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND_NAME);
@@ -294,17 +294,17 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         }
 
         LOGGER.warn("Unsupported format({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
-        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
     private void checkSrcFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
             LOGGER.warn("Format is null({}, {}, {})", userId, mimeType, fileName);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (format.getCategory() == FormatCategory.ARCHIVE) {
             LOGGER.warn("Archive unsupported({})", userId);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FILE, new Object[]{mimeType}, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FILE, new Object[]{mimeType}, locale));
         }
         if (!conversionFormatService.isSupportedCategory(format.getCategory())) {
             LOGGER.warn("Category unsupported({}, {})", userId, format.getCategory());
@@ -315,11 +315,11 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     private void checkTargetFormat(int userId, Format format, Format target, String text, Locale locale) {
         if (target == null) {
             LOGGER.warn("Target format is null({}, {})", userId, text);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (Objects.equals(format, target)) {
             LOGGER.warn("Same formats({}, {})", userId, format);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
         }
         boolean result = conversionFormatService.isConvertAvailable(format, target);
         if (result) {
@@ -327,7 +327,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         }
 
         LOGGER.warn("Conversion unavailable({}, {}, {})", userId, format, target);
-        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
     private boolean isMultiTextMessage(Format associatedFormat, ConvertState convertState) {

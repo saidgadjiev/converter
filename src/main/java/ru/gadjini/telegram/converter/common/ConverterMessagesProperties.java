@@ -1,8 +1,8 @@
 package ru.gadjini.telegram.converter.common;
 
-public class MessagesProperties {
+public class ConverterMessagesProperties {
 
-    private MessagesProperties() {
+    private ConverterMessagesProperties() {
     }
 
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
@@ -16,8 +16,6 @@ public class MessagesProperties {
     public static final String MESSAGE_FILE_SIZE = "message.file.size";
 
     public static final String MESSAGE_FILES_COUNT = "message.files.count";
-
-    public static final String MESSAGE_UNKNOWN_COMMAND = "message.unknown.command";
 
     public static final String MESSAGE_CHOOSE_ANOTHER_FORMAT = "message.choose.another.format";
 
@@ -58,12 +56,6 @@ public class MessagesProperties {
     public static final String MESSAGE_DAMAGED_FILE = "message.damaged.file";
 
     public static final String MESSAGE_TEXT_APPENDED = "message.text.appended";
-
-    public static final String LANGUAGE_COMMAND_DESCRIPTION = "language.command.description";
-
-    public static final String START_COMMAND_DESCRIPTION = "start.command.description";
-
-    public static final String HELP_COMMAND_DESCRIPTION = "help.command.description";
 
     public static final String FORMATS_COMMAND_DESCRIPTION = "formats.command.description";
 

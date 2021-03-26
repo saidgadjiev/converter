@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.property.ConversionProperties;
@@ -107,7 +107,7 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
                 jpegEpubDevice.convert(tempDir.getAbsolutePath() + File.separator, result.getAbsolutePath(), "--title", "\"Epub\"");
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                String caption = localisationService.getMessage(MessagesProperties.MESSAGE_PDF_IMAGES_EPUB,
+                String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_PDF_IMAGES_EPUB,
                         userService.getLocaleOrDefault(fileQueueItem.getUserId()));
                 return new FileResult(fileName, result, caption);
             } catch (Throwable e) {

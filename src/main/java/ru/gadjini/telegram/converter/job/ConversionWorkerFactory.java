@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedFileException;
@@ -158,12 +158,12 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         @Override
         public ErrorCode getErrorCode(Throwable e) {
             if (e instanceof CorruptedFileException || e instanceof ProcessException) {
-                return new ErrorCode(MessagesProperties.MESSAGE_DAMAGED_FILE);
+                return new ErrorCode(ConverterMessagesProperties.MESSAGE_DAMAGED_FILE);
             } else if (e instanceof ProcessTimedOutException) {
-                return new ErrorCode(MessagesProperties.CONVERSION_TIMED_OUT);
+                return new ErrorCode(ConverterMessagesProperties.CONVERSION_TIMED_OUT);
             }
 
-            return new ErrorCode(MessagesProperties.MESSAGE_CONVERSION_FAILED);
+            return new ErrorCode(ConverterMessagesProperties.MESSAGE_CONVERSION_FAILED);
         }
 
         private Progress progress(long chatId, ConversionQueueItem queueItem) {

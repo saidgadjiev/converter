@@ -13,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
@@ -105,7 +105,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_WELCOME, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_WELCOME, locale))
                         .replyMarkup(replyKeyboardService.videoEditKeyboard(message.getChatId(), locale))
                         .build()
         );
@@ -139,10 +139,10 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
             String answerCallbackQuery;
             if (AVAILABLE_RESOLUTIONS.contains(resolution)) {
                 setResolution(callbackQuery.getMessage().getChatId(), resolution);
-                answerCallbackQuery = localisationService.getMessage(MessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
                         userService.getLocaleOrDefault(callbackQuery.getFrom().getId()));
             } else {
-                answerCallbackQuery = localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION,
                         userService.getLocaleOrDefault(callbackQuery.getFrom().getId()));
             }
             messageService.sendAnswerCallbackQuery(
@@ -173,14 +173,14 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                     messageService.sendMessage(
                             SendMessage.builder()
                                     .chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(MessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale))
                                     .build()
                     );
                 } else {
                     messageService.sendMessage(
                             SendMessage.builder()
                                     .chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
                                     .build()
                     );
                 }
@@ -249,14 +249,14 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         StringBuilder message = new StringBuilder();
 
         Locale locale = new Locale(convertState.getUserLanguage());
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_RESOLUTION,
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_RESOLUTION,
                 new Object[]{convertState.getSettings().getResolution()}, locale));
-        message.append("\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_FORMAT,
+        message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
-        message.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
+        message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
 
-        message.append("\n\n").append(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_CHOOSE_RESOLUTION, locale));
+        message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS_CHOOSE_RESOLUTION, locale));
 
         return message.toString();
     }
@@ -277,7 +277,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private void checkMedia(MessageMedia media, Locale locale) {
         if (media == null || media.getFormat().getCategory() != FormatCategory.VIDEO) {
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale));
         }
     }
 }

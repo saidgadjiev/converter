@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.queue.ConversionQueueService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
@@ -48,7 +48,7 @@ public class StatsCommand implements BotCommand {
 
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId())).text(localisationService.getMessage(
-                            MessagesProperties.MESSAGE_CUSTOM_STATS, new Object[]{processing, waiting, errors, todayConversions, yesterdayConversions,
+                            ConverterMessagesProperties.MESSAGE_CUSTOM_STATS, new Object[]{processing, waiting, errors, todayConversions, yesterdayConversions,
                                     allConversions, activity},
                             userService.getLocaleOrDefault(message.getFrom().getId())))
                             .parseMode(ParseMode.HTML).build()

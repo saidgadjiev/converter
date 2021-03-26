@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
@@ -65,7 +65,7 @@ public class ConversionStatsCommand implements BotCommand {
             if (StringUtils.isNotBlank(item.getResultFileId())) {
                 resultFileId = item.getResultFileId();
             }
-            String msg = localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_STATS, new Object[]{
+            String msg = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERSION_STATS, new Object[]{
                     status, item.getFirstFileFormat().name(), item.getTargetFormat().name(), createdAt, startedAt, lastRunAt,
                     completedAt, item.getFirstFileId(), resultFileId
             }, userService.getLocaleOrDefault(message.getFrom().getId()));

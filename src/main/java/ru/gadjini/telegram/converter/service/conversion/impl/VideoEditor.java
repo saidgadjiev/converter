@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
@@ -82,7 +82,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
 
             if (Objects.equals(srcWhd.getHeight(), height)) {
-                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
                         new Object[]{settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
             }
             String scale = "scale=-2:" + height;

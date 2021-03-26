@@ -2,7 +2,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.common.MessagesProperties;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
@@ -69,7 +69,7 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
                         p7ArchiveDevice.zip(tempDir.getAbsolutePath() + File.separator + "*", result.getAbsolutePath());
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.ZIP.getExt());
 
-                        String caption = localisationService.getMessage(MessagesProperties.MESSAGE_PDF_IMAGES_UNZIP_BOT, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+                        String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_PDF_IMAGES_UNZIP_BOT, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
                         return new FileResult(fileName, result, caption);
                     } catch (Throwable e) {
                         tempFileService().delete(result);
