@@ -25,7 +25,6 @@ public class FormatMapUtils {
     }
 
     public static Map<FormatCategory, Map<List<Format>, List<Format>>> validateAndPrint(Set<Any2AnyConverter> converters) {
-        System.out.println("Start checking");
         Map<String, Class<?>> keys = new HashMap<>();
         Map<Format, List<Format>> result = new HashMap<>();
         for (Any2AnyConverter any2AnyConverter : converters) {
