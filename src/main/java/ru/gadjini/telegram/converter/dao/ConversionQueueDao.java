@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.domain.ConversionReport;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
@@ -136,6 +137,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     }
 
     @Override
+    @Transactional
     public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         String synchronizationColumn = DownloadQueueItem.getSynchronizationColumn(serverProperties.getNumber());
 
@@ -150,7 +152,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND (dq.status != 3 OR dq." + synchronizationColumn + " = false))\n" +
                         " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
                         " ORDER BY qu.id\n" +
-                        "        LIMIT " + limit + ")\n" +
+                        "        LIMIT " + limit + " FOR UPDATE)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT cv.*, array_to_json(cv.files) as files_json, 1 as queue_position, " +
