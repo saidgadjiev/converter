@@ -91,6 +91,16 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
+    public boolean isChannelSubscriptionRequired() {
+        return false;
+    }
+
+    @Override
+    public boolean isPaidSubscriptionRequired() {
+        return false;
+    }
+
+    @Override
     public void processNonCommandUpdate(Message message, String text) {
         longXSync.execute(message.getChatId(), () -> {
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
