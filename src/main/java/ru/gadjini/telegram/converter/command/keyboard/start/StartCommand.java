@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
-import com.antkorwin.xsync.XSync;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +64,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private ConversionFormatService conversionFormatService;
 
-    private XSync<Long> longXSync;
-
     private WorkQueueJob conversionJob;
 
     @Autowired
@@ -75,7 +72,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                         @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                         FormatService formatService, ConvertionService convertionService,
                         ConversionMessageBuilder queueMessageBuilder, MessageMediaService messageMediaService,
-                        ConversionFormatService conversionFormatService, XSync<Long> longXSync, WorkQueueJob conversionJob) {
+                        ConversionFormatService conversionFormatService, WorkQueueJob conversionJob) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -86,7 +83,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         this.queueMessageBuilder = queueMessageBuilder;
         this.messageMediaService = messageMediaService;
         this.conversionFormatService = conversionFormatService;
-        this.longXSync = longXSync;
         this.conversionJob = conversionJob;
     }
 
@@ -102,95 +98,93 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        longXSync.execute(message.getChatId(), () -> {
-            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
-            ConvertState convertState = commandStateService.getState(message.getChatId(), CommandNames.START_COMMAND_NAME, false, ConvertState.class);
-            if (convertState == null) {
-                check(message, locale);
-                convertState = createState(message, locale);
-                if (StringUtils.isNotBlank(message.getMediaGroupId())) {
-                    messageService.sendMessage(
-                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                    .text(queueMessageBuilder.getChooseFormat(locale))
-                                    .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), Format.IMAGES, locale))
-                                    .parseMode(ParseMode.HTML)
-                                    .build()
-                    );
-                } else {
-                    messageService.sendMessage(
-                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                    .text(queueMessageBuilder.getChooseFormat(locale))
-                                    .parseMode(ParseMode.HTML)
-                                    .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
-                                    .build()
-                    );
-                }
-                commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
-            } else if (isMediaMessage(message)) {
-                MessageMedia media = messageMediaService.getMedia(message, locale);
-                Format multiMediaFormat = null;
-                if (isMultiImageMessage(media, convertState)) {
-                    multiMediaFormat = Format.IMAGES;
-                } else if (isMultiPdfMessage(media, convertState)) {
-                    multiMediaFormat = Format.PDFS;
-                }
-                if (multiMediaFormat != null) {
-                    if (convertState.getMultiMediaFormat() == null) {
-                        convertState.setMultiMediaFormat(multiMediaFormat);
-                    }
-                    convertState.addMedia(media);
-                    if (convertState.getFiles().size() < 3) {
-                        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILES_APPENDED, locale))
-                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), multiMediaFormat, locale)).build());
-                    }
-                    commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
-                } else {
-                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TYPE, locale))
-                            .parseMode(ParseMode.HTML)
-                            .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
-                            .build());
-                }
-            } else if (message.hasText()) {
-                Format associatedFormat = formatService.getAssociatedFormat(text);
-
-                if (isMultiTextMessage(associatedFormat, convertState)) {
-                    convertState.getFirstFile().setFileId(convertState.getFirstFile().getFileId() + " " + text);
-                    if (!convertState.isTextAppendedMessageSent()) {
-                        convertState.setTextAppendedMessageSent(true);
-                        commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
-
-                        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TEXT_APPENDED, locale))
-                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
-                                .build());
-                    } else {
-                        commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
-                    }
-                    return;
-                }
-                Format srcFormatToCheck = convertState.getMultiMediaFormat() != null ? convertState.getMultiMediaFormat() : convertState.getFirstFormat();
-                checkTargetFormat(message.getFrom().getId(), srcFormatToCheck, associatedFormat, text, locale);
-                conversionJob.cancelCurrentTasks(message.getFrom().getId());
-
-                conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale, (Void) -> {
-                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(ConverterMessagesProperties.EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST, locale))
-                            .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())).build());
-                });
-                commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND_NAME);
+        ConvertState convertState = commandStateService.getState(message.getChatId(), CommandNames.START_COMMAND_NAME, false, ConvertState.class);
+        if (convertState == null) {
+            check(message, locale);
+            convertState = createState(message, locale);
+            if (StringUtils.isNotBlank(message.getMediaGroupId())) {
+                messageService.sendMessage(
+                        SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                .text(queueMessageBuilder.getChooseFormat(locale))
+                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), Format.IMAGES, locale))
+                                .parseMode(ParseMode.HTML)
+                                .build()
+                );
             } else {
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(queueMessageBuilder.getChooseFormat(locale))
-                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                 .parseMode(ParseMode.HTML)
+                                .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                 .build()
                 );
             }
-        });
+            commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
+        } else if (isMediaMessage(message)) {
+            MessageMedia media = messageMediaService.getMedia(message, locale);
+            Format multiMediaFormat = null;
+            if (isMultiImageMessage(media, convertState)) {
+                multiMediaFormat = Format.IMAGES;
+            } else if (isMultiPdfMessage(media, convertState)) {
+                multiMediaFormat = Format.PDFS;
+            }
+            if (multiMediaFormat != null) {
+                if (convertState.getMultiMediaFormat() == null) {
+                    convertState.setMultiMediaFormat(multiMediaFormat);
+                }
+                convertState.addMedia(media);
+                if (convertState.getFiles().size() < 3) {
+                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILES_APPENDED, locale))
+                            .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), multiMediaFormat, locale)).build());
+                }
+                commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
+            } else {
+                messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TYPE, locale))
+                        .parseMode(ParseMode.HTML)
+                        .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                        .build());
+            }
+        } else if (message.hasText()) {
+            Format associatedFormat = formatService.getAssociatedFormat(text);
+
+            if (isMultiTextMessage(associatedFormat, convertState)) {
+                convertState.getFirstFile().setFileId(convertState.getFirstFile().getFileId() + " " + text);
+                if (!convertState.isTextAppendedMessageSent()) {
+                    convertState.setTextAppendedMessageSent(true);
+                    commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
+
+                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TEXT_APPENDED, locale))
+                            .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            .build());
+                } else {
+                    commandStateService.setState(message.getChatId(), CommandNames.START_COMMAND_NAME, convertState);
+                }
+                return;
+            }
+            Format srcFormatToCheck = convertState.getMultiMediaFormat() != null ? convertState.getMultiMediaFormat() : convertState.getFirstFormat();
+            checkTargetFormat(message.getFrom().getId(), srcFormatToCheck, associatedFormat, text, locale);
+            conversionJob.cancelCurrentTasks(message.getFrom().getId());
+
+            conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale, (Void) -> {
+                messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST, locale))
+                        .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())).build());
+            });
+            commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND_NAME);
+        } else {
+            messageService.sendMessage(
+                    SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(queueMessageBuilder.getChooseFormat(locale))
+                            .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
+                            .parseMode(ParseMode.HTML)
+                            .build()
+            );
+        }
     }
 
     @Override

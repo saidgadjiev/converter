@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.command.bot;
 
-import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -54,13 +53,11 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
     @Value("${converter:all}")
     private String converter;
 
-    private XSync<Long> longXSync;
-
     @Autowired
     public MergePdfsCommand(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             MessageMediaService messageMediaService, CommandStateService commandStateService,
-                            ConvertionService convertionService, XSync<Long> longXSync) {
+                            ConvertionService convertionService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -68,7 +65,6 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
         this.messageMediaService = messageMediaService;
         this.commandStateService = commandStateService;
         this.convertionService = convertionService;
-        this.longXSync = longXSync;
     }
 
     @Autowired
@@ -110,46 +106,44 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        longXSync.execute(message.getChatId(), () -> {
-            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
-            if (message.hasText()) {
-                String mergeCommandName = localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale);
-                String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_MERGE_PDFS_COMMAND_NAME, locale);
-                ConvertState mergePdfsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
-                if (mergePdfsState == null || mergePdfsState.getFiles().isEmpty()) {
-                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_NO_FILES, locale));
+        if (message.hasText()) {
+            String mergeCommandName = localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale);
+            String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_MERGE_PDFS_COMMAND_NAME, locale);
+            ConvertState mergePdfsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
+            if (mergePdfsState == null || mergePdfsState.getFiles().isEmpty()) {
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_NO_FILES, locale));
+            }
+            if (Objects.equals(mergeCommandName, text)) {
+                if (mergePdfsState.getFiles().size() == 1) {
+                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_MIN_2_FILES, locale));
                 }
-                if (Objects.equals(mergeCommandName, text)) {
-                    if (mergePdfsState.getFiles().size() == 1) {
-                        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_MIN_2_FILES, locale));
-                    }
-                    workQueueJob.cancelCurrentTasks(message.getChatId());
-                    convertionService.createConversion(message.getFrom(), mergePdfsState, Format.MERGE_PDFS, locale);
-                    commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
-                } else if (Objects.equals(cancelFilesCommandName, text)) {
-                    commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
-                    messageService.sendMessage(
-                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_CANCELED, new Object[]{mergePdfsState.getFiles().size()}, locale))
-                                    .parseMode(ParseMode.HTML)
-                                    .build()
-                    );
-                }
+                workQueueJob.cancelCurrentTasks(message.getChatId());
+                convertionService.createConversion(message.getFrom(), mergePdfsState, Format.MERGE_PDFS, locale);
+                commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
+            } else if (Objects.equals(cancelFilesCommandName, text)) {
+                commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
+                messageService.sendMessage(
+                        SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_CANCELED, new Object[]{mergePdfsState.getFiles().size()}, locale))
+                                .parseMode(ParseMode.HTML)
+                                .build()
+                );
+            }
+        } else {
+            ConvertState mergePdfsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
+            if (mergePdfsState == null) {
+                mergePdfsState = createState(message);
+                commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergePdfsState);
             } else {
-                ConvertState mergePdfsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
-                if (mergePdfsState == null) {
-                    mergePdfsState = createState(message);
+                MessageMedia media = messageMediaService.getMedia(message, locale);
+                if (media != null && media.getFormat() == Format.PDF) {
+                    mergePdfsState.addMedia(media);
                     commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergePdfsState);
-                } else {
-                    MessageMedia media = messageMediaService.getMedia(message, locale);
-                    if (media != null && media.getFormat() == Format.PDF) {
-                        mergePdfsState.addMedia(media);
-                        commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergePdfsState);
-                    }
                 }
             }
-        });
+        }
     }
 
     @Override

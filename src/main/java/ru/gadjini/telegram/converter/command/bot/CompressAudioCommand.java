@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.command.bot;
 
-import com.antkorwin.xsync.XSync;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,8 +66,6 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
     private MessageMediaService messageMediaService;
 
-    private XSync<Long> longXSync;
-
     @Value("${converter:all}")
     private String converter;
 
@@ -77,8 +74,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                                 LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
                                 @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                                 CommandStateService commandStateService, ConvertionService convertionService,
-                                WorkQueueJob workQueueJob, MessageMediaService messageMediaService,
-                                XSync<Long> longXSync) {
+                                WorkQueueJob workQueueJob, MessageMediaService messageMediaService) {
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
@@ -88,7 +84,6 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         this.convertionService = convertionService;
         this.workQueueJob = workQueueJob;
         this.messageMediaService = messageMediaService;
-        this.longXSync = longXSync;
     }
 
     @Override
@@ -130,29 +125,27 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        longXSync.execute(message.getChatId(), () -> {
-            ConvertState existsState = commandStateService.getState(message.getChatId(), ConverterCommandNames.COMPRESS_AUDIO, false, ConvertState.class);
+        ConvertState existsState = commandStateService.getState(message.getChatId(), ConverterCommandNames.COMPRESS_AUDIO, false, ConvertState.class);
 
-            if (existsState == null) {
-                Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-                ConvertState convertState = createState(message, locale);
-                messageService.sendMessage(
-                        SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(buildSettingsMessage(convertState))
-                                .parseMode(ParseMode.HTML)
-                                .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(), BITRATES, locale))
-                                .build(),
-                        sent -> {
-                            convertState.getSettings().setMessageId(sent.getMessageId());
-                            commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
-                        }
-                );
-            } else {
-                updateState(existsState, message);
-                updateSettingsMessage(message.getChatId(), existsState);
-                commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
-            }
-        });
+        if (existsState == null) {
+            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+            ConvertState convertState = createState(message, locale);
+            messageService.sendMessage(
+                    SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(buildSettingsMessage(convertState))
+                            .parseMode(ParseMode.HTML)
+                            .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(), BITRATES, locale))
+                            .build(),
+                    sent -> {
+                        convertState.getSettings().setMessageId(sent.getMessageId());
+                        commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
+                    }
+            );
+        } else {
+            updateState(existsState, message);
+            updateSettingsMessage(message.getChatId(), existsState);
+            commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
+        }
     }
 
     @Override

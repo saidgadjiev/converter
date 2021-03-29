@@ -22,11 +22,12 @@ public class BotConfiguration {
     }
 
     @Bean
-    public BotFilter botFilter(UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
+    public BotFilter botFilter(UpdateFilter updateFilter, UserSynchronizedFilter userSynchronizedFilter,
+                               StartCommandFilter startCommandFilter,
                                MediaFilter mediaFilter, LastActivityFilter activityFilter,
                                ChannelSubscriptionFilter subscriptionFilter, UpdatesHandlerFilter updatesHandlerFilter,
                                PaidSubscriptionFilter paidSubscriptionFilter) {
-        updateFilter.setNext(mediaFilter).setNext(startCommandFilter).setNext(subscriptionFilter)
+        updateFilter.setNext(userSynchronizedFilter).setNext(mediaFilter).setNext(startCommandFilter).setNext(subscriptionFilter)
                 .setNext(paidSubscriptionFilter).setNext(activityFilter).setNext(updatesHandlerFilter);
 
         return updateFilter;

@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.command.bot;
 
-import com.antkorwin.xsync.XSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -56,8 +55,6 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private ConverterReplyKeyboardService replyKeyboardService;
 
-    private XSync<Long> longXSync;
-
     private CommandStateService commandStateService;
 
     private MessageMediaService messageMediaService;
@@ -75,14 +72,13 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
     public EditVideoCommand(@TgMessageLimitsControl MessageService messageService, UserService userService,
                             LocalisationService localisationService,
                             @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                            XSync<Long> longXSync, CommandStateService commandStateService,
+                            CommandStateService commandStateService,
                             MessageMediaService messageMediaService, InlineKeyboardService inlineKeyboardService,
                             ConvertionService convertionService) {
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
-        this.longXSync = longXSync;
         this.commandStateService = commandStateService;
         this.messageMediaService = messageMediaService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -164,47 +160,45 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        longXSync.execute(message.getChatId(), () -> {
-            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-            ConvertState existsState = commandStateService.getState(message.getChatId(),
-                    ConverterCommandNames.EDIT_VIDEO, false, ConvertState.class);
-            if (message.hasText()) {
-                if (existsState == null) {
-                    messageService.sendMessage(
-                            SendMessage.builder()
-                                    .chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale))
-                                    .build()
-                    );
-                } else {
-                    messageService.sendMessage(
-                            SendMessage.builder()
-                                    .chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
-                                    .build()
-                    );
-                }
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        ConvertState existsState = commandStateService.getState(message.getChatId(),
+                ConverterCommandNames.EDIT_VIDEO, false, ConvertState.class);
+        if (message.hasText()) {
+            if (existsState == null) {
+                messageService.sendMessage(
+                        SendMessage.builder()
+                                .chatId(String.valueOf(message.getChatId()))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale))
+                                .build()
+                );
             } else {
-                if (existsState == null) {
-                    ConvertState convertState = createState(message, locale);
-                    messageService.sendMessage(
-                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                    .text(buildSettingsMessage(convertState))
-                                    .parseMode(ParseMode.HTML)
-                                    .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, locale))
-                                    .build(),
-                            sent -> {
-                                convertState.getSettings().setMessageId(sent.getMessageId());
-                                commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
-                            }
-                    );
-                } else {
-                    updateState(existsState, message);
-                    updateSettingsMessage(message.getChatId(), existsState);
-                    commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
-                }
+                messageService.sendMessage(
+                        SendMessage.builder()
+                                .chatId(String.valueOf(message.getChatId()))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
+                                .build()
+                );
             }
-        });
+        } else {
+            if (existsState == null) {
+                ConvertState convertState = createState(message, locale);
+                messageService.sendMessage(
+                        SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                .text(buildSettingsMessage(convertState))
+                                .parseMode(ParseMode.HTML)
+                                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, locale))
+                                .build(),
+                        sent -> {
+                            convertState.getSettings().setMessageId(sent.getMessageId());
+                            commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
+                        }
+                );
+            } else {
+                updateState(existsState, message);
+                updateSettingsMessage(message.getChatId(), existsState);
+                commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
+            }
+        }
     }
 
     @Override
