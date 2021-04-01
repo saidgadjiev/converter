@@ -39,6 +39,7 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.COMPRESS_AUDIO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.COMPRESS_AUDIO_COMMAND_DESCRIPTION, locale)).append("\n");
         }
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.SUBSCRIPTION).append(" - ").append(localisationService.getMessage(MessagesProperties.SUBSCRIPTION_COMMAND_DESCRIPTION, locale)).append("\n");
+        info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.TIME_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.BOT_TIME_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.LANGUAGE_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.FORMATS_COMMAND).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.FORMATS_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.HELP_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.HELP_COMMAND_DESCRIPTION, locale));
