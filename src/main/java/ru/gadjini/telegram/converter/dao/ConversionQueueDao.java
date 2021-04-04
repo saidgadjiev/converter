@@ -150,9 +150,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         " AND qu.files[1].format IN(" + inFormats() + ") " +
                         " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME +
                         " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND (dq.status != 3 OR dq." + synchronizationColumn + " = false))\n" +
-                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n" +
                         " ORDER BY qu.id\n" +
-                        "        LIMIT " + limit + " FOR UPDATE)\n" +
+                        " FOR UPDATE SKIP LOCKED LIMIT " + limit + ")\n" +
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT cv.*, array_to_json(cv.files) as files_json, 1 as queue_position, " +
