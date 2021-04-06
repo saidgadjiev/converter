@@ -111,7 +111,9 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
             }
         }
         videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
-        commandBuilder.crf("10");
+        if (fileQueueItem.getTargetFormat() == WEBM) {
+            commandBuilder.crf("10");
+        }
         videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
         fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
