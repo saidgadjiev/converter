@@ -58,7 +58,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
+                    return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
                         presentation.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());

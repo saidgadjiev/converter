@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class PdfToPpmDevice implements ConvertDevice {
+public class PdfToPpmDevice {
 
     private ProcessExecutor processExecutor;
 
@@ -18,9 +18,8 @@ public class PdfToPpmDevice implements ConvertDevice {
         this.processExecutor = processExecutor;
     }
 
-    @Override
-    public void convert(String in, String out, String... options) throws InterruptedException {
-        processExecutor.execute(buildCommand(in, out, options));
+    public void convert(String in, String out, int timeout, String... options) throws InterruptedException {
+        processExecutor.execute(buildCommand(in, out, options), timeout);
     }
 
     private String[] buildCommand(String in, String out, String... options) {

@@ -53,7 +53,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
-                    return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
+                    return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
                         try {
                             doc.save(result.getAbsolutePath(), SaveFormat.PDF);
                         } catch (Exception e) {

@@ -60,7 +60,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
             try {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
+                    return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
                         try {
                             document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
                         } catch (Exception e) {

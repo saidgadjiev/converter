@@ -91,7 +91,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
+                return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
                     document.optimize();
                     document.optimizeResources();
                     DocSaveOptions docSaveOptions = new DocSaveOptions();

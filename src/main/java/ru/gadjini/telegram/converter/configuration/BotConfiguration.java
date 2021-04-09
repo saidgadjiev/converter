@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gadjini.telegram.converter.filter.*;
+import ru.gadjini.telegram.converter.filter.ConverterBotFilter;
 import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.smart.bot.commons.filter.*;
 
@@ -16,8 +16,7 @@ public class BotConfiguration {
 
     @Autowired
     public BotConfiguration(ConversionProperties conversionProperties) {
-        LOGGER.debug("Calibre time out({})", conversionProperties.getCalibreConversionTimeOut());
-        LOGGER.debug("Aspose time out({})", conversionProperties.getCalibreConversionTimeOut());
+        LOGGER.debug("Conversion time out({})", conversionProperties.getTimeOut());
     }
 
     @Bean

@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.device;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
@@ -10,8 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-@Qualifier("djvu")
-public class DjvuLibre implements ConvertDevice {
+public class DjvuLibre {
 
     private ProcessExecutor processExecutor;
 
@@ -20,7 +18,6 @@ public class DjvuLibre implements ConvertDevice {
         this.processExecutor = processExecutor;
     }
 
-    @Override
     public void convert(String in, String out, String... options) throws InterruptedException {
         processExecutor.execute(getCommand(in, out, options));
     }

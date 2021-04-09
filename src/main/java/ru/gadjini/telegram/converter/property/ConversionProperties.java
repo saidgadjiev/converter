@@ -5,9 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("conversion")
 public class ConversionProperties {
 
-    private int calibreConversionTimeOut = 10 * 60;
-
-    private int asposeConversionTimeOut = 10 * 60;
+    private int timeOut = 5 * 60;
 
     private String server;
 
@@ -19,19 +17,11 @@ public class ConversionProperties {
         this.server = server;
     }
 
-    public int getCalibreConversionTimeOut() {
-        return calibreConversionTimeOut;
+    public int getTimeOut() {
+        return timeOut;
     }
 
-    public void setCalibreConversionTimeOut(int calibreConversionTimeOut) {
-        this.calibreConversionTimeOut = calibreConversionTimeOut;
-    }
-
-    public int getAsposeConversionTimeOut() {
-        return asposeConversionTimeOut;
-    }
-
-    public void setAsposeConversionTimeOut(int asposeConversionTimeOut) {
-        this.asposeConversionTimeOut = asposeConversionTimeOut;
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
     }
 }

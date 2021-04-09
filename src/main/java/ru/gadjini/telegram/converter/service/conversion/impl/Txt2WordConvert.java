@@ -53,7 +53,7 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
+                    return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
                         try {
                             document.save(result.getAbsolutePath(), Format.DOC.equals(fileQueueItem.getTargetFormat())
                             ? SaveFormat.DOC : SaveFormat.DOCX);
