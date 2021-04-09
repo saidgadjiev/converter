@@ -7,7 +7,7 @@ public class ConversionProperties {
 
     private int calibreLongConversionTimeOut = 10 * 60;
 
-    private int asposeConversionTimeOut = 10 * 60;
+    private int asposeConversionTimeOut = 5 * 60;
 
     private String server;
 
