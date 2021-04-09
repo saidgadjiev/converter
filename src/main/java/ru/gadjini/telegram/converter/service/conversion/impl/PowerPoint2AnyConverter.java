@@ -1,5 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import com.aspose.slides.InterruptionTokenSource;
+import com.aspose.slides.LoadOptions;
 import com.aspose.slides.Presentation;
 import com.aspose.slides.SaveFormat;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +55,11 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            Presentation presentation = new Presentation(file.getAbsolutePath());
+            InterruptionTokenSource tokenSource = new InterruptionTokenSource();
+            LoadOptions loadOptions = new LoadOptions();
+            loadOptions.setInterruptionToken(tokenSource.getToken());
+
+            Presentation presentation = new Presentation(file.getAbsolutePath(), loadOptions);
             try {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
@@ -63,7 +69,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                         return new FileResult(fileName, result);
-                    });
+                    }, tokenSource::interrupt);
                 } catch (Throwable e) {
                     tempFileService().delete(result);
                     throw e;

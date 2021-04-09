@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("conversion")
 public class ConversionProperties {
 
-    private int timeOut = 5 * 60;
+    private int timeOut = 10 * 60;
 
     private String server;
 

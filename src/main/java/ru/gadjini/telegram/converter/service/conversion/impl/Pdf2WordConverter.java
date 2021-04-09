@@ -110,7 +110,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
                     return new FileResult(fileName, result);
-                });
+                }, document::dispose);
             } catch (Throwable e) {
                 tempFileService().delete(result);
                 throw e;

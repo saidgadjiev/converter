@@ -1,9 +1,12 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import com.aspose.pdf.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.service.conversion.LocalProcessExecutor;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -29,8 +32,15 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
             List.of(Format.SVG), List.of(Format.HTML, Format.PPTX, Format.XML, Format.XPS)
     );
 
-    public Pdf2AnyConverter() {
+    private ConversionProperties conversionProperties;
+
+    private LocalProcessExecutor localProcessExecutor;
+
+    @Autowired
+    public Pdf2AnyConverter(ConversionProperties conversionProperties, LocalProcessExecutor localProcessExecutor) {
         super(MAP);
+        this.conversionProperties = conversionProperties;
+        this.localProcessExecutor = localProcessExecutor;
     }
 
     @Override
@@ -49,10 +59,12 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                         TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
+                    return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
+                        document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, result);
+                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                        return new FileResult(fileName, result);
+                    }, document::dispose);
                 } catch (Throwable e) {
                     tempFileService().delete(result);
                     throw e;

@@ -1,8 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -26,8 +24,6 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.PDF;
 
 @Component
 public class Pdf2EpubConverter extends BaseAny2AnyConverter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Pdf2EpubConverter.class);
 
     private static final String TAG = "pdf2epub";
 

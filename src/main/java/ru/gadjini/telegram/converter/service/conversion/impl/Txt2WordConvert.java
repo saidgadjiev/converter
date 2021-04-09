@@ -63,6 +63,12 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                         return new FileResult(fileName, result);
+                    }, () -> {
+                        try {
+                            document.cleanup();
+                        } catch (Exception e) {
+                            throw new ConvertException(e);
+                        }
                     });
                 } catch (Throwable e) {
                     tempFileService().delete(result);

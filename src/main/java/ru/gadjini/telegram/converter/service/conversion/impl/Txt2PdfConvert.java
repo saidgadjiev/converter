@@ -62,6 +62,12 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
                         return new FileResult(fileName, result);
+                    }, () -> {
+                        try {
+                            doc.cleanup();
+                        } catch (Exception e) {
+                            throw new ConvertException(e);
+                        }
                     });
                 } catch (Throwable e) {
                     tempFileService().delete(result);
