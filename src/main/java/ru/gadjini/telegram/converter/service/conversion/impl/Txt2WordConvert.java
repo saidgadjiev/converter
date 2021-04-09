@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.aspose.words.TxtLoadOptions;
+import com.aspose.words.Document;
+import com.aspose.words.SaveFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -47,14 +48,15 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
         SmartTempFile txt = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
+            Document document = new Document(txt.getAbsolutePath());
             try {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
                         try {
-                            document.save(result.getAbsolutePath());
+                            document.save(result.getAbsolutePath(), Format.DOC.equals(fileQueueItem.getTargetFormat())
+                            ? SaveFormat.DOC : SaveFormat.DOCX);
                         } catch (Exception e) {
                             throw new ConvertException(e);
                         }

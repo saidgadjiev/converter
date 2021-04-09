@@ -1,9 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.aspose.pdf.Document;
-import com.aspose.pdf.Page;
-import com.aspose.pdf.TextFragment;
-import com.google.common.io.Files;
+import com.aspose.words.Document;
+import com.aspose.words.SaveFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -18,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -51,22 +48,17 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
         SmartTempFile txt = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
-            StringBuilder builder = new StringBuilder();
-            lines.forEach(s -> builder.append(s).append("\n"));
-
-            Document doc = new Document();
+            Document doc = new Document(txt.getAbsolutePath());
             try {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, Format.PDF.getExt());
                 try {
                     return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
-                        Page page = doc.getPages().add();
-                        TextFragment text = new TextFragment(builder.toString());
-
-                        page.getParagraphs().add(text);
-
-                        doc.save(result.getAbsolutePath());
+                        try {
+                            doc.save(result.getAbsolutePath(), SaveFormat.PDF);
+                        } catch (Exception e) {
+                            throw new ConvertException(e);
+                        }
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.PDF.getExt());
                         return new FileResult(fileName, result);
@@ -76,7 +68,7 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
                     throw e;
                 }
             } finally {
-                doc.dispose();
+                doc.cleanup();
             }
         } catch (ProcessTimedOutException e) {
             throw e;
