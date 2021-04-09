@@ -24,6 +24,8 @@ public class LocalProcessExecutor {
 
             throw new ProcessTimedOutException();
         } catch (Exception e) {
+            future.cancel(true);
+            interrupter.run();
             throw new ProcessException(e);
         }
     }
