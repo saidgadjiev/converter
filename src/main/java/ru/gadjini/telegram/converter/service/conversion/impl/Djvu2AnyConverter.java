@@ -14,6 +14,7 @@ import ru.gadjini.telegram.converter.service.conversion.device.DjvuLibre;
 import ru.gadjini.telegram.converter.service.conversion.device.SmartCalibre;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -75,6 +76,9 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result);
+        } catch (ProcessTimedOutException e) {
+            tempFileService().delete(result);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

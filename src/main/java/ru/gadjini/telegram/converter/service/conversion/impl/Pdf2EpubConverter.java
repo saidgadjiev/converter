@@ -63,7 +63,6 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
             return new FileResult(fileName, result);
         } catch (ProcessTimedOutException e) {
-            LOGGER.debug("Epub to pdf timed out({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFirstFileId());
             tempFileService().delete(result);
             throw e;
         } catch (Throwable e) {
