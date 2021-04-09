@@ -12,13 +12,13 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.service.conversion.LocalProcessExecutor;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.logger.FileLg;
 import ru.gadjini.telegram.converter.service.logger.Lg;
 import ru.gadjini.telegram.converter.service.logger.SoutLg;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
-import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
@@ -28,9 +28,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Component
 public class Pdf2WordConverter extends BaseAny2AnyConverter {
@@ -45,11 +42,15 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
     private ConversionProperties conversionProperties;
 
+    private LocalProcessExecutor localProcessExecutor;
+
     @Autowired
-    public Pdf2WordConverter(ProcessExecutor processExecutor, ConversionProperties conversionProperties) {
+    public Pdf2WordConverter(ProcessExecutor processExecutor, ConversionProperties conversionProperties,
+                             LocalProcessExecutor localProcessExecutor) {
         super(MAP);
         this.processExecutor = processExecutor;
         this.conversionProperties = conversionProperties;
+        this.localProcessExecutor = localProcessExecutor;
     }
 
     @Override
@@ -90,7 +91,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                CompletableFuture<ConversionResult> feature = CompletableFuture.supplyAsync(() -> {
+                return localProcessExecutor.execute(conversionProperties.getAsposeConversionTimeOut(), () -> {
                     document.optimize();
                     document.optimizeResources();
                     DocSaveOptions docSaveOptions = new DocSaveOptions();
@@ -110,15 +111,6 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
 
                     return new FileResult(fileName, result);
                 });
-
-                try {
-                    return feature.get(conversionProperties.getPdfToWordLongConversionTimeOut(), TimeUnit.SECONDS);
-                } catch (TimeoutException e) {
-                    feature.cancel(true);
-                    throw new ProcessTimedOutException();
-                } catch (Exception e) {
-                    throw new ProcessException(e);
-                }
             } catch (Throwable e) {
                 tempFileService().delete(result);
                 throw e;

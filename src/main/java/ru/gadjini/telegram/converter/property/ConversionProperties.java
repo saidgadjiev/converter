@@ -7,7 +7,7 @@ public class ConversionProperties {
 
     private int calibreLongConversionTimeOut = 10 * 60;
 
-    private int pdfToWordLongConversionTimeOut = 10 * 60;
+    private int asposeConversionTimeOut = 10 * 60;
 
     private String server;
 
@@ -27,11 +27,11 @@ public class ConversionProperties {
         this.calibreLongConversionTimeOut = calibreLongConversionTimeOut;
     }
 
-    public int getPdfToWordLongConversionTimeOut() {
-        return pdfToWordLongConversionTimeOut;
+    public int getAsposeConversionTimeOut() {
+        return asposeConversionTimeOut;
     }
 
-    public void setPdfToWordLongConversionTimeOut(int pdfToWordLongConversionTimeOut) {
-        this.pdfToWordLongConversionTimeOut = pdfToWordLongConversionTimeOut;
+    public void setAsposeConversionTimeOut(int asposeConversionTimeOut) {
+        this.asposeConversionTimeOut = asposeConversionTimeOut;
     }
 }
