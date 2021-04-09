@@ -100,6 +100,9 @@ public class FFmpegVideoConversionHelper {
         } else if (FFmpegCommandBuilder.VP9_CODEC.equals(videoStream.getCodecName())) {
             commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.VP8_CODEC);
             return true;
+        } else if (FFmpegCommandBuilder.AV1_CODEC.equals(videoStream.getCodecName())) {
+            commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.VP8_CODEC);
+            return true;
         } else {
             return false;
         }
