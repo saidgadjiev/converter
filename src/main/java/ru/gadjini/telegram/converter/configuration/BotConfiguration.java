@@ -16,8 +16,8 @@ public class BotConfiguration {
 
     @Autowired
     public BotConfiguration(ConversionProperties conversionProperties) {
-        LOGGER.debug("Calibre time out({})", conversionProperties.getCalibreLongConversionTimeOut());
-        LOGGER.debug("Pdf to word time out({})", conversionProperties.getCalibreLongConversionTimeOut());
+        LOGGER.debug("Calibre time out({})", conversionProperties.getCalibreConversionTimeOut());
+        LOGGER.debug("Pdf to word time out({})", conversionProperties.getCalibreConversionTimeOut());
     }
 
     @Bean

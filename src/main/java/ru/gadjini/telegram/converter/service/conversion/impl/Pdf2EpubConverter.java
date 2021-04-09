@@ -81,7 +81,7 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
-            calibre.convert(in.getAbsolutePath(), result.getAbsolutePath(), conversionProperties.getCalibreLongConversionTimeOut(),
+            calibre.convert(in.getAbsolutePath(), result.getAbsolutePath(), conversionProperties.getCalibreConversionTimeOut(),
                     "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
