@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.LocalProcessExecutor;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -72,6 +73,8 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
             } finally {
                 document.dispose();
             }
+        } catch (ProcessTimedOutException e) {
+            throw e;
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }
