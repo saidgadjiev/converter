@@ -33,6 +33,8 @@ public class FFmpegCommandBuilder {
 
     public static final String WMV2 = "wmv2";
 
+    public static final String VORBIS = "libvorbis";
+
     public static final String MOV_TEXT_CODEC = "mov_text";
 
     public static final String WEBVTT_CODEC = "webvtt";
@@ -103,9 +105,30 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder audioCodec(String codec) {
+        options.add("-c:a");
+        options.add(codec);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder qa(String qa) {
+        options.add("-q:a");
+        options.add(qa);
+
+        return this;
+    }
+
     public FFmpegCommandBuilder mapAudio() {
         options.add("-map");
         options.add("a");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder mapAudio(int index) {
+        options.add("-map");
+        options.add("a:" + index);
 
         return this;
     }

@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.AMR;
@@ -7,18 +8,11 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.OGG;
 
 public class FFmpegAudioConversionHelper {
 
-    public static String[] getAudioOptions(Format target) {
+    public static void addAudioOptions(Format target, FFmpegCommandBuilder commandBuilder) {
         if (target == AMR) {
-            return new String[]{
-                    "-ar", "8000", "-ac", "1"
-            };
+            commandBuilder.ar("8000").ac("1");
+        } else if (target == OGG) {
+            commandBuilder.audioCodec(FFmpegCommandBuilder.VORBIS).qa("4");
         }
-        if (target == OGG) {
-            return new String[]{
-                    "-c:a", "libvorbis", "-q:a", "4"
-            };
-        }
-
-        return new String[0];
     }
 }

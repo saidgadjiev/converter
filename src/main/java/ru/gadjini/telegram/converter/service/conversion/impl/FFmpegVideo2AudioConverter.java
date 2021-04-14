@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -19,7 +20,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -67,10 +67,9 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                 try {
-                    String[] options = Stream.concat(Stream.of(getExtractAudioOptions(streamIndex)),
-                            Stream.of(FFmpegAudioConversionHelper.getAudioOptions(fileQueueItem.getTargetFormat())))
-                            .toArray(String[]::new);
-                    fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), options);
+                    FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio(streamIndex);
+                    FFmpegAudioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
+                    fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
                             String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
@@ -105,11 +104,5 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
         } catch (Exception e) {
             throw new ConvertException(e);
         }
-    }
-
-    private String[] getExtractAudioOptions(int streamIndex) {
-        return new String[]{
-                "-map", "a:" + streamIndex
-        };
     }
 }

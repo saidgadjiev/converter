@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
@@ -15,7 +16,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -52,18 +52,16 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     @Override
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
         try {
-            String[] mapOptions = new String[]{"-map", "a"};
 
             try {
-                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(),
-                        Stream.concat(Stream.of(mapOptions), Stream.of("-c:a", "copy")).toArray(String[]::new));
+                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio().copyAudio();
+                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
             } catch (ProcessException e) {
                 LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                         fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(),
-                        Stream.concat(Stream.of(mapOptions),
-                                Stream.of(FFmpegAudioConversionHelper.getAudioOptions(fileQueueItem.getTargetFormat())))
-                                .toArray(String[]::new));
+                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio().copyAudio().mapAudio();
+                FFmpegAudioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
+                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
             }
         } catch (InterruptedException e) {
             throw new ConvertException(e);
