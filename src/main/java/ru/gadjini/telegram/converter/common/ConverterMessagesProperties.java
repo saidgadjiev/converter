@@ -23,6 +23,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION = "message.choose.target.extension.video.audio.conversion";
 
+    public static final String MESSAGE_DEFAULT_COMPRESSION_SETTINGS = "message.default.compression.settings";
+
     public static final String GO_BACK_COMMAND_NAME = "go.back.command.name";
 
     public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";

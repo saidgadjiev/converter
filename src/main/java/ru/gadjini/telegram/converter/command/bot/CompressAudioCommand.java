@@ -46,7 +46,7 @@ import java.util.Objects;
 @Component
 public class CompressAudioCommand implements BotCommand, NavigableBotCommand, CallbackBotCommand {
 
-    private static final List<String> BITRATES = List.of("7", "13", "18", "32", "64", "96", "128");
+    private static final List<String> BITRATES = List.of("7", "13", "18", FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128");
 
     private static final List<Format> COMPRESSION_FORMATS = List.of(Format.OPUS, Format.MP3);
 

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -95,6 +96,15 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION, locale));
         } else {
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION, locale));
+            if (FormatsConfiguration.AUDIO_CONVERTER.equals(converter)) {
+                message
+                        .append("\n\n")
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DEFAULT_COMPRESSION_SETTINGS,
+                                new Object[]{FFmpegAudioCompressConverter.AUTO_BITRATE + "k",
+                                        FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT.getName()}, locale))
+                        .append("\n\n")
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale));
+            }
         }
 
         return message.toString();

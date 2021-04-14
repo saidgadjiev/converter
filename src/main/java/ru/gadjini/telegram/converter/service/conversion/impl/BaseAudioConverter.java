@@ -24,9 +24,9 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
+import static ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT;
 
-    private static final Format DEFAULT_AUDIO_COMPRESS_FORMAT = Format.MP3;
+public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseAudioConverter.class);
 

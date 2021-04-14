@@ -26,7 +26,9 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 @Component
 public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
-    public static final String AUTO_BITRATE = "18";
+    public static final Format DEFAULT_AUDIO_COMPRESS_FORMAT = MP3;
+
+    public static final String AUTO_BITRATE = "32";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, RA, RM, M4A, M4B), List.of(COMPRESS)
@@ -55,14 +57,9 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     }
 
     @Override
-    public Map<List<Format>, List<Format>> getConversionMap() {
-        return Map.of();
-    }
-
-    @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
         String bitrate = AUTO_BITRATE;
-        Format compressionFormat = Format.MP3;
+        Format compressionFormat = DEFAULT_AUDIO_COMPRESS_FORMAT;
         if (conversionQueueItem.getExtra() != null) {
             SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
