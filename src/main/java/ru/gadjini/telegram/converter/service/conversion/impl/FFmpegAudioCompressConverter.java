@@ -69,7 +69,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         commandBuilder.ba(bitrate + "k");
 
         if (MP3.equals(compressionFormat)) {
-            commandBuilder.ac("1").ar("22050");
+            commandBuilder.ar("22050");
         }
 
         try {
