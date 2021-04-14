@@ -42,11 +42,14 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private FFmpegAudioConversionHelper audioConversionHelper;
+
     @Autowired
-    public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+    public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegAudioConversionHelper audioConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.audioConversionHelper = audioConversionHelper;
     }
 
     @Override
@@ -68,7 +71,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
                 try {
                     FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio(streamIndex);
-                    FFmpegAudioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
+                    audioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
                     fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),

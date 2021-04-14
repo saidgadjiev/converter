@@ -43,24 +43,28 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
 
     private FFmpegDevice fFmpegDevice;
 
+    private FFmpegAudioConversionHelper audioConversionHelper;
+
     @Autowired
-    public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice) {
+    public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice, FFmpegAudioConversionHelper audioConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
+        this.audioConversionHelper = audioConversionHelper;
     }
 
     @Override
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
         try {
-
             try {
                 FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio().copyAudio();
+                audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
                 fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
             } catch (ProcessException e) {
                 LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
                         fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio().copyAudio().mapAudio();
-                FFmpegAudioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
+                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio();
+                audioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
+                audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
                 fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
             }
         } catch (InterruptedException e) {

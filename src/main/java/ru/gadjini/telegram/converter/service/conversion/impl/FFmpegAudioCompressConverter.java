@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -37,15 +38,19 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     private UserService userService;
 
+    private FFmpegAudioConversionHelper audioConversionHelper;
+
     private LocalisationService localisationService;
 
     @Autowired
     public FFmpegAudioCompressConverter(Gson gson, FFmpegDevice fFmpegDevice,
-                                        UserService userService, LocalisationService localisationService) {
+                                        UserService userService, FFmpegAudioConversionHelper audioConversionHelper,
+                                        LocalisationService localisationService) {
         super(MAP);
         this.gson = gson;
         this.fFmpegDevice = fFmpegDevice;
         this.userService = userService;
+        this.audioConversionHelper = audioConversionHelper;
         this.localisationService = localisationService;
     }
 
@@ -73,6 +78,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         }
 
         try {
+            audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
             fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
