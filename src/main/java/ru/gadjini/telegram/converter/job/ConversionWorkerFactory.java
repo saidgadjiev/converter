@@ -65,7 +65,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     @Autowired
     public ConversionWorkerFactory(UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService,
-                                   @Qualifier("forceMedia") MediaMessageService mediaMessageService,
+                                   @Qualifier("mediaLimits") MediaMessageService mediaMessageService,
                                    @TgMessageLimitsControl MessageService messageService, ConversionMessageBuilder messageBuilder) {
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
