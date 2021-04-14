@@ -1,8 +1,11 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
@@ -23,7 +26,7 @@ import java.util.Map;
 
 public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
-    private static final Format DEFAULT_AUDIO_COMPRESS_FORMAT = Format.OPUS;
+    private static final Format DEFAULT_AUDIO_COMPRESS_FORMAT = Format.MP3;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseAudioConverter.class);
 
@@ -35,8 +38,15 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
     private UserService userService;
 
+    private Gson gson;
+
     protected BaseAudioConverter(Map<List<Format>, List<Format>> map) {
         super(map);
+    }
+
+    @Autowired
+    public void setGson(Gson gson) {
+        this.gson = gson;
     }
 
     @Autowired
@@ -106,7 +116,13 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         }
     }
 
+
     private Format getTargetFormat(ConversionQueueItem fileQueueItem) {
+        if (fileQueueItem.getTargetFormat() == Format.COMPRESS && fileQueueItem.getExtra() != null) {
+            SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
+            return settingsState.getFormatOrDefault(DEFAULT_AUDIO_COMPRESS_FORMAT);
+        }
+
         return fileQueueItem.getTargetFormat() == Format.COMPRESS ? DEFAULT_AUDIO_COMPRESS_FORMAT : fileQueueItem.getTargetFormat();
     }
 

@@ -46,7 +46,9 @@ import java.util.Objects;
 @Component
 public class CompressAudioCommand implements BotCommand, NavigableBotCommand, CallbackBotCommand {
 
-    private static final List<String> BITRATES = List.of("7", "13", "18", "32", "64");
+    private static final List<String> BITRATES = List.of("7", "13", "18", "32", "64", "96", "128");
+
+    private static final List<Format> COMPRESSION_FORMATS = List.of(Format.OPUS, Format.MP3);
 
     private MessageService messageService;
 
@@ -134,7 +136,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                             .text(buildSettingsMessage(convertState))
                             .parseMode(ParseMode.HTML)
-                            .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(), BITRATES, locale))
+                            .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(),
+                                    convertState.getSettings().getFormat(), COMPRESSION_FORMATS, BITRATES, locale))
                             .build(),
                     sent -> {
                         convertState.getSettings().setMessageId(sent.getMessageId());
@@ -163,6 +166,11 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         } else if (requestParams.contains(ConverterArg.BITRATE.getKey())) {
             String bitrate = requestParams.getString(ConverterArg.BITRATE.getKey());
             setBitrate(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), bitrate);
+        } else if (requestParams.contains(ConverterArg.COMPRESSION_FORMAT.getKey())) {
+            Format compressionFormat = requestParams.get(ConverterArg.COMPRESSION_FORMAT.getKey(), Format::valueOf);
+            if (COMPRESSION_FORMATS.contains(compressionFormat)) {
+                setCompressionFormat(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), compressionFormat);
+            }
         }
     }
 
@@ -181,6 +189,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 .text(buildSettingsMessage(convertState))
                 .parseMode(ParseMode.HTML)
                 .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(),
+                        convertState.getSettings().getFormat(), COMPRESSION_FORMATS,
                         BITRATES, new Locale(convertState.getUserLanguage())))
                 .build());
     }
@@ -191,6 +200,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setUserLanguage(locale.getLanguage());
         convertState.setSettings(new SettingsState());
         convertState.getSettings().setBitrate(FFmpegAudioCompressConverter.AUTO_BITRATE);
+        convertState.getSettings().setFormat(Format.MP3);
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         checkMedia(media, ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_FILE_NOT_FOUND, locale);
@@ -226,6 +236,24 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         );
     }
 
+    private void setCompressionFormat(String queryId, long chatId, Format format) {
+        ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
+        Locale locale = new Locale(convertState.getUserLanguage());
+
+        Format oldFormat = convertState.getSettings().getFormat();
+        convertState.getSettings().setFormat(format);
+        if (!Objects.equals(oldFormat, format)) {
+            updateSettingsMessage(chatId, convertState);
+        }
+        commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
+
+        messageService.sendAnswerCallbackQuery(
+                AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_FORMAT_UPDATED, locale))
+                        .build()
+        );
+    }
+
     private String validateBitrate(String bitrate, Locale locale) {
         if (bitrate.startsWith("-")) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE, locale));
@@ -253,7 +281,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     private String buildSettingsMessage(ConvertState convertState) {
         StringBuilder message = new StringBuilder();
         Locale locale = new Locale(convertState.getUserLanguage());
-        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT, locale)).append("\n");
+        message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT,
+                new Object[]{convertState.getSettings().getFormatOrDefault(Format.MP3).getName()}, locale)).append("\n");
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{convertState.getFirstFormat().getName()}, locale)).append("\n");
 
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n");

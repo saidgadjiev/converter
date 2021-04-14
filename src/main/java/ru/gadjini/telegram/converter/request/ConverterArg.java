@@ -5,7 +5,8 @@ public enum ConverterArg {
     COMPRESS("f"),
     BITRATE("g"),
     RESOLUTION("i"),
-    EDIT_VIDEO("l");
+    EDIT_VIDEO("l"),
+    COMPRESSION_FORMAT("k");
 
     private final String key;
 

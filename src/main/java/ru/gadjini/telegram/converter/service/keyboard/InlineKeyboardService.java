@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
 import java.util.ArrayList;
@@ -39,8 +40,14 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(String currentBitrate, List<String> bitrates, Locale locale) {
+    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(String currentBitrate, Format currentFormat,
+                                                                    List<Format> compressionFormats, List<String> bitrates, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        List<InlineKeyboardButton> compressionFormatButtons = new ArrayList<>();
+        for (Format compressionFormat : compressionFormats) {
+            compressionFormatButtons.add(buttonFactory.compressionFormatButton(currentFormat, compressionFormat, locale));
+        }
+        inlineKeyboardMarkup.getKeyboard().add(compressionFormatButtons);
         List<List<String>> lists = Lists.partition(bitrates, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();

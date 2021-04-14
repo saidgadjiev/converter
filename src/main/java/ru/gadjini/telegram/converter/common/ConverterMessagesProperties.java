@@ -163,7 +163,13 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_COMPRESS_AUDIO_BITRATE_UPDATED = "message.compress.audio.bitrate.updated";
 
+    public static final String MESSAGE_COMPRESS_AUDIO_FORMAT_UPDATED = "message.compress.audio.format.updated";
+
     public static final String MESSAGE_PDF_IMAGES_EPUB = "message.pdf.images.epub";
 
     public static final String CONVERSION_TIMED_OUT = "conversion.timed.out";
+
+    public static final String OPUS_COMPRESSION_COMMAND_DESCRIPTION = "opus.compression.command.description";
+
+    public static final String MP3_COMPRESSION_COMMAND_DESCRIPTION = "mp3.compression.command.description";
 }

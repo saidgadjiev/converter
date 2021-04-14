@@ -1,5 +1,7 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+
 public class SettingsState {
 
     private int messageId;
@@ -7,6 +9,8 @@ public class SettingsState {
     private String bitrate;
 
     private String resolution;
+
+    private Format format;
 
     public String getBitrate() {
         return bitrate;
@@ -30,5 +34,17 @@ public class SettingsState {
 
     public void setResolution(String resolution) {
         this.resolution = resolution;
+    }
+
+    public Format getFormat() {
+        return format;
+    }
+
+    public Format getFormatOrDefault(Format defaultFormat) {
+        return format == null ? defaultFormat : format;
+    }
+
+    public void setFormat(Format format) {
+        this.format = format;
     }
 }

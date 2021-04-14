@@ -8,9 +8,11 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.smart.bot.commons.command.impl.CallbackDelegate;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
+import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.request.Arg;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
@@ -49,7 +51,7 @@ public class ButtonFactory {
 
     public InlineKeyboardButton bitrateButton(String currentBitrate, String bitrate, Locale locale) {
         String btnName = Objects.equals(currentBitrate, bitrate)
-                ? localisationService.getMessage(ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties.RED_CIRCLE_ICON, locale) + bitrate
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + bitrate
                 : bitrate;
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
@@ -57,6 +59,22 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
                         .add(ConverterArg.BITRATE.getKey(), bitrate)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton compressionFormatButton(Format currentFormat, Format target, Locale locale) {
+        String commandName = localisationService.getMessage(target.getName().toLowerCase() + ".compression.command.description", locale);
+        String btnName = Objects.equals(currentFormat, target)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + commandName
+                : commandName;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
+                        .add(ConverterArg.COMPRESSION_FORMAT.getKey(), target.name())
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

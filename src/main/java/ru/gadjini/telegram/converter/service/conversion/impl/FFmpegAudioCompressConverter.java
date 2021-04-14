@@ -8,6 +8,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -18,7 +19,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -50,19 +50,30 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     }
 
     @Override
+    public Map<List<Format>, List<Format>> getConversionMap() {
+        return Map.of();
+    }
+
+    @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
-        String bitrate;
+        String bitrate = AUTO_BITRATE;
+        Format compressionFormat = Format.MP3;
         if (conversionQueueItem.getExtra() != null) {
             SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
-        } else {
-            bitrate = AUTO_BITRATE;
+            compressionFormat = settingsState.getFormatOrDefault(MP3);
         }
 
-        String[] mapOptions = new String[]{"-map", "a"};
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        commandBuilder.mapAudio();
+        commandBuilder.ba(bitrate + "k");
+
+        if (MP3.equals(compressionFormat)) {
+            commandBuilder.ac("1").ar("22050");
+        }
+
         try {
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(),
-                    Stream.concat(Stream.of(mapOptions), Stream.of(getCompressOptions(bitrate))).toArray(String[]::new));
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }
@@ -71,11 +82,5 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_AUDIO, localeOrDefault))
                     .setReplyToMessageId(conversionQueueItem.getReplyToMessageId());
         }
-    }
-
-    private String[] getCompressOptions(String bitrate) {
-        return new String[]{
-                "-b:a", bitrate + "K"
-        };
     }
 }
