@@ -50,7 +50,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private ConversionResult doConvertStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
@@ -68,7 +68,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private ConversionResult doConvertNonStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {

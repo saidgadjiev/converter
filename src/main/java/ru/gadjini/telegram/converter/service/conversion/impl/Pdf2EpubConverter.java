@@ -78,7 +78,7 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
     }
 
     private FileResult doConvertWithCalibre(SmartTempFile in, ConversionQueueItem fileQueueItem) {
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             calibre.convert(in.getAbsolutePath(), result.getAbsolutePath(), conversionProperties.getCalibreLongConversionTimeOut(),
@@ -99,7 +99,7 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
     private FileResult doConvertAsImages(SmartTempFile file, ConversionQueueItem fileQueueItem) {
         SmartTempFile tempDir = tempFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
         try {
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), TAG, EPUB.getExt());
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, EPUB.getExt());
             try {
                 pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p",
                         "-jpeg", "-jpegopt", "quality=70");

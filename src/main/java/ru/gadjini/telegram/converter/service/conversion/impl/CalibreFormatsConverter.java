@@ -70,7 +70,7 @@ public class CalibreFormatsConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile in = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             convertDevice.convert(in.getAbsolutePath(), result.getAbsolutePath(),

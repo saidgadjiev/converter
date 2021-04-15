@@ -87,7 +87,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
     private ConversionResult doRightConvert(ConversionQueueItem fileQueueItem, SmartTempFile file, Lg log) {
         Document document = new Document(file.getAbsolutePath());
         try {
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 CompletableFuture<ConversionResult> feature = CompletableFuture.supplyAsync(() -> {

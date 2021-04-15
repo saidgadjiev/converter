@@ -42,7 +42,7 @@ public class Image2WordConverter extends BaseAny2AnyConverter {
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 documentBuilder.insertImage(file.getAbsolutePath());
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     documentBuilder.getDocument().save(result.getAbsolutePath());

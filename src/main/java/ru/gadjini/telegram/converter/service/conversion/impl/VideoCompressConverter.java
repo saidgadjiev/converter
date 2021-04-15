@@ -78,7 +78,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         fileQueueItem.setTargetFormat(fileQueueItem.getFirstFileFormat());
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, SCALE, fileQueueItem);

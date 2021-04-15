@@ -79,7 +79,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
             String parentDir = images.iterator().next().getParent() + File.separator;
             magickDevice.changeFormatAndRemoveAlphaChannel(parentDir + "*", Format.PNG.getExt());
 
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), TAG, targetFormat.getExt());
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG, targetFormat.getExt());
             try {
                 String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale);
                 if (targetFormat == Format.PDF) {
@@ -102,11 +102,11 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
     private Collection<TgFile> prepareFilesToDownload(ConversionQueueItem queueItem) {
         Collection<TgFile> tgFiles = queueItem.getFiles();
-        String tempDir = tempFileService().getTempDir(FileTarget.TEMP, queueItem.getUserId(), TAG);
+        String tempDir = tempFileService().getTempDir(FileTarget.DOWNLOAD, queueItem.getUserId(), TAG);
 
         int i = 0;
         for (TgFile imageFile : queueItem.getFiles()) {
-            String path = tempFileService().getTempFile(FileTarget.TEMP, tempDir, queueItem.getUserId(), TAG, imageFile.getFileId(), "File-" + i + "." + imageFile.getFormat().getExt());
+            String path = tempFileService().getTempFile(FileTarget.DOWNLOAD, tempDir, queueItem.getUserId(), TAG, imageFile.getFileId(), "File-" + i + "." + imageFile.getFormat().getExt());
             imageFile.setFilePath(path);
             Progress downloadProgress = progressBuilder.buildFilesDownloadProgress(queueItem, i, queueItem.getFiles().size());
             imageFile.setProgress(downloadProgress);

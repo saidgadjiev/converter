@@ -63,7 +63,7 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                     return new FileResult(fileName, new SmartTempFile(files[0], true));
                 } else {
-                    SmartTempFile result = tempFileService().getTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                    SmartTempFile result = tempFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                             fileQueueItem.getFirstFileId(), TAG, Format.ZIP.getExt());
                     try {
                         p7ArchiveDevice.zip(tempDir.getAbsolutePath() + File.separator + "*", result.getAbsolutePath());

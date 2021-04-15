@@ -52,7 +52,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
         try {
             normalize(fileQueueItem);
 
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 String[] targetFormatOptions = getOptions(fileQueueItem.getTargetFormat());

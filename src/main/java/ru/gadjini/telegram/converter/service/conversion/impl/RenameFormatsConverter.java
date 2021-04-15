@@ -31,7 +31,7 @@ public class RenameFormatsConverter extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
         SmartTempFile src = conversionQueueItem.getDownloadedFileOrThrow(conversionQueueItem.getFirstFileId());
 
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, conversionQueueItem.getUserId(),
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
                 conversionQueueItem.getFirstFileId(), TAG, conversionQueueItem.getTargetFormat().getExt());
 
         try {

@@ -46,7 +46,7 @@ public class Tiff2WordConverter extends BaseAny2AnyConverter {
                 for (TiffFrame tiffFrame : image.getFrames()) {
                     documentBuilder.insertImage(tiffFrame.toBitmap());
                 }
-                SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
+                SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
                     documentBuilder.getDocument().save(result.getAbsolutePath());
