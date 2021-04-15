@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.Image2PdfDevice;
@@ -41,11 +42,14 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
 
     private final Image2PdfDevice image2PdfDevice;
 
+    private ConversionProperties conversionProperties;
+
     @Autowired
-    public Image2PdfConverter(ImageMagickDevice magickDevice, Image2PdfDevice image2PdfDevice) {
+    public Image2PdfConverter(ImageMagickDevice magickDevice, Image2PdfDevice image2PdfDevice, ConversionProperties conversionProperties) {
         super(MAP);
         this.magickDevice = magickDevice;
         this.image2PdfDevice = image2PdfDevice;
+        this.conversionProperties = conversionProperties;
     }
 
     @Override
@@ -60,7 +64,7 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
                 SmartTempFile png = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
                 try {
-                    magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath());
+                    magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath(), conversionProperties.getConversionTimeOut());
                     src = png;
                 } finally {
                     tempFileService().delete(file);

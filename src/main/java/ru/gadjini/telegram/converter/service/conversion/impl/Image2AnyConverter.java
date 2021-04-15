@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.StickerResult;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
@@ -39,10 +40,13 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
 
     private ImageMagickDevice imageDevice;
 
+    private ConversionProperties conversionProperties;
+
     @Autowired
-    public Image2AnyConverter(ImageMagickDevice imageDevice) {
+    public Image2AnyConverter(ImageMagickDevice imageDevice, ConversionProperties conversionProperties) {
         super(MAP);
         this.imageDevice = imageDevice;
+        this.conversionProperties = conversionProperties;
     }
 
     @Override
@@ -59,7 +63,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
                 String[] options = fileQueueItem.getTargetFormat() == STICKER
                         ? Stream.concat(Stream.of(STICKER_CONVERT_OPTIONS), Stream.of(targetFormatOptions)).toArray(String[]::new)
                         : targetFormatOptions;
-                imageDevice.convert2Image(file.getAbsolutePath(), result.getAbsolutePath(), options);
+                imageDevice.convert2Image(file.getAbsolutePath(), result.getAbsolutePath(),
+                        conversionProperties.getConversionTimeOut(), options);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return fileQueueItem.getTargetFormat() == STICKER

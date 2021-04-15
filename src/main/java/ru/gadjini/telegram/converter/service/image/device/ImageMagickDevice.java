@@ -18,8 +18,8 @@ public class ImageMagickDevice {
         this.processExecutor = processExecutor;
     }
 
-    public void convert2Image(String in, String out, String... options) throws InterruptedException {
-        processExecutor.execute(get2ImageConvertCommand(in, out, options));
+    public void convert2Image(String in, String out, int timeoutInSeconds, String... options) throws InterruptedException {
+        processExecutor.execute(get2ImageConvertCommand(in, out, options), timeoutInSeconds);
     }
 
     public void convert2Tiff(String in, String out) throws InterruptedException {

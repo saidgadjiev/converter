@@ -112,7 +112,7 @@ public class Pdf2WordConverter extends BaseAny2AnyConverter {
                 });
 
                 try {
-                    return feature.get(conversionProperties.getPdfToWordLongConversionTimeOut(), TimeUnit.SECONDS);
+                    return feature.get(conversionProperties.getConversionTimeOut(), TimeUnit.SECONDS);
                 } catch (TimeoutException e) {
                     feature.cancel(true);
                     throw new ProcessTimedOutException();

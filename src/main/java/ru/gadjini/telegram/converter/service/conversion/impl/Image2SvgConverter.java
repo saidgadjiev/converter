@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
@@ -28,11 +29,14 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
 
     private ImageTracer imageTracer;
 
+    private ConversionProperties conversionProperties;
+
     @Autowired
-    public Image2SvgConverter(ImageMagickDevice imageDevice, ImageTracer imageTracer) {
+    public Image2SvgConverter(ImageMagickDevice imageDevice, ImageTracer imageTracer, ConversionProperties conversionProperties) {
         super(MAP);
         this.imageDevice = imageDevice;
         this.imageTracer = imageTracer;
+        this.conversionProperties = conversionProperties;
     }
 
     @Override
@@ -45,7 +49,7 @@ public class Image2SvgConverter extends BaseAny2AnyConverter {
                 if (fileQueueItem.getFirstFileFormat() != Format.PNG) {
                     SmartTempFile tempFile = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, Format.PNG.getExt());
                     try {
-                        imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath());
+                        imageDevice.convert2Image(file.getAbsolutePath(), tempFile.getAbsolutePath(), conversionProperties.getConversionTimeOut());
                         imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.SVG.getExt());
