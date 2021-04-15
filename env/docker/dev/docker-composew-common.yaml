@@ -11,7 +11,7 @@ services:
     env_file:
       - .common.env
     networks:
-      br0:
+      smartnet:
         ipv4_address: 170.20.0.2
   redis:
     container_name: redis
@@ -27,7 +27,7 @@ services:
     volumes:
       - ../../../data/redis:/data
     networks:
-      br0:
+      smartnet:
         ipv4_address: 170.20.0.3
   botapi:
     container_name: botapi
@@ -46,7 +46,7 @@ services:
     env_file:
       - .common.env
     networks:
-      br0:
+      smartnet:
         ipv4_address: 170.20.0.4
 
 volumes:
@@ -54,5 +54,5 @@ volumes:
     external: true
 
 networks:
-  br0:
+  smartnet:
     external: true

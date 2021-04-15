@@ -77,7 +77,7 @@ services:
     env_file:
       - .env
     networks:
-      br0:
+      smartnet:
         ipv4_address: 170.20.0.5
     depends_on:
       - url2api
@@ -90,5 +90,5 @@ services:
         ipv4_address: 170.20.0.6
 
 networks:
-  br0:
+  smartnet:
     external: true
