@@ -91,11 +91,10 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
                         if (fileQueueItem.getTargetFormat().equals(VOICE)) {
                             convertResults.addResult(new VoiceResult(fileName, result, (int) durationInSeconds, audioStream.getLanguage()));
                         } else {
-                            convertResults.addResult(new AudioResult(fileName, result, null, null,
-                                    downloadThumb(fileQueueItem), (int) durationInSeconds, audioStream.getLanguage()));
+                            convertResults.addResult(new AudioResult(fileName, result, (int) durationInSeconds, audioStream.getLanguage()));
                         }
                     } else {
-                        convertResults.addResult(new FileResult(fileName, result, downloadThumb(fileQueueItem), audioStream.getLanguage()));
+                        convertResults.addResult(new FileResult(fileName, result, audioStream.getLanguage()));
                     }
                 } catch (Exception e) {
                     tempFileService().delete(result);

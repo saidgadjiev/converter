@@ -21,6 +21,10 @@ public class AudioResult extends FileResult {
         this.duration = duration;
     }
 
+    public AudioResult(String fileName, SmartTempFile file, Integer duration, String caption) {
+        this(fileName, file, null, null, null, duration, caption);
+    }
+
     @Override
     public ResultType resultType() {
         return ResultType.AUDIO;
