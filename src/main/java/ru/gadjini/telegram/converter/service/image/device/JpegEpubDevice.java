@@ -2,15 +2,14 @@ package ru.gadjini.telegram.converter.service.image.device;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.conversion.device.ConvertDevice;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Component("jpeg2epub")
-public class JpegEpubDevice implements ConvertDevice {
+@Component
+public class JpegEpubDevice {
 
     private ProcessExecutor processExecutor;
 
@@ -19,7 +18,6 @@ public class JpegEpubDevice implements ConvertDevice {
         this.processExecutor = processExecutor;
     }
 
-    @Override
     public void convert(String in, String out, String... options) throws InterruptedException {
         processExecutor.execute(getCommand(in, out, options));
     }

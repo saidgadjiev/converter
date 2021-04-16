@@ -5,12 +5,14 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.P7ArchiveDevice;
 import ru.gadjini.telegram.converter.service.conversion.device.PdfToPpmDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -37,14 +39,17 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
 
     private UserService userService;
 
+    private ConversionProperties conversionProperties;
+
     @Autowired
     public Pdf2PngJpgConverter(PdfToPpmDevice pdfToPpmDevice, P7ArchiveDevice p7ArchiveDevice,
-                               LocalisationService localisationService, UserService userService) {
+                               LocalisationService localisationService, UserService userService, ConversionProperties conversionProperties) {
         super(MAP);
         this.pdfToPpmDevice = pdfToPpmDevice;
         this.p7ArchiveDevice = p7ArchiveDevice;
         this.localisationService = localisationService;
         this.userService = userService;
+        this.conversionProperties = conversionProperties;
     }
 
     @Override
@@ -55,7 +60,8 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
             boolean deleteTempDir = true;
             SmartTempFile tempDir = tempFileService().createTempDir(FileTarget.TEMP, fileQueueItem.getUserId(), TAG);
             try {
-                pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p", getOptions(fileQueueItem.getTargetFormat()));
+                pdfToPpmDevice.convert(file.getAbsolutePath(), tempDir.getAbsolutePath() + File.separator + "p",
+                        conversionProperties.getTimeOut(), getOptions(fileQueueItem.getTargetFormat()));
 
                 File[] files = tempDir.listFiles();
                 if (files != null && files.length == 1) {
@@ -81,7 +87,7 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
                     tempFileService().delete(tempDir);
                 }
             }
-        } catch (ProcessException ex) {
+        } catch (ProcessException | ProcessTimedOutException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new ConvertException(ex);

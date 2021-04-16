@@ -32,7 +32,8 @@ public class FFmpegDevice {
                 && !result.contains("Could not write header for output file")
                 && !result.contains("incompatible with output codec")
                 && !result.contains("Error initializing output stream")
-                && !result.contains("Error selecting an encoder for stream");
+                && !result.contains("Error selecting an encoder for stream")
+                && !result.contains("Decoder (codec av1) not found for input stream");
     }
 
     private String[] getConvertCommand(String in, String out, String... options) {

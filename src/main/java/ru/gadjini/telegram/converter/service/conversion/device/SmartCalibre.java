@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.service.conversion.device;
 import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -15,8 +14,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.stream.Stream;
 
 @Service
-@Qualifier("calibre")
-public class SmartCalibre implements ConvertDevice {
+public class SmartCalibre {
 
     private static final String TAG = "calibre";
 
@@ -30,12 +28,7 @@ public class SmartCalibre implements ConvertDevice {
         this.processExecutor = processExecutor;
     }
 
-    @Override
-    public void convert(String in, String out, String... options) throws InterruptedException {
-        convert(in, out, null, options);
-    }
-
-    public void convert(String in, String out, Integer waitForSeconds, String... options) throws InterruptedException {
+    public void convert(String in, String out, int waitForSeconds, String... options) throws InterruptedException {
         if (out.endsWith("doc")) {
             SmartTempFile tempFile = tempFileService.createTempFile(FileTarget.TEMP, TAG, Format.DOCX.getExt());
             try {

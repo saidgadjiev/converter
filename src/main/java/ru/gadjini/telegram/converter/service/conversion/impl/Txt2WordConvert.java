@@ -1,13 +1,17 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.aspose.words.TxtLoadOptions;
+import com.aspose.words.Document;
+import com.aspose.words.SaveFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.service.conversion.LocalProcessExecutor;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -24,9 +28,15 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
             List.of(Format.TXT, Format.XML), List.of(Format.DOC, Format.DOCX)
     );
 
+    private LocalProcessExecutor localProcessExecutor;
+
+    private ConversionProperties conversionProperties;
+
     @Autowired
-    public Txt2WordConvert() {
+    public Txt2WordConvert(LocalProcessExecutor localProcessExecutor, ConversionProperties conversionProperties) {
         super(MAP);
+        this.localProcessExecutor = localProcessExecutor;
+        this.conversionProperties = conversionProperties;
     }
 
     @Override
@@ -38,15 +48,28 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
         SmartTempFile txt = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
+            Document document = new Document(txt.getAbsolutePath());
             try {
                 SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 try {
-                    document.save(result.getAbsolutePath());
+                    return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
+                        try {
+                            document.save(result.getAbsolutePath(), Format.DOC.equals(fileQueueItem.getTargetFormat())
+                            ? SaveFormat.DOC : SaveFormat.DOCX);
+                        } catch (Exception e) {
+                            throw new ConvertException(e);
+                        }
 
-                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
-                    return new FileResult(fileName, result);
+                        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+                        return new FileResult(fileName, result);
+                    }, () -> {
+                        try {
+                            document.cleanup();
+                        } catch (Exception e) {
+                            throw new ConvertException(e);
+                        }
+                    });
                 } catch (Throwable e) {
                     tempFileService().delete(result);
                     throw e;
@@ -54,6 +77,8 @@ public class Txt2WordConvert extends BaseAny2AnyConverter {
             } finally {
                 document.cleanup();
             }
+        } catch (ProcessTimedOutException e) {
+            throw e;
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

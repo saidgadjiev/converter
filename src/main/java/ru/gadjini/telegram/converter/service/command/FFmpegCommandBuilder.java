@@ -25,6 +25,8 @@ public class FFmpegCommandBuilder {
 
     public static final String VP9_CODEC = "vp9";
 
+    public static final String AV1_CODEC = "av1";
+
     public static final String MPEGTS_FORMAT = "mpegts";
 
     public static final String FLV_FORMAT = "flv";
