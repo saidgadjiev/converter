@@ -48,7 +48,7 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
                 imageDevice.convert2Image(file.getAbsolutePath(), result.getAbsolutePath(),
-                        conversionProperties.getConversionTimeOut(),
+                        conversionProperties.getTimeOut(),
                         "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());

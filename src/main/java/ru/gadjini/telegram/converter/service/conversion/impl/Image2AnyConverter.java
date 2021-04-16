@@ -64,7 +64,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
                         ? Stream.concat(Stream.of(STICKER_CONVERT_OPTIONS), Stream.of(targetFormatOptions)).toArray(String[]::new)
                         : targetFormatOptions;
                 imageDevice.convert2Image(file.getAbsolutePath(), result.getAbsolutePath(),
-                        conversionProperties.getConversionTimeOut(), options);
+                        conversionProperties.getTimeOut(), options);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return fileQueueItem.getTargetFormat() == STICKER

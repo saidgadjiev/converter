@@ -64,7 +64,7 @@ public class Image2PdfConverter extends BaseAny2AnyConverter {
                 SmartTempFile png = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                         fileQueueItem.getFirstFileId(), TAG, PNG.getExt());
                 try {
-                    magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath(), conversionProperties.getConversionTimeOut());
+                    magickDevice.convert2Image(file.getAbsolutePath(), png.getAbsolutePath(), conversionProperties.getTimeOut());
                     src = png;
                 } finally {
                     tempFileService().delete(file);

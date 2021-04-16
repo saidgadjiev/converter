@@ -57,7 +57,7 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
         try {
             try {
                 //Try convert with calibre
-                calibreDevice.convert(in.getAbsolutePath(), result.getAbsolutePath(), conversionProperties.getConversionTimeOut());
+                calibreDevice.convert(in.getAbsolutePath(), result.getAbsolutePath(), conversionProperties.getTimeOut());
             } catch (ProcessException ex) {
                 //Fail because djvu has no actual text and has scanned images. Trying do conversion with djvulibre
                 LOGGER.error("No text djvu({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId());
@@ -66,7 +66,7 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
                 try {
                     djvuLibre.convert(in.getAbsolutePath(), outPdf.getAbsolutePath(), "-format=pdf");
                     calibreDevice.convert(outPdf.getAbsolutePath(), result.getAbsolutePath(),
-                            conversionProperties.getConversionTimeOut(),
+                            conversionProperties.getTimeOut(),
                             "--title", FilenameUtils.removeExtension(fileQueueItem.getFirstFileName()));
                 } finally {
                     tempFileService().delete(outPdf);

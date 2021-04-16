@@ -17,7 +17,7 @@ public class BotConfiguration {
 
     @Autowired
     public BotConfiguration(ConversionProperties conversionProperties) {
-        LOGGER.debug("Conversion time out({})", conversionProperties.getConversionTimeOut());
+        LOGGER.debug("Conversion time out({})", conversionProperties.getTimeOut());
     }
 
     @Bean
