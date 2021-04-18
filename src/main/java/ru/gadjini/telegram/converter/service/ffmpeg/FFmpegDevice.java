@@ -23,6 +23,13 @@ public class FFmpegDevice {
         processExecutor.execute(getConvertCommand(in, out, options), Set.of(139));
     }
 
+    public boolean isValidFile(String in) throws InterruptedException {
+        String result = processExecutor.tryExecute(getValidationCommand(in), 3);
+
+        return !result.contains("moov atom not found")
+                && !result.contains("Invalid data found when processing input");
+    }
+
     public boolean isConvertable(String in, String out, String... options) throws InterruptedException {
         String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 3);
 
@@ -31,9 +38,16 @@ public class FFmpegDevice {
                 && !result.contains("Could not find tag for codec")
                 && !result.contains("Could not write header for output file")
                 && !result.contains("incompatible with output codec")
+                && !result.contains("Error while opening encoder for output stream")
                 && !result.contains("Error initializing output stream")
                 && !result.contains("Error selecting an encoder for stream")
                 && !result.contains("Decoder (codec av1) not found for input stream");
+    }
+
+    private String[] getValidationCommand(String in) {
+        return new String[]{
+                "ffmpeg", "-v", "error", "-hide_banner", "-y", "-i", in
+        };
     }
 
     private String[] getConvertCommand(String in, String out, String... options) {

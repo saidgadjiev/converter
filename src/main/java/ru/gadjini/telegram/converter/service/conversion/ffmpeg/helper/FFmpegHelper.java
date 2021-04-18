@@ -10,8 +10,8 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -20,43 +20,86 @@ public class FFmpegHelper {
 
     private FFmpegDevice fFmpegDevice;
 
-    private FFprobeDevice fFprobeDevice;
-
     @Autowired
-    public FFmpegHelper(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+    public FFmpegHelper(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
-        this.fFprobeDevice = fFprobeDevice;
     }
 
     public void validateVideoIntegrity(SmartTempFile in) throws InterruptedException {
-        boolean validFile = fFprobeDevice.isValidFile(in.getAbsolutePath());
+        boolean validFile = fFmpegDevice.isValidFile(in.getAbsolutePath());
 
         if (!validFile) {
             throw new CorruptedVideoException();
         }
     }
 
-    public void copyOrConvertSubtitlesCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                             SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem) throws InterruptedException {
-        if (allStreams.stream().anyMatch(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))) {
-            if (isSubtitlesCopyable(file, result)) {
+    public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+                                                     SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem) throws InterruptedException {
+        if (!isSubtitlesSupported(fileQueueItem.getTargetFormat())) {
+            return;
+        }
+        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(stream.getCodecType()))) {
+            FFmpegCommandBuilder baseCommandToCheckCopyable = new FFmpegCommandBuilder(commandBuilder);
+
+            List<FFprobeDevice.Stream> subtitleStreams = allStreams.stream()
+                    .filter(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))
+                    .collect(Collectors.toList());
+            Map<Integer, Integer> copySubtitlesIndexes = new LinkedHashMap<>();
+            Map<Integer, Integer> convertableSubtitlesIndexes = new LinkedHashMap<>();
+            int ffmpegSubtitleStreamIndex = 0;
+            for (int subtitleStreamIndex = 0; subtitleStreamIndex < subtitleStreams.size(); ++subtitleStreamIndex) {
+                if (isSubtitlesCopyable(baseCommandToCheckCopyable, file, result, subtitleStreamIndex)) {
+                    copySubtitlesIndexes.put(ffmpegSubtitleStreamIndex++, subtitleStreamIndex);
+                } else if (isSubtitlesConvertable(commandBuilder, file, result, subtitleStreamIndex, fileQueueItem.getTargetFormat())) {
+                    convertableSubtitlesIndexes.put(ffmpegSubtitleStreamIndex++, subtitleStreamIndex);
+                }
+            }
+            if (copySubtitlesIndexes.size() == subtitleStreams.size()) {
                 commandBuilder.mapSubtitles().copySubtitles();
-            } else if (FFmpegHelper.isSubtitlesSupported(fileQueueItem.getTargetFormat())) {
+            } else {
+                copySubtitlesIndexes.forEach((index1, index2) -> commandBuilder.mapSubtitles(index2).copySubtitles(index1));
+            }
+            if (convertableSubtitlesIndexes.size() == subtitleStreams.size()) {
                 commandBuilder.mapSubtitles();
                 FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
+            } else {
+                convertableSubtitlesIndexes.forEach((index1, index2) -> {
+                    commandBuilder.mapSubtitles(index2);
+                    FFmpegHelper.addSubtitlesCodec(commandBuilder, index1, fileQueueItem.getTargetFormat());
+                });
             }
         }
     }
 
-    private boolean isSubtitlesCopyable(SmartTempFile in, SmartTempFile out) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-        commandBuilder.mapSubtitles().copySubtitles();
+    private boolean isSubtitlesCopyable(FFmpegCommandBuilder baseCommandBuilder, SmartTempFile in,
+                                        SmartTempFile out, int index) throws InterruptedException {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
+        commandBuilder.mapSubtitles(index).copySubtitles();
+
+        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+    }
+
+    private boolean isSubtitlesConvertable(FFmpegCommandBuilder baseCommandBuilder, SmartTempFile in,
+                                           SmartTempFile out, int index, Format format) throws InterruptedException {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
+        commandBuilder.mapSubtitles(index);
+        FFmpegHelper.addSubtitlesCodec(commandBuilder, format);
 
         return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
     }
 
     private static boolean isSubtitlesSupported(Format format) {
         return Set.of(MP4, MOV, WEBM, MKV).contains(format);
+    }
+
+    private static void addSubtitlesCodec(FFmpegCommandBuilder commandBuilder, int index, Format format) {
+        if (format == MP4 || format == MOV) {
+            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.MOV_TEXT_CODEC, index);
+        } else if (format == WEBM) {
+            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.WEBVTT_CODEC, index);
+        } else if (format == MKV) {
+            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.SRT_CODEC, index);
+        }
     }
 
     private static void addSubtitlesCodec(FFmpegCommandBuilder commandBuilder, Format format) {

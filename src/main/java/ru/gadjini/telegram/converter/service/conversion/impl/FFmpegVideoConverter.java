@@ -120,7 +120,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
             commandBuilder.crf("10");
         }
         videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
-        fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
+        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 

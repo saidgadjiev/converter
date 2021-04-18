@@ -72,8 +72,22 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder copySubtitles(int index) {
+        options.add("-c:s:" + index);
+        options.add("copy");
+
+        return this;
+    }
+
     public FFmpegCommandBuilder subtitlesCodec(String codec) {
         options.add("-c:s");
+        options.add(codec);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder subtitlesCodec(String codec, int index) {
+        options.add("-c:s:" + index);
         options.add(codec);
 
         return this;
@@ -82,6 +96,13 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder mapSubtitles() {
         options.add("-map");
         options.add("s");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder mapSubtitles(int index) {
+        options.add("-map");
+        options.add("s:" + index);
 
         return this;
     }
