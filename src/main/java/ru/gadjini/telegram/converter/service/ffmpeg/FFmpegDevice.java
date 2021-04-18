@@ -27,7 +27,8 @@ public class FFmpegDevice {
         String result = processExecutor.tryExecute(getValidationCommand(in), 3);
 
         return !result.contains("moov atom not found")
-                && !result.contains("Invalid data found when processing input");
+                && !result.contains("Invalid data found when processing input")
+                && !result.contains("error reading header");
     }
 
     public boolean isConvertable(String in, String out, String... options) throws InterruptedException {
