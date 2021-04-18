@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -44,12 +46,17 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private FFmpegAudioConversionHelper audioConversionHelper;
 
+    private FFmpegHelper fFmpegHelper;
+
     @Autowired
-    public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegAudioConversionHelper audioConversionHelper) {
+    public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
+                                      FFmpegAudioConversionHelper audioConversionHelper,
+                                      FFmpegHelper fFmpegHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.audioConversionHelper = audioConversionHelper;
+        this.fFmpegHelper = fFmpegHelper;
     }
 
     @Override
@@ -62,6 +69,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
+            fFmpegHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
             ConvertResults convertResults = new ConvertResults();
             for (int streamIndex = 0; streamIndex < audioStreams.size(); streamIndex++) {
@@ -103,6 +111,8 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
             }
 
             return convertResults;
+        } catch (CorruptedVideoException e) {
+            throw e;
         } catch (Exception e) {
             throw new ConvertException(e);
         }

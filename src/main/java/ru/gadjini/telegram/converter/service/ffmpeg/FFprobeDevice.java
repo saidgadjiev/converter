@@ -30,6 +30,13 @@ public class FFprobeDevice {
         this.gson = gson;
     }
 
+    public boolean isValidFile(String in) throws InterruptedException {
+        String result = processExecutor.tryExecute(getValidationCommand(in), 3);
+
+        return !result.contains("moov atom not found")
+                && !result.contains("Invalid data found when processing input");
+    }
+
     public List<Stream> getAudioStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getAudioStreamsCommand(in));
         JsonObject json = gson.fromJson(result, JsonObject.class);
@@ -90,6 +97,12 @@ public class FFprobeDevice {
         String duration = processExecutor.executeWithResult(getDurationCommand(in));
 
         return Math.round(Double.parseDouble(duration));
+    }
+
+    private String[] getValidationCommand(String in) {
+        return new String[]{
+                "ffprobe", "-v", "error", in
+        };
     }
 
     private String[] getDurationCommand(String in) {

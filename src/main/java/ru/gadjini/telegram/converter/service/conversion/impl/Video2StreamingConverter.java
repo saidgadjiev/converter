@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -30,11 +32,15 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoConverter fFmpegVideoFormatsConverter;
 
+    private FFmpegHelper fFmpegHelper;
+
     @Autowired
-    public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter) {
+    public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter,
+                                    FFmpegHelper fFmpegHelper) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoFormatsConverter = fFmpegVideoFormatsConverter;
+        this.fFmpegHelper = fFmpegHelper;
     }
 
     @Override
@@ -72,7 +78,11 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
+            fFmpegHelper.validateVideoIntegrity(file);
             return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem);
+        } catch (CorruptedVideoException e) {
+            tempFileService().delete(result);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -82,14 +83,18 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
+            fFmpegHelper.validateVideoIntegrity(file);
             return doConvert(file, result, fileQueueItem);
+        } catch (CorruptedVideoException e) {
+            tempFileService().delete(file);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
         }
     }
 
-    public ConversionResult doConvert(SmartTempFile file, SmartTempFile out, ConversionQueueItem fileQueueItem) throws InterruptedException {
+    public ConversionResult doConvert(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem) throws InterruptedException {
         List<FFprobeDevice.Stream> allStreams = videoConversionHelper.getStreamsForConversion(file);
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
@@ -100,10 +105,10 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
             commandBuilder.mapVideo(videoStreamIndex);
-            if (videoConversionHelper.isCopyableVideoCodecs(file, out, fileQueueItem.getTargetFormat(), videoStreamIndex)) {
+            if (videoConversionHelper.isCopyableVideoCodecs(file, result, fileQueueItem.getTargetFormat(), videoStreamIndex)) {
                 commandBuilder.copyVideo(videoStreamIndex);
             } else {
-                boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, out, videoStreamIndex, scale);
+                boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
                 if (!videoConversionHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
                         convertibleToH264, scale)) {
                     videoConversionHelper.addVideoCodecByTargetFormat(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
@@ -114,22 +119,22 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         if (WEBM.equals(fileQueueItem.getTargetFormat())) {
             commandBuilder.crf("10");
         }
-        videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
-        fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, out, fileQueueItem);
+        videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
+        fFmpegHelper.copyOrConvertSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 
-        fFmpegDevice.convert(file.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+        fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
 
         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
         if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(out.getAbsolutePath(), 0);
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
-            return new VideoResult(fileName, out, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
+            return new VideoResult(fileName, result, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
                     whd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming());
         } else {
-            return new FileResult(fileName, out, downloadThumb(fileQueueItem));
+            return new FileResult(fileName, result, downloadThumb(fileQueueItem));
         }
     }
 }

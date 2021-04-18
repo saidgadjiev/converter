@@ -13,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.exception.CorruptedFileException;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
@@ -157,7 +157,9 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
         @Override
         public ErrorCode getErrorCode(Throwable e) {
-            if (e instanceof CorruptedFileException || e instanceof ProcessException) {
+            if (e instanceof CorruptedVideoException) {
+                return new ErrorCode(ConverterMessagesProperties.MESSAGE_CORRUPTED_VIDEO);
+            } else if (e instanceof ProcessException) {
                 return new ErrorCode(ConverterMessagesProperties.MESSAGE_DAMAGED_FILE);
             } else if (e instanceof ProcessTimedOutException) {
                 return new ErrorCode(ConverterMessagesProperties.CONVERSION_TIMED_OUT);

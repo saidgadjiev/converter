@@ -7,10 +7,12 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -60,10 +62,12 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
 
+    private FFmpegHelper fFmpegHelper;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
-                                  FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper) {
+                                  FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegHelper fFmpegHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -71,6 +75,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.fFprobeDevice = fFprobeDevice;
         this.messageBuilder = messageBuilder;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
+        this.fFmpegHelper = fFmpegHelper;
     }
 
     @Override
@@ -80,6 +85,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
+            fFmpegHelper.validateVideoIntegrity(file);
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, SCALE, fileQueueItem);
             commandBuilder.crf("30");
@@ -90,8 +96,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                     fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(result.length()));
 
             if (fileQueueItem.getSize() <= result.length()) {
-                Locale localeOrDefault = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, localeOrDefault)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+                Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, locale)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 
@@ -103,7 +109,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), compessionInfo);
             }
-        } catch (UserException e) {
+        } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;
         } catch (Throwable e) {

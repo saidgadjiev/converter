@@ -8,10 +8,12 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -54,11 +56,12 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
 
+    private FFmpegHelper fFmpegHelper;
+
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
-                       FFmpegDevice fFmpegDevice, Gson gson,
-                       LocalisationService localisationService,
-                       FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper) {
+                       FFmpegDevice fFmpegDevice, Gson gson, LocalisationService localisationService,
+                       FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegHelper fFmpegHelper) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
@@ -67,6 +70,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         this.gson = gson;
         this.localisationService = localisationService;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
+        this.fFmpegHelper = fFmpegHelper;
     }
 
     @Override
@@ -77,6 +81,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
+            fFmpegHelper.validateVideoIntegrity(file);
             SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
             Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
@@ -104,7 +109,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), resolutionChangedInfo);
             }
-        } catch (UserException e) {
+        } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;
         } catch (Throwable e) {

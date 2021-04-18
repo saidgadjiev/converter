@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -19,9 +20,20 @@ public class FFmpegHelper {
 
     private FFmpegDevice fFmpegDevice;
 
+    private FFprobeDevice fFprobeDevice;
+
     @Autowired
-    public FFmpegHelper(FFmpegDevice fFmpegDevice) {
+    public FFmpegHelper(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
         this.fFmpegDevice = fFmpegDevice;
+        this.fFprobeDevice = fFprobeDevice;
+    }
+
+    public void validateVideoIntegrity(SmartTempFile in) throws InterruptedException {
+        boolean validFile = fFprobeDevice.isValidFile(in.getAbsolutePath());
+
+        if (!validFile) {
+            throw new CorruptedVideoException();
+        }
     }
 
     public void copyOrConvertSubtitlesCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,

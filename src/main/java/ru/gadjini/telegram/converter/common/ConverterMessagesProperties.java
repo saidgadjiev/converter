@@ -174,4 +174,6 @@ public class ConverterMessagesProperties {
     public static final String OPUS_COMPRESSION_COMMAND_DESCRIPTION = "opus.compression.command.description";
 
     public static final String MP3_COMPRESSION_COMMAND_DESCRIPTION = "mp3.compression.command.description";
+
+    public static final String MESSAGE_CORRUPTED_VIDEO = "message.corrupted.video";
 }
