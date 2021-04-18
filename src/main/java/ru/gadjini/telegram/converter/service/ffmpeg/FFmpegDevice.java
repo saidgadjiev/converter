@@ -8,9 +8,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Service
 public class FFmpegDevice {
+
+    private static final Pattern DECODER_NOT_FOUND_PATTERN = Pattern.compile(".*Decoder \\(.*\\) not found for input stream.*", Pattern.DOTALL);
 
     private ProcessExecutor processExecutor;
 
@@ -42,7 +45,7 @@ public class FFmpegDevice {
                 && !result.contains("Error while opening encoder for output stream")
                 && !result.contains("Error initializing output stream")
                 && !result.contains("Error selecting an encoder for stream")
-                && !result.contains("Decoder (codec av1) not found for input stream");
+                && !DECODER_NOT_FOUND_PATTERN.matcher(result).matches();
     }
 
     private String[] getValidationCommand(String in) {
