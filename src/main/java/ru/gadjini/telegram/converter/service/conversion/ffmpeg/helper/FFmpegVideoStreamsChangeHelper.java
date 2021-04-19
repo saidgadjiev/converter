@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
@@ -14,11 +15,20 @@ public class FFmpegVideoStreamsChangeHelper {
 
     private FFmpegVideoConversionHelper videoConversionHelper;
 
-    private FFmpegHelper fFmpegHelper;
+    private FFmpegSubtitlesHelper fFmpegHelper;
 
-    public FFmpegVideoStreamsChangeHelper(FFmpegVideoConversionHelper videoConversionHelper, FFmpegHelper fFmpegHelper) {
+    private FFmpegVideoHelper fFmpegVideoHelper;
+
+    private FFmpegAudioHelper fFmpegAudioHelper;
+
+    @Autowired
+    public FFmpegVideoStreamsChangeHelper(FFmpegVideoConversionHelper videoConversionHelper,
+                                          FFmpegSubtitlesHelper fFmpegHelper, FFmpegVideoHelper fFmpegVideoHelper,
+                                          FFmpegAudioHelper fFmpegAudioHelper) {
         this.videoConversionHelper = videoConversionHelper;
         this.fFmpegHelper = fFmpegHelper;
+        this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.fFmpegAudioHelper = fFmpegAudioHelper;
     }
 
     public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, SmartTempFile file,
@@ -29,8 +39,8 @@ public class FFmpegVideoStreamsChangeHelper {
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
             commandBuilder.mapVideo(videoStreamIndex);
-            boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
-            if (!videoConversionHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
+            boolean convertibleToH264 = fFmpegVideoHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
+            if (!fFmpegVideoHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
                     convertibleToH264, scale)) {
                 commandBuilder.videoCodec(videoStreamIndex, videoStream.getCodecName());
             }
@@ -38,8 +48,8 @@ public class FFmpegVideoStreamsChangeHelper {
                 commandBuilder.filterVideo(videoStreamIndex, scale);
             }
         }
-        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
-        videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
+        fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
+        fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);

@@ -9,8 +9,10 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -56,18 +58,26 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegHelper fFmpegHelper;
+    private FFmpegSubtitlesHelper fFmpegHelper;
 
     private FFmpegVideoConversionHelper videoConversionHelper;
 
+    private FFmpegVideoHelper fFmpegVideoHelper;
+
+    private FFmpegAudioHelper fFmpegAudioHelper;
+
     @Autowired
     public FFmpegVideoConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                FFmpegHelper fFmpegHelper, FFmpegVideoConversionHelper videoConversionHelper) {
+                                FFmpegSubtitlesHelper fFmpegHelper,
+                                FFmpegVideoConversionHelper videoConversionHelper,
+                                FFmpegVideoHelper fFmpegVideoHelper, FFmpegAudioHelper fFmpegAudioHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegHelper = fFmpegHelper;
         this.videoConversionHelper = videoConversionHelper;
+        this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.fFmpegAudioHelper = fFmpegAudioHelper;
     }
 
     @Override
@@ -105,21 +115,21 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
             commandBuilder.mapVideo(videoStreamIndex);
-            if (videoConversionHelper.isCopyableVideoCodecs(file, result, fileQueueItem.getTargetFormat(), videoStreamIndex)) {
+            if (fFmpegVideoHelper.isCopyableVideoCodecs(file, result, fileQueueItem.getTargetFormat(), videoStreamIndex)) {
                 commandBuilder.copyVideo(videoStreamIndex);
             } else {
-                boolean convertibleToH264 = videoConversionHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
-                if (!videoConversionHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
+                boolean convertibleToH264 = fFmpegVideoHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
+                if (!fFmpegVideoHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
                         convertibleToH264, scale)) {
-                    videoConversionHelper.addVideoCodecByTargetFormat(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
+                    fFmpegVideoHelper.addVideoCodecByTargetFormat(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
                 }
             }
         }
-        videoConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
+        fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
         if (WEBM.equals(fileQueueItem.getTargetFormat())) {
             commandBuilder.crf("10");
         }
-        videoConversionHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
+        fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);

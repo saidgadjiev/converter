@@ -88,6 +88,8 @@ make -j 4 && make install
 
 ENV PATH="/home/bot/ffmpeg/:${PATH}"
 
+RUN apt-get install -y timidity
+
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
 USER bot

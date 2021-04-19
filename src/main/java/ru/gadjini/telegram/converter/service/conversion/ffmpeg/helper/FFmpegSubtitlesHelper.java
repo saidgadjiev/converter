@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
-@Service
-public class FFmpegHelper {
+@Component
+public class FFmpegSubtitlesHelper {
 
     private FFmpegDevice fFmpegDevice;
 
     @Autowired
-    public FFmpegHelper(FFmpegDevice fFmpegDevice) {
+    public FFmpegSubtitlesHelper(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
     }
 
@@ -83,7 +83,7 @@ public class FFmpegHelper {
                     commandBuilder.mapSubtitles().copySubtitles();
                 } else {
                     commandBuilder.mapSubtitles();
-                    FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
+                    addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
                 }
             } else {
                 validSubtitlesIndexes.forEach((subtitlesIndex, mapIndex) -> {
@@ -91,7 +91,7 @@ public class FFmpegHelper {
                     if (copySubtitlesIndexes.get(subtitlesIndex)) {
                         commandBuilder.copySubtitles(subtitlesIndex);
                     } else {
-                        FFmpegHelper.addSubtitlesCodec(commandBuilder, subtitlesIndex, fileQueueItem.getTargetFormat());
+                        addSubtitlesCodec(commandBuilder, subtitlesIndex, fileQueueItem.getTargetFormat());
                     }
                 });
             }
@@ -110,7 +110,7 @@ public class FFmpegHelper {
                                            SmartTempFile out, int index, Format format) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
         commandBuilder.mapSubtitles(index);
-        FFmpegHelper.addSubtitlesCodec(commandBuilder, format);
+        addSubtitlesCodec(commandBuilder, format);
 
         return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
     }
