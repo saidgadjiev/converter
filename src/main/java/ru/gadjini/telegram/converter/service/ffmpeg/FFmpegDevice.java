@@ -27,7 +27,7 @@ public class FFmpegDevice {
     }
 
     public boolean isValidFile(String in) throws InterruptedException {
-        String result = processExecutor.tryExecute(getValidationCommand(in), 3);
+        String result = processExecutor.tryExecute(getValidationCommand(in), 6);
 
         return !result.contains("moov atom not found")
                 && !result.contains("Invalid data found when processing input")
@@ -35,7 +35,7 @@ public class FFmpegDevice {
     }
 
     public boolean isConvertable(String in, String out, String... options) throws InterruptedException {
-        String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 3);
+        String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 6);
 
         return !result.contains("Conversion failed!")
                 && !result.contains("Unsupported audio codec")

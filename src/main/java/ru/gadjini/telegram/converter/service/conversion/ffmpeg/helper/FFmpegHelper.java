@@ -10,10 +10,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -50,15 +47,35 @@ public class FFmpegHelper {
             Map<Integer, Boolean> copySubtitlesIndexes = new LinkedHashMap<>();
             Map<Integer, Integer> validSubtitlesIndexes = new LinkedHashMap<>();
             int ffmpegSubtitleStreamIndex = 0;
+            int copyable = 0, convertable = 1, ignore = 2;
+            Map<String, Integer> streamsCache = new HashMap<>();
             for (int subtitleStreamIndex = 0; subtitleStreamIndex < subtitleStreams.size(); ++subtitleStreamIndex) {
-                if (isSubtitlesCopyable(baseCommandToCheckCopyable, file, result, subtitleStreamIndex)) {
-                    int nextIndex = ffmpegSubtitleStreamIndex++;
-                    validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
-                    copySubtitlesIndexes.put(nextIndex, true);
-                } else if (isSubtitlesConvertable(commandBuilder, file, result, subtitleStreamIndex, fileQueueItem.getTargetFormat())) {
-                    int nextIndex = ffmpegSubtitleStreamIndex++;
-                    validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
-                    copySubtitlesIndexes.put(nextIndex, false);
+                FFprobeDevice.Stream subtitleStream = subtitleStreams.get(subtitleStreamIndex);
+                if (streamsCache.containsKey(subtitleStream.getCodecName())) {
+                    int state = streamsCache.get(subtitleStream.getCodecName());
+                    if (state == convertable) {
+                        int nextIndex = ffmpegSubtitleStreamIndex++;
+                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                        copySubtitlesIndexes.put(nextIndex, false);
+                    } else if (state == copyable) {
+                        int nextIndex = ffmpegSubtitleStreamIndex++;
+                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                        copySubtitlesIndexes.put(nextIndex, true);
+                    }
+                } else {
+                    if (isSubtitlesCopyable(baseCommandToCheckCopyable, file, result, subtitleStreamIndex)) {
+                        int nextIndex = ffmpegSubtitleStreamIndex++;
+                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                        copySubtitlesIndexes.put(nextIndex, true);
+                        streamsCache.put(subtitleStream.getCodecName(), copyable);
+                    } else if (isSubtitlesConvertable(commandBuilder, file, result, subtitleStreamIndex, fileQueueItem.getTargetFormat())) {
+                        int nextIndex = ffmpegSubtitleStreamIndex++;
+                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                        copySubtitlesIndexes.put(nextIndex, false);
+                        streamsCache.put(subtitleStream.getCodecName(), convertable);
+                    } else {
+                        streamsCache.put(subtitleStream.getCodecName(), ignore);
+                    }
                 }
             }
             if (validSubtitlesIndexes.size() == subtitleStreams.size()) {
