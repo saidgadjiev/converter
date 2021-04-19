@@ -68,15 +68,16 @@ public class FFmpegHelper {
                     commandBuilder.mapSubtitles();
                     FFmpegHelper.addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
                 }
+            } else {
+                validSubtitlesIndexes.forEach((subtitlesIndex, mapIndex) -> {
+                    commandBuilder.mapSubtitles(mapIndex);
+                    if (copySubtitlesIndexes.get(subtitlesIndex)) {
+                        commandBuilder.copySubtitles(subtitlesIndex);
+                    } else {
+                        FFmpegHelper.addSubtitlesCodec(commandBuilder, subtitlesIndex, fileQueueItem.getTargetFormat());
+                    }
+                });
             }
-            validSubtitlesIndexes.forEach((subtitlesIndex, mapIndex) -> {
-                commandBuilder.mapSubtitles(mapIndex);
-                if (copySubtitlesIndexes.get(subtitlesIndex)) {
-                    commandBuilder.copySubtitles(subtitlesIndex);
-                } else {
-                    FFmpegHelper.addSubtitlesCodec(commandBuilder, subtitlesIndex, fileQueueItem.getTargetFormat());
-                }
-            });
         }
     }
 
