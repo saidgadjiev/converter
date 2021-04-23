@@ -2,7 +2,7 @@ Description:
 #All
 I can convert files, videos, audios, stickers, links, text to other formats, compress videos and audios and merge pdfs.
 #Video
-I can convert and compress videos.
+I can convert, compress videos, change resolution and make video from image and audio.
 #Audio
 I can convert and compress audios.
 
@@ -10,7 +10,7 @@ AboutText:
 #All
 I can convert files, videos, audios, stickers, links, text to other formats, compress videos and audios and merge pdfs.
 #Video
-I can convert and compress videos.
+I can convert, compress videos, change resolution and make video from image and audio.
 #Audio
 I can convert and compress audios.
 
@@ -25,7 +25,8 @@ goback- Go back
 
 #Video
 start - restart the bot
-vedit - Change video resolution
+vedit - change video resolution
+vaimake - make video from audio and image
 language - change language
 formats - conversion formats
 help - help
