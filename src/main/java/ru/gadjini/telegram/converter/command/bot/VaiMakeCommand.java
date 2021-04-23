@@ -112,7 +112,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(getAwaitingMessage(existsState))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_CLICK, locale))
                                 .parseMode(ParseMode.HTML)
                                 .replyMarkup(replyKeyboardService.vmakeKeyboard(message.getChatId(), locale))
                                 .build()
@@ -122,16 +122,16 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
                 String cancelFilesCommand = localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale);
                 String vmakeCommand = localisationService.getMessage(ConverterMessagesProperties.VMAKE_COMMAND_NAME, locale);
                 if (Objects.equals(text, cancelFilesCommand)) {
-                    existsState.clearMedia();
                     messageService.sendMessage(
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                    .text(getAwaitingMessage(existsState))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_FILES_CANCELED, locale))
                                     .parseMode(ParseMode.HTML)
                                     .replyMarkup(replyKeyboardService.vmakeKeyboard(message.getChatId(), locale))
                                     .build()
                     );
-                    commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
+                    commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 } else if (Objects.equals(text, vmakeCommand)) {
+                    validateVaiMake(existsState);
                     convertionService.createConversion(message.getFrom(), existsState, Format.VMAKE, locale);
                     commandStateService.deleteState(message.getChatId(), ConverterCommandNames.VIDEO_MAKE);
                 }
@@ -170,11 +170,19 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
         return media.getFormat().getCategory() == FormatCategory.AUDIO ? AUDIO_FILE_INDEX : IMAGE_FILE_INDEX;
     }
 
+    private void validateVaiMake(ConvertState convertState) {
+        if (convertState.getMedia(AUDIO_FILE_INDEX) != null && convertState.getMedia(IMAGE_FILE_INDEX) != null) {
+            return;
+        }
+
+        throw new UserException(getAwaitingMessage(convertState));
+    }
+
     private String getAwaitingMessage(ConvertState convertState) {
         if (convertState.getMedia(AUDIO_FILE_INDEX) != null) {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_AWAITING_IMAGE, new Locale(convertState.getUserLanguage()));
         } else {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_AWAITING_AUDIO, new Locale(convertState.getUserLanguage())));
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_AWAITING_AUDIO, new Locale(convertState.getUserLanguage()));
         }
     }
 

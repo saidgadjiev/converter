@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.ffmpeg;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.ArrayList;

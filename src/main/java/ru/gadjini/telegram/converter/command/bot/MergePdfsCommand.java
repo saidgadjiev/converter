@@ -29,7 +29,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 
 @Component
 public class MergePdfsCommand implements BotCommand, NavigableBotCommand {

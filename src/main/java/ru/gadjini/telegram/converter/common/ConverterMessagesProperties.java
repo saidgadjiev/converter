@@ -186,4 +186,6 @@ public class ConverterMessagesProperties {
     public static final String VMAKE_COMMAND_NAME = "vmake.command.name";
 
     public static final String MESSAGE_VMAKE_FILES_CANCELED = "message.vmake.files.canceled";
+
+    public static final String MESSAGE_VMAKE_CLICK = "message.vmake.click";
 }

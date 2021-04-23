@@ -25,10 +25,6 @@ public class VideoMakeConverter extends BaseAny2AnyConverter {
 
     private static final Format OUTPUT_FORMAT = Format.MP4;
 
-    private static final Format IMAGE_FORMAT = Format.PNG;
-
-    private static final Format AUDIO_FORMAT = Format.MP3;
-
     public static final int AUDIO_FILE_INDEX = 1;
 
     public static final int IMAGE_FILE_INDEX = 0;

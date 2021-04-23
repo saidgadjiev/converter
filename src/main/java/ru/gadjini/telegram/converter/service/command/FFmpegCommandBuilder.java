@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.command;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class FFmpegCommandBuilder {
 
@@ -296,7 +295,7 @@ public class FFmpegCommandBuilder {
     }
 
     public FFmpegCommandBuilder framerate(String framerate) {
-        options.add("-frameratef");
+        options.add("-framerate");
         options.add(framerate);
 
         return this;
