@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.command.bot;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -10,6 +9,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
@@ -50,14 +50,13 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     private ConvertionService convertionService;
 
-    @Value("${converter:all}")
-    private String converter;
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     public MergePdfsCommand(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             MessageMediaService messageMediaService, CommandStateService commandStateService,
-                            ConvertionService convertionService) {
+                            ConvertionService convertionService, ApplicationProperties applicationProperties) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -65,6 +64,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
         this.messageMediaService = messageMediaService;
         this.commandStateService = commandStateService;
         this.convertionService = convertionService;
+        this.applicationProperties = applicationProperties;
     }
 
     @Autowired
@@ -74,7 +74,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public boolean accept(Message message) {
-        return Set.of(FormatsConfiguration.ALL_CONVERTER, FormatsConfiguration.DOCUMENT_CONVERTER).contains(converter);
+        return applicationProperties.is(FormatsConfiguration.DOCUMENT_CONVERTER);
     }
 
     @Override

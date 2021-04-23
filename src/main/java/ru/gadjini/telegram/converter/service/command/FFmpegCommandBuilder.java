@@ -98,6 +98,13 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder t(long seconds) {
+        options.add("-t");
+        options.add(String.valueOf(seconds));
+
+        return this;
+    }
+
     public FFmpegCommandBuilder out(String filePath) {
         options.add(filePath);
 
@@ -284,6 +291,13 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder r(String r) {
         options.add("-r");
         options.add(r);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder framerate(String framerate) {
+        options.add("-frameratef");
+        options.add(framerate);
 
         return this;
     }

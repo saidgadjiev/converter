@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.P7ArchiveDevice;
@@ -39,11 +39,11 @@ public class Pdf2PngJpgConverter extends BaseAny2AnyConverter {
 
     private UserService userService;
 
-    private ConversionProperties conversionProperties;
+    private Url2PdfServerProperties conversionProperties;
 
     @Autowired
     public Pdf2PngJpgConverter(PdfToPpmDevice pdfToPpmDevice, P7ArchiveDevice p7ArchiveDevice,
-                               LocalisationService localisationService, UserService userService, ConversionProperties conversionProperties) {
+                               LocalisationService localisationService, UserService userService, Url2PdfServerProperties conversionProperties) {
         super(MAP);
         this.pdfToPpmDevice = pdfToPpmDevice;
         this.p7ArchiveDevice = p7ArchiveDevice;

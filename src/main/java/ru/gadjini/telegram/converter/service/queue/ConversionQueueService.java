@@ -8,9 +8,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.User;
+import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.dao.ConversionQueueDao;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -30,18 +31,22 @@ public class ConversionQueueService {
 
     private FileLimitProperties fileLimitProperties;
 
+    private ApplicationProperties applicationProperties;
+
     @Autowired
     public ConversionQueueService(@Lazy ConversionQueueDao conversionQueueDao, LocalisationService localisationService,
-                                  FileLimitProperties fileLimitProperties) {
+                                  FileLimitProperties fileLimitProperties, ApplicationProperties applicationProperties) {
         this.conversionQueueDao = conversionQueueDao;
         this.localisationService = localisationService;
         this.fileLimitProperties = fileLimitProperties;
+        this.applicationProperties = applicationProperties;
     }
 
     @Transactional
     public ConversionQueueItem create(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
 
+        fileQueueItem.setConverter(applicationProperties.getConverter());
         convertState.getFiles().forEach(media -> {
             if (StringUtils.isBlank(media.getFileName())) {
                 LOGGER.debug("Empty file name({}, {}, {})", user.getId(), targetFormat, convertState);

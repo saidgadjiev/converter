@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.LocalProcessExecutor;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -28,12 +28,12 @@ public class Txt2PdfConvert extends BaseAny2AnyConverter {
             List.of(Format.TXT, Format.XML), List.of(Format.PDF)
     );
 
-    private ConversionProperties conversionProperties;
+    private Url2PdfServerProperties conversionProperties;
 
     private LocalProcessExecutor localProcessExecutor;
 
     @Autowired
-    public Txt2PdfConvert(ConversionProperties conversionProperties, LocalProcessExecutor localProcessExecutor) {
+    public Txt2PdfConvert(Url2PdfServerProperties conversionProperties, LocalProcessExecutor localProcessExecutor) {
         super(MAP);
         this.conversionProperties = conversionProperties;
         this.localProcessExecutor = localProcessExecutor;

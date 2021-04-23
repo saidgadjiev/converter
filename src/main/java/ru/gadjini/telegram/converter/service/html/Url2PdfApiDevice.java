@@ -3,7 +3,7 @@ package ru.gadjini.telegram.converter.service.html;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import ru.gadjini.telegram.smart.bot.commons.utils.UrlUtils;
 
@@ -20,12 +20,12 @@ public class Url2PdfApiDevice implements HtmlDevice {
 
     public static final String HTML_OUTPUT = "html";
 
-    private ConversionProperties conversionProperties;
+    private Url2PdfServerProperties conversionProperties;
 
     private ProcessExecutor processExecutor;
 
     @Autowired
-    public Url2PdfApiDevice(ConversionProperties conversionProperties, ProcessExecutor processExecutor) {
+    public Url2PdfApiDevice(Url2PdfServerProperties conversionProperties, ProcessExecutor processExecutor) {
         this.conversionProperties = conversionProperties;
         this.processExecutor = processExecutor;
     }

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.image.device.ImageMagickDevice;
@@ -26,10 +26,10 @@ public class Image2IcoConverter extends BaseAny2AnyConverter {
 
     private ImageMagickDevice imageDevice;
 
-    private ConversionProperties conversionProperties;
+    private Url2PdfServerProperties conversionProperties;
 
     @Autowired
-    public Image2IcoConverter(ImageMagickDevice imageDevice, ConversionProperties conversionProperties) {
+    public Image2IcoConverter(ImageMagickDevice imageDevice, Url2PdfServerProperties conversionProperties) {
         super(MAP);
         this.imageDevice = imageDevice;
         this.conversionProperties = conversionProperties;

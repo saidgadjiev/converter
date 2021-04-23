@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.LocalProcessExecutor;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -39,12 +39,12 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter {
         MAP = FormatMapUtils.buildMap(asposeSlidesLoadFormats, asposeSlidesSaveFormats);
     }
 
-    private ConversionProperties conversionProperties;
+    private Url2PdfServerProperties conversionProperties;
 
     private LocalProcessExecutor localProcessExecutor;
 
     @Autowired
-    public PowerPoint2AnyConverter(ConversionProperties conversionProperties, LocalProcessExecutor localProcessExecutor) {
+    public PowerPoint2AnyConverter(Url2PdfServerProperties conversionProperties, LocalProcessExecutor localProcessExecutor) {
         super(MAP);
         this.conversionProperties = conversionProperties;
         this.localProcessExecutor = localProcessExecutor;

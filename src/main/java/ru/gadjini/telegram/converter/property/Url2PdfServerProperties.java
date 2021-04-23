@@ -3,7 +3,7 @@ package ru.gadjini.telegram.converter.property;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("conversion")
-public class ConversionProperties {
+public class Url2PdfServerProperties {
 
     private int timeOut = 10 * 60;
 

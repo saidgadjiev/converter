@@ -2,12 +2,13 @@ package ru.gadjini.telegram.converter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
 import javax.annotation.PostConstruct;
@@ -23,8 +24,7 @@ public class ConverterApplication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterApplication.class);
 
-    @Value("${converter:all}")
-    private String converter;
+    private ApplicationProperties applicationProperties;
 
     public static void main(String[] args) {
         setDefaultLocaleAndTZ();
@@ -36,10 +36,15 @@ public class ConverterApplication {
         }
     }
 
+    @Autowired
+    public void setApplicationProperties(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
+    }
+
     @PostConstruct
     public void init() {
         int mb = 1024 * 1024;
-        LOGGER.debug("Converter({})", converter);
+        LOGGER.debug("Converter({})", applicationProperties.getConverter());
         LOGGER.debug("Default zone({})", TimeZone.getDefault().getDisplayName());
         LOGGER.debug("Default locale({})", Locale.getDefault().getDisplayName());
         LOGGER.debug("Heap size({}mb)", Runtime.getRuntime().totalMemory() / mb);

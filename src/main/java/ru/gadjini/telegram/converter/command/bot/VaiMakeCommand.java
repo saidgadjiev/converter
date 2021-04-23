@@ -8,6 +8,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
@@ -33,7 +35,7 @@ import static ru.gadjini.telegram.converter.service.conversion.impl.VideoMakeCon
 import static ru.gadjini.telegram.converter.service.conversion.impl.VideoMakeConverter.IMAGE_FILE_INDEX;
 
 @Component
-public class VideoMakeCommand implements NavigableBotCommand, BotCommand {
+public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
     private static final Set<FormatCategory> ACCEPT_CATEGORIES = Set.of(FormatCategory.AUDIO, FormatCategory.IMAGES);
 
@@ -51,12 +53,14 @@ public class VideoMakeCommand implements NavigableBotCommand, BotCommand {
 
     private ConvertionService convertionService;
 
+    private ApplicationProperties applicationProperties;
+
     @Autowired
-    public VideoMakeCommand(@TgMessageLimitsControl MessageService messageService,
-                            LocalisationService localisationService, UserService userService,
-                            @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                            CommandStateService commandStateService, MessageMediaService messageMediaService,
-                            ConvertionService convertionService) {
+    public VaiMakeCommand(@TgMessageLimitsControl MessageService messageService,
+                          LocalisationService localisationService, UserService userService,
+                          @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                          CommandStateService commandStateService, MessageMediaService messageMediaService,
+                          ConvertionService convertionService, ApplicationProperties applicationProperties) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -64,6 +68,12 @@ public class VideoMakeCommand implements NavigableBotCommand, BotCommand {
         this.commandStateService = commandStateService;
         this.messageMediaService = messageMediaService;
         this.convertionService = convertionService;
+        this.applicationProperties = applicationProperties;
+    }
+
+    @Override
+    public boolean accept(Message message) {
+        return applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER);
     }
 
     @Override
@@ -92,6 +102,7 @@ public class VideoMakeCommand implements NavigableBotCommand, BotCommand {
                             .replyMarkup(replyKeyboardService.vmakeKeyboard(message.getChatId(), locale))
                             .build()
             );
+            commandStateService.setState(message.getChatId(), ConverterCommandNames.VIDEO_MAKE, convertState);
         } else {
             Locale locale = new Locale(existsState.getUserLanguage());
             MessageMedia media = messageMediaService.getMedia(message, locale);

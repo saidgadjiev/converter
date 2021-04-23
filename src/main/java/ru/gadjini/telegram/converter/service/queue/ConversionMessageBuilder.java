@@ -4,11 +4,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
@@ -37,18 +37,20 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     private DownloadQueueService downloadQueueService;
 
-    @Value("${converter:all}")
-    private String converter;
+    private ApplicationProperties applicationProperties;
 
     @Autowired
-    public ConversionMessageBuilder(LocalisationService localisationService, DownloadQueueService downloadQueueService) {
+    public ConversionMessageBuilder(LocalisationService localisationService,
+                                    DownloadQueueService downloadQueueService,
+                                    ApplicationProperties applicationProperties) {
         this.localisationService = localisationService;
         this.downloadQueueService = downloadQueueService;
+        this.applicationProperties = applicationProperties;
     }
 
     @PostConstruct
     public void init() {
-        LOGGER.debug("Message builder converter({})", converter);
+        LOGGER.debug("Message builder converter({})", applicationProperties.getConverter());
     }
 
     public String getCompressionInfoMessage(long sourceSize, long resultSize, Locale locale) {
@@ -79,11 +81,11 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     }
 
     public String getWelcomeMessage(Locale locale) {
-        if (FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
+        if (FormatsConfiguration.ALL_CONVERTER.equals(applicationProperties.getConverter())) {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_FILE, locale);
-        } else if (FormatsConfiguration.DOCUMENT_CONVERTER.equals(converter)) {
+        } else if (FormatsConfiguration.DOCUMENT_CONVERTER.equals(applicationProperties.getConverter())) {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_DOCUMENT_FILE, locale);
-        } else if (FormatsConfiguration.AUDIO_CONVERTER.equals(converter)) {
+        } else if (FormatsConfiguration.AUDIO_CONVERTER.equals(applicationProperties.getConverter())) {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_AUDIO_FILE, locale);
         } else {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_VIDEO_FILE, locale);
@@ -92,11 +94,11 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     public String getChooseFormat(Locale locale) {
         StringBuilder message = new StringBuilder();
-        if (FormatsConfiguration.DOCUMENT_CONVERTER.equals(converter) || FormatsConfiguration.ALL_CONVERTER.equals(converter)) {
+        if (applicationProperties.is(FormatsConfiguration.DOCUMENT_CONVERTER)) {
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION, locale));
         } else {
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION, locale));
-            if (FormatsConfiguration.AUDIO_CONVERTER.equals(converter)) {
+            if (FormatsConfiguration.AUDIO_CONVERTER.equals(applicationProperties.getConverter())) {
                 message
                         .append("\n\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DEFAULT_COMPRESSION_SETTINGS,
@@ -126,7 +128,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             completedSteps.add(ConversionStep.DOWNLOADING);
             completedSteps.add(ConversionStep.CONVERTING);
         } else {
-            long downloadedCount = downloadQueueService.getDownloadedFilesCount(converter, queueItem.getId());
+            long downloadedCount = downloadQueueService.getDownloadedFilesCount(applicationProperties.getConverter(), queueItem.getId());
 
             if (downloadedCount == ((ConversionQueueItem) queueItem).getTotalFilesToDownload()) {
                 completedSteps.add(ConversionStep.DOWNLOADING);

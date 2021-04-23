@@ -67,7 +67,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
             audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
             fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
         } catch (ProcessException e) {
-            LOGGER.error("Error copy codecs");
+            LOGGER.error("Error copy codecs " + e.getMessage());
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio();
             audioConversionHelper.addAudioOptions(targetFormat, commandBuilder);
             audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);

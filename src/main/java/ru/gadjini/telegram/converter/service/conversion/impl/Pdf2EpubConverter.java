@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.SmartCalibre;
@@ -33,10 +33,10 @@ public class Pdf2EpubConverter extends BaseAny2AnyConverter {
 
     private SmartCalibre calibre;
 
-    private ConversionProperties conversionProperties;
+    private Url2PdfServerProperties conversionProperties;
 
     @Autowired
-    public Pdf2EpubConverter(SmartCalibre calibre, ConversionProperties conversionProperties) {
+    public Pdf2EpubConverter(SmartCalibre calibre, Url2PdfServerProperties conversionProperties) {
         super(MAP);
         this.calibre = calibre;
         this.conversionProperties = conversionProperties;

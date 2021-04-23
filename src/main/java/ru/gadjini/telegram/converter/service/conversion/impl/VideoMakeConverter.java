@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -20,7 +21,7 @@ import java.util.Map;
 @Component
 public class VideoMakeConverter extends BaseAny2AnyConverter {
 
-    private static final String TAG = "vmake";
+    private static final String TAG = "vaimake";
 
     private static final Format OUTPUT_FORMAT = Format.MP4;
 
@@ -36,20 +37,13 @@ public class VideoMakeConverter extends BaseAny2AnyConverter {
             List.of(Format.IMAGEAUDIO), List.of(Format.VMAKE)
     );
 
-    private FFmpegAudioFormatsConverter audioFormatsConverter;
-
-    private Image2AnyConverter image2AnyConverter;
-
     private FFmpegDevice fFmpegDevice;
 
     private FFprobeDevice fFprobeDevice;
 
     @Autowired
-    public VideoMakeConverter(FFmpegAudioFormatsConverter audioFormatsConverter,
-                              Image2AnyConverter image2AnyConverter, FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+    public VideoMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
         super(MAP);
-        this.audioFormatsConverter = audioFormatsConverter;
-        this.image2AnyConverter = image2AnyConverter;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
     }
@@ -58,45 +52,37 @@ public class VideoMakeConverter extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
         conversionQueueItem.setTargetFormat(OUTPUT_FORMAT);
         SmartTempFile downloadedAudio = conversionQueueItem.getDownloadedFiles().get(AUDIO_FILE_INDEX);
-        SmartTempFile audio = downloadedAudio;
         SmartTempFile downloadedImage = conversionQueueItem.getDownloadedFiles().get(IMAGE_FILE_INDEX);
-        SmartTempFile image = downloadedImage;
+
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
+                conversionQueueItem.getFirstFileId(), TAG, OUTPUT_FORMAT.getExt());
+
         try {
-            if (conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFormat() != Format.MP3) {
-                audio = tempFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
-                        conversionQueueItem.getFirstFileId(), TAG, AUDIO_FORMAT.getExt());
-                audioFormatsConverter.doConvertAudio(downloadedAudio, audio, AUDIO_FORMAT);
-            }
-            if (conversionQueueItem.getFiles().get(IMAGE_FILE_INDEX).getFormat() != Format.PNG) {
-                image = tempFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
-                        conversionQueueItem.getFirstFileId(), TAG, IMAGE_FORMAT.getExt());
-                image2AnyConverter.doConvert(downloadedImage, image, IMAGE_FORMAT);
-            }
-            SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
-                    conversionQueueItem.getFirstFileId(), TAG, OUTPUT_FORMAT.getExt());
+            long durationInSeconds = fFprobeDevice.getDurationInSeconds(downloadedAudio.getAbsolutePath());
+            FFmpegCommandBuilder baseVaiMakeCommand = new FFmpegCommandBuilder();
+            baseVaiMakeCommand.loop(1).quite().framerate("1").input(downloadedImage.getAbsolutePath())
+                    .input(downloadedAudio.getAbsolutePath()).videoCodec(FFmpegCommandBuilder.H264_CODEC)
+                    .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).pixFmt(FFmpegCommandBuilder.YUV_420_P).shortest().t(durationInSeconds);
 
             try {
-                FFmpegCommandBuilder vmakeCommandBuilder = new FFmpegCommandBuilder();
-                vmakeCommandBuilder.loop(1).quite().r("1").input(image.getAbsolutePath())
-                        .input(audio.getAbsolutePath()).videoCodec(FFmpegCommandBuilder.H264_CODEC)
-                        .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).audioCodec(FFmpegCommandBuilder.LIBMP3LAME)
-                        .pixFmt(FFmpegCommandBuilder.YUV_420_P).shortest().out(result.getAbsolutePath());
+                FFmpegCommandBuilder withCopyAudio = new FFmpegCommandBuilder(baseVaiMakeCommand);
+                withCopyAudio.copyAudio().out(result.getAbsolutePath());
 
-                fFmpegDevice.execute(vmakeCommandBuilder.buildFullCommand());
+                fFmpegDevice.execute(withCopyAudio.buildFullCommand());
+            } catch (ProcessException e) {
+                FFmpegCommandBuilder withAudioConvert = new FFmpegCommandBuilder(baseVaiMakeCommand);
+                withAudioConvert.out(result.getAbsolutePath());
 
-                String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFileName(),
-                        OUTPUT_FORMAT.getExt());
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
-                return new VideoResult(fileName, result, OUTPUT_FORMAT, whd.getWidth(), whd.getHeight(), whd.getDuration(), true);
-            } catch (Throwable e) {
-                tempFileService().delete(result);
-                throw new ConvertException(e);
+                fFmpegDevice.execute(withAudioConvert.buildFullCommand());
             }
-        } catch (InterruptedException e) {
+
+            String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFileName(),
+                    OUTPUT_FORMAT.getExt());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+            return new VideoResult(fileName, result, OUTPUT_FORMAT, whd.getWidth(), whd.getHeight(), whd.getDuration(), true);
+        } catch (Throwable e) {
+            tempFileService().delete(result);
             throw new ConvertException(e);
-        } finally {
-            tempFileService().delete(audio);
-            tempFileService().delete(image);
         }
     }
 }

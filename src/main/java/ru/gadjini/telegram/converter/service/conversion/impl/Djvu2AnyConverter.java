@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.property.ConversionProperties;
+import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.device.DjvuLibre;
@@ -39,10 +39,10 @@ public class Djvu2AnyConverter extends BaseAny2AnyConverter {
 
     private DjvuLibre djvuLibre;
 
-    private ConversionProperties conversionProperties;
+    private Url2PdfServerProperties conversionProperties;
 
     @Autowired
-    public Djvu2AnyConverter(SmartCalibre calibreDevice, DjvuLibre djvuLibre, ConversionProperties conversionProperties) {
+    public Djvu2AnyConverter(SmartCalibre calibreDevice, DjvuLibre djvuLibre, Url2PdfServerProperties conversionProperties) {
         super(MAP);
         this.calibreDevice = calibreDevice;
         this.djvuLibre = djvuLibre;

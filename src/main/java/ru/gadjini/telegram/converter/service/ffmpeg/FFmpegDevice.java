@@ -39,18 +39,16 @@ public class FFmpegDevice {
                 && !result.contains("error reading header");
     }
 
+    public boolean isExecutable(String ... command) throws InterruptedException {
+        String result = processExecutor.tryExecute(command, 6);
+
+        return isOkay(result);
+    }
+
     public boolean isConvertable(String in, String out, String... options) throws InterruptedException {
         String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 6);
 
-        return !result.contains("Conversion failed!")
-                && !result.contains("Unsupported audio codec")
-                && !result.contains("Could not find tag for codec")
-                && !result.contains("Could not write header for output file")
-                && !result.contains("incompatible with output codec")
-                && !result.contains("Error while opening encoder for output stream")
-                && !result.contains("Error initializing output stream")
-                && !result.contains("Error selecting an encoder for stream")
-                && !DECODER_NOT_FOUND_PATTERN.matcher(result).matches();
+        return isOkay(result);
     }
 
     private String[] getValidationCommand(String in) {
@@ -70,5 +68,17 @@ public class FFmpegDevice {
         cmd.add(out);
 
         return cmd.toArray(String[]::new);
+    }
+
+    private boolean isOkay(String result) {
+        return !result.contains("Conversion failed!")
+                && !result.contains("Unsupported audio codec")
+                && !result.contains("Could not find tag for codec")
+                && !result.contains("Could not write header for output file")
+                && !result.contains("incompatible with output codec")
+                && !result.contains("Error while opening encoder for output stream")
+                && !result.contains("Error initializing output stream")
+                && !result.contains("Error selecting an encoder for stream")
+                && !DECODER_NOT_FOUND_PATTERN.matcher(result).matches();
     }
 }

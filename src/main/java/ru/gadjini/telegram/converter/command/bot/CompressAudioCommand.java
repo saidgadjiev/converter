@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.command.bot;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -15,6 +14,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
@@ -68,15 +68,15 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
     private MessageMediaService messageMediaService;
 
-    @Value("${converter:all}")
-    private String converter;
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     public CompressAudioCommand(@TgMessageLimitsControl MessageService messageService, UserService userService,
                                 LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
                                 @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                                 CommandStateService commandStateService, ConvertionService convertionService,
-                                WorkQueueJob workQueueJob, MessageMediaService messageMediaService) {
+                                WorkQueueJob workQueueJob, MessageMediaService messageMediaService,
+                                ApplicationProperties applicationProperties) {
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
@@ -86,11 +86,12 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         this.convertionService = convertionService;
         this.workQueueJob = workQueueJob;
         this.messageMediaService = messageMediaService;
+        this.applicationProperties = applicationProperties;
     }
 
     @Override
     public boolean accept(Message message) {
-        return FormatsConfiguration.ALL_CONVERTER.equals(converter) || FormatsConfiguration.AUDIO_CONVERTER.equals(converter);
+        return applicationProperties.is(FormatsConfiguration.AUDIO_CONVERTER);
     }
 
     @Override

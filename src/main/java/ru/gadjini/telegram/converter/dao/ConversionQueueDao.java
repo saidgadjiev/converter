@@ -9,13 +9,13 @@ import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.domain.ConversionReport;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.utils.JdbcUtils;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.WorkQueueDaoDelegate;
@@ -26,7 +26,6 @@ import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.ServerProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.sql.*;
@@ -46,31 +45,27 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     private ObjectMapper objectMapper;
 
-    private Set<Format> formatsSet = new HashSet<>();
-
     private FileLimitProperties fileLimitProperties;
 
     private ServerProperties serverProperties;
 
     private Gson gson;
 
-    @Value("${converter:all}")
-    private String converter;
+    private Set<String> converters;
+
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
-                              Map<FormatCategory, Map<List<Format>, List<Format>>> formats,
-                              FileLimitProperties fileLimitProperties, ServerProperties serverProperties, Gson gson) {
+                              FileLimitProperties fileLimitProperties, ServerProperties serverProperties,
+                              Gson gson, ApplicationProperties applicationProperties) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
         this.serverProperties = serverProperties;
+        this.applicationProperties = applicationProperties;
         this.gson = gson;
-        for (Format value : Format.values()) {
-            if (formats.containsKey(value.getCategory())) {
-                formatsSet.add(value);
-            }
-        }
+        this.converters = applicationProperties.getConverters();
         LOGGER.debug("Light file weight({})", MemoryUtils.humanReadableByteCount(fileLimitProperties.getLightFileMaxWeight()));
     }
 
@@ -78,8 +73,9 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE + " (user_id, files, reply_to_message_id, target_format, status, extra)\n" +
-                            "    VALUES (?, ?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE +
+                            " (user_id, files, reply_to_message_id, target_format, status, extra, converter)\n" +
+                            "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
                     ps.setInt(1, queueItem.getUserId());
 
                     Object[] files = queueItem.getFiles().stream().map(TgFile::sqlObject).toArray();
@@ -94,6 +90,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                     } else {
                         ps.setString(6, gson.toJson(queueItem.getExtra()));
                     }
+                    ps.setString(7, queueItem.getConverter());
 
                     return ps;
                 },
@@ -110,7 +107,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "FROM (SELECT id, row_number() over (ORDER BY created_at) AS queue_position\n" +
                         "      FROM " + TYPE + " c\n" +
                         "      WHERE status = 0\n" +
-                        "        AND files[1].format IN (" + inFormats() + ")\n" +
+                        "        AND converter IN (" + inConverters() + ")\n" +
                         "        AND (SELECT sum(f.size) from unnest(c.files) f) " + getSign(weight) + " ?\n" +
                         ") as file_q\n" +
                         "WHERE id = ?",
@@ -130,7 +127,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     public Long count(ConversionQueueItem.Status status) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM conversion_queue WHERE status = ? AND files[1].format IN(" + inFormats() + ")",
+                "SELECT COUNT(*) as cnt FROM conversion_queue WHERE status = ? AND converter IN(" + inConverters() + ")",
                 ps -> ps.setInt(1, status.getCode()),
                 rs -> rs.next() ? rs.getLong("cnt") : 0
         );
@@ -147,16 +144,16 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " qu WHERE qu.status = 0 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
-                        " AND qu.files[1].format IN(" + inFormats() + ") " +
+                        " AND qu.converter IN(" + inConverters() + ") " +
                         " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME +
-                        " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id AND (dq.status != 3 OR dq." + synchronizationColumn + " = false))\n" +
+                        " dq where dq.producer = '" + applicationProperties.getConverter() + "' AND dq.producer_id = qu.id AND (dq.status != 3 OR dq." + synchronizationColumn + " = false))\n" +
                         " ORDER BY qu.id\n" +
                         " FOR UPDATE SKIP LOCKED LIMIT " + limit + ")\n" +
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT cv.*, array_to_json(cv.files) as files_json, 1 as queue_position, " +
                         "(SELECT json_agg(ds) FROM (SELECT * FROM " + DownloadQueueItem.NAME + " dq " +
-                        "WHERE dq.producer = '" + converter + "' AND dq.producer_id = cv.id) as ds) as downloads\n" +
+                        "WHERE dq.producer = '" + applicationProperties.getConverter() + "' AND dq.producer_id = cv.id) as ds) as downloads\n" +
                         "FROM queue_items cv",
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs, rowNum) -> map(rs)
@@ -171,10 +168,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "SELECT COUNT(id) as cnt\n" +
                         "        FROM " + TYPE + " qu WHERE qu.status = 0 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
-                        " AND qu.files[1].format IN(" + inFormats() + ") " +
-                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter
+                        " AND qu.converter IN(" + inConverters() + ") " +
+                        " AND NOT EXISTS(select 1 FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + applicationProperties.getConverter()
                         + "' AND dq.producer_id = qu.id AND (dq.status != 3 or " + synchronizationColumn + " = false))\n" +
-                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME + " dq where dq.producer = '" + converter + "' AND dq.producer_id = qu.id)\n"
+                        " AND total_files_to_download = (select COUNT(*) FROM " + DownloadQueueItem.NAME +
+                        " dq where dq.producer = '" + applicationProperties.getConverter() + "' AND dq.producer_id = qu.id)\n"
                 ,
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
@@ -187,7 +185,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                 "SELECT COUNT(id) as cnt\n" +
                         "        FROM " + TYPE + " qu WHERE qu.status = 1 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
-                        " AND qu.files[1].format IN(" + inFormats() + ") AND server = " + serverProperties.getNumber(),
+                        " AND qu.converter IN(" + inConverters() + ") AND server = " + serverProperties.getNumber(),
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
         );
@@ -195,7 +193,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     public Long getTodayConversionsCount() {
         return jdbcTemplate.query(
-                "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date AND status = 3 AND files[1].format IN(" + inFormats() + ")",
+                "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date " +
+                        "AND status = 3 AND converter IN(" + inConverters() + ")",
                 rs -> rs.next() ? rs.getLong("cnt") : -1
         );
     }
@@ -203,7 +202,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     public Long getYesterdayConversionsCount() {
         return jdbcTemplate.query(
                 "SELECT count(*) as cnt FROM conversion_queue WHERE completed_at::date = current_date - interval '1 days' AND status = 3 " +
-                        "AND files[1].format IN(" + inFormats() + ")",
+                        "AND converter IN(" + inConverters() + ")",
                 rs -> rs.next() ? rs.getLong("cnt") : -1
         );
     }
@@ -218,7 +217,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     public Long getTodayDailyActiveUsersCount() {
         return jdbcTemplate.query(
                 "SELECT count(DISTINCT user_id) as cnt FROM conversion_queue WHERE completed_at::date = current_date AND status = 3 " +
-                        "AND files[1].format IN(" + inFormats() + ")",
+                        "AND converter IN(" + inConverters() + ")",
                 rs -> rs.next() ? rs.getLong("cnt") : -1
         );
     }
@@ -264,7 +263,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                         "                     FROM conversion_queue c\n" +
                         "                     WHERE status = 0 " +
                         " AND (SELECT sum(f.size) from unnest(c.files) f) " + getSign(weight) + " ?\n" +
-                        " AND files[1].format IN (" + inFormats() + ")" +
+                        " AND converter IN (" + inConverters() + ")" +
                         ") queue_place ON f.id = queue_place.id\n" +
                         "WHERE f.id = ?\n",
                 ps -> {
@@ -299,7 +298,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Override
     public List<ConversionQueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
         return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE user_id = ? " +
-                        " AND files[1].format IN(" + inFormats() + ") " +
+                        " AND converter IN(" + inConverters() + ") " +
                         " AND status IN (0, 1) RETURNING id, status, files, server) SELECT id, status, server, array_to_json(files) as files_json FROM del",
                 ps -> ps.setInt(1, userId),
                 (rs, rowNum) -> mapDeleteItem(rs)
@@ -347,7 +346,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     public List<ConversionQueueItem> deleteCompleted() {
         return jdbcTemplate.query(
                 "WITH del AS(DELETE FROM conversion_queue qu WHERE qu.status = ? AND qu.completed_at + " + QueueDao.DELETE_COMPLETED_INTERVAL + " < now() " +
-                        " AND files[1].format IN(" + inFormats() + ") " +
+                        " AND converter IN(" + inConverters() + ") " +
                         " AND NOT EXISTS(select true from " + ConversionReport.TYPE + " cr WHERE qu.id = cr.queue_item_id) RETURNING *)" +
                         "SELECT * FROM del",
                 ps -> ps.setInt(1, QueueItem.Status.COMPLETED.getCode()),
@@ -357,12 +356,13 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     @Override
     public String getBaseAdditionalClause() {
-        return "AND files[1].format IN(" + inFormats() + ")";
+        //language=SQL
+        return "AND converter IN(" + inConverters() + ")";
     }
 
     @Override
     public String getProducerName() {
-        return converter;
+        return applicationProperties.getConverter();
     }
 
     @Override
@@ -478,7 +478,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         return null;
     }
 
-    private String inFormats() {
-        return formatsSet.stream().map(f -> "'" + f.name() + "'").collect(Collectors.joining(", "));
+    private String inConverters() {
+        return converters.stream().map(f -> "'" + f + "'").collect(Collectors.joining(", "));
     }
 }

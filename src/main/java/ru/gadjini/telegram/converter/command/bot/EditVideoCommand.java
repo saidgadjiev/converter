@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.command.bot;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -14,6 +13,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -65,8 +65,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
 
     private ConvertionService convertionService;
 
-    @Value("${converter:all}")
-    private String converter;
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     public EditVideoCommand(@TgMessageLimitsControl MessageService messageService, UserService userService,
@@ -74,7 +73,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                             @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             CommandStateService commandStateService,
                             MessageMediaService messageMediaService, InlineKeyboardService inlineKeyboardService,
-                            ConvertionService convertionService) {
+                            ConvertionService convertionService, ApplicationProperties applicationProperties) {
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
@@ -83,11 +82,12 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         this.messageMediaService = messageMediaService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.convertionService = convertionService;
+        this.applicationProperties = applicationProperties;
     }
 
     @Override
     public boolean accept(Message message) {
-        return FormatsConfiguration.ALL_CONVERTER.equals(converter) || FormatsConfiguration.VIDEO_CONVERTER.equals(converter);
+        return applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER);
     }
 
     @Autowired
