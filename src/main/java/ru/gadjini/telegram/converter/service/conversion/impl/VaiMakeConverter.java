@@ -67,6 +67,10 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                 fFmpegDevice.execute(withCopyAudio.buildFullCommand());
             } catch (ProcessException e) {
                 FFmpegCommandBuilder withAudioConvert = new FFmpegCommandBuilder(baseVaiMakeCommand);
+                if (conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFormat() == Format.MP3) {
+                    //Keep mp3 codec
+                    withAudioConvert.audioCodec(FFmpegCommandBuilder.LIBMP3LAME);
+                }
                 withAudioConvert.out(result.getAbsolutePath());
 
                 fFmpegDevice.execute(withAudioConvert.buildFullCommand());
