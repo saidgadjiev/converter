@@ -23,7 +23,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
     private static final String TAG = "vaimake";
 
-    private static final Format OUTPUT_FORMAT = Format.MP4;
+    public static final Format OUTPUT_FORMAT = Format.MP4;
 
     public static final int AUDIO_FILE_INDEX = 0;
 
@@ -42,6 +42,11 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+    }
+
+    @Override
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
     }
 
     @Override
@@ -79,7 +84,8 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFileName(),
                     OUTPUT_FORMAT.getExt());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
-            return new VideoResult(fileName, result, OUTPUT_FORMAT, whd.getWidth(), whd.getHeight(), whd.getDuration(), true);
+            return new VideoResult(fileName, result, OUTPUT_FORMAT, downloadThumb(conversionQueueItem),
+                    whd.getWidth(), whd.getHeight(), whd.getDuration(), true);
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

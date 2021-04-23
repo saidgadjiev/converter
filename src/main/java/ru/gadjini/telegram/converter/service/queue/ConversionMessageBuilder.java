@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
+import ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -155,8 +156,9 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         } else if (queueItem.getTargetFormat() == Format.EDIT) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_WILL_BE_EDITED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else {
+            Format targetFormat = queueItem.getTargetFormat().equals(Format.VMAKE) ? VaiMakeConverter.OUTPUT_FORMAT : queueItem.getTargetFormat();
             String queuedMessageCode = queueItem.getFiles().size() > 1 ? ConverterMessagesProperties.MESSAGE_FILES_QUEUED : ConverterMessagesProperties.MESSAGE_FILE_QUEUED;
-            text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().getName(), queueItem.getQueuePosition()}, locale));
+            text.append(localisationService.getMessage(queuedMessageCode, new Object[]{targetFormat.getName(), queueItem.getQueuePosition()}, locale));
         }
 
         if (!NON_DISPLAY_FORMATS.contains(queueItem.getFirstFileFormat())) {

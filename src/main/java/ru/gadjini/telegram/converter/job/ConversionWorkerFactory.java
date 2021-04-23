@@ -16,6 +16,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
+import ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
@@ -107,8 +108,9 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 return Format.IMAGES;
             } else if (queueItem.getFiles().stream().allMatch(m -> m.getFormat() == Format.PDF)) {
                 return Format.PDFS;
-            } else if (queueItem.getFiles().size() == 2 && queueItem.getFiles().get(0).getFormat().getCategory() == FormatCategory.IMAGES
-                    && queueItem.getFiles().get(1).getFormat().getCategory() == FormatCategory.AUDIO) {
+            } else if (queueItem.getFiles().size() == 2
+                    && queueItem.getFiles().get(VaiMakeConverter.IMAGE_FILE_INDEX).getFormat().getCategory() == FormatCategory.IMAGES
+                    && queueItem.getFiles().get(VaiMakeConverter.AUDIO_FILE_INDEX).getFormat().getCategory() == FormatCategory.AUDIO) {
                 return Format.IMAGEAUDIO;
             }
         }

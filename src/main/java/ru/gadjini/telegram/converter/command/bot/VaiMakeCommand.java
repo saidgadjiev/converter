@@ -83,6 +83,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_WELCOME, locale))
+                        .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.vmakeKeyboard(message.getChatId(), locale))
                         .build()
         );

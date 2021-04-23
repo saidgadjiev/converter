@@ -74,6 +74,11 @@ public class VideoEditor extends BaseAny2AnyConverter {
     }
 
     @Override
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
+    }
+
+    @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         fileQueueItem.setTargetFormat(fileQueueItem.getFirstFileFormat());
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
