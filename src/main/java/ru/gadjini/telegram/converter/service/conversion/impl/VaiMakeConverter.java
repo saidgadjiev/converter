@@ -19,15 +19,15 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class VideoMakeConverter extends BaseAny2AnyConverter {
+public class VaiMakeConverter extends BaseAny2AnyConverter {
 
     private static final String TAG = "vaimake";
 
     private static final Format OUTPUT_FORMAT = Format.MP4;
 
-    public static final int AUDIO_FILE_INDEX = 1;
+    public static final int AUDIO_FILE_INDEX = 0;
 
-    public static final int IMAGE_FILE_INDEX = 0;
+    public static final int IMAGE_FILE_INDEX = 1;
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(Format.IMAGEAUDIO), List.of(Format.VMAKE)
@@ -38,7 +38,7 @@ public class VideoMakeConverter extends BaseAny2AnyConverter {
     private FFprobeDevice fFprobeDevice;
 
     @Autowired
-    public VideoMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+    public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;

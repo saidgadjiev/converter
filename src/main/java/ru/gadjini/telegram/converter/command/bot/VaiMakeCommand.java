@@ -31,8 +31,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
-import static ru.gadjini.telegram.converter.service.conversion.impl.VideoMakeConverter.AUDIO_FILE_INDEX;
-import static ru.gadjini.telegram.converter.service.conversion.impl.VideoMakeConverter.IMAGE_FILE_INDEX;
+import static ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter.AUDIO_FILE_INDEX;
+import static ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter.IMAGE_FILE_INDEX;
 
 @Component
 public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
@@ -90,7 +90,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        ConvertState existsState = commandStateService.getState(message.getChatId(), ConverterCommandNames.VIDEO_MAKE, false, ConvertState.class);
+        ConvertState existsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
 
         if (existsState == null) {
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
@@ -102,7 +102,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
                             .replyMarkup(replyKeyboardService.vmakeKeyboard(message.getChatId(), locale))
                             .build()
             );
-            commandStateService.setState(message.getChatId(), ConverterCommandNames.VIDEO_MAKE, convertState);
+            commandStateService.setState(message.getChatId(), getCommandIdentifier(), convertState);
         } else {
             Locale locale = new Locale(existsState.getUserLanguage());
             MessageMedia media = messageMediaService.getMedia(message, locale);
@@ -133,7 +133,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
                 } else if (Objects.equals(text, vmakeCommand)) {
                     validateVaiMake(existsState);
                     convertionService.createConversion(message.getFrom(), existsState, Format.VMAKE, locale);
-                    commandStateService.deleteState(message.getChatId(), ConverterCommandNames.VIDEO_MAKE);
+                    commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 }
             }
         }
@@ -141,7 +141,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return ConverterCommandNames.VIDEO_MAKE;
+        return ConverterCommandNames.VAIMAKE;
     }
 
     @Override
@@ -151,7 +151,12 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public String getHistoryName() {
-        return ConverterCommandNames.VIDEO_MAKE;
+        return getCommandIdentifier();
+    }
+
+    @Override
+    public void leave(long chatId) {
+        commandStateService.deleteState(chatId, getCommandIdentifier());
     }
 
     private ConvertState createState(Message message, Locale locale) {

@@ -28,5 +28,5 @@ public class ConverterCommandNames {
 
     public static final String EDIT_VIDEO = "vedit";
 
-    public static final String VIDEO_MAKE = "vaimake";
+    public static final String VAIMAKE = "vaimake";
 }
