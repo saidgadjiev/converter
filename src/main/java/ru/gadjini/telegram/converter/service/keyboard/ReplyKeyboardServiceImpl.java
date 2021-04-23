@@ -70,7 +70,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale)));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.CANCEL_MERGE_PDFS_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale)));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
@@ -100,9 +100,22 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup videoEditKeyboard(long chatId, Locale locale) {
+    public ReplyKeyboardMarkup goBackKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup vmakeKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.VMAKE_COMMAND_NAME, locale),
+                localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale))
+        );
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;

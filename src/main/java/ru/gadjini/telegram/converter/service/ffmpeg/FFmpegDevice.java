@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.service.ffmpeg;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.ArrayList;
@@ -24,6 +25,10 @@ public class FFmpegDevice {
 
     public void convert(String in, String out, String... options) throws InterruptedException {
         processExecutor.execute(getConvertCommand(in, out, options), Set.of(139));
+    }
+
+    public void execute(String ... command) throws InterruptedException {
+        processExecutor.execute(command, Set.of(139));
     }
 
     public boolean isValidFile(String in) throws InterruptedException {

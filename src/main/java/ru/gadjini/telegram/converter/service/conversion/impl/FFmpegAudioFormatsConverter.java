@@ -55,20 +55,23 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     @Override
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) {
         try {
-            try {
-                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio().copyAudio();
-                audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
-            } catch (ProcessException e) {
-                LOGGER.error("Error copy codecs({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(),
-                        fileQueueItem.getFirstFileId(), fileQueueItem.getFirstFileFormat(), fileQueueItem.getTargetFormat());
-                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio();
-                audioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
-                audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-                fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
-            }
+            doConvertAudio(in, out, fileQueueItem.getTargetFormat());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
+        }
+    }
+
+    public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
+        try {
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio().copyAudio();
+            audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+        } catch (ProcessException e) {
+            LOGGER.error("Error copy codecs");
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio();
+            audioConversionHelper.addAudioOptions(targetFormat, commandBuilder);
+            audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
+            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
         }
     }
 }

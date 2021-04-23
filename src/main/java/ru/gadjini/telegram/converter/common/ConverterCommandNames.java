@@ -27,4 +27,6 @@ public class ConverterCommandNames {
     public static final String COMPRESS_AUDIO = "acompress";
 
     public static final String EDIT_VIDEO = "vedit";
+
+    public static final String VIDEO_MAKE = "vmake";
 }

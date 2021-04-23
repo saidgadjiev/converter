@@ -103,7 +103,7 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_MERGE_PDFS_NO_FILES = "message.merge.pdfs.no.files";
 
-    public static final String CANCEL_MERGE_PDFS_COMMAND_NAME = "cancel.merge.pdfs.command.name";
+    public static final String CANCEL_FILES_COMMAND_NAME = "cancel.files.command.name";
 
     public static final String MESSAGE_MERGE_PDFS_CANCELED = "message.merge.pdfs.canceled";
 
@@ -176,4 +176,14 @@ public class ConverterMessagesProperties {
     public static final String MP3_COMPRESSION_COMMAND_DESCRIPTION = "mp3.compression.command.description";
 
     public static final String MESSAGE_CORRUPTED_VIDEO = "message.corrupted.video";
+
+    public static final String MESSAGE_VMAKE_WELCOME = "message.vmake.welcome";
+
+    public static final String MESSAGE_VMAKE_AWAITING_IMAGE = "message.vmake.awaiting.image";
+
+    public static final String MESSAGE_VMAKE_AWAITING_AUDIO = "message.vmake.awaiting.audio";
+
+    public static final String VMAKE_COMMAND_NAME = "vmake.command.name";
+
+    public static final String MESSAGE_VMAKE_FILES_CANCELED = "message.vmake.files.canceled";
 }

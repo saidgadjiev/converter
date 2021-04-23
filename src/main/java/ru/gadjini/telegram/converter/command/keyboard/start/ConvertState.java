@@ -1,9 +1,11 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ConvertState {
@@ -19,6 +21,13 @@ public class ConvertState {
     private boolean textAppendedMessageSent = false;
 
     private SettingsState settings;
+
+    public ConvertState() {
+    }
+
+    public ConvertState(int filesSize) {
+        files = Arrays.asList(new MessageMedia[filesSize]);
+    }
 
     public int getMessageId() {
         return messageId;
@@ -45,6 +54,14 @@ public class ConvertState {
         files.add(media);
     }
 
+    public void setMedia(int index, MessageMedia firstFile) {
+        files.set(index, firstFile);
+    }
+
+    public MessageMedia getMedia(int index) {
+        return files.get(index);
+    }
+
     public List<MessageMedia> getFiles() {
         return files;
     }
@@ -55,6 +72,10 @@ public class ConvertState {
 
     public Format getFirstFormat() {
         return files.isEmpty() ? null : getFirstFile().getFormat();
+    }
+
+    public void clearMedia() {
+        files.clear();
     }
 
     public boolean isTextAppendedMessageSent() {

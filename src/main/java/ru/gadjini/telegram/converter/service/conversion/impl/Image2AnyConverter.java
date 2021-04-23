@@ -59,13 +59,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             try {
-                String[] targetFormatOptions = getOptions(fileQueueItem.getTargetFormat());
-                String[] options = fileQueueItem.getTargetFormat() == STICKER
-                        ? Stream.concat(Stream.of(STICKER_CONVERT_OPTIONS), Stream.of(targetFormatOptions)).toArray(String[]::new)
-                        : targetFormatOptions;
-                imageDevice.convert2Image(file.getAbsolutePath(), result.getAbsolutePath(),
-                        conversionProperties.getTimeOut(), options);
-
+                doConvert(file, result, fileQueueItem.getTargetFormat());
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
                 return fileQueueItem.getTargetFormat() == STICKER
                         ? new StickerResult(fileName, result)
@@ -79,6 +73,15 @@ public class Image2AnyConverter extends BaseAny2AnyConverter {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }
+    }
+
+    public void doConvert(SmartTempFile file, SmartTempFile result, Format targetFormat) throws InterruptedException {
+        String[] targetFormatOptions = getOptions(targetFormat);
+        String[] options = targetFormat == STICKER
+                ? Stream.concat(Stream.of(STICKER_CONVERT_OPTIONS), Stream.of(targetFormatOptions)).toArray(String[]::new)
+                : targetFormatOptions;
+        imageDevice.convert2Image(file.getAbsolutePath(), result.getAbsolutePath(),
+                conversionProperties.getTimeOut(), options);
     }
 
     private void normalize(ConversionQueueItem fileQueueItem) {

@@ -107,6 +107,9 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                 return Format.IMAGES;
             } else if (queueItem.getFiles().stream().allMatch(m -> m.getFormat() == Format.PDF)) {
                 return Format.PDFS;
+            } else if (queueItem.getFiles().size() == 2 && queueItem.getFiles().get(0).getFormat().getCategory() == FormatCategory.IMAGES
+                    && queueItem.getFiles().get(1).getFormat().getCategory() == FormatCategory.AUDIO) {
+                return Format.IMAGEAUDIO;
             }
         }
 

@@ -110,7 +110,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
         if (message.hasText()) {
             String mergeCommandName = localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale);
-            String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_MERGE_PDFS_COMMAND_NAME, locale);
+            String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale);
             ConvertState mergePdfsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
             if (mergePdfsState == null || mergePdfsState.getFiles().isEmpty()) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_NO_FILES, locale));

@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.service.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class FFmpegCommandBuilder {
 
@@ -12,6 +13,12 @@ public class FFmpegCommandBuilder {
     public static final String PRESET_VERY_FAST = "veryfast";
 
     public static final String DEADLINE_REALTIME = "realtime";
+
+    public static final String TUNE_STILLIMAGE = "stillimage";
+
+    public static final String LIBMP3LAME = "libmp3lame";
+
+    public static final String YUV_420_P = "yuv420p";
 
     public static final String VIDEO_STREAM_SPECIFIER = "v";
 
@@ -50,6 +57,52 @@ public class FFmpegCommandBuilder {
     }
 
     public FFmpegCommandBuilder() {}
+
+    public FFmpegCommandBuilder loop(int loop) {
+        options.add("-loop");
+        options.add(String.valueOf(loop));
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder quite() {
+        options.add("-y");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder input(String filePath) {
+        options.add("-i");
+        options.add(filePath);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder tune(String tune) {
+        options.add("-tune");
+        options.add(tune);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder pixFmt(String pixFmt) {
+        options.add("-pix_fmt");
+        options.add(pixFmt);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder shortest() {
+        options.add("-shortest");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder out(String filePath) {
+        options.add(filePath);
+
+        return this;
+    }
 
     public FFmpegCommandBuilder map(String streamSpecifier, int index) {
         options.add("-map");
@@ -272,5 +325,13 @@ public class FFmpegCommandBuilder {
 
     public String[] build() {
         return options.toArray(new String[0]);
+    }
+
+    public String[] buildFullCommand() {
+        List<String> command = new ArrayList<>();
+        command.add("ffmpeg");
+        command.addAll(options);
+
+        return command.toArray(new String[0]);
     }
 }
