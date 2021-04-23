@@ -10,6 +10,6 @@ public class LinuxMacCondition implements Condition {
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         String os = context.getEnvironment().getProperty("os.name");
 
-        return os.contains("Linux") || os.contains("Mac");
+        return os != null && (os.contains("Linux") || os.contains("Mac"));
     }
 }
