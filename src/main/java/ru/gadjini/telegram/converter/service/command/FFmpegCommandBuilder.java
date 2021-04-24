@@ -7,6 +7,10 @@ import java.util.stream.Stream;
 
 public class FFmpegCommandBuilder {
 
+    public static final String DEFAULT_CRF = "26";
+
+    public static final String CRF = "-crf";
+
     public static final String EVEN_SCALE = "scale=-2:ceil(ih/2)*2";
 
     public static final String _3GP_SCALE = "scale=176:144";
@@ -59,7 +63,8 @@ public class FFmpegCommandBuilder {
         this.options.addAll(commandBuilder.options);
     }
 
-    public FFmpegCommandBuilder() { }
+    public FFmpegCommandBuilder() {
+    }
 
     public FFmpegCommandBuilder loop(int loop) {
         options.add("-loop");
@@ -278,7 +283,7 @@ public class FFmpegCommandBuilder {
     }
 
     public FFmpegCommandBuilder crf(String crf) {
-        options.add("-crf");
+        options.add(CRF);
         options.add(crf);
 
         return this;
@@ -353,6 +358,12 @@ public class FFmpegCommandBuilder {
     }
 
     private List<String> getOptions() {
-        return Stream.concat(options.stream(), DEFAULT_OPTIONS.stream()).collect(Collectors.toList());
+        List<String> def = new ArrayList<>(DEFAULT_OPTIONS);
+        if (!options.contains(CRF)) {
+            def.add(CRF);
+            def.add(DEFAULT_CRF);
+        }
+
+        return Stream.concat(options.stream(), def.stream()).collect(Collectors.toList());
     }
 }
