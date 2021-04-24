@@ -60,9 +60,10 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
         try {
             long durationInSeconds = fFprobeDevice.getDurationInSeconds(downloadedAudio.getAbsolutePath());
-            FFmpegCommandBuilder baseVaiMakeCommand = new FFmpegCommandBuilder();
-            baseVaiMakeCommand.loop(1).quite().framerate("1").input(downloadedImage.getAbsolutePath())
+            FFmpegCommandBuilder baseVaiMakeCommand = new FFmpegCommandBuilder()
+                    .loop(1).quite().framerate("1").input(downloadedImage.getAbsolutePath())
                     .input(downloadedAudio.getAbsolutePath()).videoCodec(FFmpegCommandBuilder.H264_CODEC)
+                    .filterVideo(FFmpegCommandBuilder.EVEN_SCALE)
                     .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).pixFmt(FFmpegCommandBuilder.YUV_420_P).shortest().t(durationInSeconds);
 
             try {
