@@ -53,7 +53,7 @@ public class FFmpegCommandBuilder {
 
     private List<String> options = new ArrayList<>();
 
-    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "1024");
+    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "2048");
 
     public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
         this.options.addAll(commandBuilder.options);
