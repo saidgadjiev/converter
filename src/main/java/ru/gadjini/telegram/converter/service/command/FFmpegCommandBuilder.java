@@ -2,6 +2,8 @@ package ru.gadjini.telegram.converter.service.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FFmpegCommandBuilder {
 
@@ -51,11 +53,13 @@ public class FFmpegCommandBuilder {
 
     private List<String> options = new ArrayList<>();
 
+    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "1024");
+
     public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
         this.options.addAll(commandBuilder.options);
     }
 
-    public FFmpegCommandBuilder() {}
+    public FFmpegCommandBuilder() { }
 
     public FFmpegCommandBuilder loop(int loop) {
         options.add("-loop");
@@ -337,14 +341,18 @@ public class FFmpegCommandBuilder {
     }
 
     public String[] build() {
-        return options.toArray(new String[0]);
+        return getOptions().toArray(new String[0]);
     }
 
     public String[] buildFullCommand() {
         List<String> command = new ArrayList<>();
         command.add("ffmpeg");
-        command.addAll(options);
+        command.addAll(getOptions());
 
         return command.toArray(new String[0]);
+    }
+
+    private List<String> getOptions() {
+        return Stream.concat(options.stream(), DEFAULT_OPTIONS.stream()).collect(Collectors.toList());
     }
 }
