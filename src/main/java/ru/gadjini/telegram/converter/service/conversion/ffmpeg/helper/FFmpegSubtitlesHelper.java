@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -34,8 +33,8 @@ public class FFmpegSubtitlesHelper {
     }
 
     public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                                     SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem) throws InterruptedException {
-        if (!isSubtitlesSupported(fileQueueItem.getTargetFormat())) {
+                                                     SmartTempFile file, SmartTempFile result, Format targetFormat) throws InterruptedException {
+        if (!isSubtitlesSupported(targetFormat)) {
             return;
         }
         if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(stream.getCodecType()))) {
@@ -68,7 +67,7 @@ public class FFmpegSubtitlesHelper {
                         validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
                         copySubtitlesIndexes.put(nextIndex, true);
                         streamsCache.put(subtitleStream.getCodecName(), copyable);
-                    } else if (isSubtitlesConvertable(commandBuilder, file, result, subtitleStreamIndex, fileQueueItem.getTargetFormat())) {
+                    } else if (isSubtitlesConvertable(commandBuilder, file, result, subtitleStreamIndex, targetFormat)) {
                         int nextIndex = ffmpegSubtitleStreamIndex++;
                         validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
                         copySubtitlesIndexes.put(nextIndex, false);
@@ -83,7 +82,7 @@ public class FFmpegSubtitlesHelper {
                     commandBuilder.mapSubtitles().copySubtitles();
                 } else {
                     commandBuilder.mapSubtitles();
-                    addSubtitlesCodec(commandBuilder, fileQueueItem.getTargetFormat());
+                    addSubtitlesCodec(commandBuilder, targetFormat);
                 }
             } else {
                 validSubtitlesIndexes.forEach((subtitlesIndex, mapIndex) -> {
@@ -91,7 +90,7 @@ public class FFmpegSubtitlesHelper {
                     if (copySubtitlesIndexes.get(subtitlesIndex)) {
                         commandBuilder.copySubtitles(subtitlesIndex);
                     } else {
-                        addSubtitlesCodec(commandBuilder, subtitlesIndex, fileQueueItem.getTargetFormat());
+                        addSubtitlesCodec(commandBuilder, subtitlesIndex, targetFormat);
                     }
                 });
             }

@@ -9,6 +9,9 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Service
@@ -19,6 +22,55 @@ public class FFmpegVideoHelper {
     @Autowired
     public FFmpegVideoHelper(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
+    }
+
+    public boolean isVideoStreamsValidForTelegramVideo(List<FFprobeDevice.Stream> allStreams) {
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+
+        return videoStreams.stream().allMatch(v -> FFmpegCommandBuilder.H264_CODEC.equals(v.getCodecName()));
+    }
+
+    public void copyOrConvertVideoCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+                                                         Format targetFormat) {
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+        String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
+
+        for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
+            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
+            commandBuilder.mapVideo(videoStreamIndex);
+            if (FFmpegCommandBuilder.H264_CODEC.equals(videoStream.getCodecName())) {
+                commandBuilder.copyVideo(videoStreamIndex);
+            } else {
+                commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.H264_CODEC)
+                        .filterVideo(videoStreamIndex, scale);
+            }
+        }
+    }
+
+    public void copyOrConvertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+                                         Format targetFormat, SmartTempFile file, SmartTempFile result) throws InterruptedException {
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+        String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
+
+        for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
+            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
+            commandBuilder.mapVideo(videoStreamIndex);
+            if (isCopyableVideoCodecs(file, result, targetFormat, videoStreamIndex)) {
+                commandBuilder.copyVideo(videoStreamIndex);
+            } else {
+                boolean convertibleToH264 = isConvertibleToH264(file, result, videoStreamIndex, scale);
+                if (!addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
+                        convertibleToH264, scale)) {
+                    addVideoCodecByTargetFormat(commandBuilder, targetFormat, videoStreamIndex);
+                }
+            }
+        }
     }
 
     public boolean isCopyableVideoCodecs(SmartTempFile in, SmartTempFile out, Format targetFormat, int streamIndex) throws InterruptedException {

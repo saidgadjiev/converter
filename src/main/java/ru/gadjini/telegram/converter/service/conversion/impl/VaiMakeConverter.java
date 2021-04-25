@@ -7,10 +7,10 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
-import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -37,11 +37,14 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private FFmpegAudioHelper fFmpegAudioHelper;
+
     @Autowired
-    public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+    public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegAudioHelper fFmpegAudioHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.fFmpegAudioHelper = fFmpegAudioHelper;
     }
 
     @Override
@@ -51,7 +54,6 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
-        conversionQueueItem.setTargetFormat(OUTPUT_FORMAT);
         SmartTempFile downloadedAudio = conversionQueueItem.getDownloadedFiles().get(AUDIO_FILE_INDEX);
         SmartTempFile downloadedImage = conversionQueueItem.getDownloadedFiles().get(IMAGE_FILE_INDEX);
 
@@ -60,33 +62,22 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
         try {
             long durationInSeconds = fFprobeDevice.getDurationInSeconds(downloadedAudio.getAbsolutePath());
-            FFmpegCommandBuilder baseVaiMakeCommand = new FFmpegCommandBuilder()
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder()
                     .loop(1).quite().framerate("1").input(downloadedImage.getAbsolutePath())
                     .input(downloadedAudio.getAbsolutePath()).videoCodec(FFmpegCommandBuilder.H264_CODEC)
                     .filterVideo(FFmpegCommandBuilder.EVEN_SCALE)
                     .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).pixFmt(FFmpegCommandBuilder.YUV_420_P).shortest().t(durationInSeconds);
 
-            try {
-                FFmpegCommandBuilder withCopyAudio = new FFmpegCommandBuilder(baseVaiMakeCommand);
-                withCopyAudio.copyAudio().out(result.getAbsolutePath());
-
-                fFmpegDevice.execute(withCopyAudio.buildFullCommand());
-            } catch (ProcessException e) {
-                FFmpegCommandBuilder withAudioConvert = new FFmpegCommandBuilder(baseVaiMakeCommand);
-                if (conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFormat() == Format.MP3) {
-                    //Keep mp3 codec
-                    withAudioConvert.audioCodec(FFmpegCommandBuilder.LIBMP3LAME);
-                }
-                withAudioConvert.out(result.getAbsolutePath());
-
-                fFmpegDevice.execute(withAudioConvert.buildFullCommand());
-            }
+            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
+            fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);
+            commandBuilder.out(result.getAbsolutePath());
+            fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
             String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFileName(),
                     OUTPUT_FORMAT.getExt());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
             return new VideoResult(fileName, result, OUTPUT_FORMAT, downloadThumb(conversionQueueItem),
-                    whd.getWidth(), whd.getHeight(), whd.getDuration(), true);
+                    whd.getWidth(), whd.getHeight(), whd.getDuration(), OUTPUT_FORMAT.supportsStreaming());
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

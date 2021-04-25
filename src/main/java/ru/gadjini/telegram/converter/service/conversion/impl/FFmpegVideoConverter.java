@@ -23,7 +23,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -108,29 +107,21 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         List<FFprobeDevice.Stream> allStreams = videoConversionHelper.getStreamsForConversion(file);
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
-        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
-                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
-                .collect(Collectors.toList());
-        String scale = fileQueueItem.getTargetFormat() == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
-        for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
-            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
-            commandBuilder.mapVideo(videoStreamIndex);
-            if (fFmpegVideoHelper.isCopyableVideoCodecs(file, result, fileQueueItem.getTargetFormat(), videoStreamIndex)) {
-                commandBuilder.copyVideo(videoStreamIndex);
-            } else {
-                boolean convertibleToH264 = fFmpegVideoHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
-                if (!fFmpegVideoHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
-                        convertibleToH264, scale)) {
-                    fFmpegVideoHelper.addVideoCodecByTargetFormat(commandBuilder, fileQueueItem.getTargetFormat(), videoStreamIndex);
-                }
-            }
+        if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
+            fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getTargetFormat());
+        } else {
+            fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getTargetFormat(), file, result);
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
         if (WEBM.equals(fileQueueItem.getTargetFormat())) {
             commandBuilder.crf("10");
         }
-        fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
-        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem);
+        if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
+            fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+        } else {
+            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem.getTargetFormat());
+        }
+        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem.getTargetFormat());
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 

@@ -33,10 +33,6 @@ import java.util.Map;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
-/**
- * MP4 -> WEBM very slow
- * WEBM -> MP4 very slow
- */
 @Component
 public class VideoCompressConverter extends BaseAny2AnyConverter {
 
@@ -87,7 +83,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         try {
             fFmpegHelper.validateVideoIntegrity(file);
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, SCALE, fileQueueItem);
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, SCALE, fileQueueItem.getTargetFormat());
             commandBuilder.crf("30");
 
             fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());

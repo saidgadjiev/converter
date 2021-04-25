@@ -25,7 +25,7 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="net.iakovlev.timeshape" level="ERROR">
+    <logger name="org.telegram.telegrambots.facilities.TelegramHttpClientBuilder" level="DEBUG">
         <appender-ref ref="TIME_BASED_FILE" />
         <appender-ref ref="STDOUT" />
     </logger>

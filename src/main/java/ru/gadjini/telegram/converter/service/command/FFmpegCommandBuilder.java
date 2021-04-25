@@ -23,6 +23,8 @@ public class FFmpegCommandBuilder {
 
     public static final String LIBMP3LAME = "libmp3lame";
 
+    public static final String MP3 = "mp3";
+
     public static final String YUV_420_P = "yuv420p";
 
     public static final String VIDEO_STREAM_SPECIFIER = "v";
@@ -44,6 +46,8 @@ public class FFmpegCommandBuilder {
     public static final String FLV_FORMAT = "flv";
 
     public static final String AC3_CODEC = "ac3";
+
+    public static final String AAC_CODEC = "aac";
 
     public static final String WMV2 = "wmv2";
 
