@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -40,16 +41,19 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private FFmpegAudioHelper fFmpegAudioHelper;
 
+    private FFmpegVideoConversionHelper videoConversionHelper;
+
     @Autowired
     public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter,
                                     FFmpegSubtitlesHelper fFmpegSubtitlesHelper, FFmpegVideoHelper fFmpegVideoHelper,
-                                    FFmpegAudioHelper fFmpegAudioHelper) {
+                                    FFmpegAudioHelper fFmpegAudioHelper, FFmpegVideoConversionHelper videoConversionHelper) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoFormatsConverter = fFmpegVideoFormatsConverter;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
+        this.videoConversionHelper = videoConversionHelper;
     }
 
     @Override
@@ -74,7 +78,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.Stream> allStreams = videoConversionHelper.getStreamsForConversion(file);
             if (fFmpegVideoHelper.isVideoStreamsValidForTelegramVideo(allStreams)
                     && fFmpegAudioHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
                 FileUtils.copyFile(file.getFile(), result.getFile());
