@@ -12,6 +12,7 @@ RUN apt-get update -y
 RUN apt-get upgrade -y
 RUN apt-get install -y make git zlib1g-dev libssl-dev gperf cmake clang-10 libc++-dev libc++abi-dev
 
+RUN echo '26.04.2021'
 RUN git clone --recursive https://github.com/tdlib/telegram-bot-api.git
 RUN cd telegram-bot-api && rm -rf build && mkdir build && cd build && \
 export CXXFLAGS="-stdlib=libc++" && \
