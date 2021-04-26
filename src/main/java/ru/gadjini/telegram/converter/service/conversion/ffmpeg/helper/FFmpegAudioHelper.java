@@ -16,8 +16,7 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.MTS;
 @Component
 public class FFmpegAudioHelper {
 
-    private static final Set<String> TELEGRAM_VIDEO_AUDIO_CODECS = Set.of(FFmpegCommandBuilder.AAC_CODEC,
-            FFmpegCommandBuilder.MP3);
+    private static final String TELEGRAM_VIDEO_AUDIO_CODEC = FFmpegCommandBuilder.AAC_CODEC;
 
     private FFmpegDevice fFmpegDevice;
 
@@ -31,7 +30,7 @@ public class FFmpegAudioHelper {
                 .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
 
-        return audioStreams.stream().allMatch(a -> TELEGRAM_VIDEO_AUDIO_CODECS.contains(a.getCodecName()));
+        return audioStreams.stream().allMatch(a -> TELEGRAM_VIDEO_AUDIO_CODEC.equals(a.getCodecName()));
     }
 
     public void copyOrConvertAudioCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams, boolean appendMapAudio) {
@@ -45,7 +44,7 @@ public class FFmpegAudioHelper {
             }
             for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
                 FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamIndex);
-                if (TELEGRAM_VIDEO_AUDIO_CODECS.contains(audioStream.getCodecName())) {
+                if (TELEGRAM_VIDEO_AUDIO_CODEC.equals(audioStream.getCodecName())) {
                     audioIndexes.put(audioStreamIndex, true);
                 } else {
                     audioIndexes.put(audioStreamIndex, false);
@@ -58,7 +57,7 @@ public class FFmpegAudioHelper {
                     if (aBoolean) {
                         commandBuilder.copyAudio(streamIndex);
                     } else {
-                        commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.MP3);
+                        commandBuilder.audioCodec(streamIndex, TELEGRAM_VIDEO_AUDIO_CODEC);
                     }
                 });
             }
