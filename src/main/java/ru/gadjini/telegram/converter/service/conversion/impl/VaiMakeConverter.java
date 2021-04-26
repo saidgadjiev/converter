@@ -66,7 +66,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                     .loop(1).quite().framerate("1").input(downloadedImage.getAbsolutePath())
                     .input(downloadedAudio.getAbsolutePath()).videoCodec(FFmpegCommandBuilder.H264_CODEC)
                     .filterVideo(FFmpegCommandBuilder.EVEN_SCALE)
-                    .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).pixFmt(FFmpegCommandBuilder.YUV_420_P).shortest().t(durationInSeconds);
+                    .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).shortest().t(durationInSeconds);
 
             List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
             fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);

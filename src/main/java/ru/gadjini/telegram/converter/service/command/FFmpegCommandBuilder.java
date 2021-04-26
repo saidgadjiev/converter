@@ -61,7 +61,7 @@ public class FFmpegCommandBuilder {
 
     private List<String> options = new ArrayList<>();
 
-    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "2048");
+    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "2048", "-pix_fmt", YUV_420_P);
 
     public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
         this.options.addAll(commandBuilder.options);
@@ -93,13 +93,6 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder tune(String tune) {
         options.add("-tune");
         options.add(tune);
-
-        return this;
-    }
-
-    public FFmpegCommandBuilder pixFmt(String pixFmt) {
-        options.add("-pix_fmt");
-        options.add(pixFmt);
 
         return this;
     }
