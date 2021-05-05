@@ -11,6 +11,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboar
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 public class InlineKeyboardService {
@@ -40,14 +41,22 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(String currentBitrate, Format currentFormat,
-                                                                    List<Format> compressionFormats, List<String> bitrates, Locale locale) {
+    public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(String currentBitrate, String currentFrequency,
+                                                                    Format currentFormat,
+                                                                    List<Format> compressionFormats,
+                                                                    List<String> frequencies,
+                                                                    List<String> bitrates, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        List<InlineKeyboardButton> frequencyButtons = new ArrayList<>();
+        for (String frequency : frequencies.stream().sorted().collect(Collectors.toList())) {
+            frequencyButtons.add(buttonFactory.frequencyFormat(frequency, currentFrequency, locale));
+        }
         List<InlineKeyboardButton> compressionFormatButtons = new ArrayList<>();
         for (Format compressionFormat : compressionFormats) {
             compressionFormatButtons.add(buttonFactory.compressionFormatButton(currentFormat, compressionFormat, locale));
         }
         inlineKeyboardMarkup.getKeyboard().add(compressionFormatButtons);
+        inlineKeyboardMarkup.getKeyboard().add(frequencyButtons);
         List<List<String>> lists = Lists.partition(bitrates, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();

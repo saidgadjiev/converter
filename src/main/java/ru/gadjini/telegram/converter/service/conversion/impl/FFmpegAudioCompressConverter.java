@@ -28,6 +28,8 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     public static final Format DEFAULT_AUDIO_COMPRESS_FORMAT = MP3;
 
+    public static final String DEFAULT_MP3_FREQUENCY = "44100";
+
     public static final String AUTO_BITRATE = "32";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
@@ -60,10 +62,12 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
         String bitrate = AUTO_BITRATE;
         Format compressionFormat = DEFAULT_AUDIO_COMPRESS_FORMAT;
+        String frequency = DEFAULT_MP3_FREQUENCY;
         if (conversionQueueItem.getExtra() != null) {
             SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
             compressionFormat = settingsState.getFormatOrDefault(MP3);
+            frequency = settingsState.getFrequencyOrDefault(DEFAULT_MP3_FREQUENCY);
         }
 
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
@@ -71,7 +75,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         commandBuilder.ba(bitrate + "k");
 
         if (MP3.equals(compressionFormat)) {
-            commandBuilder.ar("22050");
+            commandBuilder.ar(frequency);
         }
 
         try {

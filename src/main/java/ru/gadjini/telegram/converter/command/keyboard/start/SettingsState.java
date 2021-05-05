@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
+import org.apache.commons.lang3.StringUtils;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 public class SettingsState {
@@ -9,6 +10,8 @@ public class SettingsState {
     private String bitrate;
 
     private String resolution;
+
+    private String frequency;
 
     private Format format;
 
@@ -46,5 +49,17 @@ public class SettingsState {
 
     public void setFormat(Format format) {
         this.format = format;
+    }
+
+    public String getFrequency() {
+        return frequency;
+    }
+
+    public String getFrequencyOrDefault(String defaultFrequency) {
+        return StringUtils.isBlank(frequency) ? frequency : defaultFrequency;
+    }
+
+    public void setFrequency(String frequency) {
+        this.frequency = frequency;
     }
 }
