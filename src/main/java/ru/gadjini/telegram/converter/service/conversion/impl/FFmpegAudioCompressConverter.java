@@ -17,6 +17,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,6 +32,11 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     public static final String DEFAULT_MP3_FREQUENCY = "44100";
 
     public static final String AUTO_BITRATE = "32";
+
+    private static final Map<Format, String> DEFAULT_FREQUENCIES = new HashMap<>() {{
+        put(Format.OPUS, null);
+        put(Format.MP3, FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY);
+    }};
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, RA, RM, M4A, M4B), List.of(COMPRESS)
@@ -58,6 +64,10 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         this.localisationService = localisationService;
     }
 
+    public static String getDefaultFrequency(Format format) {
+        return DEFAULT_FREQUENCIES.get(format);
+    }
+
     @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
         String bitrate = AUTO_BITRATE;
@@ -67,7 +77,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
             compressionFormat = settingsState.getFormatOrDefault(MP3);
-            frequency = settingsState.getFrequencyOrDefault(DEFAULT_MP3_FREQUENCY);
+            frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(compressionFormat));
         }
 
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();

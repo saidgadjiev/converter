@@ -56,7 +56,7 @@ public class SettingsState {
     }
 
     public String getFrequencyOrDefault(String defaultFrequency) {
-        return StringUtils.isBlank(frequency) ? frequency : defaultFrequency;
+        return StringUtils.isBlank(frequency) ? defaultFrequency : frequency;
     }
 
     public void setFrequency(String frequency) {

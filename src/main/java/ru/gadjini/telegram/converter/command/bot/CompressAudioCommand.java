@@ -42,6 +42,8 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter.getDefaultFrequency;
+
 @Component
 public class CompressAudioCommand implements BotCommand, NavigableBotCommand, CallbackBotCommand {
 
@@ -141,7 +143,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
             ConvertState convertState = createState(message, locale);
             List<String> bitrates = getBitrates(convertState.getSettings().getFormat(), convertState.getSettings()
-                    .getFrequencyOrDefault(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY));
+                    .getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())));
             List<String> frequencies = getFrequencies(convertState.getSettings().getFormat());
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
@@ -149,7 +151,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(
                                     convertState.getSettings().getBitrate(),
-                                    convertState.getSettings().getFrequencyOrDefault(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY),
+                                    convertState.getSettings().getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())),
                                     convertState.getSettings().getFormat(),
                                     COMPRESSION_FORMATS,
                                     frequencies,
@@ -203,14 +205,15 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
     }
 
     private void updateSettingsMessage(long chatId, ConvertState convertState) {
-        List<String> bitrates = getBitrates(convertState.getSettings().getFormat(), convertState.getSettings().getFrequencyOrDefault(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY));
+        List<String> bitrates = getBitrates(convertState.getSettings().getFormat(),
+                convertState.getSettings().getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())));
         List<String> frequencies = getFrequencies(convertState.getSettings().getFormat());
         messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
                 .messageId(convertState.getSettings().getMessageId())
                 .text(buildSettingsMessage(convertState))
                 .parseMode(ParseMode.HTML)
                 .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(),
-                        convertState.getSettings().getFrequencyOrDefault(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY),
+                        convertState.getSettings().getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())),
                         convertState.getSettings().getFormat(), COMPRESSION_FORMATS,
                         frequencies, bitrates, new Locale(convertState.getUserLanguage())))
                 .build());
@@ -271,7 +274,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
         Locale locale = new Locale(convertState.getUserLanguage());
 
-        String oldFrequency = convertState.getSettings().getFrequencyOrDefault(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY);
+        String oldFrequency = convertState.getSettings().getFrequency();
         convertState.getSettings().setFrequency(frequency);
         if (!Objects.equals(frequency, oldFrequency)) {
             updateSettingsMessage(chatId, convertState);
