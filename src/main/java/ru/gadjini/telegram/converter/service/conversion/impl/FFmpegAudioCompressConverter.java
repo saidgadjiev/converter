@@ -34,8 +34,8 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     public static final String AUTO_BITRATE = "32";
 
     private static final Map<Format, String> DEFAULT_FREQUENCIES = new HashMap<>() {{
-        put(Format.OPUS, null);
-        put(Format.MP3, FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY);
+        put(OPUS, null);
+        put(MP3, DEFAULT_MP3_FREQUENCY);
     }};
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
