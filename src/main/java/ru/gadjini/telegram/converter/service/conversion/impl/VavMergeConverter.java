@@ -81,7 +81,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
         try {
             List<FFprobeDevice.Stream> videoStreamsForConversion = videoConversionHelper.getStreamsForConversion(video);
             videoStreamsForConversion.forEach(s -> s.setInput(0));
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().input(video.getAbsolutePath())
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(video.getAbsolutePath())
                     .input(audio.getAbsolutePath());
 
             if (targetFormat.canBeSentAsVideo()) {

@@ -34,8 +34,8 @@ import java.util.Set;
 import static ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter.AUDIO_FILE_INDEX;
 import static ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter.VIDEO_FILE_INDEX;
 
-
 @Component
+@SuppressWarnings("CPD-START")
 public class VavMergeCommand implements NavigableBotCommand, BotCommand {
 
     private static final Set<FormatCategory> ACCEPT_CATEGORIES = Set.of(FormatCategory.VIDEO, FormatCategory.AUDIO);

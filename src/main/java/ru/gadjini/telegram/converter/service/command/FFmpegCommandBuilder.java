@@ -70,6 +70,12 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder() {
     }
 
+    public FFmpegCommandBuilder hideBanner() {
+        options.add("-hide_banner");
+
+        return this;
+    }
+
     public FFmpegCommandBuilder loop(int loop) {
         options.add("-loop");
         options.add(String.valueOf(loop));

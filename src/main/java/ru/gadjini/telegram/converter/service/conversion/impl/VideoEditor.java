@@ -97,7 +97,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             }
             String scale = "scale=-2:" + height;
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-            commandBuilder.input(file.getAbsolutePath());
+            commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, scale, fileQueueItem.getTargetFormat());
             if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
                 //Так как при увличении разрешения и так снижается качество
