@@ -107,10 +107,11 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         List<FFprobeDevice.Stream> allStreams = videoConversionHelper.getStreamsForConversion(file);
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
+        commandBuilder.input(file.getAbsolutePath());
         if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
             fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getTargetFormat());
         } else {
-            fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getTargetFormat(), file, result);
+            fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getTargetFormat(), result);
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
         if (WEBM.equals(fileQueueItem.getTargetFormat())) {
@@ -119,13 +120,14 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
             fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {
-            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, fileQueueItem.getTargetFormat());
+            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, result, fileQueueItem.getTargetFormat());
         }
         fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem.getTargetFormat());
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 
-        fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
+        commandBuilder.out(result.getAbsolutePath());
+        fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 

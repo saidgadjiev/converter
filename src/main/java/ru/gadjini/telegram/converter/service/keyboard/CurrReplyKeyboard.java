@@ -63,8 +63,13 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
-    public ReplyKeyboardMarkup vmakeKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.vmakeKeyboard(chatId, locale));
+    public ReplyKeyboardMarkup vaimakeKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.vaimakeKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup vavmergeKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.vavmergeKeyboard(chatId, locale));
     }
 
     @Override

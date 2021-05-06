@@ -17,6 +17,7 @@ import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.*;
 import ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter;
+import ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
@@ -112,6 +113,10 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     && queueItem.getFiles().get(VaiMakeConverter.IMAGE_FILE_INDEX).getFormat().getCategory() == FormatCategory.IMAGES
                     && queueItem.getFiles().get(VaiMakeConverter.AUDIO_FILE_INDEX).getFormat().getCategory() == FormatCategory.AUDIO) {
                 return Format.IMAGEAUDIO;
+            } else if (queueItem.getFiles().size() == 2
+                    && queueItem.getFiles().get(VavMergeConverter.VIDEO_FILE_INDEX).getFormat().getCategory() == FormatCategory.VIDEO
+                    && queueItem.getFiles().get(VavMergeConverter.AUDIO_FILE_INDEX).getFormat().getCategory() == FormatCategory.AUDIO) {
+                return Format.VIDEOAUDIO;
             }
         }
 

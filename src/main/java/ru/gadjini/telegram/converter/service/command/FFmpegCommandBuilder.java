@@ -165,9 +165,31 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder mapSubtitlesInput(Integer input) {
+        options.add("-map");
+        if (input == null) {
+            options.add("s");
+        } else {
+            options.add(input + ":s");
+        }
+
+        return this;
+    }
+
     public FFmpegCommandBuilder mapSubtitles(int index) {
         options.add("-map");
         options.add("s:" + index);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder mapSubtitles(Integer input, int index) {
+        options.add("-map");
+        if (input == null) {
+            options.add("s:" + index);
+        } else {
+            options.add(index + ":s:" + index);
+        }
 
         return this;
     }
@@ -214,6 +236,17 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder mapAudioInput(Integer input) {
+        options.add("-map");
+        if (input == null) {
+            options.add("a");
+        } else {
+            options.add(input + ":a");
+        }
+
+        return this;
+    }
+
     public FFmpegCommandBuilder mapAudio(int index) {
         options.add("-map");
         options.add("a:" + index);
@@ -221,9 +254,38 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder mapAudio(Integer input, int index) {
+        options.add("-map");
+        if (input == null) {
+            options.add("a:" + index);
+        } else {
+            options.add(input + ":a:" + index);
+        }
+
+        return this;
+    }
+
     public FFmpegCommandBuilder mapVideo(int index) {
         options.add("-map");
         options.add("v:" + index);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder mapVideo(Integer input, int index) {
+        options.add("-map");
+        if (input == null) {
+            options.add("v:" + index);
+        } else {
+            options.add(input + ":v:" + index);
+        }
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder mapVideo() {
+        options.add("-map");
+        options.add("v");
 
         return this;
     }

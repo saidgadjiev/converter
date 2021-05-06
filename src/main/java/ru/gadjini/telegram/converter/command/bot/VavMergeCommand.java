@@ -31,13 +31,14 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
-import static ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter.AUDIO_FILE_INDEX;
-import static ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter.IMAGE_FILE_INDEX;
+import static ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter.AUDIO_FILE_INDEX;
+import static ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter.VIDEO_FILE_INDEX;
+
 
 @Component
-public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
+public class VavMergeCommand implements NavigableBotCommand, BotCommand {
 
-    private static final Set<FormatCategory> ACCEPT_CATEGORIES = Set.of(FormatCategory.AUDIO, FormatCategory.IMAGES);
+    private static final Set<FormatCategory> ACCEPT_CATEGORIES = Set.of(FormatCategory.VIDEO, FormatCategory.AUDIO);
 
     private MessageService messageService;
 
@@ -56,11 +57,11 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
     private ApplicationProperties applicationProperties;
 
     @Autowired
-    public VaiMakeCommand(@TgMessageLimitsControl MessageService messageService,
-                          LocalisationService localisationService, UserService userService,
-                          @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                          CommandStateService commandStateService, MessageMediaService messageMediaService,
-                          ConvertionService convertionService, ApplicationProperties applicationProperties) {
+    public VavMergeCommand(@TgMessageLimitsControl MessageService messageService,
+                           LocalisationService localisationService, UserService userService,
+                           @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                           CommandStateService commandStateService, MessageMediaService messageMediaService,
+                           ConvertionService convertionService, ApplicationProperties applicationProperties) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -82,9 +83,9 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_WELCOME, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_WELCOME, locale))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(replyKeyboardService.vaimakeKeyboard(message.getChatId(), locale))
+                        .replyMarkup(replyKeyboardService.vavmergeKeyboard(message.getChatId(), locale))
                         .build()
         );
     }
@@ -100,7 +101,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                             .text(getAwaitingMessage(convertState))
                             .parseMode(ParseMode.HTML)
-                            .replyMarkup(replyKeyboardService.vaimakeKeyboard(message.getChatId(), locale))
+                            .replyMarkup(replyKeyboardService.vavmergeKeyboard(message.getChatId(), locale))
                             .build()
             );
             commandStateService.setState(message.getChatId(), getCommandIdentifier(), convertState);
@@ -113,26 +114,26 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_CLICK, locale))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_CLICK, locale))
                                 .parseMode(ParseMode.HTML)
-                                .replyMarkup(replyKeyboardService.vaimakeKeyboard(message.getChatId(), locale))
+                                .replyMarkup(replyKeyboardService.vavmergeKeyboard(message.getChatId(), locale))
                                 .build()
                 );
                 commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
             } else if (message.hasText()) {
                 String cancelFilesCommand = localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale);
-                String vmakeCommand = localisationService.getMessage(ConverterMessagesProperties.VAIMAKE_COMMAND_NAME, locale);
+                String vmakeCommand = localisationService.getMessage(ConverterMessagesProperties.VAVMERGE_COMMAND_NAME, locale);
                 if (Objects.equals(text, cancelFilesCommand)) {
                     messageService.sendMessage(
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_FILES_CANCELED, locale))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_FILES_CANCELED, locale))
                                     .parseMode(ParseMode.HTML)
-                                    .replyMarkup(replyKeyboardService.vaimakeKeyboard(message.getChatId(), locale))
+                                    .replyMarkup(replyKeyboardService.vavmergeKeyboard(message.getChatId(), locale))
                                     .build()
                     );
                     commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 } else if (Objects.equals(text, vmakeCommand)) {
-                    validateVaiMake(existsState);
+                    validateVavMerge(existsState);
                     convertionService.createConversion(message.getFrom(), existsState, Format.VMAKE, locale);
                     commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 }
@@ -142,7 +143,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return ConverterCommandNames.VAIMAKE;
+        return ConverterCommandNames.VAVMERGE;
     }
 
     @Override
@@ -173,11 +174,11 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
     }
 
     private int getIndex(MessageMedia media) {
-        return media.getFormat().getCategory() == FormatCategory.AUDIO ? AUDIO_FILE_INDEX : IMAGE_FILE_INDEX;
+        return media.getFormat().getCategory() == FormatCategory.AUDIO ? AUDIO_FILE_INDEX : VIDEO_FILE_INDEX;
     }
 
-    private void validateVaiMake(ConvertState convertState) {
-        if (convertState.getMedia(AUDIO_FILE_INDEX) != null && convertState.getMedia(IMAGE_FILE_INDEX) != null) {
+    private void validateVavMerge(ConvertState convertState) {
+        if (convertState.getMedia(AUDIO_FILE_INDEX) != null && convertState.getMedia(VIDEO_FILE_INDEX) != null) {
             return;
         }
 
@@ -186,21 +187,23 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
     private String getAwaitingMessage(ConvertState convertState) {
         if (convertState.getMedia(AUDIO_FILE_INDEX) != null) {
-            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_AWAITING_IMAGE, new Locale(convertState.getUserLanguage()));
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_VIDEO,
+                    new Locale(convertState.getUserLanguage()));
         } else {
-            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_AWAITING_AUDIO, new Locale(convertState.getUserLanguage()));
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_AUDIO,
+                    new Locale(convertState.getUserLanguage()));
         }
     }
 
     private void checkSecondMedia(ConvertState convertState, MessageMedia media) {
         if (convertState.getMedia(AUDIO_FILE_INDEX) != null) {
             if (media == null || media.getFormat().getCategory() != FormatCategory.IMAGES) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_AWAITING_IMAGE,
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_VIDEO,
                         new Locale(convertState.getUserLanguage())));
             }
         } else {
             if (media == null || media.getFormat().getCategory() != FormatCategory.AUDIO) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_AWAITING_AUDIO,
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_AUDIO,
                         new Locale(convertState.getUserLanguage())));
             }
         }
@@ -208,7 +211,7 @@ public class VaiMakeCommand implements NavigableBotCommand, BotCommand {
 
     private void checkMedia(MessageMedia media, Locale locale) {
         if (media == null || !ACCEPT_CATEGORIES.contains(media.getFormat().getCategory())) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAIMAKE_WELCOME, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_WELCOME, locale));
         }
     }
 }

@@ -179,15 +179,27 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CORRUPTED_VIDEO = "message.corrupted.video";
 
-    public static final String MESSAGE_VMAKE_WELCOME = "message.vmake.welcome";
+    public static final String MESSAGE_VAIMAKE_WELCOME = "message.vaimake.welcome";
 
-    public static final String MESSAGE_VMAKE_AWAITING_IMAGE = "message.vmake.awaiting.image";
+    public static final String MESSAGE_VAIMAKE_AWAITING_IMAGE = "message.vaimake.awaiting.image";
 
-    public static final String MESSAGE_VMAKE_AWAITING_AUDIO = "message.vmake.awaiting.audio";
+    public static final String MESSAGE_VAIMAKE_AWAITING_AUDIO = "message.vaimake.awaiting.audio";
 
-    public static final String VMAKE_COMMAND_NAME = "vmake.command.name";
+    public static final String VAIMAKE_COMMAND_NAME = "vaimake.command.name";
 
-    public static final String MESSAGE_VMAKE_FILES_CANCELED = "message.vmake.files.canceled";
+    public static final String MESSAGE_VAIMAKE_FILES_CANCELED = "message.vaimake.files.canceled";
 
-    public static final String MESSAGE_VMAKE_CLICK = "message.vmake.click";
+    public static final String MESSAGE_VAIMAKE_CLICK = "message.vaimake.click";
+
+    public static final String MESSAGE_VAVMERGE_AWAITING_VIDEO = "message.vavmerge.awaiting.video";
+
+    public static final String MESSAGE_VAVMERGE_AWAITING_AUDIO = "message.vavmerge.awaiting.audio";
+
+    public static final String MESSAGE_VAVMERGE_FILES_CANCELED = "message.vavmerge.files.canceled";
+
+    public static final String VAVMERGE_COMMAND_NAME = "vavmerge.command.name";
+
+    public static final String MESSAGE_VAVMERGE_CLICK = "message.vavmerge.click";
+
+    public static final String MESSAGE_VAVMERGE_WELCOME = "message.vavmerge.welcome";
 }

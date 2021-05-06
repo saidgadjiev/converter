@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.ffmpeg;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
@@ -102,7 +103,7 @@ public class FFprobeDevice {
 
     private String[] getAudioStreamsCommand(String in) {
         return new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index:stream_tags=language", "-of", "json", in
+                "ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index,codec_name,codec_type:stream_tags=language", "-of", "json", in
         };
     }
 
@@ -219,6 +220,9 @@ public class FFprobeDevice {
 
         private Integer height;
 
+        @JsonIgnore
+        private Integer input;
+
         public String getCodecName() {
             return codecName;
         }
@@ -249,6 +253,14 @@ public class FFprobeDevice {
 
         public void setWidth(Integer width) {
             this.width = width;
+        }
+
+        public void setInput(Integer input) {
+            this.input = input;
+        }
+
+        public Integer getInput() {
+            return input;
         }
     }
 }

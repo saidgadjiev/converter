@@ -39,8 +39,9 @@ public class FFmpegAudioHelper {
                     .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
             Map<Integer, Boolean> audioIndexes = new LinkedHashMap<>();
+            Integer input = audioStreams.iterator().next().getInput();
             if (appendMapAudio) {
-                commandBuilder.mapAudio();
+                commandBuilder.mapAudioInput(input);
             }
             for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
                 FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamIndex);
@@ -69,7 +70,7 @@ public class FFmpegAudioHelper {
     }
 
     public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                         SmartTempFile file, SmartTempFile out, Format targetFormat) throws InterruptedException {
+                                         SmartTempFile out, Format targetFormat) throws InterruptedException {
         if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
             FFmpegCommandBuilder baseCommandToCheckCopyable = new FFmpegCommandBuilder(commandBuilder);
 
@@ -77,9 +78,10 @@ public class FFmpegAudioHelper {
                     .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
             List<Integer> copyAudiosIndexes = new ArrayList<>();
-            commandBuilder.mapAudio();
+            Integer input = audioStreams.iterator().next().getInput();
+            commandBuilder.mapAudioInput(input);
             for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
-                if (isCopyableAudioCodecs(baseCommandToCheckCopyable, file, out, audioStreamIndex)) {
+                if (isCopyableAudioCodecs(baseCommandToCheckCopyable, out, input, audioStreamIndex)) {
                     copyAudiosIndexes.add(audioStreamIndex);
                 } else {
                     addAudioCodecByTargetFormat(commandBuilder, targetFormat, audioStreamIndex);
@@ -93,13 +95,13 @@ public class FFmpegAudioHelper {
         }
     }
 
-    private boolean isCopyableAudioCodecs(FFmpegCommandBuilder baseCommandBuilder, SmartTempFile in, SmartTempFile out,
-                                          int streamIndex) throws InterruptedException {
+    private boolean isCopyableAudioCodecs(FFmpegCommandBuilder baseCommandBuilder, SmartTempFile out, Integer input, int streamIndex) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
 
-        commandBuilder.map(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER, streamIndex).copy(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER);
+        commandBuilder.mapAudio(input, streamIndex).copy(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER);
+        commandBuilder.out(out.getAbsolutePath());
 
-        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+        return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
     private void addAudioCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {

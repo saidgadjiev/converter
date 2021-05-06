@@ -97,12 +97,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
             }
             String scale = "scale=-2:" + height;
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+            commandBuilder.input(file.getAbsolutePath());
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, scale, fileQueueItem.getTargetFormat());
             if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
                 //Так как при увличении разрешения и так снижается качество
                 commandBuilder.crf("30");
              }
-            fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
+            commandBuilder.out(result.getAbsolutePath());
+            fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
 

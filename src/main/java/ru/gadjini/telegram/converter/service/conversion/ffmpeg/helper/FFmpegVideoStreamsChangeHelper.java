@@ -34,12 +34,14 @@ public class FFmpegVideoStreamsChangeHelper {
     public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, SmartTempFile file,
                                               SmartTempFile result, String scale, Format targetFormat) throws InterruptedException {
         List<FFprobeDevice.Stream> allStreams = videoConversionHelper.getStreamsForConversion(file);
-
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
+
+        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); videoStreamIndex++) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
             commandBuilder.mapVideo(videoStreamIndex);
-            boolean convertibleToH264 = targetFormat.supportsStreaming() || fFmpegVideoHelper.isConvertibleToH264(file, result, videoStreamIndex, scale);
+            boolean convertibleToH264 = targetFormat.supportsStreaming()
+                    || fFmpegVideoHelper.isConvertibleToH264(baseCommand, result, videoStream.getInput(), videoStreamIndex, scale);
             if (!fFmpegVideoHelper.addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
                     convertibleToH264, scale)) {
                 commandBuilder.videoCodec(videoStreamIndex, videoStream.getCodecName());
@@ -52,7 +54,7 @@ public class FFmpegVideoStreamsChangeHelper {
         if (targetFormat.supportsStreaming()) {
             fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {
-            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, file, result, targetFormat);
+            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, result, targetFormat);
         }
         fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, targetFormat);
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);

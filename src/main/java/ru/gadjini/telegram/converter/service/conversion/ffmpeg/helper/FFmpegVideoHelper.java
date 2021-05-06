@@ -41,7 +41,7 @@ public class FFmpegVideoHelper {
 
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
-            commandBuilder.mapVideo(videoStreamIndex);
+            commandBuilder.mapVideo(videoStream.getInput(), videoStreamIndex);
             if (FFmpegCommandBuilder.H264_CODEC.equals(videoStream.getCodecName())) {
                 commandBuilder.copyVideo(videoStreamIndex);
             } else {
@@ -52,19 +52,20 @@ public class FFmpegVideoHelper {
     }
 
     public void copyOrConvertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                         Format targetFormat, SmartTempFile file, SmartTempFile result) throws InterruptedException {
+                                         Format targetFormat, SmartTempFile result) throws InterruptedException {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
         String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
 
+        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         for (int videoStreamIndex = 0; videoStreamIndex < videoStreams.size(); ++videoStreamIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamIndex);
-            commandBuilder.mapVideo(videoStreamIndex);
-            if (isCopyableVideoCodecs(file, result, targetFormat, videoStreamIndex)) {
+            commandBuilder.mapVideo(videoStream.getInput(), videoStreamIndex);
+            if (isCopyableVideoCodecs(baseCommand, result, targetFormat, videoStream.getInput(), videoStreamIndex)) {
                 commandBuilder.copyVideo(videoStreamIndex);
             } else {
-                boolean convertibleToH264 = isConvertibleToH264(file, result, videoStreamIndex, scale);
+                boolean convertibleToH264 = isConvertibleToH264(baseCommand, result, videoStream.getInput(), videoStreamIndex, scale);
                 if (!addFastestVideoCodec(commandBuilder, videoStream, videoStreamIndex,
                         convertibleToH264, scale)) {
                     addVideoCodecByTargetFormat(commandBuilder, targetFormat, videoStreamIndex);
@@ -73,20 +74,23 @@ public class FFmpegVideoHelper {
         }
     }
 
-    public boolean isCopyableVideoCodecs(SmartTempFile in, SmartTempFile out, Format targetFormat, int streamIndex) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+    private boolean isCopyableVideoCodecs(FFmpegCommandBuilder baseCommand, SmartTempFile out, Format targetFormat, Integer input, int streamIndex) throws InterruptedException {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
 
-        commandBuilder.map(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, streamIndex).copy(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER);
+        commandBuilder.mapVideo(input, streamIndex).copy(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER);
         addVideoTargetFormatOptions(commandBuilder, targetFormat);
+        commandBuilder.out(out.getAbsolutePath());
 
-        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+        return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
-    public boolean isConvertibleToH264(SmartTempFile in, SmartTempFile out, int videoStreamIndex, String scale) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-        commandBuilder.mapVideo(videoStreamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
+    public boolean isConvertibleToH264(FFmpegCommandBuilder baseCommand, SmartTempFile out,
+                                       Integer input, int videoStreamIndex, String scale) throws InterruptedException {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
+        commandBuilder.mapVideo(input, videoStreamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
+        commandBuilder.out(out.getAbsolutePath());
 
-        return fFmpegDevice.isConvertable(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+        return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
     public boolean addFastestVideoCodec(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream videoStream,
