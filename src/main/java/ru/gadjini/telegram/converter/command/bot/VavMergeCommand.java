@@ -134,7 +134,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
                     commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 } else if (Objects.equals(text, vmakeCommand)) {
                     validateVavMerge(existsState);
-                    convertionService.createConversion(message.getFrom(), existsState, Format.VMAKE, locale);
+                    convertionService.createConversion(message.getFrom(), existsState, Format.MERGE, locale);
                     commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 }
             }

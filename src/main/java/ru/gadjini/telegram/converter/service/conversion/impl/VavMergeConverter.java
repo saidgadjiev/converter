@@ -35,7 +35,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
     public static final int VIDEO_FILE_INDEX = 0;
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            List.of(Format.VIDEOAUDIO), List.of(Format.VMAKE)
+            List.of(Format.VIDEOAUDIO), List.of(Format.MERGE)
     );
 
     private FFmpegDevice fFmpegDevice;
