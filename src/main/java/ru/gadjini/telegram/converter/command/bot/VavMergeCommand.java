@@ -197,7 +197,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
 
     private void checkSecondMedia(ConvertState convertState, MessageMedia media) {
         if (convertState.getMedia(AUDIO_FILE_INDEX) != null) {
-            if (media == null || media.getFormat().getCategory() != FormatCategory.IMAGES) {
+            if (media == null || media.getFormat().getCategory() != FormatCategory.VIDEO) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_VIDEO,
                         new Locale(convertState.getUserLanguage())));
             }

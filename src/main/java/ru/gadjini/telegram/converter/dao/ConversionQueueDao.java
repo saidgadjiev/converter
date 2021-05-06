@@ -31,7 +31,10 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import java.sql.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.converter.domain.ConversionQueueItem.TYPE;
@@ -282,8 +285,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     @Override
     public ConversionQueueItem deleteAndGetProcessingOrWaitingById(int id) {
-        return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE id = ? " +
-                        " AND status IN (0, 1) RETURNING id, status, files, server) SELECT id, status, server, array_to_json(files) as files_json FROM del",
+        return jdbcTemplate.query("DELETE FROM conversion_queue WHERE id = ? AND status IN (0, 1) RETURNING id, status, server",
                 ps -> ps.setInt(1, id),
                 (rs) -> {
                     if (rs.next()) {
@@ -297,9 +299,9 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     @Override
     public List<ConversionQueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
-        return jdbcTemplate.query("WITH del AS(DELETE FROM conversion_queue WHERE user_id = ? " +
+        return jdbcTemplate.query("DELETE FROM conversion_queue WHERE user_id = ? " +
                         " AND converter IN(" + inConverters() + ") " +
-                        " AND status IN (0, 1) RETURNING id, status, files, server) SELECT id, status, server, array_to_json(files) as files_json FROM del",
+                        " AND status IN (0, 1) RETURNING id, status, server",
                 ps -> ps.setInt(1, userId),
                 (rs, rowNum) -> mapDeleteItem(rs)
         );
@@ -308,17 +310,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     @Override
     public ConversionQueueItem deleteAndGetById(int id) {
         return jdbcTemplate.query(
-                "WITH del AS(DELETE FROM conversion_queue WHERE id = ? RETURNING id, status, files) SELECT id, status, array_to_json(files) as files_json FROM del",
+                "DELETE FROM conversion_queue WHERE id = ? RETURNING id, status, server",
                 ps -> ps.setInt(1, id),
                 rs -> {
                     if (rs.next()) {
-                        ConversionQueueItem fileQueueItem = new ConversionQueueItem();
-
-                        fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
-                        fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
-                        fileQueueItem.setFiles(mapFiles(rs));
-
-                        return fileQueueItem;
+                        return mapDeleteItem(rs);
                     }
 
                     return null;
@@ -379,7 +375,6 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
         fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
         fileQueueItem.setStatus(ConversionQueueItem.Status.fromCode(rs.getInt(ConversionQueueItem.STATUS)));
-        fileQueueItem.setFiles(mapFiles(rs));
         fileQueueItem.setServer(rs.getInt(QueueItem.SERVER));
 
         return fileQueueItem;
