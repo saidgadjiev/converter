@@ -63,7 +63,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter {
                     return localProcessExecutor.execute(conversionProperties.getTimeOut(), () -> {
                         try {
                             document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             throw new ConvertException(e);
                         }
 

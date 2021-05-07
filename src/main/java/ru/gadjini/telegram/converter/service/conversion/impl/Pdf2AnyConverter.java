@@ -75,7 +75,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter {
             }
         } catch (ProcessTimedOutException e) {
             throw e;
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             throw new ConvertException(ex);
         }
     }
