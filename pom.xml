@@ -12,7 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <aspose.version>19.9</aspose.version>
-        <aspose.pdf.version>19.9</aspose.pdf.version>
+        <aspose.pdf.version>19.1</aspose.pdf.version>
     </properties>
 
     <repositories>
@@ -215,7 +215,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <aspose.pdf.version>19.1</aspose.pdf.version>
                 <spring.profiles.active>dev-primary</spring.profiles.active>
             </properties>
         </profile>
@@ -223,7 +222,6 @@
         <profile>
             <id>dev-secondary</id>
             <properties>
-                <aspose.pdf.version>19.1</aspose.pdf.version>
                 <spring.profiles.active>dev-secondary</spring.profiles.active>
             </properties>
         </profile>
