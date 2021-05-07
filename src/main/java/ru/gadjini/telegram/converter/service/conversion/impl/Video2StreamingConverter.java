@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -19,6 +18,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 
@@ -74,14 +75,14 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private ConversionResult doConvertStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
-        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+        SmartTempFile result = tempFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
             List<FFprobeDevice.Stream> allStreams = videoConversionHelper.getStreamsForConversion(file);
             if (fFmpegVideoHelper.isVideoStreamsValidForTelegramVideo(allStreams)
                     && fFmpegAudioHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
-                FileUtils.copyFile(file.getFile(), result.getFile());
+                Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
