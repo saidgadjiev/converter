@@ -26,13 +26,13 @@ public class InlineKeyboardService {
         this.smartInlineKeyboardService = smartInlineKeyboardService;
     }
 
-    public InlineKeyboardMarkup getVideoEditSettingsKeyboard(List<String> resolutions, Locale locale) {
+    public InlineKeyboardMarkup getVideoEditSettingsKeyboard(String currentResolution, List<String> resolutions, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         List<List<String>> lists = Lists.partition(resolutions, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (String resolution : list) {
-                buttons.add(buttonFactory.resolutionButton(resolution));
+                buttons.add(buttonFactory.resolutionButton(currentResolution, resolution, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }

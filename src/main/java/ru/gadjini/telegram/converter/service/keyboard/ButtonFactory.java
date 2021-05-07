@@ -96,8 +96,12 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton resolutionButton(String resolution) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(resolution);
+    public InlineKeyboardButton resolutionButton(String currentResolution, String resolution, Locale locale) {
+        String btnName = Objects.equals(currentResolution, resolution)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + resolution
+                : resolution;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)

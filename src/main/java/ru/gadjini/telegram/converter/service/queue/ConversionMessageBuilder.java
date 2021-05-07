@@ -153,7 +153,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         StringBuilder text = new StringBuilder();
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
-        } else if (queueItem.getTargetFormat() == Format.MERGE_PDFS) {
+        } else if (queueItem.getTargetFormat() == Format.MERGE_PDFS || queueItem.getTargetFormat() == Format.MERGE) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_FILES_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.EDIT) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_WILL_BE_EDITED, new Object[]{queueItem.getQueuePosition()}, locale));

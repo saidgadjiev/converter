@@ -106,7 +106,7 @@ public class Images2PdfTiffConverter extends BaseAny2AnyConverter {
 
         int i = 0;
         for (TgFile imageFile : queueItem.getFiles()) {
-            String path = tempFileService().getTempFile(FileTarget.DOWNLOAD, tempDir, queueItem.getUserId(), TAG, imageFile.getFileId(), "File-" + i + "." + imageFile.getFormat().getExt());
+            String path = new File(tempDir, "File-" + i + "." + imageFile.getFormat().getExt()).getAbsolutePath();
             imageFile.setFilePath(path);
             Progress downloadProgress = progressBuilder.buildFilesDownloadProgress(queueItem, i, queueItem.getFiles().size());
             imageFile.setProgress(downloadProgress);

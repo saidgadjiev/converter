@@ -186,7 +186,8 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                                 .text(buildSettingsMessage(convertState))
                                 .parseMode(ParseMode.HTML)
-                                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, locale))
+                                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(convertState.getSettings().getResolution(),
+                                        AVAILABLE_RESOLUTIONS, locale))
                                 .build(),
                         sent -> {
                             convertState.getSettings().setMessageId(sent.getMessageId());
@@ -235,7 +236,8 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                 .messageId(convertState.getSettings().getMessageId())
                 .text(buildSettingsMessage(convertState))
                 .parseMode(ParseMode.HTML)
-                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage())))
+                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(convertState.getSettings().getResolution(),
+                        AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage())))
                 .build());
     }
 
