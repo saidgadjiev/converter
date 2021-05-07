@@ -29,13 +29,15 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     public static final Format DEFAULT_AUDIO_COMPRESS_FORMAT = MP3;
 
-    public static final String DEFAULT_MP3_FREQUENCY = "44100";
+    public static final String MP3_FREQUENCY_44 = "44";
+
+    public static final String MP3_FREQUENCY_22 = "22";
 
     public static final String AUTO_BITRATE = "32";
 
     private static final Map<Format, String> DEFAULT_FREQUENCIES = new HashMap<>() {{
         put(OPUS, null);
-        put(MP3, DEFAULT_MP3_FREQUENCY);
+        put(MP3, MP3_FREQUENCY_44);
     }};
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
@@ -72,7 +74,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
         String bitrate = AUTO_BITRATE;
         Format compressionFormat = DEFAULT_AUDIO_COMPRESS_FORMAT;
-        String frequency = DEFAULT_MP3_FREQUENCY;
+        String frequency = MP3_FREQUENCY_44;
         if (conversionQueueItem.getExtra() != null) {
             SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
@@ -85,7 +87,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         commandBuilder.ba(bitrate + "k");
 
         if (MP3.equals(compressionFormat)) {
-            commandBuilder.ar(frequency);
+            commandBuilder.ar(normalizeFrequency(frequency));
         }
 
         try {
@@ -99,5 +101,9 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_AUDIO, localeOrDefault))
                     .setReplyToMessageId(conversionQueueItem.getReplyToMessageId());
         }
+    }
+
+    private String normalizeFrequency(String frequency) {
+        return MP3_FREQUENCY_44.equals(frequency) ? "44100" : "22050";
     }
 }

@@ -52,8 +52,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                 put(null, List.of("7", "13", "18", FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128"));
             }},
             Format.MP3, Map.of(
-                    "22050", List.of("7", "13", "18", FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128"),
-                    FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY, List.of(FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128")
+                    FFmpegAudioCompressConverter.MP3_FREQUENCY_22, List.of("7", "13", "18", FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128"),
+                    FFmpegAudioCompressConverter.MP3_FREQUENCY_44, List.of(FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128")
             )
     );
 
@@ -235,7 +235,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setSettings(new SettingsState());
         convertState.getSettings().setBitrate(FFmpegAudioCompressConverter.AUTO_BITRATE);
         convertState.getSettings().setFormat(Format.MP3);
-        convertState.getSettings().setFrequency(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY);
+        convertState.getSettings().setFrequency(FFmpegAudioCompressConverter.MP3_FREQUENCY_44);
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         checkMedia(media, ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_FILE_NOT_FOUND, locale);
@@ -296,7 +296,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         if (Format.OPUS.equals(format)) {
             convertState.getSettings().setFrequency(null);
         } else {
-            convertState.getSettings().setFrequency(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY);
+            convertState.getSettings().setFrequency(FFmpegAudioCompressConverter.MP3_FREQUENCY_44);
         }
         convertState.getSettings().setFormat(format);
         if (!Objects.equals(oldFormat, format)) {
@@ -327,7 +327,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
         if (format.equals(Format.MP3)) {
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_OUTPUT_FREQUENCY,
-                    new Object[]{convertState.getSettings().getFrequencyOrDefault(FFmpegAudioCompressConverter.DEFAULT_MP3_FREQUENCY)}, locale)).append("\n");
+                    new Object[]{convertState.getSettings().getFrequencyOrDefault(FFmpegAudioCompressConverter.MP3_FREQUENCY_44)}, locale)).append("\n");
         }
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESSION_BITRATE, new Object[]{convertState.getSettings().getBitrate()}, locale)).append("\n");
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE,
