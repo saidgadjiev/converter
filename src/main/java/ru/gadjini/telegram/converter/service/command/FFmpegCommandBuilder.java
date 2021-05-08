@@ -2,8 +2,6 @@ package ru.gadjini.telegram.converter.service.command;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FFmpegCommandBuilder {
 
@@ -61,7 +59,7 @@ public class FFmpegCommandBuilder {
 
     private List<String> options = new ArrayList<>();
 
-    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "2048", "-pix_fmt", YUV_420_P);
+    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "9999", "-pix_fmt", YUV_420_P);
 
     public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
         this.options.addAll(commandBuilder.options);
@@ -410,25 +408,27 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder defaultOptions() {
+        List<String> def = new ArrayList<>();
+        if (!options.contains(CRF)) {
+            def.add(CRF);
+            def.add(DEFAULT_CRF);
+        }
+        options.addAll(def);
+        options.addAll(DEFAULT_OPTIONS);
+
+        return this;
+    }
+
     public String[] build() {
-        return getOptions().toArray(new String[0]);
+        return options.toArray(new String[0]);
     }
 
     public String[] buildFullCommand() {
         List<String> command = new ArrayList<>();
         command.add("ffmpeg");
-        command.addAll(getOptions());
+        command.addAll(options);
 
         return command.toArray(new String[0]);
-    }
-
-    private List<String> getOptions() {
-        List<String> def = new ArrayList<>(DEFAULT_OPTIONS);
-        if (!options.contains(CRF)) {
-            def.add(CRF);
-            def.add(DEFAULT_CRF);
-        }
-
-        return Stream.concat(options.stream(), def.stream()).collect(Collectors.toList());
     }
 }

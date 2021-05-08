@@ -102,7 +102,7 @@ public class FFmpegSubtitlesHelper {
                                         SmartTempFile out, Integer input, int index) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
         commandBuilder.mapSubtitles(input, index).copySubtitles();
-        commandBuilder.out(out.getAbsolutePath());
+        commandBuilder.defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
@@ -113,7 +113,7 @@ public class FFmpegSubtitlesHelper {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
         commandBuilder.mapSubtitles(input, index);
         addSubtitlesCodec(commandBuilder, format);
-        commandBuilder.out(out.getAbsolutePath());
+        commandBuilder.defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }

@@ -126,7 +126,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 
-        commandBuilder.out(result.getAbsolutePath());
+        commandBuilder.defaultOptions().out(result.getAbsolutePath());
         fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());

@@ -103,7 +103,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 //Так как при увличении разрешения и так снижается качество
                 commandBuilder.crf("30");
              }
-            commandBuilder.out(result.getAbsolutePath());
+            commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());

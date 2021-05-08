@@ -34,7 +34,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo2AudioConverter.class);
 
-    private static final String TAG = "ffmpegvideo";
+    private static final String TAG = "ffmpegaudio";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
         put(filter(FormatCategory.VIDEO), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RA));

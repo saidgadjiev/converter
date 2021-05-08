@@ -79,7 +79,7 @@ public class FFmpegVideoHelper {
 
         commandBuilder.mapVideo(input, streamIndex).copy(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER);
         addVideoTargetFormatOptions(commandBuilder, targetFormat);
-        commandBuilder.out(out.getAbsolutePath());
+        commandBuilder.defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
@@ -88,7 +88,7 @@ public class FFmpegVideoHelper {
                                        Integer input, int videoStreamIndex, String scale) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
         commandBuilder.mapVideo(input, videoStreamIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
-        commandBuilder.out(out.getAbsolutePath());
+        commandBuilder.defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }

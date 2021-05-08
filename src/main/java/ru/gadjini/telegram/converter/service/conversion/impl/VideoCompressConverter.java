@@ -87,7 +87,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, SCALE, fileQueueItem.getTargetFormat());
             commandBuilder.crf("30");
 
-            commandBuilder.out(result.getAbsolutePath());
+            commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),

@@ -106,7 +106,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
             long durationInSeconds = fFprobeDevice.getDurationInSeconds(video.getAbsolutePath());
             commandBuilder.t(durationInSeconds);
-            commandBuilder.out(result.getAbsolutePath());
+            commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
