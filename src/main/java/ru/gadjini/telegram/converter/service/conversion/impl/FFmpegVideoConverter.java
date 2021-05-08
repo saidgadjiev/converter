@@ -11,7 +11,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -59,8 +58,6 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
     private FFmpegSubtitlesHelper fFmpegHelper;
 
-    private FFmpegVideoConversionHelper videoConversionHelper;
-
     private FFmpegVideoHelper fFmpegVideoHelper;
 
     private FFmpegAudioHelper fFmpegAudioHelper;
@@ -68,13 +65,11 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
     @Autowired
     public FFmpegVideoConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
                                 FFmpegSubtitlesHelper fFmpegHelper,
-                                FFmpegVideoConversionHelper videoConversionHelper,
                                 FFmpegVideoHelper fFmpegVideoHelper, FFmpegAudioHelper fFmpegAudioHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegHelper = fFmpegHelper;
-        this.videoConversionHelper = videoConversionHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
     }
@@ -104,7 +99,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
     }
 
     public ConversionResult doConvert(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem) throws InterruptedException {
-        List<FFprobeDevice.Stream> allStreams = videoConversionHelper.getStreamsForConversion(file);
+        List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
         commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
@@ -117,12 +112,12 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         if (WEBM.equals(fileQueueItem.getTargetFormat())) {
             commandBuilder.crf("10");
         }
+        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getTargetFormat());
         if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
             fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {
             fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, result, fileQueueItem.getTargetFormat());
         }
-        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, file, result, fileQueueItem.getTargetFormat());
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 

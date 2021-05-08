@@ -33,7 +33,7 @@ public class FFmpegSubtitlesHelper {
     }
 
     public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                                     SmartTempFile file, SmartTempFile result, Format targetFormat) throws InterruptedException {
+                                                     SmartTempFile result, Format targetFormat) throws InterruptedException {
         if (!isSubtitlesSupported(targetFormat)) {
             return;
         }

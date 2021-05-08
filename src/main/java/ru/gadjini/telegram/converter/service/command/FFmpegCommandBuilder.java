@@ -41,6 +41,10 @@ public class FFmpegCommandBuilder {
 
     public static final String MPEGTS_FORMAT = "mpegts";
 
+    public static final String MJPEG = "mjpeg";
+
+    public static final String BMP = "bmp";
+
     public static final String FLV_FORMAT = "flv";
 
     public static final String AC3_CODEC = "ac3";

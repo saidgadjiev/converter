@@ -10,7 +10,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -44,8 +43,6 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
     private FFmpegAudioHelper fFmpegAudioHelper;
 
-    private FFmpegVideoConversionHelper videoConversionHelper;
-
     private FFmpegVideoHelper fFmpegVideoHelper;
 
     private FFmpegSubtitlesHelper fFmpegSubtitlesHelper;
@@ -53,13 +50,11 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
     @Autowired
     public VavMergeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
                              FFmpegAudioHelper fFmpegAudioHelper,
-                             FFmpegVideoConversionHelper videoConversionHelper,
                              FFmpegVideoHelper fFmpegVideoHelper, FFmpegSubtitlesHelper fFmpegSubtitlesHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
-        this.videoConversionHelper = videoConversionHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
     }
@@ -79,7 +74,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 conversionQueueItem.getFirstFileId(), TAG, targetFormat.getExt());
 
         try {
-            List<FFprobeDevice.Stream> videoStreamsForConversion = videoConversionHelper.getStreamsForConversion(video);
+            List<FFprobeDevice.Stream> videoStreamsForConversion = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             videoStreamsForConversion.forEach(s -> s.setInput(0));
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(video.getAbsolutePath())
                     .input(audio.getAbsolutePath());
@@ -95,12 +90,12 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
             }
             List<FFprobeDevice.Stream> audioStreamsForConversion = fFprobeDevice.getAllStreams(audio.getAbsolutePath());
             audioStreamsForConversion.forEach(s -> s.setInput(1));
+            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, videoStreamsForConversion, result, targetFormat);
             if (targetFormat.canBeSentAsVideo()) {
                 fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
             } else {
                 fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, audioStreamsForConversion, result, targetFormat);
             }
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, videoStreamsForConversion, video, result, targetFormat);
             commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
             commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
 
