@@ -8,6 +8,7 @@ import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.CommandMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
@@ -21,10 +22,14 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
 
     private ApplicationProperties applicationProperties;
 
+    private SubscriptionProperties subscriptionProperties;
+
     @Autowired
-    public ConverterCommandMessageBuilder(LocalisationService localisationService, ApplicationProperties applicationProperties) {
+    public ConverterCommandMessageBuilder(LocalisationService localisationService, ApplicationProperties applicationProperties,
+                                          SubscriptionProperties subscriptionProperties) {
         this.localisationService = localisationService;
         this.applicationProperties = applicationProperties;
+        this.subscriptionProperties = subscriptionProperties;
     }
 
     public String getCommandsInfo(Locale locale) {
@@ -37,7 +42,10 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
         if (applicationProperties.is(FormatsConfiguration.AUDIO_CONVERTER)) {
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.COMPRESS_AUDIO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.COMPRESS_AUDIO_COMMAND_DESCRIPTION, locale)).append("\n");
         }
-        info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.SUBSCRIPTION).append(" - ").append(localisationService.getMessage(MessagesProperties.SUBSCRIPTION_COMMAND_DESCRIPTION, locale)).append("\n");
+        if (subscriptionProperties.isCheckPaidSubscription()) {
+            info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.SUBSCRIPTION).append(" - ").append(localisationService.getMessage(MessagesProperties.SUBSCRIPTION_COMMAND_DESCRIPTION, locale)).append("\n");
+            info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.REFRESH_SUBSCRIPTION).append(" - ").append(localisationService.getMessage(MessagesProperties.REFRESH_SUBSCRIPTION_COMMAND_DESCRIPTION, locale)).append("\n");
+        }
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.TIME_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.BOT_TIME_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.LANGUAGE_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.FORMATS_COMMAND).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.FORMATS_COMMAND_DESCRIPTION, locale)).append("\n");
