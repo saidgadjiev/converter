@@ -45,6 +45,8 @@ public class FFmpegCommandBuilder {
 
     public static final String BMP = "bmp";
 
+    public static final String PNG = "png";
+
     public static final String FLV_FORMAT = "flv";
 
     public static final String AC3_CODEC = "ac3";

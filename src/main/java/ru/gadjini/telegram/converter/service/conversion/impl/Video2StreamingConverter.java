@@ -54,6 +54,11 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
     }
 
     @Override
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
+    }
+
+    @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         fileQueueItem.setTargetFormat(fileQueueItem.getTargetFormat().getAssociatedFormat());
 
@@ -75,6 +80,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
+            fFmpegSubtitlesHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             if (fFmpegVideoHelper.isVideoStreamsValidForTelegramVideo(allStreams)
                     && fFmpegAudioHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
@@ -87,6 +93,9 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
             } else {
                 return null;
             }
+        } catch (CorruptedVideoException e) {
+            tempFileService().delete(result);
+            throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
