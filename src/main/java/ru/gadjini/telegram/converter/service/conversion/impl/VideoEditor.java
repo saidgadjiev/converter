@@ -1,7 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
@@ -21,6 +19,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
@@ -50,7 +49,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegDevice fFmpegDevice;
 
-    private Gson gson;
+    private Jackson jackson;
 
     private LocalisationService localisationService;
 
@@ -60,14 +59,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
-                       FFmpegDevice fFmpegDevice, Gson gson, LocalisationService localisationService,
+                       FFmpegDevice fFmpegDevice, Jackson jackson, LocalisationService localisationService,
                        FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegSubtitlesHelper fFmpegHelper) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
-        this.gson = gson;
+        this.jackson = jackson;
         this.localisationService = localisationService;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
         this.fFmpegHelper = fFmpegHelper;
@@ -87,7 +86,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
             fFmpegHelper.validateVideoIntegrity(file);
-            SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
+            SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
 
@@ -102,7 +101,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
                 //Так как при увличении разрешения и так снижается качество
                 commandBuilder.crf("30");
-             }
+            }
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 

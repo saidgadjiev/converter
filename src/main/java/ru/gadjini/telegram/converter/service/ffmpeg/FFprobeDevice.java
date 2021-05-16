@@ -1,14 +1,13 @@
 package ru.gadjini.telegram.converter.service.ffmpeg;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.List;
@@ -23,43 +22,41 @@ public class FFprobeDevice {
 
     private ProcessExecutor processExecutor;
 
-    private Gson gson;
+    private Jackson jsonMapper;
 
     @Autowired
-    public FFprobeDevice(ProcessExecutor processExecutor, Gson gson) {
+    public FFprobeDevice(ProcessExecutor processExecutor, Jackson jsonMapper) {
         this.processExecutor = processExecutor;
-        this.gson = gson;
+        this.jsonMapper = jsonMapper;
     }
 
     public List<Stream> getAudioStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getAudioStreamsCommand(in));
-        JsonObject json = gson.fromJson(result, JsonObject.class);
+        JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        return gson.fromJson(json.getAsJsonArray(STREAMS_JSON_ATTR), new TypeToken<List<Stream>>() {
-        }.getType());
+        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        });
     }
 
     public List<Stream> getVideoStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getVideoStreamsCommand(in));
-        JsonObject json = gson.fromJson(result, JsonObject.class);
+        JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        return gson.fromJson(json.getAsJsonArray(STREAMS_JSON_ATTR), new TypeToken<List<Stream>>() {
-        }.getType());
+        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        });
     }
 
     public List<Stream> getAllStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getAllStreamsCommand(in));
-        JsonObject json = gson.fromJson(result, JsonObject.class);
+        JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        return gson.fromJson(json.getAsJsonArray(STREAMS_JSON_ATTR), new TypeToken<List<Stream>>() {
-        }.getType());
+        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        });
     }
 
     public FFprobeResult probeVideoStream(String in, int index) throws InterruptedException {
         String result = processExecutor.executeWithResult(getVideoStreamCommand(in, index));
-        JsonObject json = gson.fromJson(result, JsonObject.class);
-
-        return gson.fromJson(json, FFprobeResult.class);
+        return jsonMapper.readValue(result, FFprobeResult.class);
     }
 
     public WHD getWHD(String in, int index) throws InterruptedException {
@@ -208,19 +205,18 @@ public class FFprobeDevice {
 
         private int index;
 
-        @SerializedName("codec_name")
+        @JsonProperty("codec_name")
         private String codecName;
 
         private Map<String, Object> tags;
 
-        @SerializedName("codec_type")
+        @JsonProperty("codec_type")
         private String codecType;
 
         private Integer width;
 
         private Integer height;
 
-        @JsonIgnore
         private Integer input;
 
         public String getCodecName() {

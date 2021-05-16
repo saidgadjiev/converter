@@ -1,7 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
@@ -13,6 +11,7 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudi
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -44,7 +43,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, RA, RM, M4A, M4B), List.of(COMPRESS)
     );
 
-    private Gson gson;
+    private Jackson json;
 
     private FFmpegDevice fFmpegDevice;
 
@@ -55,11 +54,11 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     private LocalisationService localisationService;
 
     @Autowired
-    public FFmpegAudioCompressConverter(Gson gson, FFmpegDevice fFmpegDevice,
+    public FFmpegAudioCompressConverter(Jackson jackson, FFmpegDevice fFmpegDevice,
                                         UserService userService, FFmpegAudioConversionHelper audioConversionHelper,
                                         LocalisationService localisationService) {
         super(MAP);
-        this.gson = gson;
+        this.json = jackson;
         this.fFmpegDevice = fFmpegDevice;
         this.userService = userService;
         this.audioConversionHelper = audioConversionHelper;
@@ -76,7 +75,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         Format compressionFormat = DEFAULT_AUDIO_COMPRESS_FORMAT;
         String frequency = MP3_FREQUENCY_44;
         if (conversionQueueItem.getExtra() != null) {
-            SettingsState settingsState = gson.fromJson((JsonElement) conversionQueueItem.getExtra(), SettingsState.class);
+            SettingsState settingsState = json.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
             compressionFormat = settingsState.getFormatOrDefault(MP3);
             frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(compressionFormat));

@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -66,12 +65,10 @@ public class ConvertState {
         return files;
     }
 
-    @JsonIgnore
     public MessageMedia getFirstFile() {
         return files.isEmpty() ? null : files.iterator().next();
     }
 
-    @JsonIgnore
     public Format getFirstFormat() {
         return files.isEmpty() ? null : getFirstFile().getFormat();
     }
@@ -80,7 +77,6 @@ public class ConvertState {
         files.clear();
     }
 
-    @JsonIgnore
     public boolean isTextAppendedMessageSent() {
         return textAppendedMessageSent;
     }
@@ -89,7 +85,6 @@ public class ConvertState {
         this.textAppendedMessageSent = textAppendedMessageSent;
     }
 
-    @JsonIgnore
     public Format getMultiMediaFormat() {
         return multiMediaFormat;
     }

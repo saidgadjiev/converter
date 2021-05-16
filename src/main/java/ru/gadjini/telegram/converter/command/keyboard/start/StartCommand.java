@@ -19,6 +19,7 @@ import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.PaidChannelSubscriptionOptional;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
@@ -38,7 +39,7 @@ import java.util.Objects;
 
 @Component
 @CommandStart
-public class StartCommand implements NavigableBotCommand, BotCommand {
+public class StartCommand implements NavigableBotCommand, BotCommand, PaidChannelSubscriptionOptional {
 
     public static final String TAG = "convert";
 
@@ -84,16 +85,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         this.messageMediaService = messageMediaService;
         this.conversionFormatService = conversionFormatService;
         this.conversionJob = conversionJob;
-    }
-
-    @Override
-    public boolean isChannelSubscriptionRequired() {
-        return false;
-    }
-
-    @Override
-    public boolean isPaidSubscriptionRequired() {
-        return false;
     }
 
     @Override

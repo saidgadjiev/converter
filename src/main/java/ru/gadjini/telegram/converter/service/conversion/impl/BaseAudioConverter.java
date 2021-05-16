@@ -1,7 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +15,7 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -38,15 +37,15 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
     private UserService userService;
 
-    private Gson gson;
+    private Jackson jackson;
 
     protected BaseAudioConverter(Map<List<Format>, List<Format>> map) {
         super(map);
     }
 
     @Autowired
-    public void setGson(Gson gson) {
-        this.gson = gson;
+    public void setJackson(Jackson jackson) {
+        this.jackson = jackson;
     }
 
     @Autowired
@@ -119,7 +118,7 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
 
     private Format getTargetFormat(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getTargetFormat() == Format.COMPRESS && fileQueueItem.getExtra() != null) {
-            SettingsState settingsState = gson.fromJson((JsonElement) fileQueueItem.getExtra(), SettingsState.class);
+            SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             return settingsState.getFormatOrDefault(DEFAULT_AUDIO_COMPRESS_FORMAT);
         }
 

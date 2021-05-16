@@ -1,10 +1,7 @@
 package ru.gadjini.telegram.converter.dao;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +21,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.property.ServerProperties;
+import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
@@ -46,28 +44,25 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     private JdbcTemplate jdbcTemplate;
 
-    private ObjectMapper objectMapper;
-
     private FileLimitProperties fileLimitProperties;
 
     private ServerProperties serverProperties;
 
-    private Gson gson;
+    private Jackson jackson;
 
     private Set<String> converters;
 
     private ApplicationProperties applicationProperties;
 
     @Autowired
-    public ConversionQueueDao(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper,
+    public ConversionQueueDao(JdbcTemplate jdbcTemplate,
                               FileLimitProperties fileLimitProperties, ServerProperties serverProperties,
-                              Gson gson, ApplicationProperties applicationProperties) {
+                              Jackson jackson, ApplicationProperties applicationProperties) {
         this.jdbcTemplate = jdbcTemplate;
-        this.objectMapper = objectMapper;
         this.fileLimitProperties = fileLimitProperties;
         this.serverProperties = serverProperties;
         this.applicationProperties = applicationProperties;
-        this.gson = gson;
+        this.jackson = jackson;
         this.converters = applicationProperties.getConverters();
         LOGGER.debug("Light file weight({})", MemoryUtils.humanReadableByteCount(fileLimitProperties.getLightFileMaxWeight()));
     }
@@ -91,7 +86,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                     if (queueItem.getExtra() == null) {
                         ps.setNull(6, Types.VARCHAR);
                     } else {
-                        ps.setString(6, gson.toJson(queueItem.getExtra()));
+                        ps.setString(6, jackson.writeValueAsString(queueItem.getExtra()));
                     }
                     ps.setString(7, queueItem.getConverter());
 
@@ -428,7 +423,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         }
 
         if (columns.contains(ConversionQueueItem.EXTRA)) {
-            fileQueueItem.setExtra(gson.fromJson(rs.getString(ConversionQueueItem.EXTRA), JsonElement.class));
+            fileQueueItem.setExtra(jackson.readValue(rs.getString(ConversionQueueItem.EXTRA), JsonNode.class));
         }
 
         if (columns.contains(ConversionQueueItem.ATTEMPTS)) {
@@ -438,21 +433,17 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         if (columns.contains(ConversionQueueItem.DOWNLOADS)) {
             PGobject downloadsArr = (PGobject) rs.getObject(ConversionQueueItem.DOWNLOADS);
             if (downloadsArr != null) {
-                try {
-                    List<Map<String, Object>> values = objectMapper.readValue(downloadsArr.getValue(), new TypeReference<>() {
-                    });
-                    List<DownloadQueueItem> downloadingQueueItems = new ArrayList<>();
-                    for (Map<String, Object> value : values) {
-                        DownloadQueueItem downloadingQueueItem = new DownloadQueueItem();
-                        downloadingQueueItem.setFilePath((String) value.get(DownloadQueueItem.FILE_PATH));
-                        downloadingQueueItem.setFile(objectMapper.convertValue(value.get(DownloadQueueItem.FILE), TgFile.class));
-                        downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadQueueItem.DELETE_PARENT_DIR));
-                        downloadingQueueItems.add(downloadingQueueItem);
-                    }
-                    fileQueueItem.setDownloadQueueItems(downloadingQueueItems);
-                } catch (JsonProcessingException e) {
-                    throw new SQLException(e);
+                List<Map<String, Object>> values = jackson.readValue(downloadsArr.getValue(), new TypeReference<>() {
+                });
+                List<DownloadQueueItem> downloadingQueueItems = new ArrayList<>();
+                for (Map<String, Object> value : values) {
+                    DownloadQueueItem downloadingQueueItem = new DownloadQueueItem();
+                    downloadingQueueItem.setFilePath((String) value.get(DownloadQueueItem.FILE_PATH));
+                    downloadingQueueItem.setFile(jackson.convertValue(value.get(DownloadQueueItem.FILE), TgFile.class));
+                    downloadingQueueItem.setDeleteParentDir((Boolean) value.get(DownloadQueueItem.DELETE_PARENT_DIR));
+                    downloadingQueueItems.add(downloadingQueueItem);
                 }
+                fileQueueItem.setDownloadQueueItems(downloadingQueueItems);
             }
         }
 
@@ -462,12 +453,8 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     private List<TgFile> mapFiles(ResultSet rs) throws SQLException {
         PGobject jsonArr = (PGobject) rs.getObject(ConversionQueueItem.FILES_JSON);
         if (jsonArr != null) {
-            try {
-                return objectMapper.readValue(jsonArr.getValue(), new TypeReference<>() {
-                });
-            } catch (JsonProcessingException e) {
-                throw new SQLException(e);
-            }
+            return jackson.readValue(jsonArr.getValue(), new TypeReference<>() {
+            });
         }
 
         return null;
