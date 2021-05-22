@@ -3,6 +3,3 @@ spring:
     active: @spring.profiles.active@
   messages:
     basename: messages,messages-common
-server:
-  tomcat:
-    min-spare-threads: 20
