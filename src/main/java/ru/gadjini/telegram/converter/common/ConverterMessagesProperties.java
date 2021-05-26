@@ -141,6 +141,12 @@ public class ConverterMessagesProperties {
 
     public static final String EDIT_VIDEO_COMMAND_DESCRIPTION = "edit.video.command.description";
 
+    public static final String VEDIT_COMMAND_DESCRIPTION = "vedit.command.description";
+
+    public static final String VAIMAKE_COMMAND_DESCRIPTION = "vaimake.command.description";
+
+    public static final String VAVMERGE_COMMAND_DESCRIPTION = "vavmerge.command.description";
+
     public static final String MESSAGE_CHOOSE_VIDEO_RESOLUTION = "message.choose.video.resolution";
 
     public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
