@@ -202,4 +202,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_VAVMERGE_CLICK = "message.vavmerge.click";
 
     public static final String MESSAGE_VAVMERGE_WELCOME = "message.vavmerge.welcome";
+
+    public static final String MESSAGE_VIDEO_CONVERSION_DETAILS = "message.video.conversion.details";
 }

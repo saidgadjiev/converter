@@ -109,6 +109,9 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                                 }, locale))
                         .append("\n\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale));
+            } else {
+                message.append("\n\n")
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CONVERSION_DETAILS, locale));
             }
         }
 
