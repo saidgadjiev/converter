@@ -287,6 +287,18 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     fileUploadService.createUpload(fileQueueItem.getUserId(), SendVoice.PATH, sendVoice,
                             progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
                     break;
+                case MESSAGE: {
+                    MessageResult messageResult = (MessageResult) convertResult;
+                    messageService.sendMessage(
+                            SendMessage.builder()
+                                    .chatId(String.valueOf(fileQueueItem.getUserId()))
+                                    .text(messageResult.getText())
+                                    .parseMode(messageResult.getParseMode())
+                                    .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                                    .build()
+                    );
+                    break;
+                }
                 case VIDEO: {
                     VideoResult videoResult = (VideoResult) convertResult;
                     SendVideo.SendVideoBuilder sendVideoBuilder = SendVideo.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
@@ -298,7 +310,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             .width(videoResult.getWidth())
                             .height(videoResult.getHeight())
                             .supportsStreaming(videoResult.isSupportsStreaming())
-                            .duration(videoResult.getDuration());
+                            .duration(videoResult.getDuration() == null ? null : videoResult.getDuration().intValue());
                     if (videoResult.getThumb() != null) {
                         sendVideoBuilder.thumb(new InputFile(videoResult.getThumb(), videoResult.getThumb().getName()));
                     }

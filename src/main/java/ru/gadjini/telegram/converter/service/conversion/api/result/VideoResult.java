@@ -7,21 +7,21 @@ public class VideoResult extends FileResult {
 
     private Integer width;
     private Integer height;
-    private Integer duration;
+    private Long duration;
     private boolean supportsStreaming;
 
     public VideoResult(String fileName, SmartTempFile file, Format format, SmartTempFile thumb, Integer width,
-                       Integer height, Integer duration, boolean supportsStreaming) {
+                       Integer height, Long duration, boolean supportsStreaming) {
         this(fileName, file, format, thumb, width, height, duration, supportsStreaming, null);
     }
 
     public VideoResult(String fileName, SmartTempFile file, Format format, Integer width,
-                       Integer height, Integer duration, boolean supportsStreaming) {
+                       Integer height, Long duration, boolean supportsStreaming) {
         this(fileName, file, format, null, width, height, duration, supportsStreaming, null);
     }
 
     public VideoResult(String fileName, SmartTempFile file, Format format, SmartTempFile thumb, Integer width,
-                       Integer height, Integer duration, boolean supportsStreaming, String caption) {
+                       Integer height, Long duration, boolean supportsStreaming, String caption) {
         super(fileName, file, thumb, caption, format);
         this.width = width;
         this.height = height;
@@ -37,7 +37,7 @@ public class VideoResult extends FileResult {
         return height;
     }
 
-    public Integer getDuration() {
+    public Long getDuration() {
         return duration;
     }
 

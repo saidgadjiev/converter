@@ -218,4 +218,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_VIDEO_CUT_END_POINT = "message.video.cut.end.point";
 
     public static final String MESSAGE_VIDEO_CUT_INVALID_END_POINT = "message.video.cut.invalid.end.point";
+
+    public static final String MESSAGE_VIDEO_PROBE_RESULT = "message.video.probe.result";
 }

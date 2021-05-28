@@ -12,5 +12,7 @@ public enum ResultType {
 
     STICKER,
 
+    MESSAGE,
+
     CONTAINER
 }

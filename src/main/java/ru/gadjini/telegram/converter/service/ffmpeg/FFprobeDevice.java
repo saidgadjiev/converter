@@ -71,7 +71,7 @@ public class FFprobeDevice {
                 }
                 FFprobeDevice.FFprobeFormat fFprobeFormat = probeVideoStream.getFormat();
                 if (fFprobeFormat != null) {
-                    Integer duration = probeVideoStream.getFormat().getDuration() != null ? probeVideoStream.getFormat().getDuration().intValue() : null;
+                    Long duration = probeVideoStream.getFormat().getDuration() != null ? probeVideoStream.getFormat().getDuration().longValue() : null;
                     whd.setDuration(duration);
                 }
             }
@@ -122,7 +122,7 @@ public class FFprobeDevice {
 
         private Integer height;
 
-        private Integer duration;
+        private Long duration;
 
         public Integer getWidth() {
             return width;
@@ -140,11 +140,11 @@ public class FFprobeDevice {
             this.height = height;
         }
 
-        public Integer getDuration() {
+        public Long getDuration() {
             return duration;
         }
 
-        public void setDuration(Integer duration) {
+        public void setDuration(Long duration) {
             this.duration = duration;
         }
     }

@@ -65,7 +65,6 @@ public class FFmpegVideoHelper {
         }
     }
 
-
     public void convertVideoCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
                                                    Format targetFormat) {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
