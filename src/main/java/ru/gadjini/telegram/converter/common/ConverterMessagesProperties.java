@@ -210,4 +210,12 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_VAVMERGE_WELCOME = "message.vavmerge.welcome";
 
     public static final String MESSAGE_VIDEO_CONVERSION_DETAILS = "message.video.conversion.details";
+
+    public static final String MESSAGE_VIDEO_CUT_WELCOME = "message.video.cut.welcome";
+
+    public static final String MESSAGE_VIDEO_CUT_START_POINT = "message.video.cut.start.point";
+
+    public static final String MESSAGE_VIDEO_CUT_END_POINT = "message.video.cut.end.point";
+
+    public static final String MESSAGE_VIDEO_CUT_INVALID_END_POINT = "message.video.cut.invalid.end.point";
 }

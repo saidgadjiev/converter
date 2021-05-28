@@ -93,6 +93,27 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder ss(String startPoint) {
+        options.add("-ss");
+        options.add(startPoint);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder to(String to) {
+        options.add("-to");
+        options.add(to);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder t(String duration) {
+        options.add("-t");
+        options.add(duration);
+
+        return this;
+    }
+
     public FFmpegCommandBuilder input(String filePath) {
         options.add("-i");
         options.add(filePath);

@@ -11,7 +11,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -55,12 +55,12 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
 
-    private FFmpegSubtitlesHelper fFmpegHelper;
+    private FFmpegVideoHelper fFmpegHelper;
 
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
                        FFmpegDevice fFmpegDevice, Jackson jackson, LocalisationService localisationService,
-                       FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegSubtitlesHelper fFmpegHelper) {
+                       FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegVideoHelper fFmpegHelper) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;

@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Period;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 public class SettingsState {
@@ -14,6 +15,10 @@ public class SettingsState {
     private String frequency;
 
     private Format format;
+
+    private Period cutStartPoint;
+
+    private Period cutEndPoint;
 
     public String getBitrate() {
         return bitrate;
@@ -61,5 +66,21 @@ public class SettingsState {
 
     public void setFrequency(String frequency) {
         this.frequency = frequency;
+    }
+
+    public Period getCutStartPoint() {
+        return cutStartPoint;
+    }
+
+    public void setCutStartPoint(Period cutStartPoint) {
+        this.cutStartPoint = cutStartPoint;
+    }
+
+    public Period getCutEndPoint() {
+        return cutEndPoint;
+    }
+
+    public void setCutEndPoint(Period cutEndPoint) {
+        this.cutEndPoint = cutEndPoint;
     }
 }

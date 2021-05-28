@@ -87,7 +87,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            fFmpegHelper.validateVideoIntegrity(file);
+            fFmpegVideoHelper.validateVideoIntegrity(file);
             return doConvert(file, result, fileQueueItem);
         } catch (CorruptedVideoException e) {
             tempFileService().delete(file);

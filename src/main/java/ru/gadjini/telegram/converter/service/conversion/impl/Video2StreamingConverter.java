@@ -8,7 +8,6 @@ import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -35,20 +34,17 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoConverter fFmpegVideoFormatsConverter;
 
-    private FFmpegSubtitlesHelper fFmpegSubtitlesHelper;
-
     private FFmpegVideoHelper fFmpegVideoHelper;
 
     private FFmpegAudioHelper fFmpegAudioHelper;
 
     @Autowired
     public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter,
-                                    FFmpegSubtitlesHelper fFmpegSubtitlesHelper, FFmpegVideoHelper fFmpegVideoHelper,
+                                    FFmpegVideoHelper fFmpegVideoHelper,
                                     FFmpegAudioHelper fFmpegAudioHelper) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoFormatsConverter = fFmpegVideoFormatsConverter;
-        this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
     }
@@ -80,7 +76,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            fFmpegSubtitlesHelper.validateVideoIntegrity(file);
+            fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             if (fFmpegVideoHelper.isVideoStreamsValidForTelegramVideo(allStreams)
                     && fFmpegAudioHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
@@ -108,7 +104,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            fFmpegSubtitlesHelper.validateVideoIntegrity(file);
+            fFmpegVideoHelper.validateVideoIntegrity(file);
             return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem);
         } catch (CorruptedVideoException e) {
             tempFileService().delete(result);

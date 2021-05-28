@@ -12,7 +12,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -58,12 +58,12 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
 
-    private FFmpegSubtitlesHelper fFmpegHelper;
+    private FFmpegVideoHelper fFmpegVideoHelper;
 
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
-                                  FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegSubtitlesHelper fFmpegHelper) {
+                                  FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegVideoHelper fFmpegVideoHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -71,7 +71,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.fFprobeDevice = fFprobeDevice;
         this.messageBuilder = messageBuilder;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
-        this.fFmpegHelper = fFmpegHelper;
+        this.fFmpegVideoHelper = fFmpegVideoHelper;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
         try {
-            fFmpegHelper.validateVideoIntegrity(file);
+            fFmpegVideoHelper.validateVideoIntegrity(file);
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, SCALE, fileQueueItem.getTargetFormat());

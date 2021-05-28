@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -22,6 +23,14 @@ public class FFmpegVideoHelper {
     @Autowired
     public FFmpegVideoHelper(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
+    }
+
+    public void validateVideoIntegrity(SmartTempFile in) throws InterruptedException {
+        boolean validFile = fFmpegDevice.isValidFile(in.getAbsolutePath());
+
+        if (!validFile) {
+            throw new CorruptedVideoException();
+        }
     }
 
     public boolean isVideoStreamsValidForTelegramVideo(List<FFprobeDevice.Stream> allStreams) {
@@ -56,6 +65,28 @@ public class FFmpegVideoHelper {
         }
     }
 
+
+    public void convertVideoCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+                                                   Format targetFormat) {
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+        String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
+
+        int outCodecIndex = 0;
+        for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
+            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
+            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+                continue;
+            }
+            commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
+            commandBuilder.videoCodec(outCodecIndex, FFmpegCommandBuilder.H264_CODEC)
+                    .filterVideo(outCodecIndex, scale);
+
+            ++outCodecIndex;
+        }
+    }
+
     public void copyOrConvertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
                                          Format targetFormat, SmartTempFile result) throws InterruptedException {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
@@ -80,6 +111,32 @@ public class FFmpegVideoHelper {
                         convertibleToH264, scale)) {
                     addVideoCodecByTargetFormat(commandBuilder, targetFormat, outCodecIndex);
                 }
+            }
+            ++outCodecIndex;
+        }
+    }
+
+    public void convertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+                                   Format targetFormat, SmartTempFile result) throws InterruptedException {
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+        String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
+
+        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+        int outCodecIndex = 0;
+        for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
+            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
+            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+                continue;
+            }
+            commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
+
+            boolean convertibleToH264 = isConvertibleToH264(baseCommand, result,
+                    videoStream.getInput(), videoStreamMapIndex, scale);
+            if (!addFastestVideoCodec(commandBuilder, videoStream, outCodecIndex,
+                    convertibleToH264, scale)) {
+                addVideoCodecByTargetFormat(commandBuilder, targetFormat, outCodecIndex);
             }
             ++outCodecIndex;
         }

@@ -8,7 +8,10 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.MTS;
@@ -65,6 +68,18 @@ public class FFmpegAudioHelper {
         }
     }
 
+    public void convertAudioCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams) {
+        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
+            List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
+                    .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
+                    .collect(Collectors.toList());
+            commandBuilder.mapAudio();
+            for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
+                commandBuilder.audioCodec(audioStreamIndex, TELEGRAM_VIDEO_AUDIO_CODEC);
+            }
+        }
+    }
+
     public void copyOrConvertAudioCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams) {
         copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams, true);
     }
@@ -91,6 +106,18 @@ public class FFmpegAudioHelper {
                 commandBuilder.copyAudio();
             } else {
                 copyAudiosIndexes.forEach(commandBuilder::copyAudio);
+            }
+        }
+    }
+
+    public void convertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams, Format targetFormat) {
+        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
+            List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
+                    .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
+                    .collect(Collectors.toList());
+            commandBuilder.mapAudio();
+            for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
+                addAudioCodecByTargetFormat(commandBuilder, targetFormat, audioStreamIndex);
             }
         }
     }
