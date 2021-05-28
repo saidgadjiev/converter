@@ -65,7 +65,7 @@ public class FFmpegCommandBuilder {
 
     private List<String> options = new ArrayList<>();
 
-    private static final List<String> DEFAULT_OPTIONS = List.of("-max_muxing_queue_size", "9999", "-pix_fmt", YUV_420_P);
+    private static final List<String> DEFAULT_OPTIONS = List.of("-vsync", "2", "-max_muxing_queue_size", "9999", "-pix_fmt", YUV_420_P);
 
     public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
         this.options.addAll(commandBuilder.options);
