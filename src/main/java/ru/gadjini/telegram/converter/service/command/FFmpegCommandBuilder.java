@@ -435,6 +435,12 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder an() {
+        options.add("-an");
+
+        return this;
+    }
+
     public FFmpegCommandBuilder defaultOptions() {
         List<String> def = new ArrayList<>();
         if (!options.contains(CRF)) {
