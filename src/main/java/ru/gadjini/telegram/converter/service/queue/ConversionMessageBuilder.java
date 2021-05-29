@@ -111,7 +111,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale));
             } else {
                 message.append("\n\n")
-                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CONVERSION_DETAILS, locale));
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_FEATURES, locale));
             }
         }
 
