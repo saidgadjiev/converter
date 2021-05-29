@@ -39,10 +39,9 @@ RUN mkdir -p /usr/src/libaom && \
 RUN apt-get install -y libspeex-dev libgmp3-dev libbluray-dev libmfx-dev libshine-dev libsnappy-dev libsoxr-dev libtwolame-dev \
 libvidstab-dev libxml2-dev
 
-RUN echo '28.05.2021'
 RUN cd /usr/src && \
-wget -O- http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj && \
-cd ffmpeg && \
+wget -O- http://ffmpeg.org/releases/ffmpeg-4.4.tar.bz2 | tar xj && \
+cd ffmpeg-4.4 && \
 PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
    ./configure \
   --prefix="/home/bot/ffmpeg_build" \
