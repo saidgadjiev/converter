@@ -272,6 +272,19 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     }
                     break;
                 }
+                case VIDEO_NOTE: {
+                    VideoNoteResult videoNoteResult = (VideoNoteResult) convertResult;
+                    SendVideoNote.SendVideoNoteBuilder sendVideoNoteBuilder = SendVideoNote.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .videoNote(new InputFile(videoNoteResult.getFile(), videoNoteResult.getFileName()))
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
+                            .duration(videoNoteResult.getDuration() == null ? null : videoNoteResult.getDuration().intValue());
+
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendVideoNote.PATH, sendVideoNoteBuilder.build(), videoNoteResult.getFormat(),
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
+
+                    break;
+                }
                 case VOICE:
                     VoiceResult voiceResult = (VoiceResult) convertResult;
                     SendVoice.SendVoiceBuilder sendVoiceBuilder = SendVoice.builder().chatId(String.valueOf(fileQueueItem.getUserId()))

@@ -98,7 +98,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
             if (StringUtils.isNotBlank(message.getMediaGroupId())) {
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(queueMessageBuilder.getChooseFormat(locale))
+                                .text(queueMessageBuilder.getChooseFormat(convertState.getFirstFormat(), convertState.getFirstFile().getFileSize(), locale))
                                 .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), Format.IMAGES, locale))
                                 .parseMode(ParseMode.HTML)
                                 .build()
@@ -106,7 +106,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
             } else {
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(queueMessageBuilder.getChooseFormat(locale))
+                                .text(queueMessageBuilder.getChooseFormat(convertState.getFirstFormat(), convertState.getFirstFile().getFileSize(), locale))
                                 .parseMode(ParseMode.HTML)
                                 .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                                 .build()
@@ -170,7 +170,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
         } else {
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(queueMessageBuilder.getChooseFormat(locale))
+                            .text(queueMessageBuilder.getChooseFormat(convertState.getFirstFormat(), convertState.getFirstFile().getFileSize(), locale))
                             .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                             .parseMode(ParseMode.HTML)
                             .build()
@@ -224,7 +224,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
         } else {
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(queueMessageBuilder.getChooseFormat(locale))
+                            .text(queueMessageBuilder.getChooseFormat(convertState.getFirstFormat(), convertState.getFirstFile().getFileSize(), locale))
                             .replyMarkup(replyKeyboardService.formatsKeyboard(message.getChatId(), convertState.getFirstFormat(), locale))
                             .parseMode(ParseMode.HTML)
                             .build()

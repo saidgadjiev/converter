@@ -14,5 +14,7 @@ public enum ResultType {
 
     MESSAGE,
 
-    CONTAINER
+    CONTAINER,
+
+    VIDEO_NOTE
 }

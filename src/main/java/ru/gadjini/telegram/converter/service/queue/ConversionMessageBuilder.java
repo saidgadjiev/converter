@@ -93,12 +93,32 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         }
     }
 
-    public String getChooseFormat(Locale locale) {
+    public String getChooseFormat(Format format, Long size, Locale locale) {
         StringBuilder message = new StringBuilder();
+
+        StringBuilder formatSizeInfo = new StringBuilder();
+        if (format != null) {
+            formatSizeInfo.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT, new Object[] {format.getName()}, locale));
+        }
+        if (size != null) {
+            if (formatSizeInfo.length() > 0) {
+                formatSizeInfo.append(", ");
+            }
+            formatSizeInfo.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_SIZE,
+                    new Object[] {MemoryUtils.humanReadableByteCount(size)}, locale));
+        }
         if (applicationProperties.is(FormatsConfiguration.DOCUMENT_CONVERTER)) {
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION, locale));
+
+            if (formatSizeInfo.length() > 0) {
+                message.append(" ").append(formatSizeInfo.toString());
+            }
         } else {
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_VIDEO_AUDIO_CONVERSION, locale));
+
+            if (formatSizeInfo.length() > 0) {
+                message.append(" ").append(formatSizeInfo.toString());
+            }
             if (FormatsConfiguration.AUDIO_CONVERTER.equals(applicationProperties.getConverter())) {
                 message
                         .append("\n\n")
