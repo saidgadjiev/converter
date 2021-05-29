@@ -56,6 +56,10 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
         info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.FORMATS_COMMAND).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.FORMATS_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.HELP_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.HELP_COMMAND_DESCRIPTION, locale));
 
+        if (applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER)) {
+            info.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_FEATURES, locale));
+        }
+
         return info.toString();
     }
 }
