@@ -24,6 +24,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     private static final String TAG = "vcompress";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(List.of(TS, MP4, _3GP, AVI, FLV, M4V, MKV, MOV, MPEG, MPG, MTS, VOB, WEBM, WMV), List.of(COMPRESS));
+        put(Format.filter(FormatCategory.VIDEO), List.of(COMPRESS));
     }};
 
     private static final String SCALE = "scale=-2:ceil(ih/3)*2";
