@@ -25,9 +25,10 @@ public class BotConfiguration {
                                StartCommandFilter startCommandFilter, TechWorkFilter techWorkFilter,
                                MediaFilter mediaFilter, LastActivityFilter activityFilter,
                                ChannelSubscriptionFilter subscriptionFilter, UpdatesHandlerFilter updatesHandlerFilter,
-                               PaidSubscriptionFilter paidSubscriptionFilter) {
+                               PaidSubscriptionFilter paidSubscriptionFilter, DistributionFilter distributionFilter) {
         updateFilter.setNext(userSynchronizedFilter)
-                .setNext(startCommandFilter).setNext(subscriptionFilter).setNext(activityFilter).setNext(mediaFilter)
+                .setNext(startCommandFilter).setNext(subscriptionFilter).setNext(activityFilter)
+                .setNext(distributionFilter).setNext(mediaFilter)
                 .setNext(techWorkFilter).setNext(paidSubscriptionFilter).setNext(updatesHandlerFilter);
 
         return updateFilter;
