@@ -31,9 +31,8 @@ public class FFmpegVideoStreamsChangeHelper {
         this.fFprobeDevice = fFprobeDevice;
     }
 
-    public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, SmartTempFile file,
+    public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
                                               SmartTempFile result, String scale, Format targetFormat) throws InterruptedException {
-        List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);

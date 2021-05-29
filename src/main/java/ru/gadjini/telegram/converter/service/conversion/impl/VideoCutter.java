@@ -16,6 +16,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -96,14 +97,14 @@ public class VideoCutter extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
+            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             validateRange(settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             String startPoint = PERIOD_FORMATTER.print(settingsState.getCutStartPoint());
             String duration = String.valueOf(settingsState.getCutEndPoint().minus(settingsState.getCutStartPoint()).toStandardDuration().getStandardSeconds());
 
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
             commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
@@ -131,7 +132,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
+                FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), wdh.getWidth(), wdh.getHeight(),
                         wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());

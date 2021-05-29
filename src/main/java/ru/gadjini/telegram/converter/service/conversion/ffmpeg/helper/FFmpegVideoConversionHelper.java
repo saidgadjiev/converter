@@ -5,6 +5,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FFmpegVideoConversionHelper {
 
@@ -19,6 +20,23 @@ public class FFmpegVideoConversionHelper {
         }
 
         return isImageStream(videoStream.getCodecName());
+    }
+
+    public static int getFirstVideoStreamIndex(List<FFprobeDevice.Stream> allStreams) {
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+
+        for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
+            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
+            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+                continue;
+            }
+
+            return videoStreamMapIndex;
+        }
+
+        return 0;
     }
 
     private static boolean isImageStream(String codecName) {

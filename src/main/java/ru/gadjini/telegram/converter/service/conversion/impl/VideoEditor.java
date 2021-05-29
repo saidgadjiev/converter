@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -87,7 +88,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
             fFmpegHelper.validateVideoIntegrity(file);
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
+
+            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             if (Objects.equals(srcWhd.getHeight(), height)) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
@@ -96,7 +99,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             String scale = "scale=-2:" + height;
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, scale, fileQueueItem.getFirstFileFormat());
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale, fileQueueItem.getFirstFileFormat());
             if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
                 //Так как при увличении разрешения и так снижается качество
                 commandBuilder.crf("30");
@@ -106,10 +109,11 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
-            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
             String resolutionChangedInfo = messageBuilder.getResolutionChangedInfoMessage(srcWhd.getHeight(),
                     height, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), targetWhd.getWidth(), height,
                         targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), resolutionChangedInfo);
             } else {
