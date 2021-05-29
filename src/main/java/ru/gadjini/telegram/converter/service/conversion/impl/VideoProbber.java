@@ -58,17 +58,14 @@ public class VideoProbber extends BaseAny2AnyConverter {
 
             return new MessageResult(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_PROBE_RESULT,
                     new Object[]{fileQueueItem.getFirstFileFormat().getName(),
-                            resolution(whd),
+                            whd.getHeight() != null ? whd.getHeight() + "p" : "unknown",
+                            whd.getHeight() != null ? whd.getWidth() + "x" + whd.getHeight() : "unknown",
                             length(whd.getDuration()),
                             MemoryUtils.humanReadableByteCount(fileQueueItem.getSize())},
                     userService.getLocaleOrDefault(fileQueueItem.getUserId())), ParseMode.HTML);
         } catch (Throwable e) {
             throw new ConvertException(e);
         }
-    }
-
-    private String resolution(FFprobeDevice.WHD whd) {
-        return whd.getHeight() != null ? whd.getHeight() + "p(" + whd.getWidth() + "x" + whd.getHeight() +")" : "unknown";
     }
 
     private String length(Long seconds) {

@@ -1,15 +1,20 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoNoteResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -19,7 +24,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.VIDEO_NOTE;
 
@@ -30,14 +35,25 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
     private static final String TAG = "vnote";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(Format.filter(FormatCategory.VIDEO).stream().filter(Format::supportsStreaming).collect(Collectors.toList()), List.of(VIDEO_NOTE));
+        put(Format.filter(FormatCategory.VIDEO), List.of(VIDEO_NOTE));
     }};
 
     private FFprobeDevice fFprobeDevice;
 
-    public VideoNoteMaker(FFprobeDevice fFprobeDevice) {
+    private FFmpegVideoHelper fFmpegVideoHelper;
+
+    private LocalisationService localisationService;
+
+    private UserService userService;
+
+    @Autowired
+    public VideoNoteMaker(FFprobeDevice fFprobeDevice, FFmpegVideoHelper fFmpegVideoHelper,
+                          LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
+        this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.localisationService = localisationService;
+        this.userService = userService;
     }
 
     @Override
@@ -47,9 +63,17 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
+            fFmpegVideoHelper.validateVideoIntegrity(file);
+            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
+                    FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
+
+            if (!Objects.equals(whd.getHeight(), whd.getWidth())) {
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION,
+                        new Object[]{whd.getWidth() + "x" + whd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+            }
+
             Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(result.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             return new VideoNoteResult(fileQueueItem.getFirstFileName(), result, whd.getDuration(), fileQueueItem.getFirstFileFormat());
         } catch (UserException | CorruptedVideoException e) {

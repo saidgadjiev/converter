@@ -246,4 +246,10 @@ public class ConverterMessagesProperties {
     public static final String PROBING_STEP = "probing.step";
 
     public static final String MESSAGE_CUT_OUT_OF_RANGE = "message.cut.out.of.range";
+
+    public static final String MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_FORMAT = "message.invalid.video.note.candidate.format";
+
+    public static final String MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_SIZE = "message.invalid.video.note.candidate.size";
+
+    public static final String MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION = "message.invalid.video.note.candidate.dimension";
 }

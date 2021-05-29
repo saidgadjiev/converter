@@ -90,14 +90,14 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         if (targetFormats.remove(Format.MUTE)) {
             targetFormats.add(2, Format.MUTE);
         }
-        if (targetFormats.remove(Format.PROBE)) {
-            targetFormats.add(3, Format.PROBE);
-        }
         if (targetFormats.remove(Format.SQUARE)) {
-            targetFormats.add(4, Format.SQUARE);
+            targetFormats.add(3, Format.SQUARE);
         }
         if (targetFormats.remove(Format.VIDEO_NOTE)) {
-            targetFormats.add(5, Format.VIDEO_NOTE);
+            targetFormats.add(4, Format.VIDEO_NOTE);
+        }
+        if (targetFormats.remove(Format.PROBE)) {
+            targetFormats.add(5, Format.PROBE);
         }
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 

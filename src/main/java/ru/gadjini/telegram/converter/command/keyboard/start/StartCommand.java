@@ -21,6 +21,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.PaidChannelSubscriptionOptional;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
+import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
@@ -33,9 +34,11 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 @CommandStart
@@ -158,7 +161,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
                 return;
             }
             Format srcFormatToCheck = convertState.getMultiMediaFormat() != null ? convertState.getMultiMediaFormat() : convertState.getFirstFormat();
-            checkTargetFormat(message.getFrom().getId(), srcFormatToCheck, associatedFormat, text, locale);
+            checkTargetFormat(message.getFrom().getId(), srcFormatToCheck, associatedFormat, text, convertState.getFirstFile().getFileSize(), locale);
             conversionJob.cancelCurrentTasks(message.getFrom().getId());
 
             conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale, (Void) -> {
@@ -307,7 +310,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
         }
     }
 
-    private void checkTargetFormat(int userId, Format format, Format target, String text, Locale locale) {
+    private void checkTargetFormat(int userId, Format format, Format target, String text, long size, Locale locale) {
         if (target == null) {
             LOGGER.warn("Target format is null({}, {})", userId, text);
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
@@ -316,6 +319,9 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
             LOGGER.warn("Same formats({}, {})", userId, format);
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
         }
+        if (target == Format.VIDEO_NOTE) {
+            validateVideoNote(format, size, locale);
+        }
         boolean result = conversionFormatService.isConvertAvailable(format, target);
         if (result) {
             return;
@@ -323,6 +329,19 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
 
         LOGGER.warn("Conversion unavailable({}, {}, {})", userId, format, target);
         throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+    }
+
+    private void validateVideoNote(Format src, long size, Locale locale) {
+        if (!src.supportsStreaming()) {
+            String streamingFormats = Format.filter(FormatCategory.VIDEO).stream().filter(Format::supportsStreaming)
+                    .map(Format::getName).collect(Collectors.joining(", "));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_FORMAT,
+                    new Object[]{streamingFormats}, locale));
+        }
+        if (size > TgConstants.VIDEO_NOTE_MAX_FILE_SIZE) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_SIZE,
+                    new Object[]{MemoryUtils.humanReadableByteCount(size)}, locale));
+        }
     }
 
     private boolean isMultiTextMessage(Format associatedFormat, ConvertState convertState) {

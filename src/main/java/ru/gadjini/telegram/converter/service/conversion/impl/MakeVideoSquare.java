@@ -80,7 +80,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
             if (Objects.equals(srcWhd.getHeight(), srcWhd.getWidth())) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_ALREADY_SQUARE,
-                        new Object[]{srcWhd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+                        new Object[]{srcWhd.getWidth() + "x" + srcWhd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
             }
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
@@ -93,7 +93,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), TARGET_FORMAT.getExt());
 
             String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SQUARE_CAPTION,
-                    new Object[] {size}, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+                    new Object[] {size + "x" + size}, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             if (TARGET_FORMAT.canBeSentAsVideo()) {
                 return new VideoResult(fileName, result, TARGET_FORMAT, downloadThumb(fileQueueItem),
                         size, size,
