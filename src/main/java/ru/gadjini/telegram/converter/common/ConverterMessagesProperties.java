@@ -105,6 +105,8 @@ public class ConverterMessagesProperties {
 
     public static final String CANCEL_FILES_COMMAND_NAME = "cancel.files.command.name";
 
+    public static final String CANCEL_FILE_COMMAND_NAME = "cancel.file.command.name";
+
     public static final String MESSAGE_MERGE_PDFS_CANCELED = "message.merge.pdfs.canceled";
 
     public static final String MESSAGE_MERGE_PDFS_NON_PDF_FILE = "message.merge.pdfs.non.pdf.file";

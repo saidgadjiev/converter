@@ -89,7 +89,7 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.goBackKeyboard(message.getChatId(), locale))
+                        .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
                         .build()
         );
     }
@@ -120,30 +120,41 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                             .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_START_POINT, locale))
                             .parseMode(ParseMode.HTML)
-                            .replyMarkup(replyKeyboardService.goBackKeyboard(message.getChatId(), locale))
+                            .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
                             .build()
             );
             commandStateService.setState(message.getChatId(), getCommandIdentifier(), convertState);
         } else if (message.hasText()) {
-            if (existsState.getSettings().getCutStartPoint() == null) {
-                Period startPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_VIDEO_CUT_START_POINT, locale);
-                existsState.getSettings().setCutStartPoint(startPoint);
+            if (localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILE_COMMAND_NAME, locale).equals(text)) {
+                commandStateService.deleteState(message.getChatId(), ConverterCommandNames.CUT_VIDEO);
                 messageService.sendMessage(
-                        SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_END_POINT, locale))
-                                .parseMode(ParseMode.HTML)
-                                .replyMarkup(replyKeyboardService.goBackKeyboard(message.getChatId(), locale))
+                        SendMessage.builder()
+                                .chatId(String.valueOf(message.getChatId()))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_WELCOME, locale))
+                                .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
                                 .build()
                 );
-                commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
             } else {
-                Period endPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_VIDEO_CUT_END_POINT, locale);
-                validateEndPoint(existsState.getSettings().getCutStartPoint(), endPoint, locale);
-                existsState.getSettings().setCutEndPoint(endPoint);
+                if (existsState.getSettings().getCutStartPoint() == null) {
+                    Period startPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_VIDEO_CUT_START_POINT, locale);
+                    existsState.getSettings().setCutStartPoint(startPoint);
+                    messageService.sendMessage(
+                            SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_END_POINT, locale))
+                                    .parseMode(ParseMode.HTML)
+                                    .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
+                                    .build()
+                    );
+                    commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
+                } else {
+                    Period endPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_VIDEO_CUT_END_POINT, locale);
+                    validateEndPoint(existsState.getSettings().getCutStartPoint(), endPoint, locale);
+                    existsState.getSettings().setCutEndPoint(endPoint);
 
-                workQueueJob.cancelCurrentTasks(message.getChatId());
-                convertionService.createConversion(message.getFrom(), existsState, Format.CUT, locale);
-                commandStateService.deleteState(message.getChatId(), ConverterCommandNames.CUT_VIDEO);
+                    workQueueJob.cancelCurrentTasks(message.getChatId());
+                    convertionService.createConversion(message.getFrom(), existsState, Format.CUT, locale);
+                    commandStateService.deleteState(message.getChatId(), ConverterCommandNames.CUT_VIDEO);
+                }
             }
         }
     }
