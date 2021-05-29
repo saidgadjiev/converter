@@ -38,6 +38,14 @@ public class FFprobeDevice {
         });
     }
 
+    public List<Stream> getSubtitleStreams(String in) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getSubtitleStreamsCommand(in));
+        JsonNode json = jsonMapper.readValue(result, JsonNode.class);
+
+        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        });
+    }
+
     public List<Stream> getVideoStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getVideoStreamsCommand(in));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
@@ -101,6 +109,12 @@ public class FFprobeDevice {
     private String[] getAudioStreamsCommand(String in) {
         return new String[]{
                 "ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index,codec_name,codec_type:stream_tags=language", "-of", "json", in
+        };
+    }
+
+    private String[] getSubtitleStreamsCommand(String in) {
+        return new String[]{
+                "ffprobe", "-v", "error", "-select_streams", "s", "-show_entries", "stream=index,codec_name,codec_type:stream_tags=language", "-of", "json", in
         };
     }
 
