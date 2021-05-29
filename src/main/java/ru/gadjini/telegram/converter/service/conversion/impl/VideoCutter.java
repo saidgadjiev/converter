@@ -1,10 +1,12 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
@@ -18,13 +20,17 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.CUT;
@@ -37,6 +43,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
     public static final PeriodFormatter PERIOD_FORMATTER = new PeriodFormatterBuilder()
             .printZeroIfSupported()
             .minimumPrintedDigits(2)
+            .rejectSignedValues(true)
             .appendHours()
             .appendSeparator(":")
             .appendMinutes()
@@ -60,31 +67,39 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private UserService userService;
+
+    private LocalisationService localisationService;
+
     private Jackson jackson;
 
     @Autowired
     public VideoCutter(FFmpegVideoHelper fFmpegVideoHelper, FFmpegAudioHelper fFmpegAudioHelper,
                        FFmpegSubtitlesHelper fFmpegSubtitlesHelper, FFmpegDevice fFmpegDevice,
-                       FFprobeDevice fFprobeDevice, Jackson jackson) {
+                       FFprobeDevice fFprobeDevice, UserService userService, LocalisationService localisationService, Jackson jackson) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.userService = userService;
+        this.localisationService = localisationService;
         this.jackson = jackson;
     }
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.setTargetFormat(fileQueueItem.getFirstFileFormat());
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
-                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
+
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
+            validateRange(settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             String startPoint = PERIOD_FORMATTER.print(settingsState.getCutStartPoint());
             String duration = String.valueOf(settingsState.getCutEndPoint().minus(settingsState.getCutStartPoint()).toStandardDuration().getStandardSeconds());
 
@@ -92,20 +107,20 @@ public class VideoCutter extends BaseAny2AnyConverter {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
             commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
-            if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
-                fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getTargetFormat());
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
             } else {
-                fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getTargetFormat(), result);
+                fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
             }
-            fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
-            if (WEBM.equals(fileQueueItem.getTargetFormat())) {
+            fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+            if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
                 commandBuilder.crf("10");
             }
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getTargetFormat());
-            if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
+            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 fFmpegAudioHelper.convertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
             } else {
-                fFmpegAudioHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getTargetFormat());
+                fFmpegAudioHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
             }
             commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
             commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
@@ -113,22 +128,40 @@ public class VideoCutter extends BaseAny2AnyConverter {
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
-            if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
 
-                return new VideoResult(fileName, result, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming());
+                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), wdh.getWidth(), wdh.getHeight(),
+                        wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem));
             }
-        } catch (CorruptedVideoException e) {
+        } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
+        }
+    }
+
+    private void validateRange(Period start, Period end, Long totalLength, Locale locale) {
+        if (totalLength == null) {
+            return;
+        }
+        long startSeconds = start.toStandardDuration().getStandardSeconds();
+        long endSeconds = end.toStandardDuration().getStandardSeconds();
+
+        if (startSeconds < 0 || startSeconds > totalLength
+                || endSeconds < 0 || endSeconds > totalLength) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CUT_OUT_OF_RANGE,
+                    new Object[]{
+                            PERIOD_FORMATTER.print(new Period(totalLength * 1000L)),
+                            PERIOD_FORMATTER.print(start),
+                            PERIOD_FORMATTER.print(end)
+                    }, locale));
         }
     }
 }

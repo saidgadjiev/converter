@@ -160,10 +160,21 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_FILES_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.EDIT) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_WILL_BE_EDITED, new Object[]{queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.MUTE) {
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MUTE_QUEUED,
+                    new Object[]{queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.PROBE) {
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_PROBE_QUEUED,
+                    new Object[]{queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.CUT) {
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_QUEUED,
+                    new Object[]{queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.VMAKE) {
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_QUEUED,
+                    new Object[]{VaiMakeConverter.OUTPUT_FORMAT.getName(), queueItem.getQueuePosition()}, locale));
         } else {
-            Format targetFormat = queueItem.getTargetFormat().equals(Format.VMAKE) ? VaiMakeConverter.OUTPUT_FORMAT : queueItem.getTargetFormat();
             String queuedMessageCode = queueItem.getFiles().size() > 1 ? ConverterMessagesProperties.MESSAGE_FILES_QUEUED : ConverterMessagesProperties.MESSAGE_FILE_QUEUED;
-            text.append(localisationService.getMessage(queuedMessageCode, new Object[]{targetFormat.getName(), queueItem.getQueuePosition()}, locale));
+            text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().getName(), queueItem.getQueuePosition()}, locale));
         }
 
         if (!NON_DISPLAY_FORMATS.contains(queueItem.getFirstFileFormat())) {
@@ -195,6 +206,10 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 ? ConverterMessagesProperties.COMPRESSING_STEP
                 : targetFormat == Format.MERGE_PDFS ? ConverterMessagesProperties.MERGING_STEP
                 : targetFormat == Format.EDIT ? ConverterMessagesProperties.VIDEO_EDITING_STEP
+                : targetFormat == Format.VMAKE ? ConverterMessagesProperties.VIDEO_MAKING_STEP
+                : targetFormat == Format.MUTE ? ConverterMessagesProperties.MUTING_STEP
+                : targetFormat == Format.CUT ? ConverterMessagesProperties.CUTTING_STEP
+                : targetFormat == Format.PROBE ? ConverterMessagesProperties.PROBING_STEP
                 : ConverterMessagesProperties.CONVERTING_STEP;
 
         switch (conversionStep) {
@@ -205,31 +220,31 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                                 + (completedSteps.contains(ConversionStep.DOWNLOADING) ? " " + iconCheck : "") + "\n"
                                 : "") +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>" + (completedSteps.contains(ConversionStep.CONVERTING) ? " " + iconCheck : "") + "\n" +
-                        "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>";
+                        (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case DOWNLOADING:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + " ...</b>\n"
                         : "") +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>\n" +
-                        "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>";
+                        (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case CONVERTING:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
                         : "") +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + " ...</b>\n" +
-                        "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>";
+                        (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case UPLOADING:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
                         : "") +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
-                        "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + " ...</b>";
+                        (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + " ...</b>" : "");
             default:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
                         : "") +
                         "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
-                        "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b> " + iconCheck;
+                        (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b> " + iconCheck : "");
         }
     }
 

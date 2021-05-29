@@ -224,4 +224,22 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_NON_COMMAND_FEATURES_HEADER = "message.non.command.features.header";
 
     public static final String MESSAGE_VIDEO_PROBE_RESULT = "message.video.probe.result";
+
+    public static final String MESSAGE_VMAKE_QUEUED = "message.vmake.queued";
+
+    public static final String MESSAGE_MUTE_QUEUED = "message.mute.queued";
+
+    public static final String MESSAGE_PROBE_QUEUED = "message.probe.queued";
+
+    public static final String MESSAGE_VIDEO_CUT_QUEUED = "message.video.cut.queued";
+
+    public static final String VIDEO_MAKING_STEP = "video.making.step";
+
+    public static final String MUTING_STEP = "muting.step";
+
+    public static final String CUTTING_STEP = "cutting.step";
+
+    public static final String PROBING_STEP = "probing.step";
+
+    public static final String MESSAGE_CUT_OUT_OF_RANGE = "message.cut.out.of.range";
 }

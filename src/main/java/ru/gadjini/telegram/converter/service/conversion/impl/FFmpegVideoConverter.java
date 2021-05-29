@@ -88,7 +88,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
-            return doConvert(file, result, fileQueueItem);
+            return doConvert(file, result, fileQueueItem, fileQueueItem.getTargetFormat());
         } catch (CorruptedVideoException e) {
             tempFileService().delete(file);
             throw e;
@@ -98,25 +98,25 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         }
     }
 
-    public ConversionResult doConvert(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem) throws InterruptedException {
+    public ConversionResult doConvert(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem, Format targetFormat) throws InterruptedException {
         List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
         commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
-        if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
-            fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getTargetFormat());
+        if (targetFormat.canBeSentAsVideo()) {
+            fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, targetFormat);
         } else {
-            fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getTargetFormat(), result);
+            fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, targetFormat, result);
         }
-        fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
-        if (WEBM.equals(fileQueueItem.getTargetFormat())) {
+        fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
+        if (WEBM.equals(targetFormat)) {
             commandBuilder.crf("10");
         }
-        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getTargetFormat());
-        if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
+        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, targetFormat);
+        if (targetFormat.canBeSentAsVideo()) {
             fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {
-            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, result, fileQueueItem.getTargetFormat());
+            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, result, targetFormat);
         }
         commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
         commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
@@ -124,13 +124,13 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         commandBuilder.defaultOptions().out(result.getAbsolutePath());
         fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
-        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 
-        if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
+        if (targetFormat.canBeSentAsVideo()) {
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
-            return new VideoResult(fileName, result, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                    whd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming());
+            return new VideoResult(fileName, result, targetFormat, downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
+                    whd.getDuration(), targetFormat.supportsStreaming());
         } else {
             return new FileResult(fileName, result, downloadThumb(fileQueueItem));
         }

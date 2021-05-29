@@ -102,7 +102,8 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.goBackKeyboard(message.getChatId(), locale))
+                        .parseMode(ParseMode.HTML)
+                        .replyMarkup(replyKeyboardService.videoEditKeyboard(message.getChatId(), locale))
                         .build()
         );
     }
@@ -171,6 +172,12 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                                 .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale))
                                 .build()
                 );
+            } else if (Format.PROBE.getName().equals(text)) {
+                ConvertState convertState = commandStateService.getState(message.getChatId(),
+                        ConverterCommandNames.EDIT_VIDEO, true, ConvertState.class);
+
+                workQueueJob.cancelCurrentTasks(message.getChatId());
+                convertionService.createConversion(message.getFrom(), convertState, Format.PROBE, new Locale(convertState.getUserLanguage()));
             } else {
                 messageService.sendMessage(
                         SendMessage.builder()

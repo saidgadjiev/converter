@@ -79,11 +79,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.setTargetFormat(fileQueueItem.getFirstFileFormat());
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
-                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             fFmpegHelper.validateVideoIntegrity(file);
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
@@ -97,7 +96,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             String scale = "scale=-2:" + height;
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, scale, fileQueueItem.getTargetFormat());
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, file, result, scale, fileQueueItem.getFirstFileFormat());
             if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
                 //Так как при увличении разрешения и так снижается качество
                 commandBuilder.crf("30");
@@ -105,14 +104,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
             FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
             String resolutionChangedInfo = messageBuilder.getResolutionChangedInfoMessage(srcWhd.getHeight(),
                     height, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
-                return new VideoResult(fileName, result, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), targetWhd.getWidth(), height,
-                        targetWhd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming(), resolutionChangedInfo);
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), targetWhd.getWidth(), height,
+                        targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), resolutionChangedInfo);
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), resolutionChangedInfo);
             }

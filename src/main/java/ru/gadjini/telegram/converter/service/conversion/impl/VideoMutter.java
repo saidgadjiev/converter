@@ -55,27 +55,26 @@ public class VideoMutter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.setTargetFormat(fileQueueItem.getFirstFileFormat());
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
-                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
+                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
-            if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
-                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getTargetFormat());
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
             } else {
-                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getTargetFormat(), result);
+                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
             }
-            fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getTargetFormat());
-            if (WEBM.equals(fileQueueItem.getTargetFormat())) {
+            fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+            if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
                 commandBuilder.crf("10");
             }
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getTargetFormat());
+            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
             commandBuilder.an()
                     .preset(FFmpegCommandBuilder.PRESET_VERY_FAST)
                     .deadline(FFmpegCommandBuilder.DEADLINE_REALTIME)
@@ -83,13 +82,13 @@ public class VideoMutter extends BaseAny2AnyConverter {
 
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getTargetFormat().getExt());
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
-            if (fileQueueItem.getTargetFormat().canBeSentAsVideo()) {
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
-                return new VideoResult(fileName, result, fileQueueItem.getTargetFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming());
+                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem));
             }

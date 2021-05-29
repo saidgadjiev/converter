@@ -56,8 +56,6 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        fileQueueItem.setTargetFormat(fileQueueItem.getTargetFormat().getAssociatedFormat());
-
         if (fileQueueItem.getFirstFileFormat().supportsStreaming()) {
             ConversionResult conversionResult = doConvertStreamingVideo(fileQueueItem);
             if (conversionResult == null) {
@@ -73,7 +71,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
     private ConversionResult doConvertStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
         SmartTempFile result = tempFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
-                TAG, fileQueueItem.getTargetFormat().getExt());
+                TAG, fileQueueItem.getFirstFileFormat().getExt());
 
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
@@ -85,7 +83,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getTargetFormat().supportsStreaming());
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
             } else {
                 return null;
             }
@@ -101,11 +99,11 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
     private ConversionResult doConvertNonStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
-                TAG, fileQueueItem.getTargetFormat().getExt());
+                TAG, fileQueueItem.getFirstFileFormat().getExt());
 
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
-            return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem);
+            return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem, fileQueueItem.getFirstFileFormat());
         } catch (CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;
