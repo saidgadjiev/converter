@@ -32,7 +32,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.COMPRESS;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.filter;
 
 @Component
 public class VideoCompressConverter extends BaseAny2AnyConverter {
@@ -42,7 +43,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
     private static final String TAG = "vcompress";
 
     private static final Map<List<Format>, List<Format>> MAP = new HashMap<>() {{
-        put(Format.filter(FormatCategory.VIDEO), List.of(COMPRESS));
+        put(filter(FormatCategory.VIDEO), List.of(COMPRESS));
     }};
 
     private static final String SCALE = "scale=-2:ceil(ih/3)*2";

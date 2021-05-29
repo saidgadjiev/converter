@@ -252,4 +252,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_SIZE = "message.invalid.video.note.candidate.size";
 
     public static final String MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION = "message.invalid.video.note.candidate.dimension";
+
+    public static final String MESSAGE_INVALID_VIDEO_NOTE_LENGTH = "message.invalid.video.note.length";
 }

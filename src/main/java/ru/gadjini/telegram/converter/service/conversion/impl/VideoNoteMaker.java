@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoNoteResu
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -71,6 +72,10 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
             if (!Objects.equals(whd.getHeight(), whd.getWidth())) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION,
                         new Object[]{whd.getWidth() + "x" + whd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+            }
+            if (whd.getDuration() > TgConstants.VIDEO_NOTE_MAX_LENGTH) {
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_LENGTH,
+                        new Object[]{whd.getDuration()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
             }
 
             Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);

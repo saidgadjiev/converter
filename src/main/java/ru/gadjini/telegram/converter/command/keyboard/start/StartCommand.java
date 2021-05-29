@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
+import ru.gadjini.telegram.converter.service.conversion.impl.MakeVideoSquare;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.CommandStart;
@@ -38,7 +39,6 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.Locale;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Component
 @CommandStart
@@ -332,11 +332,9 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
     }
 
     private void validateVideoNote(Format src, long size, Locale locale) {
-        if (!src.supportsStreaming()) {
-            String streamingFormats = Format.filter(FormatCategory.VIDEO).stream().filter(Format::supportsStreaming)
-                    .map(Format::getName).collect(Collectors.joining(", "));
+        if (!MakeVideoSquare.TARGET_FORMAT.equals(src)) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_FORMAT,
-                    new Object[]{streamingFormats}, locale));
+                    new Object[]{MakeVideoSquare.TARGET_FORMAT.getName(), src.getName()}, locale));
         }
         if (size > TgConstants.VIDEO_NOTE_MAX_FILE_SIZE) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_SIZE,

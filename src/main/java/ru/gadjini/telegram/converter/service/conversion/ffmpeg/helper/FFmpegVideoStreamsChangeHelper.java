@@ -19,16 +19,13 @@ public class FFmpegVideoStreamsChangeHelper {
 
     private FFmpegVideoHelper fFmpegVideoHelper;
 
-    private FFprobeDevice fFprobeDevice;
-
     @Autowired
     public FFmpegVideoStreamsChangeHelper(FFmpegSubtitlesHelper fFmpegHelper,
                                           FFmpegAudioHelper fFmpegAudioHelper,
-                                          FFmpegVideoHelper fFmpegVideoHelper, FFprobeDevice fFprobeDevice) {
+                                          FFmpegVideoHelper fFmpegVideoHelper) {
         this.fFmpegHelper = fFmpegHelper;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
-        this.fFprobeDevice = fFprobeDevice;
     }
 
     public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,

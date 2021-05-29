@@ -29,11 +29,9 @@ public class FFmpegVideoConversionHelper {
 
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
-                continue;
+            if (!FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+                return videoStreamMapIndex;
             }
-
-            return videoStreamMapIndex;
         }
 
         return 0;

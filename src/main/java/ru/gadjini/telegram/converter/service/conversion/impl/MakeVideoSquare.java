@@ -40,7 +40,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         put(Format.filter(FormatCategory.VIDEO), List.of(SQUARE));
     }};
 
-    private static final Format TARGET_FORMAT = Format.MP4;
+    public static final Format TARGET_FORMAT = Format.MP4;
 
     private FFmpegDevice fFmpegDevice;
 
