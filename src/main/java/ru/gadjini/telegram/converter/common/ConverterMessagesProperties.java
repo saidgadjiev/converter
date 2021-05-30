@@ -260,4 +260,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_SUBTITLE_STREAMS_NOT_FOUND = "message.subtitle.streams.not.found";
 
     public static final String MESSAGE_CHOOSE = "message.choose";
+
+    public static final String CUT_VIDEO_COMMAND_DESCRIPTION = "cut.video.command.description";
 }
