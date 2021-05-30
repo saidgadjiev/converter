@@ -22,10 +22,10 @@ public class FormatsConfiguration {
 
     public static final String AUDIO_CONVERTER = "audio";
 
-    private Map<FormatCategory, Map<List<Format>, List<Format>>> formats;
+    private final Map<FormatCategory, Map<List<Format>, List<Format>>> formats;
 
     @Autowired
-    public void setAllConverter(Set<Any2AnyConverter> converters) {
+    public FormatsConfiguration(Set<Any2AnyConverter> converters) {
         this.formats = FormatMapUtils.validateAndPrint(converters);
     }
 

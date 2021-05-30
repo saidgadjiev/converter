@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.job.DownloadExtra;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
@@ -38,7 +39,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     @Autowired
-    public void setFileDownloadService(FileDownloadService fileDownloadService) {
+    public void setFileDownloadService(@Lazy FileDownloadService fileDownloadService) {
         this.fileDownloadService = fileDownloadService;
     }
 
