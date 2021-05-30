@@ -258,4 +258,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_AUDIO_STREAMS_NOT_FOUND = "message.audio.streams.not.found";
 
     public static final String MESSAGE_SUBTITLE_STREAMS_NOT_FOUND = "message.subtitle.streams.not.found";
+
+    public static final String MESSAGE_CHOOSE = "message.choose";
 }
