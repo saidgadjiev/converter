@@ -98,7 +98,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             if (fileQueueItem.getSize() <= result.length()) {
                 Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, locale)).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, locale))
+                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 

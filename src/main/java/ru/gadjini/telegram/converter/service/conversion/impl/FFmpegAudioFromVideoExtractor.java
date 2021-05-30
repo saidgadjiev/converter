@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
@@ -14,7 +15,10 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -30,9 +34,9 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
  * WEBM -> MP4 very slow
  */
 @Component
-public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
+public class FFmpegAudioFromVideoExtractor extends BaseAny2AnyConverter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo2AudioConverter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudioFromVideoExtractor.class);
 
     private static final String TAG = "ffmpegaudio";
 
@@ -48,15 +52,22 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoHelper fFmpegVideoHelper;
 
+    private UserService userService;
+
+    private LocalisationService localisationService;
+
     @Autowired
-    public FFmpegVideo2AudioConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                      FFmpegAudioConversionHelper audioConversionHelper,
-                                      FFmpegVideoHelper fFmpegVideoHelper) {
+    public FFmpegAudioFromVideoExtractor(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
+                                         FFmpegAudioConversionHelper audioConversionHelper,
+                                         FFmpegVideoHelper fFmpegVideoHelper, UserService userService,
+                                         LocalisationService localisationService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.audioConversionHelper = audioConversionHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.userService = userService;
+        this.localisationService = localisationService;
     }
 
     @Override
@@ -71,6 +82,10 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
+            if (audioStreams.isEmpty()) {
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_STREAMS_NOT_FOUND,
+                        userService.getLocaleOrDefault(fileQueueItem.getUserId()))).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+            }
             ConvertResults convertResults = new ConvertResults();
             for (int streamIndex = 0; streamIndex < audioStreams.size(); streamIndex++) {
                 FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
@@ -111,7 +126,7 @@ public class FFmpegVideo2AudioConverter extends BaseAny2AnyConverter {
             }
 
             return convertResults;
-        } catch (CorruptedVideoException e) {
+        } catch (UserException | CorruptedVideoException e) {
             throw e;
         } catch (Exception e) {
             throw new ConvertException(e);

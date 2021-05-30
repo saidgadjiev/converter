@@ -94,7 +94,8 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
             if (Objects.equals(srcWhd.getHeight(), height)) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
-                        new Object[]{settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+                        new Object[]{settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())))
+                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
             String scale = "scale=-2:" + height;
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();

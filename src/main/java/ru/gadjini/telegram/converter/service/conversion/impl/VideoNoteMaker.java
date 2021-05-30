@@ -71,11 +71,13 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
 
             if (!Objects.equals(whd.getHeight(), whd.getWidth())) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION,
-                        new Object[]{whd.getWidth() + "x" + whd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+                        new Object[]{whd.getWidth() + "x" + whd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())))
+                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
             if (whd.getDuration() > TgConstants.VIDEO_NOTE_MAX_LENGTH) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_LENGTH,
-                        new Object[]{whd.getDuration()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+                        new Object[]{whd.getDuration()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())))
+                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
 
             Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);

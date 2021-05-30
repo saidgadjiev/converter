@@ -334,7 +334,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
     private void validateVideoNote(Format src, long size, Locale locale) {
         if (!MakeVideoSquare.TARGET_FORMAT.equals(src)) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_FORMAT,
-                    new Object[]{MakeVideoSquare.TARGET_FORMAT.getName(), src.getName()}, locale));
+                    new Object[]{src.getName()}, locale));
         }
         if (size > TgConstants.VIDEO_NOTE_MAX_FILE_SIZE) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_SIZE,

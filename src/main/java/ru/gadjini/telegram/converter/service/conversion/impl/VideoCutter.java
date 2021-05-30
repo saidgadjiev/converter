@@ -101,7 +101,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
-            validateRange(settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             String startPoint = PERIOD_FORMATTER.print(settingsState.getCutStartPoint());
             String duration = String.valueOf(settingsState.getCutEndPoint().minus(settingsState.getCutStartPoint()).toStandardDuration().getStandardSeconds());
 
@@ -148,7 +148,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         }
     }
 
-    private void validateRange(Period start, Period end, Long totalLength, Locale locale) {
+    private void validateRange(Integer replyMessageId, Period start, Period end, Long totalLength, Locale locale) {
         if (totalLength == null) {
             return;
         }
@@ -162,7 +162,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
                             PERIOD_FORMATTER.print(new Period(totalLength * 1000L)),
                             PERIOD_FORMATTER.print(start),
                             PERIOD_FORMATTER.print(end)
-                    }, locale));
+                    }, locale)).setReplyToMessageId(replyMessageId);
         }
     }
 }

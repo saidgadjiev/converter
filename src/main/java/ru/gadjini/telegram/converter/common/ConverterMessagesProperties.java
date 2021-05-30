@@ -254,4 +254,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION = "message.invalid.video.note.candidate.dimension";
 
     public static final String MESSAGE_INVALID_VIDEO_NOTE_LENGTH = "message.invalid.video.note.length";
+
+    public static final String MESSAGE_AUDIO_STREAMS_NOT_FOUND = "message.audio.streams.not.found";
+
+    public static final String MESSAGE_SUBTITLE_STREAMS_NOT_FOUND = "message.subtitle.streams.not.found";
 }

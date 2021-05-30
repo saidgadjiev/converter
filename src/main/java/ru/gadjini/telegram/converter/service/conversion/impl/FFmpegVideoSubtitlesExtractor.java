@@ -1,9 +1,8 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
@@ -15,7 +14,10 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -41,13 +43,19 @@ public class FFmpegVideoSubtitlesExtractor extends BaseAny2AnyConverter {
 
     private FFmpegVideoHelper fFmpegVideoHelper;
 
+    private LocalisationService localisationService;
+
+    private UserService userService;
+
     @Autowired
     public FFmpegVideoSubtitlesExtractor(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                         FFmpegVideoHelper fFmpegVideoHelper) {
+                                         FFmpegVideoHelper fFmpegVideoHelper, LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.localisationService = localisationService;
+        this.userService = userService;
     }
 
     @Override
@@ -57,6 +65,10 @@ public class FFmpegVideoSubtitlesExtractor extends BaseAny2AnyConverter {
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> subtitleStreams = fFprobeDevice.getSubtitleStreams(file.getAbsolutePath());
+            if (subtitleStreams.isEmpty()) {
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SUBTITLE_STREAMS_NOT_FOUND,
+                        userService.getLocaleOrDefault(fileQueueItem.getUserId()))).setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+            }
             ConvertResults convertResults = new ConvertResults();
             for (int streamIndex = 0; streamIndex < subtitleStreams.size(); streamIndex++) {
                 FFprobeDevice.Stream subtitleStream = subtitleStreams.get(streamIndex);
@@ -77,7 +89,7 @@ public class FFmpegVideoSubtitlesExtractor extends BaseAny2AnyConverter {
             }
 
             return convertResults;
-        } catch (CorruptedVideoException e) {
+        } catch (UserException | CorruptedVideoException e) {
             throw e;
         } catch (Exception e) {
             throw new ConvertException(e);

@@ -13,12 +13,15 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartReplyKeyboardService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService.keyboardRow;
 import static ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService.replyKeyboardMarkup;
@@ -79,33 +82,27 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     @Override
     public ReplyKeyboardMarkup formatsKeyboard(long chatId, Format format, Locale locale) {
         List<Format> targetFormats = new ArrayList<>(formatMapService.getTargetFormats(format));
-        targetFormats.sort(Comparator.comparing(Format::getName));
 
-        if (targetFormats.remove(Format.COMPRESS)) {
-            targetFormats.add(0, Format.COMPRESS);
-        }
-        if (targetFormats.remove(Format.STREAM)) {
-            targetFormats.add(1, Format.STREAM);
-        }
-        if (targetFormats.remove(Format.MUTE)) {
-            targetFormats.add(2, Format.MUTE);
-        }
-        if (targetFormats.remove(Format.SQUARE)) {
-            targetFormats.add(3, Format.SQUARE);
-        }
-        if (targetFormats.remove(Format.VIDEO_NOTE)) {
-            targetFormats.add(4, Format.VIDEO_NOTE);
-        }
-        if (targetFormats.remove(Format.PROBE)) {
-            targetFormats.add(5, Format.PROBE);
-        }
+        targetFormats.sort(Comparator.comparing(Format::getName));
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();
-        List<List<Format>> lists = Lists.partition(targetFormats, 3);
-        for (List<Format> list : lists) {
-            keyboard.add(keyboardRow(list.stream().map(Format::getName).toArray(String[]::new)));
+        List<FormatCategory> categoriesOrder = List.of(FormatCategory.COMMON, FormatCategory.VIDEO,
+                FormatCategory.SUBTITLES, FormatCategory.AUDIO);
+
+        List<Format> firstFormats = removeAndGetAtFirstFormats(targetFormats);
+        boolean firstRow = true;
+        for (FormatCategory formatCategory : categoriesOrder) {
+            List<Format> formats = targetFormats.stream().filter(f -> f.getCategory().equals(formatCategory)).collect(Collectors.toList());
+            if (firstRow) {
+                formats = Stream.concat(firstFormats.stream(), formats.stream()).collect(Collectors.toList());
+                firstRow = false;
+            }
+            addFormatsToKeyboard(keyboard, formats);
         }
+        List<Format> formats = targetFormats.stream().filter(f -> !categoriesOrder.contains(f.getCategory())).collect(Collectors.toList());
+
+        addFormatsToKeyboard(keyboard, formats);
         keyboard.add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
@@ -175,4 +172,34 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         return smartReplyKeyboardService.removeKeyboard();
     }
 
+    private void addFormatsToKeyboard(List<KeyboardRow> keyboard, List<Format> formats) {
+        List<List<Format>> lists = Lists.partition(formats, 3);
+        for (List<Format> list : lists) {
+            keyboard.add(keyboardRow(list.stream().map(Format::getName).toArray(String[]::new)));
+        }
+    }
+
+    private List<Format> removeAndGetAtFirstFormats(List<Format> targetFormats) {
+        List<Format> formats = new ArrayList<>();
+        if (targetFormats.remove(Format.COMPRESS)) {
+            formats.add(Format.COMPRESS);
+        }
+        if (targetFormats.remove(Format.STREAM)) {
+            formats.add(Format.STREAM);
+        }
+        if (targetFormats.remove(Format.MUTE)) {
+            formats.add(Format.MUTE);
+        }
+        if (targetFormats.remove(Format.SQUARE)) {
+            formats.add(Format.SQUARE);
+        }
+        if (targetFormats.remove(Format.VIDEO_NOTE)) {
+            formats.add(Format.VIDEO_NOTE);
+        }
+        if (targetFormats.remove(Format.PROBE)) {
+            formats.add(Format.PROBE);
+        }
+
+        return formats;
+    }
 }
