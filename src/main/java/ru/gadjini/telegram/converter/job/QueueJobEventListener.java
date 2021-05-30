@@ -16,10 +16,10 @@ public class QueueJobEventListener implements ApplicationListener<QueueJobInitia
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConversionWorkerFactory.class);
 
-    private final Set<FormatCategory> categories;
+    private Set<FormatCategory> categories;
 
     @Autowired
-    public QueueJobEventListener(Set<FormatCategory> categories) {
+    public void setCategories(Set<FormatCategory> categories) {
         this.categories = categories;
     }
 
