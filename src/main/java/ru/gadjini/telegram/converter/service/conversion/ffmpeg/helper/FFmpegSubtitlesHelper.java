@@ -70,11 +70,19 @@ public class FFmpegSubtitlesHelper {
                 }
             }
             if (validSubtitlesIndexes.size() == subtitleStreams.size()) {
+                commandBuilder.mapSubtitlesInput(input);
                 if (copySubtitlesIndexes.values().stream().allMatch(a -> a)) {
-                    commandBuilder.mapSubtitlesInput(input).copySubtitles();
-                } else {
-                    commandBuilder.mapSubtitlesInput(input);
+                    commandBuilder.copySubtitles();
+                } else if (copySubtitlesIndexes.values().stream().noneMatch(a -> a)) {
                     addSubtitlesCodec(commandBuilder, targetFormat);
+                } else {
+                    validSubtitlesIndexes.keySet().forEach((subtitlesIndex) -> {
+                        if (copySubtitlesIndexes.get(subtitlesIndex)) {
+                            commandBuilder.copySubtitles(subtitlesIndex);
+                        } else {
+                            addSubtitlesCodec(commandBuilder, subtitlesIndex, targetFormat);
+                        }
+                    });
                 }
             } else {
                 validSubtitlesIndexes.forEach((subtitlesIndex, mapIndex) -> {
