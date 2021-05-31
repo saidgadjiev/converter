@@ -32,8 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.COMPRESS;
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.filter;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
 public class VideoCompressConverter extends BaseAny2AnyConverter {
@@ -90,6 +89,9 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, SCALE, fileQueueItem.getFirstFileFormat());
             commandBuilder.crf("30");
 
+            if (fileQueueItem.getTargetFormat() == WEBM) {
+                commandBuilder.vp8QualityOptions();
+            }
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 

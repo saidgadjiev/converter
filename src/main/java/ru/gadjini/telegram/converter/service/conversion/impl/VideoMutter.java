@@ -71,13 +71,14 @@ public class VideoMutter extends BaseAny2AnyConverter {
                 fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams,
+                    result, fileQueueItem.getFirstFileFormat());
             if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
-                commandBuilder.crf("10");
+                commandBuilder.vp8QualityOptions();
             }
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
             commandBuilder.an()
-                    .preset(FFmpegCommandBuilder.PRESET_VERY_FAST)
-                    .deadline(FFmpegCommandBuilder.DEADLINE_REALTIME)
+                    .fastConversion()
                     .defaultOptions().out(result.getAbsolutePath());
 
             fFmpegDevice.execute(commandBuilder.buildFullCommand());

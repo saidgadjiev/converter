@@ -85,19 +85,19 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, videoStreamsForConversion, targetFormat, result);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
-            if (WEBM.equals(targetFormat)) {
-                commandBuilder.crf("10");
-            }
             List<FFprobeDevice.Stream> audioStreamsForConversion = fFprobeDevice.getAllStreams(audio.getAbsolutePath());
             audioStreamsForConversion.forEach(s -> s.setInput(1));
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, videoStreamsForConversion, result, targetFormat);
+            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
             if (targetFormat.canBeSentAsVideo()) {
                 fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
             } else {
-                fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, audioStreamsForConversion, result, targetFormat);
+                fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, audioStreamsForConversion, result, targetFormat);
             }
-            commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-            commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
+            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
+            if (WEBM.equals(targetFormat)) {
+                commandBuilder.vp8QualityOptions();
+            }
+            commandBuilder.fastConversion();
 
             long durationInSeconds = fFprobeDevice.getDurationInSeconds(video.getAbsolutePath());
             commandBuilder.t(durationInSeconds);

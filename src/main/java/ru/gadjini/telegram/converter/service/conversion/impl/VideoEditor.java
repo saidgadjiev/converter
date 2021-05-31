@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
 
 @Component
 public class VideoEditor extends BaseAny2AnyConverter {
@@ -104,6 +105,11 @@ public class VideoEditor extends BaseAny2AnyConverter {
             if (srcWhd.getHeight() != null && height > srcWhd.getHeight()) {
                 //Так как при увличении разрешения и так снижается качество
                 commandBuilder.crf("30");
+            } else {
+                commandBuilder.crf("26");
+            }
+            if (fileQueueItem.getTargetFormat() == WEBM) {
+                commandBuilder.vp8QualityOptions();
             }
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());

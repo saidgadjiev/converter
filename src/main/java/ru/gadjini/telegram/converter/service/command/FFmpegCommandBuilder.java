@@ -51,6 +51,8 @@ public class FFmpegCommandBuilder {
 
     public static final String AC3_CODEC = "ac3";
 
+    public static final String LIBVORBIS = "libvorbis";
+
     public static final String AAC_CODEC = "aac";
 
     public static final String WMV2 = "wmv2";
@@ -365,9 +367,49 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder qmin(String qmin) {
+        options.add("-qmin");
+        options.add(qmin);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder qmax(String qmax) {
+        options.add("-qmax");
+        options.add(qmax);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder vp8QualityOptions() {
+        qmin("0").qmax("40");
+
+        if (!options.contains(CRF)) {
+            crf("5");
+        }
+
+        bv("1M");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder fastConversion() {
+        preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
+        speed("16");
+
+        return this;
+    }
+
     public FFmpegCommandBuilder deadline(String deadline) {
         options.add("-deadline");
         options.add(deadline);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder speed(String speed) {
+        options.add("-speed");
+        options.add(speed);
 
         return this;
     }
@@ -402,6 +444,13 @@ public class FFmpegCommandBuilder {
 
     public FFmpegCommandBuilder bv(int index, String bv) {
         options.add("-b:v:" + index);
+        options.add(bv);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder bv(String bv) {
+        options.add("-b:v");
         options.add(bv);
 
         return this;

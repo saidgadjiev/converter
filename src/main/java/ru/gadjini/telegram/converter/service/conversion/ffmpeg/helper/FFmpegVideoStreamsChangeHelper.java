@@ -53,13 +53,13 @@ public class FFmpegVideoStreamsChangeHelper {
             ++outCodecIndex;
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
-        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, targetFormat);
+        baseCommand = new FFmpegCommandBuilder(commandBuilder);
         if (targetFormat.supportsStreaming()) {
             fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {
-            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, result, targetFormat);
+            fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
         }
-        commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-        commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
+        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
+        commandBuilder.fastConversion();
     }
 }

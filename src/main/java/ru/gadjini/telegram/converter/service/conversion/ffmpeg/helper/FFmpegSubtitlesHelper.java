@@ -23,14 +23,13 @@ public class FFmpegSubtitlesHelper {
         this.fFmpegDevice = fFmpegDevice;
     }
 
-    public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+    public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommandBuilder baseCommand,
+                                                     FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
                                                      SmartTempFile result, Format targetFormat) throws InterruptedException {
         if (!isSubtitlesSupported(targetFormat)) {
             return;
         }
         if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(stream.getCodecType()))) {
-            FFmpegCommandBuilder baseCommandToCheckCopyable = new FFmpegCommandBuilder(commandBuilder);
-
             List<FFprobeDevice.Stream> subtitleStreams = allStreams.stream()
                     .filter(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
@@ -54,12 +53,12 @@ public class FFmpegSubtitlesHelper {
                         copySubtitlesIndexes.put(nextIndex, true);
                     }
                 } else {
-                    if (isSubtitlesCopyable(baseCommandToCheckCopyable, result, input, subtitleStreamIndex)) {
+                    if (isSubtitlesCopyable(baseCommand, result, input, subtitleStreamIndex)) {
                         int nextIndex = ffmpegSubtitleStreamIndex++;
                         validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
                         copySubtitlesIndexes.put(nextIndex, true);
                         streamsCache.put(subtitleStream.getCodecName(), copyable);
-                    } else if (isSubtitlesConvertable(commandBuilder, result, input, subtitleStreamIndex, targetFormat)) {
+                    } else if (isSubtitlesConvertable(baseCommand, result, input, subtitleStreamIndex, targetFormat)) {
                         int nextIndex = ffmpegSubtitleStreamIndex++;
                         validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
                         copySubtitlesIndexes.put(nextIndex, false);
@@ -101,7 +100,7 @@ public class FFmpegSubtitlesHelper {
                                         SmartTempFile out, Integer input, int index) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
         commandBuilder.mapSubtitles(input, index).copySubtitles();
-        commandBuilder.defaultOptions().out(out.getAbsolutePath());
+        commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
@@ -112,7 +111,7 @@ public class FFmpegSubtitlesHelper {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
         commandBuilder.mapSubtitles(input, index);
         addSubtitlesCodec(commandBuilder, format);
-        commandBuilder.defaultOptions().out(out.getAbsolutePath());
+        commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }

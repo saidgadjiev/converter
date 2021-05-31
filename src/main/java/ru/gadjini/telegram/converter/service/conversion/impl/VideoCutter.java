@@ -114,17 +114,17 @@ public class VideoCutter extends BaseAny2AnyConverter {
                 fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-            if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
-                commandBuilder.crf("10");
-            }
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
+            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 fFmpegAudioHelper.convertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
             } else {
                 fFmpegAudioHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
             }
-            commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-            commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
+            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
+            if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
+                commandBuilder.vp8QualityOptions();
+            }
+            commandBuilder.fastConversion();
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());

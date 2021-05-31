@@ -147,7 +147,7 @@ public class FFmpegVideoHelper {
 
         commandBuilder.mapVideo(input, videoStreamMapIndex).copy(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER);
         addVideoTargetFormatOptions(commandBuilder, targetFormat);
-        commandBuilder.defaultOptions().out(out.getAbsolutePath());
+        commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
@@ -156,7 +156,7 @@ public class FFmpegVideoHelper {
                                        Integer input, int videoStreamMapIndex, String scale) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
         commandBuilder.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
-        commandBuilder.defaultOptions().out(out.getAbsolutePath());
+        commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
@@ -197,7 +197,7 @@ public class FFmpegVideoHelper {
 
     public void addVideoCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
         if (target == WEBM) {
-            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC).bv(streamIndex, "2M");
+            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC);
         } else if (target == _3GP) {
             commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H263_CODEC).filterVideo(streamIndex, FFmpegCommandBuilder._3GP_SCALE);
         } else if (target == MTS) {

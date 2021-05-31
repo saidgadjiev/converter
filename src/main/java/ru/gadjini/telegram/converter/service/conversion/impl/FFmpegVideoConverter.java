@@ -109,19 +109,19 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
             fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, targetFormat, result);
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
-        if (WEBM.equals(targetFormat)) {
-            commandBuilder.crf("10");
-        }
-        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(commandBuilder, allStreams, result, targetFormat);
+
+        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         if (targetFormat.canBeSentAsVideo()) {
             fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {
-            fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, allStreams, result, targetFormat);
+            fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
         }
-        commandBuilder.preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-        commandBuilder.deadline(FFmpegCommandBuilder.DEADLINE_REALTIME);
+        fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
 
-        commandBuilder.defaultOptions().out(result.getAbsolutePath());
+        if (WEBM.equals(targetFormat)) {
+            commandBuilder.vp8QualityOptions();
+        }
+        commandBuilder.fastConversion().defaultOptions().out(result.getAbsolutePath());
         fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
