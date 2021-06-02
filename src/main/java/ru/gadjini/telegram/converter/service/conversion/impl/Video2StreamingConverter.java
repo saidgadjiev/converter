@@ -99,11 +99,11 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
     private ConversionResult doConvertNonStreamingVideo(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
-                TAG, fileQueueItem.getFirstFileFormat().getExt());
+                TAG, Format.STREAM.getAssociatedFormat().getExt());
 
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
-            return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem, fileQueueItem.getFirstFileFormat());
+            return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem, Format.STREAM.getAssociatedFormat());
         } catch (CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;
