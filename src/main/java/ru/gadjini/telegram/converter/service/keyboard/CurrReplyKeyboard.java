@@ -50,8 +50,8 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
-    public ReplyKeyboardMarkup mergePdfsKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.mergePdfsKeyboard(chatId, locale));
+    public ReplyKeyboardMarkup mergeFilesKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.mergeFilesKeyboard(chatId, locale));
     }
 
     @Override

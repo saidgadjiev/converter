@@ -83,7 +83,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_WELCOME, locale))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(replyKeyboardService.mergePdfsKeyboard(message.getChatId(), locale))
+                        .replyMarkup(replyKeyboardService.mergeFilesKeyboard(message.getChatId(), locale))
                         .build()
         );
     }

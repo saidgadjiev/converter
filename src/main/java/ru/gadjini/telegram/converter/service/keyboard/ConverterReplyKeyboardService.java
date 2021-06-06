@@ -11,7 +11,7 @@ public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
 
     ReplyKeyboardMarkup audioCompressionKeyboard(long chatId, Locale locale);
 
-    ReplyKeyboardMarkup mergePdfsKeyboard(long chatId, Locale locale);
+    ReplyKeyboardMarkup mergeFilesKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardMarkup formatsKeyboard(long chatId, Format format, Locale locale);
 
