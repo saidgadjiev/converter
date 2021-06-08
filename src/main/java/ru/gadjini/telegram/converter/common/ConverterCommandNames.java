@@ -24,6 +24,8 @@ public class ConverterCommandNames {
 
     public static final String MERGE_PDFS = "mergepdfs";
 
+    public static final String MERGE_AUDIOS = "amerge";
+
     public static final String COMPRESS_AUDIO = "acompress";
 
     public static final String EDIT_VIDEO = "vedit";

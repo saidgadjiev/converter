@@ -1,7 +1,6 @@
-package ru.gadjini.telegram.converter.command.bot;
+package ru.gadjini.telegram.converter.command.bot.merge;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -12,8 +11,6 @@ import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
-import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
-import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
@@ -30,8 +27,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import java.util.Locale;
 import java.util.Objects;
 
-@Component
-public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
+public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
 
     private MessageService messageService;
 
@@ -51,11 +47,13 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     private ApplicationProperties applicationProperties;
 
-    @Autowired
-    public MergePdfsCommand(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
-                            UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                            MessageMediaService messageMediaService, CommandStateService commandStateService,
-                            ConvertionService convertionService, ApplicationProperties applicationProperties) {
+    private MergeFilesConfigurator mergeFilesConfigurator;
+
+    public MergeFilesCommand(MessageService messageService, LocalisationService localisationService,
+                             UserService userService, ConverterReplyKeyboardService replyKeyboardService,
+                             MessageMediaService messageMediaService, CommandStateService commandStateService,
+                             ConvertionService convertionService, ApplicationProperties applicationProperties,
+                             MergeFilesConfigurator mergeFilesConfigurator) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -64,6 +62,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
         this.commandStateService = commandStateService;
         this.convertionService = convertionService;
         this.applicationProperties = applicationProperties;
+        this.mergeFilesConfigurator = mergeFilesConfigurator;
     }
 
     @Autowired
@@ -81,7 +80,8 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_WELCOME, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_FILES_WELCOME,
+                                new Object[]{mergeFilesConfigurator.getFileType()}, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.mergeFilesKeyboard(message.getChatId(), locale))
                         .build()
@@ -90,7 +90,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return ConverterCommandNames.MERGE_PDFS;
+        return mergeFilesConfigurator.getCommandName();
     }
 
     @Override
@@ -100,7 +100,7 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public String getHistoryName() {
-        return ConverterCommandNames.MERGE_PDFS;
+        return mergeFilesConfigurator.getCommandName();
     }
 
     @Override
@@ -110,22 +110,22 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
         if (message.hasText()) {
             String mergeCommandName = localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale);
             String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale);
-            ConvertState mergePdfsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
-            if (mergePdfsState == null || mergePdfsState.getFiles().isEmpty()) {
+            ConvertState mergeState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
+            if (mergeState == null || mergeState.getFiles().isEmpty()) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_NO_FILES, locale));
             }
             if (Objects.equals(mergeCommandName, text)) {
-                if (mergePdfsState.getFiles().size() == 1) {
+                if (mergeState.getFiles().size() == 1) {
                     throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_MIN_2_FILES, locale));
                 }
                 workQueueJob.cancelCurrentTasks(message.getChatId());
-                convertionService.createConversion(message.getFrom(), mergePdfsState, Format.MERGE_PDFS, locale);
+                convertionService.createConversion(message.getFrom(), mergeState, Format.MERGE_PDFS, locale);
                 commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
             } else if (Objects.equals(cancelFilesCommandName, text)) {
                 commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_CANCELED, new Object[]{mergePdfsState.getFiles().size()}, locale))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_CANCELED, new Object[]{mergeState.getFiles().size()}, locale))
                                 .parseMode(ParseMode.HTML)
                                 .build()
                 );
@@ -151,21 +151,22 @@ public class MergePdfsCommand implements BotCommand, NavigableBotCommand {
     }
 
     private ConvertState createState(Message message) {
-        ConvertState mergePdfsState = new ConvertState();
+        ConvertState mergeState = new ConvertState();
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        mergePdfsState.setUserLanguage(locale.getLanguage());
-        mergePdfsState.setMessageId(message.getMessageId());
+        mergeState.setUserLanguage(locale.getLanguage());
+        mergeState.setMessageId(message.getMessageId());
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         checkMedia(media, locale);
-        mergePdfsState.addMedia(media);
+        mergeState.addMedia(media);
 
-        return mergePdfsState;
+        return mergeState;
     }
 
     private void checkMedia(MessageMedia media, Locale locale) {
-        if (media == null || media.getFormat() != Format.PDF) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_NON_PDF_FILE, locale));
+        if (media == null || !mergeFilesConfigurator.isValidFormat(media.getFormat())) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_INCORRECT_FILE,
+                    new Object[]{mergeFilesConfigurator.getFileType()}, locale));
         }
     }
 }

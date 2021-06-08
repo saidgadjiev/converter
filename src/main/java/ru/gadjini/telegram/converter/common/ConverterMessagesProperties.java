@@ -93,7 +93,7 @@ public class ConverterMessagesProperties {
 
     public static final String EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST = "extra.message.dont.send.new.request";
 
-    public static final String MESSAGE_MERGE_PDFS_WELCOME = "message.merge.pdfs.welcome";
+    public static final String MESSAGE_MERGE_FILES_WELCOME = "message.merge.files.welcome";
 
     public static final String MERGE_COMMAND_NAME = "merge.command.name";
 
@@ -109,7 +109,7 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_MERGE_PDFS_CANCELED = "message.merge.pdfs.canceled";
 
-    public static final String MESSAGE_MERGE_PDFS_NON_PDF_FILE = "message.merge.pdfs.non.pdf.file";
+    public static final String MESSAGE_MERGE_INCORRECT_FILE = "message.merge.incorrect.file";
 
     public static final String MESSAGE_MERGE_FILES_QUEUED = "message.merge.files.queued";
 
