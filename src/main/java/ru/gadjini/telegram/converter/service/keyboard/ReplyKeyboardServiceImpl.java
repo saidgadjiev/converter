@@ -72,8 +72,8 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup mergeFilesKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale)));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale),
+                localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale)));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;

@@ -5,9 +5,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
-import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
-import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -21,7 +19,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
@@ -72,7 +69,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public boolean accept(Message message) {
-        return applicationProperties.is(FormatsConfiguration.DOCUMENT_CONVERTER);
+        return mergeFilesConfigurator.accept(message);
     }
 
     @Override
@@ -112,34 +109,34 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
             String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale);
             ConvertState mergeState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
             if (mergeState == null || mergeState.getFiles().isEmpty()) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_NO_FILES, locale));
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_NO_FILES, locale));
             }
             if (Objects.equals(mergeCommandName, text)) {
                 if (mergeState.getFiles().size() == 1) {
-                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_MIN_2_FILES, locale));
+                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_MIN_2_FILES, locale));
                 }
                 workQueueJob.cancelCurrentTasks(message.getChatId());
-                convertionService.createConversion(message.getFrom(), mergeState, Format.MERGE_PDFS, locale);
-                commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
+                convertionService.createConversion(message.getFrom(), mergeState, mergeFilesConfigurator.getTargetFormat(), locale);
+                commandStateService.deleteState(message.getChatId(), mergeFilesConfigurator.getCommandName());
             } else if (Objects.equals(cancelFilesCommandName, text)) {
-                commandStateService.deleteState(message.getChatId(), ConverterCommandNames.MERGE_PDFS);
+                commandStateService.deleteState(message.getChatId(), mergeFilesConfigurator.getCommandName());
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_PDFS_CANCELED, new Object[]{mergeState.getFiles().size()}, locale))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_CANCELED, new Object[]{mergeState.getFiles().size()}, locale))
                                 .parseMode(ParseMode.HTML)
                                 .build()
                 );
             }
         } else {
-            ConvertState mergePdfsState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
-            if (mergePdfsState == null) {
-                mergePdfsState = createState(message);
-                commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergePdfsState);
+            ConvertState mergeState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
+            if (mergeState == null) {
+                mergeState = createState(message);
+                commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergeState);
             } else {
                 MessageMedia media = messageMediaService.getMedia(message, locale);
-                if (media != null && media.getFormat() == Format.PDF) {
-                    mergePdfsState.addMedia(media);
-                    commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergePdfsState);
+                if (media != null && mergeFilesConfigurator.isValidFormat(media.getFormat())) {
+                    mergeState.addMedia(media);
+                    commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergeState);
                 }
             }
         }

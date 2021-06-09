@@ -101,13 +101,13 @@ public class ConverterMessagesProperties {
 
     public static final String COMPRESS_AUDIO_COMMAND_DESCRIPTION = "compress.audio.command.description";
 
-    public static final String MESSAGE_MERGE_PDFS_NO_FILES = "message.merge.pdfs.no.files";
+    public static final String MESSAGE_MERGE_NO_FILES = "message.merge.no.files";
 
     public static final String CANCEL_FILES_COMMAND_NAME = "cancel.files.command.name";
 
     public static final String CANCEL_FILE_COMMAND_NAME = "cancel.file.command.name";
 
-    public static final String MESSAGE_MERGE_PDFS_CANCELED = "message.merge.pdfs.canceled";
+    public static final String MESSAGE_MERGE_CANCELED = "message.merge.canceled";
 
     public static final String MESSAGE_MERGE_INCORRECT_FILE = "message.merge.incorrect.file";
 
@@ -115,7 +115,7 @@ public class ConverterMessagesProperties {
 
     public static final String MERGING_STEP = "merging.step";
 
-    public static final String MESSAGE_MERGE_PDFS_MIN_2_FILES = "message.merge.pdfs.min.2.files";
+    public static final String MESSAGE_MERGE_MIN_2_FILES = "message.merge.min.2.files";
 
     public static final String MESSAGE_AUDIO_COMPRESSION_BITRATE = "message.audio.compression.bitrate";
 

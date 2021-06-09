@@ -9,6 +9,8 @@ public class FFmpegCommandBuilder {
 
     public static final String CRF = "-crf";
 
+    public static final String CONCAT = "concat";
+
     public static final String EVEN_SCALE = "scale=-2:ceil(ih/2)*2";
 
     public static final String _3GP_SCALE = "scale=176:144";
@@ -74,6 +76,13 @@ public class FFmpegCommandBuilder {
     }
 
     public FFmpegCommandBuilder() {
+    }
+
+    public FFmpegCommandBuilder safe(String s) {
+        options.add("-safe");
+        options.add(s);
+
+        return this;
     }
 
     public FFmpegCommandBuilder hideBanner() {
@@ -251,6 +260,13 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder audioCodec(String codec) {
         options.add("-c:a");
         options.add(codec);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder copyCodecs() {
+        options.add("-c");
+        options.add("copy");
 
         return this;
     }
