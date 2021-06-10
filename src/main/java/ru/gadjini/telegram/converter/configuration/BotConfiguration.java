@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Scope;
 import ru.gadjini.telegram.converter.command.bot.merge.MergeAudioFilesConfigurator;
 import ru.gadjini.telegram.converter.command.bot.merge.MergeFilesCommand;
 import ru.gadjini.telegram.converter.command.bot.merge.MergePdfFilesConfigurator;
-import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -54,10 +53,10 @@ public class BotConfiguration {
     public MergeFilesCommand mergePdfFilesCommand(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                                                   UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                                                   MessageMediaService messageMediaService, CommandStateService commandStateService,
-                                                  ConvertionService convertionService, ApplicationProperties applicationProperties,
+                                                  ConvertionService convertionService,
                                                   MergePdfFilesConfigurator mergeFilesConfigurator) {
         return new MergeFilesCommand(messageService, localisationService, userService, replyKeyboardService, messageMediaService,
-                commandStateService, convertionService, applicationProperties, mergeFilesConfigurator);
+                commandStateService, convertionService, mergeFilesConfigurator);
     }
 
     @Bean
@@ -65,9 +64,9 @@ public class BotConfiguration {
     public MergeFilesCommand mergeAudioFilesCommand(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                                                     UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                                                     MessageMediaService messageMediaService, CommandStateService commandStateService,
-                                                    ConvertionService convertionService, ApplicationProperties applicationProperties,
+                                                    ConvertionService convertionService,
                                                     MergeAudioFilesConfigurator mergeAudioFilesConfigurator) {
         return new MergeFilesCommand(messageService, localisationService, userService, replyKeyboardService, messageMediaService,
-                commandStateService, convertionService, applicationProperties, mergeAudioFilesConfigurator);
+                commandStateService, convertionService, mergeAudioFilesConfigurator);
     }
 }

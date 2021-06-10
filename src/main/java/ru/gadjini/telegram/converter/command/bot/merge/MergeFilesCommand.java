@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
-import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
@@ -42,14 +41,12 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
 
     private ConvertionService convertionService;
 
-    private ApplicationProperties applicationProperties;
-
     private MergeFilesConfigurator mergeFilesConfigurator;
 
     public MergeFilesCommand(MessageService messageService, LocalisationService localisationService,
                              UserService userService, ConverterReplyKeyboardService replyKeyboardService,
                              MessageMediaService messageMediaService, CommandStateService commandStateService,
-                             ConvertionService convertionService, ApplicationProperties applicationProperties,
+                             ConvertionService convertionService,
                              MergeFilesConfigurator mergeFilesConfigurator) {
         this.messageService = messageService;
         this.localisationService = localisationService;
@@ -58,7 +55,6 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
         this.messageMediaService = messageMediaService;
         this.commandStateService = commandStateService;
         this.convertionService = convertionService;
-        this.applicationProperties = applicationProperties;
         this.mergeFilesConfigurator = mergeFilesConfigurator;
     }
 
@@ -78,7 +74,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_FILES_WELCOME,
-                                new Object[]{mergeFilesConfigurator.getFileType()}, locale))
+                                new Object[]{mergeFilesConfigurator.getFileType(), mergeFilesConfigurator.getMaxFiles()}, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.mergeFilesKeyboard(message.getChatId(), locale))
                         .build()
@@ -109,7 +105,8 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
             String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale);
             ConvertState mergeState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
             if (mergeState == null || mergeState.getFiles().isEmpty()) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_NO_FILES, locale));
+                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_NO_FILES,
+                        new Object[]{mergeFilesConfigurator.getFileType()}, locale));
             }
             if (Objects.equals(mergeCommandName, text)) {
                 if (mergeState.getFiles().size() == 1) {
@@ -134,7 +131,8 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
                 commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergeState);
             } else {
                 MessageMedia media = messageMediaService.getMedia(message, locale);
-                if (media != null && mergeFilesConfigurator.isValidFormat(media.getFormat())) {
+                if (media != null && mergeFilesConfigurator.isValidFormat(media.getFormat())
+                        && mergeFilesConfigurator.getMaxFiles() >= mergeState.getFiles().size()) {
                     mergeState.addMedia(media);
                     commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergeState);
                 }

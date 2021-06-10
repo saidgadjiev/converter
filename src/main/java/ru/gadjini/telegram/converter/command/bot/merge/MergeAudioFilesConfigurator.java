@@ -43,4 +43,9 @@ public class MergeAudioFilesConfigurator implements MergeFilesConfigurator {
     public Format getTargetFormat() {
         return Format.MERGE;
     }
+
+    @Override
+    public int getMaxFiles() {
+        return 5;
+    }
 }

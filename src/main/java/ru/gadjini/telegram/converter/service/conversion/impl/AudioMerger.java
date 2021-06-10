@@ -85,7 +85,7 @@ public class AudioMerger extends BaseAny2AnyConverter {
                     }
 
                     return new AudioResult(fileName, result, fileQueueItem.getFirstFile().getAudioPerformer(),
-                            fileQueueItem.getFirstFile().getAudioTitle(), (int) durationInSeconds);
+                            fileQueueItem.getFirstFile().getAudioTitle(), downloadThumb(fileQueueItem), (int) durationInSeconds);
                 }
 
                 return new FileResult(fileName, result);

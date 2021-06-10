@@ -14,4 +14,6 @@ public interface MergeFilesConfigurator {
     boolean accept(Message message);
 
     Format getTargetFormat();
+
+    int getMaxFiles();
 }

@@ -42,4 +42,9 @@ public class MergePdfFilesConfigurator implements MergeFilesConfigurator {
     public Format getTargetFormat() {
         return Format.MERGE_PDFS;
     }
+
+    @Override
+    public int getMaxFiles() {
+        return 10;
+    }
 }
