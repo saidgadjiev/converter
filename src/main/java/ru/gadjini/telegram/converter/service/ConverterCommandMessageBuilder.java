@@ -37,7 +37,7 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
 
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.START_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.START_COMMAND_DESCRIPTION, locale)).append("\n");
         if (applicationProperties.is(FormatsConfiguration.DOCUMENT_CONVERTER)) {
-            info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.MERGE_PDFS).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_DESCRIPTION, locale)).append("\n");
+            info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.MERGE_PDFS).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.CONCATENATE_COMMAND_DESCRIPTION, locale)).append("\n");
         }
         if (applicationProperties.is(FormatsConfiguration.AUDIO_CONVERTER)) {
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.COMPRESS_AUDIO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.COMPRESS_AUDIO_COMMAND_DESCRIPTION, locale)).append("\n");

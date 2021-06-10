@@ -178,7 +178,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.MERGE_PDFS || queueItem.getTargetFormat() == Format.MERGE) {
-            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_FILES_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_FILES_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.EDIT) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_WILL_BE_EDITED, new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.MUTE) {
@@ -225,7 +225,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         String iconCheck = localisationService.getMessage(ConverterMessagesProperties.ICON_CHECK, locale);
         String conversionMsgCode = targetFormat == Format.COMPRESS
                 ? ConverterMessagesProperties.COMPRESSING_STEP
-                : targetFormat == Format.MERGE_PDFS ? ConverterMessagesProperties.MERGING_STEP
+                : targetFormat == Format.MERGE_PDFS ? ConverterMessagesProperties.CONCATENATION_STEP
                 : targetFormat == Format.EDIT ? ConverterMessagesProperties.VIDEO_EDITING_STEP
                 : targetFormat == Format.VMAKE ? ConverterMessagesProperties.VIDEO_MAKING_STEP
                 : targetFormat == Format.MUTE ? ConverterMessagesProperties.MUTING_STEP

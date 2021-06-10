@@ -77,7 +77,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_FILES_WELCOME,
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_FILES_WELCOME,
                                 new Object[]{mergeFilesConfigurator.getFileType()}, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.mergeFilesKeyboard(message.getChatId(), locale))
@@ -105,7 +105,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
         if (message.hasText()) {
-            String mergeCommandName = localisationService.getMessage(ConverterMessagesProperties.MERGE_COMMAND_NAME, locale);
+            String mergeCommandName = localisationService.getMessage(ConverterMessagesProperties.CONCATENATE_COMMAND_NAME, locale);
             String cancelFilesCommandName = localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILES_COMMAND_NAME, locale);
             ConvertState mergeState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
             if (mergeState == null || mergeState.getFiles().isEmpty()) {
@@ -113,7 +113,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
             }
             if (Objects.equals(mergeCommandName, text)) {
                 if (mergeState.getFiles().size() == 1) {
-                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_MIN_2_FILES, locale));
+                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_MIN_2_FILES, locale));
                 }
                 workQueueJob.cancelCurrentTasks(message.getChatId());
                 convertionService.createConversion(message.getFrom(), mergeState, mergeFilesConfigurator.getTargetFormat(), locale);
@@ -122,7 +122,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
                 commandStateService.deleteState(message.getChatId(), mergeFilesConfigurator.getCommandName());
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_CANCELED, new Object[]{mergeState.getFiles().size()}, locale))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_CANCELED, new Object[]{mergeState.getFiles().size()}, locale))
                                 .parseMode(ParseMode.HTML)
                                 .build()
                 );
@@ -162,7 +162,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
 
     private void checkMedia(MessageMedia media, Locale locale) {
         if (media == null || !mergeFilesConfigurator.isValidFormat(media.getFormat())) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_INCORRECT_FILE,
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_INCORRECT_FILE,
                     new Object[]{mergeFilesConfigurator.getFileType()}, locale));
         }
     }

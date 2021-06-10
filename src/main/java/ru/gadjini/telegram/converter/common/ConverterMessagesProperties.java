@@ -93,29 +93,29 @@ public class ConverterMessagesProperties {
 
     public static final String EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST = "extra.message.dont.send.new.request";
 
-    public static final String MESSAGE_MERGE_FILES_WELCOME = "message.merge.files.welcome";
+    public static final String MESSAGE_CONCATENATE_FILES_WELCOME = "message.concatenate.files.welcome";
 
-    public static final String MERGE_COMMAND_NAME = "merge.command.name";
+    public static final String CONCATENATE_COMMAND_NAME = "concatenate.command.name";
 
-    public static final String MERGE_COMMAND_DESCRIPTION = "merge.command.description";
+    public static final String CONCATENATE_COMMAND_DESCRIPTION = "concatenate.command.description";
 
     public static final String COMPRESS_AUDIO_COMMAND_DESCRIPTION = "compress.audio.command.description";
 
-    public static final String MESSAGE_MERGE_NO_FILES = "message.merge.no.files";
+    public static final String MESSAGE_MERGE_NO_FILES = "message.concatenate.no.files";
 
     public static final String CANCEL_FILES_COMMAND_NAME = "cancel.files.command.name";
 
     public static final String CANCEL_FILE_COMMAND_NAME = "cancel.file.command.name";
 
-    public static final String MESSAGE_MERGE_CANCELED = "message.merge.canceled";
+    public static final String MESSAGE_CONCATENATE_CANCELED = "message.concatenate.canceled";
 
-    public static final String MESSAGE_MERGE_INCORRECT_FILE = "message.merge.incorrect.file";
+    public static final String MESSAGE_CONCATENATE_INCORRECT_FILE = "message.concatenate.incorrect.file";
 
-    public static final String MESSAGE_MERGE_FILES_QUEUED = "message.merge.files.queued";
+    public static final String MESSAGE_CONCATENATE_FILES_QUEUED = "message.concatenate.files.queued";
 
-    public static final String MERGING_STEP = "merging.step";
+    public static final String CONCATENATION_STEP = "concatenation.step";
 
-    public static final String MESSAGE_MERGE_MIN_2_FILES = "message.merge.min.2.files";
+    public static final String MESSAGE_CONCATENATE_MIN_2_FILES = "message.concatenate.min.2.files";
 
     public static final String MESSAGE_AUDIO_COMPRESSION_BITRATE = "message.audio.compression.bitrate";
 
