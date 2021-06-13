@@ -17,6 +17,8 @@ public class FFmpegCommandBuilder {
 
     public static final String PRESET_VERY_FAST = "veryfast";
 
+    public static final String OPUS = "libopus";
+
     public static final String DEADLINE_REALTIME = "realtime";
 
     public static final String TUNE_STILLIMAGE = "stillimage";

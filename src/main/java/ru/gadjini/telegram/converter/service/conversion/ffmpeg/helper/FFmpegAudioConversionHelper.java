@@ -33,7 +33,7 @@ public class FFmpegAudioConversionHelper {
         if (target == AMR) {
             commandBuilder.ar("8000").ac("1");
         } else if (target == OGG) {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.VORBIS).qa("4");
+            commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS).ar("48000");
         }
     }
 
