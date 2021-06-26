@@ -74,7 +74,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_FILES_WELCOME,
-                                new Object[]{mergeFilesConfigurator.getFileType(), mergeFilesConfigurator.getMaxFiles()}, locale))
+                                new Object[]{mergeFilesConfigurator.getMediaTypeName(locale), mergeFilesConfigurator.getMaxFiles()}, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.mergeFilesKeyboard(message.getChatId(), locale))
                         .build()
@@ -106,7 +106,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
             ConvertState mergeState = commandStateService.getState(message.getChatId(), getCommandIdentifier(), false, ConvertState.class);
             if (mergeState == null || mergeState.getFiles().isEmpty()) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MERGE_NO_FILES,
-                        new Object[]{mergeFilesConfigurator.getFileType()}, locale));
+                        new Object[]{mergeFilesConfigurator.getMediaTypeName(locale)}, locale));
             }
             if (Objects.equals(mergeCommandName, text)) {
                 if (mergeState.getFiles().size() == 1) {
@@ -161,7 +161,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
     private void checkMedia(MessageMedia media, Locale locale) {
         if (media == null || !mergeFilesConfigurator.isValidFormat(media.getFormat())) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_INCORRECT_FILE,
-                    new Object[]{mergeFilesConfigurator.getFileType()}, locale));
+                    new Object[]{mergeFilesConfigurator.getMediaTypeName(locale)}, locale));
         }
     }
 }

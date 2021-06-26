@@ -32,6 +32,8 @@ public class ConverterCommandNames {
 
     public static final String CUT_VIDEO = "vcut";
 
+    public static final String CUT_AUDIO = "acut";
+
     public static final String VAIMAKE = "vaimake";
 
     public static final String VAVMERGE = "vavmerge";

@@ -70,8 +70,8 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
-    public ReplyKeyboardMarkup videoCutKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.videoCutKeyboard(chatId, locale));
+    public ReplyKeyboardMarkup mediaCutKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.mediaCutKeyboard(chatId, locale));
     }
 
     @Override

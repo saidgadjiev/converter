@@ -1,21 +1,15 @@
-package ru.gadjini.telegram.converter.command.bot;
+package ru.gadjini.telegram.converter.command.bot.cut;
 
 import org.joda.time.Period;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
-import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
-import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
-import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
-import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
-import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
@@ -27,15 +21,13 @@ import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
 
 import static ru.gadjini.telegram.converter.service.conversion.impl.VideoCutter.PERIOD_FORMATTER;
 
-@Component
-public class CutVideoCommand implements BotCommand, NavigableBotCommand {
+public class CutMediaCommand implements BotCommand, NavigableBotCommand {
 
     private MessageService messageService;
 
@@ -53,15 +45,15 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
 
     private ConvertionService convertionService;
 
-    private ApplicationProperties applicationProperties;
+    private CutMediaConfigurator cutMediaConfigurator;
 
-    @Autowired
-    public CutVideoCommand(@TgMessageLimitsControl MessageService messageService, UserService userService,
+    public CutMediaCommand(MessageService messageService, UserService userService,
                            LocalisationService localisationService,
-                           @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                           ConverterReplyKeyboardService replyKeyboardService,
                            CommandStateService commandStateService,
                            MessageMediaService messageMediaService,
-                           ConvertionService convertionService, ApplicationProperties applicationProperties) {
+                           ConvertionService convertionService,
+                           CutMediaConfigurator cutMediaConfigurator) {
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
@@ -69,12 +61,12 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
         this.commandStateService = commandStateService;
         this.messageMediaService = messageMediaService;
         this.convertionService = convertionService;
-        this.applicationProperties = applicationProperties;
+        this.cutMediaConfigurator = cutMediaConfigurator;
     }
 
     @Override
     public boolean accept(Message message) {
-        return applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER);
+        return cutMediaConfigurator.accept(message);
     }
 
     @Autowired
@@ -88,16 +80,17 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_WELCOME, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_WELCOME,
+                                new Object[]{cutMediaConfigurator.getMediaTypeName(locale)}, locale))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
+                        .replyMarkup(replyKeyboardService.mediaCutKeyboard(message.getChatId(), locale))
                         .build()
         );
     }
 
     @Override
     public String getCommandIdentifier() {
-        return ConverterCommandNames.CUT_VIDEO;
+        return cutMediaConfigurator.getCommandName();
     }
 
     @Override
@@ -107,21 +100,21 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public String getHistoryName() {
-        return ConverterCommandNames.CUT_VIDEO;
+        return cutMediaConfigurator.getCommandName();
     }
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         ConvertState existsState = commandStateService.getState(message.getChatId(),
-                ConverterCommandNames.CUT_VIDEO, false, ConvertState.class);
+                cutMediaConfigurator.getCommandName(), false, ConvertState.class);
         if (existsState == null) {
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_START_POINT, locale))
+                            .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_START_POINT, locale))
                             .parseMode(ParseMode.HTML)
-                            .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
+                            .replyMarkup(replyKeyboardService.mediaCutKeyboard(message.getChatId(), locale))
                             .build()
             );
             commandStateService.setState(message.getChatId(), getCommandIdentifier(), convertState);
@@ -130,34 +123,35 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
                 workQueueJob.cancelCurrentTasks(message.getChatId());
                 convertionService.createConversion(message.getFrom(), existsState, Format.PROBE, locale);
             } else if (localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILE_COMMAND_NAME, locale).equals(text)) {
-                commandStateService.deleteState(message.getChatId(), ConverterCommandNames.CUT_VIDEO);
+                commandStateService.deleteState(message.getChatId(), cutMediaConfigurator.getCommandName());
                 messageService.sendMessage(
                         SendMessage.builder()
                                 .chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_WELCOME, locale))
-                                .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
+                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_WELCOME,
+                                        new Object[]{cutMediaConfigurator.getMediaTypeName(locale)}, locale))
+                                .replyMarkup(replyKeyboardService.mediaCutKeyboard(message.getChatId(), locale))
                                 .build()
                 );
             } else {
                 if (existsState.getSettings().getCutStartPoint() == null) {
-                    Period startPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_VIDEO_CUT_START_POINT, locale);
+                    Period startPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_MEDIA_CUT_START_POINT, locale);
                     existsState.getSettings().setCutStartPoint(startPoint);
                     messageService.sendMessage(
                             SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_END_POINT, locale))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_END_POINT, locale))
                                     .parseMode(ParseMode.HTML)
-                                    .replyMarkup(replyKeyboardService.videoCutKeyboard(message.getChatId(), locale))
+                                    .replyMarkup(replyKeyboardService.mediaCutKeyboard(message.getChatId(), locale))
                                     .build()
                     );
                     commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
                 } else {
-                    Period endPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_VIDEO_CUT_END_POINT, locale);
+                    Period endPoint = parsePeriod(text, ConverterMessagesProperties.MESSAGE_MEDIA_CUT_END_POINT, locale);
                     validateEndPoint(existsState.getSettings().getCutStartPoint(), endPoint, locale);
                     existsState.getSettings().setCutEndPoint(endPoint);
 
                     workQueueJob.cancelCurrentTasks(message.getChatId());
                     convertionService.createConversion(message.getFrom(), existsState, Format.CUT, locale);
-                    commandStateService.deleteState(message.getChatId(), ConverterCommandNames.CUT_VIDEO);
+                    commandStateService.deleteState(message.getChatId(), cutMediaConfigurator.getCommandName());
                 }
             }
         }
@@ -165,7 +159,7 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId, ConverterCommandNames.CUT_VIDEO);
+        commandStateService.deleteState(chatId, cutMediaConfigurator.getCommandName());
     }
 
     private ConvertState createState(Message message, Locale locale) {
@@ -182,14 +176,14 @@ public class CutVideoCommand implements BotCommand, NavigableBotCommand {
     }
 
     private void checkMedia(MessageMedia media, Locale locale) {
-        if (media == null || media.getFormat().getCategory() != FormatCategory.VIDEO) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_WELCOME, locale));
+        if (media == null || media.getFormat().getCategory() != cutMediaConfigurator.getFormatCategory()) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_WELCOME, locale));
         }
     }
 
     private void validateEndPoint(Period startPoint, Period endPoint, Locale locale) {
         if (endPoint.toStandardDuration().getStandardSeconds() <= startPoint.toStandardDuration().getStandardSeconds()) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_INVALID_END_POINT, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_INVALID_END_POINT, locale));
         }
     }
 

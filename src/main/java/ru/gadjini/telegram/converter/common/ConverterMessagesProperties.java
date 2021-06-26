@@ -217,13 +217,17 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_NON_COMMAND_FEATURES = "message.non.command.features";
 
-    public static final String MESSAGE_VIDEO_CUT_WELCOME = "message.video.cut.welcome";
+    public static final String MESSAGE_MEDIA_CUT_WELCOME = "message.media.cut.welcome";
 
-    public static final String MESSAGE_VIDEO_CUT_START_POINT = "message.video.cut.start.point";
+    public static final String AUDIO_MEDIA_TYPE_NAME = "audio.media.type.name";
 
-    public static final String MESSAGE_VIDEO_CUT_END_POINT = "message.video.cut.end.point";
+    public static final String VIDEO_MEDIA_TYPE_NAME = "video.media.type.name";
 
-    public static final String MESSAGE_VIDEO_CUT_INVALID_END_POINT = "message.video.cut.invalid.end.point";
+    public static final String MESSAGE_MEDIA_CUT_START_POINT = "message.media.cut.start.point";
+
+    public static final String MESSAGE_MEDIA_CUT_END_POINT = "message.media.cut.end.point";
+
+    public static final String MESSAGE_MEDIA_CUT_INVALID_END_POINT = "message.media.cut.invalid.end.point";
 
     public static final String MESSAGE_NON_COMMAND_FEATURES_HEADER = "message.non.command.features.header";
 

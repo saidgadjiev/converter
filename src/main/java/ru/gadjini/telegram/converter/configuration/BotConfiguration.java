@@ -7,6 +7,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import ru.gadjini.telegram.converter.command.bot.cut.CutAudioConfigurator;
+import ru.gadjini.telegram.converter.command.bot.cut.CutMediaCommand;
+import ru.gadjini.telegram.converter.command.bot.cut.VideoCutConfigurator;
 import ru.gadjini.telegram.converter.command.bot.merge.MergeAudioFilesConfigurator;
 import ru.gadjini.telegram.converter.command.bot.merge.MergeFilesCommand;
 import ru.gadjini.telegram.converter.command.bot.merge.MergePdfFilesConfigurator;
@@ -68,5 +71,33 @@ public class BotConfiguration {
                                                     MergeAudioFilesConfigurator mergeAudioFilesConfigurator) {
         return new MergeFilesCommand(messageService, localisationService, userService, replyKeyboardService, messageMediaService,
                 commandStateService, convertionService, mergeAudioFilesConfigurator);
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+    public CutMediaCommand videoCutMediaCommand(VideoCutConfigurator videoCutConfigurator,
+                                                @TgMessageLimitsControl MessageService messageService,
+                                                UserService userService,
+                                                LocalisationService localisationService,
+                                                @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                                                CommandStateService commandStateService,
+                                                MessageMediaService messageMediaService,
+                                                ConvertionService convertionService) {
+        return new CutMediaCommand(messageService, userService, localisationService, replyKeyboardService,
+                commandStateService, messageMediaService, convertionService, videoCutConfigurator);
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+    public CutMediaCommand audioCutMediaCommand(CutAudioConfigurator cutAudioConfigurator,
+                                                @TgMessageLimitsControl MessageService messageService,
+                                                UserService userService,
+                                                LocalisationService localisationService,
+                                                @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                                                CommandStateService commandStateService,
+                                                MessageMediaService messageMediaService,
+                                                ConvertionService convertionService) {
+        return new CutMediaCommand(messageService, userService, localisationService, replyKeyboardService,
+                commandStateService, messageMediaService, convertionService, cutAudioConfigurator);
     }
 }

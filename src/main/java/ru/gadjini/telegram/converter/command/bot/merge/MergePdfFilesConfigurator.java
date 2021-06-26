@@ -8,6 +8,8 @@ import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.Locale;
+
 @Component
 public class MergePdfFilesConfigurator implements MergeFilesConfigurator {
 
@@ -19,7 +21,7 @@ public class MergePdfFilesConfigurator implements MergeFilesConfigurator {
     }
 
     @Override
-    public String getFileType() {
+    public String getMediaTypeName(Locale locale) {
         return Format.PDF.getName().toLowerCase();
     }
 
