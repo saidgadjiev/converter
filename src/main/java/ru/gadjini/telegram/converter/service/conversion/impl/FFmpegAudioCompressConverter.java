@@ -81,7 +81,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(compressionFormat));
         }
 
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
         commandBuilder.mapAudio();
         commandBuilder.ba(bitrate + "k");
 
@@ -91,7 +91,14 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
         try {
             audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+            if (conversionQueueItem.getFirstFileFormat().canBeSentAsVoice()) {
+                audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, conversionQueueItem.getFirstFileFormat());
+            } else {
+                audioConversionHelper.convertAudioCodecs(commandBuilder, conversionQueueItem.getFirstFileFormat());
+            }
+            audioConversionHelper.addAudioTargetOptions(commandBuilder, conversionQueueItem.getFirstFileFormat());
+            commandBuilder.out(out.getAbsolutePath());
+            fFmpegDevice.execute(commandBuilder.buildFullCommand());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }

@@ -370,6 +370,12 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder filterAudio(String filter) {
+        options.add("-af");
+        options.add(filter);
+
+        return this;
+    }
 
     public FFmpegCommandBuilder filterVideo(String filter) {
         options.add("-vf");

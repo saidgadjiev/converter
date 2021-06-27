@@ -7,6 +7,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -35,6 +36,8 @@ public class AudioCutter extends BaseAudioConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private FFmpegAudioConversionHelper audioConversionHelper;
+
     private UserService userService;
 
     private LocalisationService localisationService;
@@ -42,11 +45,13 @@ public class AudioCutter extends BaseAudioConverter {
     private Jackson jackson;
 
     @Autowired
-    public AudioCutter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, UserService userService,
+    public AudioCutter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
+                       FFmpegAudioConversionHelper audioConversionHelper, UserService userService,
                        LocalisationService localisationService, Jackson jackson) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.audioConversionHelper = audioConversionHelper;
         this.userService = userService;
         this.localisationService = localisationService;
         this.jackson = jackson;
@@ -65,6 +70,13 @@ public class AudioCutter extends BaseAudioConverter {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
         commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
+        audioConversionHelper.addCopyableCoverArtOptions(file, result, commandBuilder);
+        if (fileQueueItem.getFirstFileFormat().canBeSentAsVoice()) {
+            audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, fileQueueItem.getFirstFileFormat());
+        } else {
+            audioConversionHelper.convertAudioCodecs(commandBuilder, fileQueueItem.getFirstFileFormat());
+        }
+        audioConversionHelper.addAudioTargetOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
         commandBuilder.out(result.getAbsolutePath());
 
         fFmpegDevice.execute(commandBuilder.buildFullCommand());

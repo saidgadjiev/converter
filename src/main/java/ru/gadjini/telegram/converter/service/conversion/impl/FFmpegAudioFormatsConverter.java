@@ -1,7 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -9,7 +7,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
-import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -39,16 +37,18 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         put(List.of(RA), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RM));
     }};
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudioCompressConverter.class);
-
     private FFmpegDevice fFmpegDevice;
+
+    private FFprobeDevice fFprobeDevice;
 
     private FFmpegAudioConversionHelper audioConversionHelper;
 
     @Autowired
-    public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice, FFmpegAudioConversionHelper audioConversionHelper) {
+    public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
+                                       FFmpegAudioConversionHelper audioConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
+        this.fFprobeDevice = fFprobeDevice;
         this.audioConversionHelper = audioConversionHelper;
     }
 
@@ -62,20 +62,33 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     }
 
     private void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
-        try {
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio().copyAudio();
-            audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-            fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
-        } catch (ProcessException e) {
-            LOGGER.error("Error copy codecs " + e.getMessage());
-            doConvertAudio(in, out, targetFormat);
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+                .input(in.getAbsolutePath());
+
+        List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+        audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
+        if (targetFormat.canBeSentAsVoice()) {
+            audioConversionHelper.copyOrConvertAudioCodecsForTelegramVoice(commandBuilder, audioStreams);
+        } else {
+            audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, audioStreams, targetFormat, out);
         }
+        audioConversionHelper.addAudioTargetOptions(commandBuilder, targetFormat);
+
+        fFmpegDevice.execute(commandBuilder.buildFullCommand());
     }
 
-    public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio();
-        audioConversionHelper.addAudioOptions(targetFormat, commandBuilder);
+    void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+                .input(in.getAbsolutePath()).mapAudio();
         audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-        fFmpegDevice.convert(in.getAbsolutePath(), out.getAbsolutePath(), commandBuilder.build());
+        if (targetFormat.canBeSentAsVoice()) {
+            audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, targetFormat);
+        } else {
+            audioConversionHelper.convertAudioCodecs(commandBuilder, targetFormat);
+        }
+        audioConversionHelper.addAudioTargetOptions(commandBuilder, targetFormat);
+        commandBuilder.out(out.getAbsolutePath());
+
+        fFmpegDevice.execute(commandBuilder.buildFullCommand());
     }
 }

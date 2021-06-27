@@ -93,9 +93,17 @@ public class FFmpegAudioFromVideoExtractor extends BaseAny2AnyConverter {
                         fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
                 try {
-                    FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().mapAudio(streamIndex);
-                    audioConversionHelper.addAudioOptions(fileQueueItem.getTargetFormat(), commandBuilder);
-                    fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
+                    FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+                            .input(file.getAbsolutePath()).mapAudio(streamIndex);
+
+                    if (fileQueueItem.getTargetFormat().canBeSentAsVoice()) {
+                        audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, fileQueueItem.getTargetFormat());
+                    } else {
+                        audioConversionHelper.convertAudioCodecs(commandBuilder, fileQueueItem.getTargetFormat());
+                    }
+                    audioConversionHelper.addAudioTargetOptions(commandBuilder, fileQueueItem.getTargetFormat());
+                    commandBuilder.out(result.getAbsolutePath());
+                    fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
                     String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
                             String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
