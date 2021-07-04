@@ -96,11 +96,45 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton extractAudioButton(String audioLanguage) {
+    public InlineKeyboardButton extractAllButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.EXTRACT_ALL_MEDIA_COMMAND_DESCRIPTION, locale));
+        inlineKeyboardButton.setCallbackData(ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton extractByLanguagesButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.EXTRACT_BY_LANGUAGES_MEDIA_COMMAND_DESCRIPTION, locale)
+        );
+        inlineKeyboardButton.setCallbackData(ConverterCommandNames.SHOW_EXTRACTION_LANGUAGES + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton extractByLanguageButton(String audioLanguage) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(audioLanguage);
         inlineKeyboardButton.setCallbackData(ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(ConverterArg.LANGUAGE.getKey(), audioLanguage)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton goBackButton(String callbackDelegate, Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)
+        );
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, callbackDelegate)
+                        .add(ConverterArg.GO_BACK.getKey(), true)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

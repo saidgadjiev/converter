@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
@@ -26,17 +27,31 @@ public class InlineKeyboardService {
         this.smartInlineKeyboardService = smartInlineKeyboardService;
     }
 
-    public InlineKeyboardMarkup getAudioLanguagesKeyboard(List<String> languages) {
+    public InlineKeyboardMarkup getLanguagesRootKeyboard(Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.extractByLanguagesButton(locale)));
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.extractAllButton(locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getLanguagesKeyboard(List<String> languages, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         List<List<String>> lists = Lists.partition(languages, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (String language : list) {
-                buttons.add(buttonFactory.extractAudioButton(language));
+                buttons.add(buttonFactory.extractByLanguageButton(language));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }
+        inlineKeyboardMarkup.getKeyboard().add(
+                List.of(buttonFactory.goBackButton(ConverterCommandNames.SHOW_EXTRACTION_LANGUAGES, locale))
+        );
 
         return inlineKeyboardMarkup;
     }

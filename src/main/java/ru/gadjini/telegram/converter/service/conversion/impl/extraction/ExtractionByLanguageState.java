@@ -3,6 +3,8 @@ package ru.gadjini.telegram.converter.service.conversion.impl.extraction;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.List;
+
 public class ExtractionByLanguageState {
 
     private int replyToMessageId;
@@ -16,6 +18,8 @@ public class ExtractionByLanguageState {
     private Format targetFormat;
 
     private int progressMessageId;
+
+    private List<String> languages;
 
     public int getUserId() {
         return userId;
@@ -63,5 +67,13 @@ public class ExtractionByLanguageState {
 
     public void setProgressMessageId(int progressMessageId) {
         this.progressMessageId = progressMessageId;
+    }
+
+    public List<String> getLanguages() {
+        return languages;
+    }
+
+    public void setLanguages(List<String> languages) {
+        this.languages = languages;
     }
 }

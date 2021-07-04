@@ -8,7 +8,8 @@ public enum ConverterArg {
     EDIT_VIDEO("l"),
     COMPRESSION_FORMAT("k"),
     COMPRESSION_FREQUENCY("v"),
-    LANGUAGE("kv");
+    LANGUAGE("kv"),
+    GO_BACK("gb");
 
     private final String key;
 

@@ -126,7 +126,7 @@ public class FFprobeDevice {
 
     private String[] getAllStreamsCommand(String in) {
         return new String[]{
-                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type", "-of", "json", in
+                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type:stream_tags=language", "-of", "json", in
         };
     }
 
