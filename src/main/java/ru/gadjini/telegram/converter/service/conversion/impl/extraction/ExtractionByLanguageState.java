@@ -1,9 +1,9 @@
-package ru.gadjini.telegram.converter.service.conversion.impl.audio.extraction;
+package ru.gadjini.telegram.converter.service.conversion.impl.extraction;
 
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-public class AudioExtractionState {
+public class ExtractionByLanguageState {
 
     private int replyToMessageId;
 

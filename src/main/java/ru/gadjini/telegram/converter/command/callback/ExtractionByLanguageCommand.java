@@ -8,7 +8,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
-import ru.gadjini.telegram.converter.service.conversion.impl.audio.extraction.AudioExtractionState;
+import ru.gadjini.telegram.converter.service.conversion.impl.extraction.ExtractionByLanguageState;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
@@ -21,7 +21,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import java.util.Locale;
 
 @Component
-public class ExtractAudioCommand implements CallbackBotCommand {
+public class ExtractionByLanguageCommand implements CallbackBotCommand {
 
     private ConvertionService convertionService;
 
@@ -32,8 +32,8 @@ public class ExtractAudioCommand implements CallbackBotCommand {
     private MessageService messageService;
 
     @Autowired
-    public ExtractAudioCommand(ConvertionService convertionService, CommandStateService commandStateService,
-                               UserService userService, @TgMessageLimitsControl MessageService messageService) {
+    public ExtractionByLanguageCommand(ConvertionService convertionService, CommandStateService commandStateService,
+                                       UserService userService, @TgMessageLimitsControl MessageService messageService) {
         this.convertionService = convertionService;
         this.commandStateService = commandStateService;
         this.userService = userService;
@@ -42,22 +42,22 @@ public class ExtractAudioCommand implements CallbackBotCommand {
 
     @Override
     public String getName() {
-        return ConverterCommandNames.EXTRACT_AUDIO;
+        return ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE;
     }
 
     @Override
     public void processCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         String language = requestParams.getString(ConverterArg.LANGUAGE.getKey());
-        AudioExtractionState audioExtractionState = commandStateService.getState(callbackQuery.getFrom().getId(),
-                getName(), true, AudioExtractionState.class);
+        ExtractionByLanguageState extractionByLanguageState = commandStateService.getState(callbackQuery.getFrom().getId(),
+                getName(), true, ExtractionByLanguageState.class);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
-        ConvertState state = createState(language, audioExtractionState, locale);
-        convertionService.createConversion(callbackQuery.getFrom(), state, audioExtractionState.getTargetFormat(), locale);
+        ConvertState state = createState(language, extractionByLanguageState, locale);
+        convertionService.createConversion(callbackQuery.getFrom(), state, extractionByLanguageState.getTargetFormat(), locale);
         messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
         commandStateService.deleteState(callbackQuery.getFrom().getId(), getName());
     }
 
-    private ConvertState createState(String languageToExtract, AudioExtractionState audioExtractionState, Locale locale) {
+    private ConvertState createState(String languageToExtract, ExtractionByLanguageState audioExtractionState, Locale locale) {
         ConvertState convertState = new ConvertState();
         convertState.setUserLanguage(locale.getLanguage());
 

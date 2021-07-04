@@ -98,7 +98,7 @@ public class ButtonFactory {
 
     public InlineKeyboardButton extractAudioButton(String audioLanguage) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(audioLanguage);
-        inlineKeyboardButton.setCallbackData(ConverterCommandNames.EXTRACT_AUDIO + CommandParser.COMMAND_NAME_SEPARATOR +
+        inlineKeyboardButton.setCallbackData(ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(ConverterArg.LANGUAGE.getKey(), audioLanguage)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));

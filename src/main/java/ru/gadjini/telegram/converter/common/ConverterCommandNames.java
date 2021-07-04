@@ -38,5 +38,5 @@ public class ConverterCommandNames {
 
     public static final String VAVMERGE = "vavmerge";
 
-    public static final String EXTRACT_AUDIO = "ea";
+    public static final String EXTRACT_MEDIA_BY_LANGUAGE = "el";
 }
