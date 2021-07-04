@@ -4,6 +4,7 @@ import org.joda.time.Period;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
@@ -56,13 +57,22 @@ public class VideoProbber extends BaseAny2AnyConverter {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
 
-            return new MessageResult(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_PROBE_RESULT,
+            String text = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_PROBE_RESULT,
                     new Object[]{fileQueueItem.getFirstFileFormat().getName(),
                             whd.getHeight() != null ? whd.getHeight() + "p" : "unknown",
                             whd.getHeight() != null ? whd.getWidth() + "x" + whd.getHeight() : "unknown",
                             length(whd.getDuration()),
                             MemoryUtils.humanReadableByteCount(fileQueueItem.getSize())},
-                    userService.getLocaleOrDefault(fileQueueItem.getUserId())), ParseMode.HTML);
+                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+
+            return new MessageResult(SendMessage.builder()
+                    .chatId(String.valueOf(fileQueueItem.getUserId()))
+                    .text(text)
+                    .parseMode(ParseMode.HTML)
+                    .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                    .build(),
+                    true
+            );
         } catch (Throwable e) {
             throw new ConvertException(e);
         }

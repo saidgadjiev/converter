@@ -21,6 +21,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Collections;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 @Service
@@ -58,19 +59,25 @@ public class ConvertionService {
     public void createConversion(User user, ConvertState convertState, Format targetFormat, Locale locale, Consumer<Void> callback) {
         ConversionQueueItem queueItem = conversionQueueService.create(user, convertState, targetFormat);
 
-        sendConversionQueuedMessage(queueItem, convertState, message -> {
-            queueItem.setProgressMessageId(message.getMessageId());
-            Any2AnyConverter candidate = conversionWorkerFactory.getCandidate(queueItem);
+        Any2AnyConverter candidate = conversionWorkerFactory.getCandidate(queueItem);
+        AtomicInteger progressMessageId = new AtomicInteger();
+        if (candidate.needToSendProgressMessage(queueItem, progressMessageId)) {
+            sendConversionQueuedMessage(queueItem, convertState, message -> {
+                queueItem.setProgressMessageId(message.getMessageId());
 
-            int totalFilesToDownload = 0;
-            if (candidate != null) {
-                totalFilesToDownload = candidate.createDownloads(queueItem);
-            }
-            conversionQueueService.setProgressMessageIdAndTotalFilesToDownload(queueItem.getId(), message.getMessageId(), totalFilesToDownload);
-            if (callback != null) {
-                callback.accept(null);
-            }
-        }, locale);
+                int totalFilesToDownload = candidate.createDownloads(queueItem);
+                conversionQueueService.setProgressMessageIdAndTotalFilesToDownload(queueItem.getId(),
+                        message.getMessageId(), totalFilesToDownload);
+                if (callback != null) {
+                    callback.accept(null);
+                }
+            }, locale);
+        } else {
+            queueItem.setProgressMessageId(progressMessageId.get());
+            int totalFilesToDownload = candidate.createDownloads(queueItem);
+            conversionQueueService.setProgressMessageIdAndTotalFilesToDownload(queueItem.getId(),
+                    queueItem.getProgressMessageId(), totalFilesToDownload);
+        }
     }
 
     private void sendConversionQueuedMessage(ConversionQueueItem queueItem, ConvertState convertState, Consumer<Message> callback, Locale locale) {

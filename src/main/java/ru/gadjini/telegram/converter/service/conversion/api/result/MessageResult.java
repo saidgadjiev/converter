@@ -1,22 +1,25 @@
 package ru.gadjini.telegram.converter.service.conversion.api.result;
 
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+
 public class MessageResult implements ConversionResult {
 
-    private String text;
+    private SendMessage sendMessage;
 
-    private String parseMode;
+    private boolean deleteSrcFiles;
 
-    public MessageResult(String text, String parseMode) {
-        this.text = text;
-        this.parseMode = parseMode;
+    public MessageResult(SendMessage sendMessage, boolean deleteSrcFiles) {
+        this.sendMessage = sendMessage;
+        this.deleteSrcFiles = deleteSrcFiles;
     }
 
-    public String getText() {
-        return text;
+    public SendMessage getSendMessage() {
+        return sendMessage;
     }
 
-    public String getParseMode() {
-        return parseMode;
+    @Override
+    public boolean deleteSrcFiles() {
+        return deleteSrcFiles;
     }
 
     @Override

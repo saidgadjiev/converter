@@ -20,6 +20,8 @@ public class SettingsState {
 
     private Period cutEndPoint;
 
+    private String languageToExtract;
+
     public String getBitrate() {
         return bitrate;
     }
@@ -82,5 +84,13 @@ public class SettingsState {
 
     public void setCutEndPoint(Period cutEndPoint) {
         this.cutEndPoint = cutEndPoint;
+    }
+
+    public String getLanguageToExtract() {
+        return languageToExtract;
+    }
+
+    public void setLanguageToExtract(String languageToExtract) {
+        this.languageToExtract = languageToExtract;
     }
 }

@@ -302,14 +302,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     break;
                 case MESSAGE: {
                     MessageResult messageResult = (MessageResult) convertResult;
-                    messageService.sendMessage(
-                            SendMessage.builder()
-                                    .chatId(String.valueOf(fileQueueItem.getUserId()))
-                                    .text(messageResult.getText())
-                                    .parseMode(messageResult.getParseMode())
-                                    .replyToMessageId(fileQueueItem.getReplyToMessageId())
-                                    .build()
-                    );
+                    messageService.sendMessage(messageResult.getSendMessage());
                     break;
                 }
                 case VIDEO: {

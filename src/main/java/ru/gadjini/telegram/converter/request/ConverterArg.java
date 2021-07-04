@@ -7,7 +7,8 @@ public enum ConverterArg {
     RESOLUTION("i"),
     EDIT_VIDEO("l"),
     COMPRESSION_FORMAT("k"),
-    COMPRESSION_FREQUENCY("v");
+    COMPRESSION_FREQUENCY("v"),
+    LANGUAGE("kv");
 
     private final String key;
 

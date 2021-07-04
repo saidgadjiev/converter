@@ -6,6 +6,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public interface Any2AnyConverter {
@@ -17,4 +18,8 @@ public interface Any2AnyConverter {
     boolean accept(Format format, Format targetFormat);
 
     Map<List<Format>, List<Format>> getConversionMap();
+
+    default boolean needToSendProgressMessage(ConversionQueueItem conversionQueueItem, AtomicInteger progressMessageId) {
+        return true;
+    }
 }

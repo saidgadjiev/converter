@@ -16,5 +16,5 @@ public enum ResultType {
 
     CONTAINER,
 
-    VIDEO_NOTE
+    VIDEO_NOTE,
 }

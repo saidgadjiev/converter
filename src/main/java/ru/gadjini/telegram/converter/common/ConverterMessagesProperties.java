@@ -266,4 +266,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_CHOOSE = "message.choose";
 
     public static final String CUT_VIDEO_COMMAND_DESCRIPTION = "cut.video.command.description";
+
+    public static final String MESSAGE_CHOOSE_AUDIO_LANGUAGE = "message.choose.audio.language";
 }

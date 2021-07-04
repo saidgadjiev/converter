@@ -37,4 +37,6 @@ public class ConverterCommandNames {
     public static final String VAIMAKE = "vaimake";
 
     public static final String VAVMERGE = "vavmerge";
+
+    public static final String EXTRACT_AUDIO = "ea";
 }

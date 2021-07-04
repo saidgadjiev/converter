@@ -43,6 +43,10 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         this.fileDownloadService = fileDownloadService;
     }
 
+    protected FileDownloadService getFileDownloadService() {
+        return fileDownloadService;
+    }
+
     @Autowired
     public void setProgressBuilder(ProgressBuilder progressBuilder) {
         this.progressBuilder = progressBuilder;
@@ -63,7 +67,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return map;
     }
 
-    TempFileService tempFileService() {
+    protected final TempFileService tempFileService() {
         return fileService;
     }
 
@@ -79,8 +83,11 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     @Override
     public ConversionResult convert(ConversionQueueItem fileQueueItem, Supplier<Boolean> cancelChecker,
                                     Supplier<Boolean> canceledByUserChecker) {
+        ConversionResult conversionResult = null;
         try {
-            return doConvert(fileQueueItem);
+            conversionResult = doConvert(fileQueueItem);
+
+            return conversionResult;
         } catch (Throwable e) {
             doDeleteThumb(fileQueueItem);
             throw e;
@@ -90,12 +97,14 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
                     doDeleteFiles(fileQueueItem);
                 }
             } else {
-                doDeleteFiles(fileQueueItem);
+                if (conversionResult == null || conversionResult.deleteSrcFiles()) {
+                    doDeleteFiles(fileQueueItem);
+                }
             }
         }
     }
 
-    int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {
+    final int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {
         int total = createDownloads0(conversionQueueItem);
         if (StringUtils.isNotBlank(conversionQueueItem.getFirstFile().getThumb())) {
             TgFile thumb = new TgFile();
