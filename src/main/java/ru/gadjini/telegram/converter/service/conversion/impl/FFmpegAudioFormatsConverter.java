@@ -77,7 +77,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         fFmpegDevice.execute(commandBuilder.buildFullCommand());
     }
 
-    void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
+    public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                 .input(in.getAbsolutePath()).mapAudio();
         audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);

@@ -363,6 +363,13 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder copyVideo() {
+        options.add("-c:v");
+        options.add("copy");
+
+        return this;
+    }
+
     public FFmpegCommandBuilder filterVideo(int index, String filter) {
         options.add("-filter:v:" + index);
         options.add(filter);

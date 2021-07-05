@@ -104,7 +104,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         }
     }
 
-    final int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {
+    protected final int createDownloadsWithThumb(ConversionQueueItem conversionQueueItem) {
         int total = createDownloads0(conversionQueueItem);
         if (StringUtils.isNotBlank(conversionQueueItem.getFirstFile().getThumb())) {
             TgFile thumb = new TgFile();
@@ -136,7 +136,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return conversionQueueItem.getFiles().size();
     }
 
-    final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
+    protected final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
         if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
             SmartTempFile thumb = fileQueueItem.getDownloadedFileOrNull(fileQueueItem.getFirstFile().getThumb());
 

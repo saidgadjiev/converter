@@ -14,37 +14,36 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import java.util.Locale;
 
 @Component
-public class MergeAudioFilesConfigurator implements MergeFilesConfigurator {
-
-    private ApplicationProperties applicationProperties;
+public class MergeVideoFilesConfigurator implements MergeFilesConfigurator {
 
     private LocalisationService localisationService;
 
+    private ApplicationProperties applicationProperties;
+
     @Autowired
-    public MergeAudioFilesConfigurator(ApplicationProperties applicationProperties,
-                                       LocalisationService localisationService) {
-        this.applicationProperties = applicationProperties;
+    public MergeVideoFilesConfigurator(LocalisationService localisationService, ApplicationProperties applicationProperties) {
         this.localisationService = localisationService;
+        this.applicationProperties = applicationProperties;
     }
 
     @Override
     public String getMediaTypeName(Locale locale) {
-        return localisationService.getMessage(ConverterMessagesProperties.AUDIO_MEDIA_TYPE_NAME, locale);
+        return localisationService.getMessage(ConverterMessagesProperties.VIDEO_MEDIA_TYPE_NAME, locale);
     }
 
     @Override
     public boolean isValidFormat(Format format) {
-        return format.getCategory() == FormatCategory.AUDIO;
+        return format.getCategory() == FormatCategory.VIDEO;
     }
 
     @Override
     public String getCommandName() {
-        return ConverterCommandNames.CONCATENATE_AUDIOS;
+        return ConverterCommandNames.CONCATENATE_VIDEOS;
     }
 
     @Override
     public boolean accept(Message message) {
-        return applicationProperties.is(FormatsConfiguration.AUDIO_CONVERTER);
+        return applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER);
     }
 
     @Override
