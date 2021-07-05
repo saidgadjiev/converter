@@ -43,6 +43,11 @@ public class VideoMerger extends BaseAny2AnyConverter {
     }
 
     @Override
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
+    }
+
+    @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         List<SmartTempFile> filesToConcatenate = fileQueueItem.getDownloadedFilesWithoutThumb();
 
