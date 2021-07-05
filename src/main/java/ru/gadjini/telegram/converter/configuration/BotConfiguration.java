@@ -13,6 +13,7 @@ import ru.gadjini.telegram.converter.command.bot.cut.VideoCutConfigurator;
 import ru.gadjini.telegram.converter.command.bot.merge.MergeAudioFilesConfigurator;
 import ru.gadjini.telegram.converter.command.bot.merge.MergeFilesCommand;
 import ru.gadjini.telegram.converter.command.bot.merge.MergePdfFilesConfigurator;
+import ru.gadjini.telegram.converter.command.bot.merge.MergeVideoFilesConfigurator;
 import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -71,6 +72,17 @@ public class BotConfiguration {
                                                     MergeAudioFilesConfigurator mergeAudioFilesConfigurator) {
         return new MergeFilesCommand(messageService, localisationService, userService, replyKeyboardService, messageMediaService,
                 commandStateService, convertionService, mergeAudioFilesConfigurator);
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+    public MergeFilesCommand mergeVideoFilesCommand(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
+                                                    UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                                                    MessageMediaService messageMediaService, CommandStateService commandStateService,
+                                                    ConvertionService convertionService,
+                                                    MergeVideoFilesConfigurator mergeVideoFilesConfigurator) {
+        return new MergeFilesCommand(messageService, localisationService, userService, replyKeyboardService, messageMediaService,
+                commandStateService, convertionService, mergeVideoFilesConfigurator);
     }
 
     @Bean
