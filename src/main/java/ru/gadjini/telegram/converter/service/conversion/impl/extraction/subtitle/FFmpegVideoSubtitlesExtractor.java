@@ -40,6 +40,11 @@ public class FFmpegVideoSubtitlesExtractor extends BaseFromVideoByLanguageExtrac
     }
 
     @Override
+    protected String getChooseLanguageMessageCode() {
+        return ConverterMessagesProperties.MESSAGE_CHOOSE_SUBTITLE_LANGUAGE;
+    }
+
+    @Override
     public ConversionResult doExtract(ConversionQueueItem fileQueueItem, SmartTempFile file,
                                       List<FFprobeDevice.Stream> subtitleStreams,
                                       int streamIndex) throws InterruptedException {

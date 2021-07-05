@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.service.conversion.impl.extraction.Extracti
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
+import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -31,6 +32,8 @@ public class ExtractionByLanguageCommand implements CallbackBotCommand {
 
     private MessageService messageService;
 
+    private WorkQueueJob workQueueJob;
+
     @Autowired
     public ExtractionByLanguageCommand(ConvertionService convertionService, CommandStateService commandStateService,
                                        UserService userService, @TgMessageLimitsControl MessageService messageService) {
@@ -38,6 +41,11 @@ public class ExtractionByLanguageCommand implements CallbackBotCommand {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
+    }
+
+    @Autowired
+    public void setWorkQueueJob(WorkQueueJob workQueueJob) {
+        this.workQueueJob = workQueueJob;
     }
 
     @Override
@@ -52,6 +60,9 @@ public class ExtractionByLanguageCommand implements CallbackBotCommand {
                 getName(), true, ExtractionByLanguageState.class);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
         ConvertState state = createState(language, extractionByLanguageState, locale);
+
+        workQueueJob.cancelCurrentTasks(callbackQuery.getFrom().getId());
+
         convertionService.createConversion(callbackQuery.getFrom(), state, extractionByLanguageState.getTargetFormat(), locale);
         messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
         commandStateService.deleteState(callbackQuery.getFrom().getId(), getName());

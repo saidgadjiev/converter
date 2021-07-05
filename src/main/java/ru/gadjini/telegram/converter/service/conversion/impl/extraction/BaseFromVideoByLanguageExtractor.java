@@ -28,6 +28,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -139,11 +140,11 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
             if (fileQueueItem.getExtra() != null) {
                 SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
                 ConvertResults convertResults = new ConvertResults();
-                for (int audioStreamIndex = 0; audioStreamIndex < streamsToExtract.size(); audioStreamIndex++) {
-                    FFprobeDevice.Stream audioStream = streamsToExtract.get(audioStreamIndex);
+                for (int streamIndex = 0; streamIndex < streamsToExtract.size(); streamIndex++) {
+                    FFprobeDevice.Stream audioStream = streamsToExtract.get(streamIndex);
                     if (StringUtils.isBlank(settingsState.getLanguageToExtract())
                             || settingsState.getLanguageToExtract().equals(audioStream.getLanguage())) {
-                        convertResults.addResult(doExtract(fileQueueItem, file, streamsToExtract, audioStreamIndex));
+                        convertResults.addResult(doExtract(fileQueueItem, file, streamsToExtract, streamIndex));
                     }
                 }
 
@@ -153,13 +154,14 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
             if (streamsToExtract.size() == 1) {
                 return doExtract(fileQueueItem, file, streamsToExtract, 0);
             } else if (streamsToExtract.stream().anyMatch(a -> StringUtils.isNotBlank(a.getLanguage()))) {
-                List<String> languages = streamsToExtract.stream().map(FFprobeDevice.Stream::getLanguage).distinct().collect(Collectors.toList());
+                List<String> languages = streamsToExtract.stream().map(FFprobeDevice.Stream::getLanguage)
+                        .filter(Objects::nonNull).distinct().collect(Collectors.toList());
                 commandStateService.setState(fileQueueItem.getUserId(), ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE, createState(fileQueueItem, languages));
 
                 return new MessageResult(
                         SendMessage.builder()
                                 .chatId(String.valueOf(fileQueueItem.getUserId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_AUDIO_LANGUAGE,
+                                .text(localisationService.getMessage(getChooseLanguageMessageCode(),
                                         locale))
                                 .replyMarkup(inlineKeyboardService.getLanguagesRootKeyboard(locale))
                                 .parseMode(ParseMode.HTML)
@@ -180,6 +182,8 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
             throw new ConvertException(e);
         }
     }
+
+    protected abstract String getChooseLanguageMessageCode();
 
     protected abstract ConversionResult doExtract(ConversionQueueItem conversionQueueItem, SmartTempFile file,
                                                   List<FFprobeDevice.Stream> streams, int streamIndex) throws InterruptedException;

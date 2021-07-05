@@ -269,6 +269,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CHOOSE_AUDIO_LANGUAGE = "message.choose.audio.language";
 
+    public static final String MESSAGE_CHOOSE_SUBTITLE_LANGUAGE = "message.choose.subtitle.language";
+
     public static final String EXTRACT_ALL_MEDIA_COMMAND_DESCRIPTION = "extract.all.media.command.description";
 
     public static final String EXTRACT_BY_LANGUAGES_MEDIA_COMMAND_DESCRIPTION = "extract.by.languages.media.command.description";

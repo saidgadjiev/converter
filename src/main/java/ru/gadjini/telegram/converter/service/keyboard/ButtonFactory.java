@@ -117,11 +117,11 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton extractByLanguageButton(String audioLanguage) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(audioLanguage);
+    public InlineKeyboardButton extractByLanguageButton(String language) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(language);
         inlineKeyboardButton.setCallbackData(ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
-                        .add(ConverterArg.LANGUAGE.getKey(), audioLanguage)
+                        .add(ConverterArg.LANGUAGE.getKey(), language)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

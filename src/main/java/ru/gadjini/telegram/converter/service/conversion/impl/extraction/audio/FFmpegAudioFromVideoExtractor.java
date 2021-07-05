@@ -58,6 +58,11 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
     }
 
     @Override
+    protected String getChooseLanguageMessageCode() {
+        return ConverterMessagesProperties.MESSAGE_CHOOSE_AUDIO_LANGUAGE;
+    }
+
+    @Override
     public ConversionResult doExtract(ConversionQueueItem fileQueueItem, SmartTempFile file,
                                             List<FFprobeDevice.Stream> audioStreams, int streamIndex) throws InterruptedException {
         FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
