@@ -11,6 +11,7 @@ import ru.gadjini.telegram.smart.bot.commons.dao.command.keyboard.ReplyKeyboardD
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardHolderService;
 
+import java.util.List;
 import java.util.Locale;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService.replyKeyboardMarkup;
@@ -82,6 +83,36 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     @Override
     public ReplyKeyboardMarkup vavmergeKeyboard(long chatId, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.vavmergeKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkTypeKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkTypeKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkTextFontSizeKeyboard(long chatId, Locale locale, List<String> fontSizes) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkTextFontSizeKeyboard(chatId, locale, fontSizes));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkPositionKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkPositionKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkTextColorKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkTextColorKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkImageKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkImageKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkOkKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkOkKeyboard(chatId, locale));
     }
 
     @Override

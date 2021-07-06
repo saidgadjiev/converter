@@ -10,16 +10,15 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkColor;
+import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkPosition;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartReplyKeyboardService;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -165,6 +164,81 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
         return replyKeyboardMarkup;
 
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkTypeKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.IMAGE_WATERMARK_COMMAND_NAME, locale),
+                localisationService.getMessage(ConverterMessagesProperties.TEXT_WATERMARK_COMMAND_NAME, locale)
+        ));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkTextFontSizeKeyboard(long chatId, Locale locale, List<String> fontSizes) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        List<List<String>> lists = Lists.partition(new ArrayList<>(fontSizes), 6);
+        for (List<String> list : lists) {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(list.toArray(String[]::new)));
+        }
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkPositionKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        List<List<VideoWatermarkPosition>> lists = Lists.partition(Arrays.asList(VideoWatermarkPosition.values()), 3);
+        for (List<VideoWatermarkPosition> list : lists) {
+            List<String> buttons = list.stream()
+                    .map(v -> localisationService.getMessage(v.name().toLowerCase().replace("_", "."), locale))
+                    .collect(Collectors.toList());
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(buttons.toArray(String[]::new)));
+        }
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkTextColorKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        List<List<VideoWatermarkColor>> lists = Lists.partition(Arrays.asList(VideoWatermarkColor.values()), 3);
+        for (List<VideoWatermarkColor> list : lists) {
+            List<String> buttons = list.stream()
+                    .map(v -> localisationService.getMessage(v.name().toLowerCase() + ".color", locale))
+                    .collect(Collectors.toList());
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(buttons.toArray(String[]::new)));
+        }
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkImageKeyboard(long charId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkOkKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.CHANGE_WATERMARK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
     }
 
     @Override

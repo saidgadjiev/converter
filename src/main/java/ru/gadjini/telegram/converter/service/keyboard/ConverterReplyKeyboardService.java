@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService;
 
+import java.util.List;
 import java.util.Locale;
 
 public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
@@ -24,6 +25,18 @@ public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
     ReplyKeyboardMarkup vaimakeKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardMarkup vavmergeKeyboard(long chatId, Locale locale);
+
+    ReplyKeyboardMarkup watermarkTypeKeyboard(long chatId, Locale locale);
+
+    ReplyKeyboardMarkup watermarkTextFontSizeKeyboard(long chatId, Locale locale, List<String> fontSizes);
+
+    ReplyKeyboardMarkup watermarkPositionKeyboard(long chatId, Locale locale);
+
+    ReplyKeyboardMarkup watermarkTextColorKeyboard(long chatId, Locale locale);
+
+    ReplyKeyboardMarkup watermarkImageKeyboard(long charId, Locale locale);
+
+    ReplyKeyboardMarkup watermarkOkKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardRemove removeKeyboard(long chatId);
 }

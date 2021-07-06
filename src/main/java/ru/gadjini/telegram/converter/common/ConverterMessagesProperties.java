@@ -274,4 +274,30 @@ public class ConverterMessagesProperties {
     public static final String EXTRACT_ALL_MEDIA_COMMAND_DESCRIPTION = "extract.all.media.command.description";
 
     public static final String EXTRACT_BY_LANGUAGES_MEDIA_COMMAND_DESCRIPTION = "extract.by.languages.media.command.description";
+
+    public static final String MESSAGE_NO_WATERMARK_WELCOME = "message.no.watermark.welcome";
+
+    public static final String TEXT_WATERMARK_COMMAND_NAME = "text.watermark.command.name";
+
+    public static final String IMAGE_WATERMARK_COMMAND_NAME = "image.watermark.command.name";
+
+    public static final String MESSAGE_WATERMARK_TEXT_WELCOME = "message.watermark.text.welcome";
+
+    public static final String MESSAGE_WATERMARK_TEXT_FONT_SIZE_WELCOME = "message.watermark.text.font.size.welcome";
+
+    public static final String MESSAGE_WATERMARK_POSITION_WELCOME = "message.watermark.position.welcome";
+
+    public static final String MESSAGE_WATERMARK_TEXT_COLOR_WELCOME = "message.watermark.text.color.welcome";
+
+    public static final String MESSAGE_WATERMARK_CREATED = "message.watermark.created";
+
+    public static final String MESSAGE_WATERMARK_OK_WELCOME = "message.watermark.ok.welcome";
+
+    public static final String CHANGE_WATERMARK_COMMAND_NAME = "change.watermark.command.name";
+
+    public static final String MESSAGE_WATERMARK_IMAGE_WELCOME = "message.watermark.image.welcome";
+
+    public static final String MESSAGE_INCORRECT_WATERMARK_POSITION = "message.incorrect.watermark.position";
+
+    public static final String MESSAGE_INCORRECT_WATERMARK_COLOR = "message.incorrect.watermark.color";
 }
