@@ -300,4 +300,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_INCORRECT_WATERMARK_POSITION = "message.incorrect.watermark.position";
 
     public static final String MESSAGE_INCORRECT_WATERMARK_COLOR = "message.incorrect.watermark.color";
+
+    public static final String MESSAGE_INCORRECT_WATERMARK_TYPE = "message.incorrect.watermark.type";
 }

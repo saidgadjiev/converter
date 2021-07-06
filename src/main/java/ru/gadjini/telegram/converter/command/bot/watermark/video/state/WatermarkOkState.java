@@ -66,7 +66,7 @@ public class WatermarkOkState implements VideoWatermarkState {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
                 vMarkCommand.getCommandIdentifier(), true, VideoWatermarkSettings.class);
 
-        videoWatermarkService.createOrUpdate(videoWatermarkSettings);
+        videoWatermarkService.createOrUpdate(message.getFrom().getId(), videoWatermarkSettings);
 
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(

@@ -4,6 +4,7 @@ import ru.gadjini.telegram.converter.command.bot.watermark.video.state.Watermark
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkColor;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkPosition;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 
 public class VideoWatermarkSettings {
 
@@ -13,7 +14,7 @@ public class VideoWatermarkSettings {
 
     private String text;
 
-    private String imageFileId;
+    private MessageMedia image;
 
     private String fontSize;
 
@@ -69,11 +70,11 @@ public class VideoWatermarkSettings {
         this.color = color;
     }
 
-    public String getImageFileId() {
-        return imageFileId;
+    public MessageMedia getImage() {
+        return image;
     }
 
-    public void setImageFileId(String imageFileId) {
-        this.imageFileId = imageFileId;
+    public void setImage(MessageMedia image) {
+        this.image = image;
     }
 }

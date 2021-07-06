@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -80,10 +81,12 @@ public class NoWatermarkState implements VideoWatermarkState {
             videoWatermarkSettings.setWatermarkType(VideoWatermarkType.TEXT);
             videoWatermarkSettings.setStateName(watermarkTextState.getName());
             watermarkTextState.enter(message);
-        } else {
+        } else if (localisationService.getMessage(ConverterMessagesProperties.IMAGE_WATERMARK_COMMAND_NAME, locale).equals(text)) {
             videoWatermarkSettings.setWatermarkType(VideoWatermarkType.IMAGE);
             videoWatermarkSettings.setStateName(watermarkImageState.getName());
             watermarkImageState.enter(message);
+        } else {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_WATERMARK_TYPE, locale));
         }
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
     }

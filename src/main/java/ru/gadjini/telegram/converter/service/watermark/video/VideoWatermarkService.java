@@ -1,16 +1,38 @@
 package ru.gadjini.telegram.converter.service.watermark.video;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
+import ru.gadjini.telegram.converter.dao.VideoWatermarkDao;
+import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermark;
+import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
 
 @Service
 public class VideoWatermarkService {
 
-    public boolean isExistsWatermark(int userId) {
-        return false;
+    private VideoWatermarkDao videoWatermarkDao;
+
+    @Autowired
+    public VideoWatermarkService(VideoWatermarkDao videoWatermarkDao) {
+        this.videoWatermarkDao = videoWatermarkDao;
     }
 
-    public void createOrUpdate(VideoWatermarkSettings videoWatermarkSettings) {
+    public boolean isExistsWatermark(int userId) {
+        return videoWatermarkDao.isExists(userId);
+    }
 
+    public void createOrUpdate(int userId, VideoWatermarkSettings videoWatermarkSettings) {
+        VideoWatermark videoWatermark = new VideoWatermark();
+        videoWatermark.setUserId(userId);
+        videoWatermark.setWatermarkType(videoWatermarkSettings.getWatermarkType());
+        videoWatermark.setText(videoWatermarkSettings.getText());
+        if (videoWatermarkSettings.getWatermarkType().equals(VideoWatermarkType.IMAGE)) {
+            videoWatermark.setImage(videoWatermarkSettings.getImage().toTgFile());
+        }
+        videoWatermark.setFontSize(videoWatermarkSettings.getFontSize());
+        videoWatermark.setColor(videoWatermarkSettings.getColor());
+        videoWatermark.setWatermarkPosition(videoWatermarkSettings.getWatermarkPosition());
+
+        videoWatermarkDao.createOrUpdate(videoWatermark);
     }
 }

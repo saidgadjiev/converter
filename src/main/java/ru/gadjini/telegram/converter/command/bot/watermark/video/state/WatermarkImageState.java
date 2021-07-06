@@ -76,7 +76,7 @@ public class WatermarkImageState implements VideoWatermarkState {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
-        videoWatermarkSettings.setImageFileId(media.getFileId());
+        videoWatermarkSettings.setImage(media);
         videoWatermarkSettings.setStateName(watermarkPositionState.getName());
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
         watermarkPositionState.enter(message, 3);
