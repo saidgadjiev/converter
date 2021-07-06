@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
-import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;

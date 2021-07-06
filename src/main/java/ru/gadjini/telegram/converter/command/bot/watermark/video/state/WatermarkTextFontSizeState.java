@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Component
-public class WatermarkTextFontSizeState implements VideoWatermarkState {
+public class WatermarkTextFontSizeState extends BaseWatermarkState {
 
     private static final List<String> FONT_SIZES = List.of("18", "20", "24", "28", "30", "32", "36", "40", "46", "50",
             "54", "60");
@@ -67,7 +67,7 @@ public class WatermarkTextFontSizeState implements VideoWatermarkState {
     }
 
     @Override
-    public void update(VMarkCommand vMarkCommand, Message message, String text) {
+    public void doUpdate(VMarkCommand vMarkCommand, Message message, String text) {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
                 vMarkCommand.getCommandIdentifier(),
                 true, VideoWatermarkSettings.class);

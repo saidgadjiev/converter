@@ -20,7 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import java.util.Locale;
 
 @Component
-public class WatermarkOkState implements VideoWatermarkState {
+public class WatermarkOkState extends BaseWatermarkState {
 
     private MessageService messageService;
 
@@ -80,7 +80,7 @@ public class WatermarkOkState implements VideoWatermarkState {
     }
 
     @Override
-    public void update(VMarkCommand vMarkCommand, Message message, String text) {
+    public void doUpdate(VMarkCommand vMarkCommand, Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (localisationService.getMessage(ConverterMessagesProperties.CHANGE_WATERMARK_COMMAND_NAME, locale).equals(text)) {
             VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),

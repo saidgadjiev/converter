@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@SuppressWarnings("CPD-START")
 public class VideoMerger extends BaseAny2AnyConverter {
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(

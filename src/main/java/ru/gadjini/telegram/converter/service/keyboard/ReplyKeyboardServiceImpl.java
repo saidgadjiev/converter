@@ -13,6 +13,7 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkColor;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkPosition;
 import ru.gadjini.telegram.converter.service.conversion.format.ConversionFormatService;
+import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -174,7 +175,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
                 localisationService.getMessage(ConverterMessagesProperties.IMAGE_WATERMARK_COMMAND_NAME, locale),
                 localisationService.getMessage(ConverterMessagesProperties.TEXT_WATERMARK_COMMAND_NAME, locale)
         ));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
 
         return replyKeyboardMarkup;
     }
@@ -187,7 +188,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         for (List<String> list : lists) {
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(list.toArray(String[]::new)));
         }
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
 
         return replyKeyboardMarkup;
     }
@@ -203,7 +204,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
                     .collect(Collectors.toList());
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(buttons.toArray(String[]::new)));
         }
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
 
         return replyKeyboardMarkup;
     }
@@ -219,15 +220,23 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
                     .collect(Collectors.toList());
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(buttons.toArray(String[]::new)));
         }
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
 
         return replyKeyboardMarkup;
     }
 
     @Override
-    public ReplyKeyboardMarkup watermarkImageKeyboard(long charId, Locale locale) {
+    public ReplyKeyboardMarkup watermarkImageKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkTextKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
 
         return replyKeyboardMarkup;
     }

@@ -21,7 +21,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import java.util.Locale;
 
 @Component
-public class WatermarkImageState implements VideoWatermarkState {
+public class WatermarkImageState extends BaseWatermarkState {
 
     private MessageService messageService;
 
@@ -69,7 +69,7 @@ public class WatermarkImageState implements VideoWatermarkState {
     }
 
     @Override
-    public void update(VMarkCommand vMarkCommand, Message message, String text) {
+    public void doUpdate(VMarkCommand vMarkCommand, Message message, String text) {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
                 vMarkCommand.getCommandIdentifier(),
                 true, VideoWatermarkSettings.class);

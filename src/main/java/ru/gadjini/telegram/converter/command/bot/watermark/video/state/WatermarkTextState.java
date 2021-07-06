@@ -19,7 +19,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import java.util.Locale;
 
 @Component
-public class WatermarkTextState implements VideoWatermarkState {
+public class WatermarkTextState extends BaseWatermarkState {
 
     private MessageService messageService;
 
@@ -56,14 +56,14 @@ public class WatermarkTextState implements VideoWatermarkState {
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_TEXT_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.goBackKeyboard(message.getChatId(), locale))
+                        .replyMarkup(replyKeyboardService.watermarkTextKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
     }
 
     @Override
-    public void update(VMarkCommand vMarkCommand, Message message, String text) {
+    public void doUpdate(VMarkCommand vMarkCommand, Message message, String text) {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(), vMarkCommand.getCommandIdentifier(),
                 true, VideoWatermarkSettings.class);
         videoWatermarkSettings.setText(text);
