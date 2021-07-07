@@ -68,8 +68,8 @@ public class WatermarkPositionState extends BaseWatermarkState {
                 true, VideoWatermarkSettings.class);
         videoWatermarkSettings.setWatermarkPosition(getPosition(text, userService.getLocaleOrDefault(message.getFrom().getId())));
         videoWatermarkSettings.setStateName(watermarkOkState.getName());
-        watermarkOkState.watermarkCreatedOrChanged(vMarkCommand, message);
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
+        watermarkOkState.watermarkCreatedOrChanged(vMarkCommand, message);
     }
 
     @Override

@@ -18,6 +18,8 @@ public class VideoWatermark {
 
     public static final String COLOR = "color";
 
+    public static final String IMAGE_WIDTH = "image_width";
+
     private VideoWatermarkType watermarkType;
 
     private VideoWatermarkPosition watermarkPosition;
@@ -27,6 +29,8 @@ public class VideoWatermark {
     private String text;
 
     private TgFile image;
+
+    private Integer imageWidth;
 
     private String fontSize;
 
@@ -86,5 +90,13 @@ public class VideoWatermark {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    public Integer getImageWidth() {
+        return imageWidth;
+    }
+
+    public void setImageWidth(Integer imageWidth) {
+        this.imageWidth = imageWidth;
     }
 }

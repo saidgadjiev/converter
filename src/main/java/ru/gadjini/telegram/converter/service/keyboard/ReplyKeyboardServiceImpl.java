@@ -184,7 +184,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup watermarkTextFontSizeKeyboard(long chatId, Locale locale, List<String> fontSizes) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        List<List<String>> lists = Lists.partition(new ArrayList<>(fontSizes), 6);
+        List<List<String>> lists = Lists.partition(fontSizes, 6);
         for (List<String> list : lists) {
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(list.toArray(String[]::new)));
         }
@@ -219,6 +219,19 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
                     .map(v -> localisationService.getMessage(v.name().toLowerCase() + ".color", locale))
                     .collect(Collectors.toList());
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(buttons.toArray(String[]::new)));
+        }
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkImageWidthKeyboard(long chatId, Locale locale, List<String> widths) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        List<List<String>> lists = Lists.partition(widths, 3);
+        for (List<String> list : lists) {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(list.toArray(String[]::new)));
         }
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
 

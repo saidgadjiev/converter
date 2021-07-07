@@ -8,20 +8,23 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkColor;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
-import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
+import java.util.List;
 import java.util.Locale;
 
 @Component
-public class WatermarkImageState extends BaseWatermarkState {
+public class WatermarkImageWidthState extends BaseWatermarkState {
+
+    private static final List<String> WIDTHS = List.of("8", "16", "32", "64", "128", "256");
 
     private MessageService messageService;
 
@@ -33,26 +36,18 @@ public class WatermarkImageState extends BaseWatermarkState {
 
     private CommandStateService commandStateService;
 
-    private WatermarkImageWidthState watermarkImageWidthState;
-
-    private MessageMediaService messageMediaService;
+    private WatermarkPositionState watermarkPositionState;
 
     @Autowired
-    public WatermarkImageState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
-                               UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                               CommandStateService commandStateService,
-                               MessageMediaService messageMediaService) {
+    public WatermarkImageWidthState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
+                                    UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                                    CommandStateService commandStateService, WatermarkPositionState watermarkPositionState) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
-        this.messageMediaService = messageMediaService;
-    }
-
-    @Autowired
-    public void setWatermarkImageWidthState(WatermarkImageWidthState watermarkImageWidthState) {
-        this.watermarkImageWidthState = watermarkImageWidthState;
+        this.watermarkPositionState = watermarkPositionState;
     }
 
     @Override
@@ -61,8 +56,8 @@ public class WatermarkImageState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.watermarkImageKeyboard(message.getChatId(), locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_WIDTH_WELCOME, locale))
+                        .replyMarkup(replyKeyboardService.watermarkImageWidthKeyboard(message.getChatId(), locale, WIDTHS))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
@@ -73,17 +68,22 @@ public class WatermarkImageState extends BaseWatermarkState {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
                 vMarkCommand.getCommandIdentifier(),
                 true, VideoWatermarkSettings.class);
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        MessageMedia media = messageMediaService.getMedia(message, locale);
-
-        videoWatermarkSettings.setImage(media);
-        videoWatermarkSettings.setStateName(watermarkImageWidthState.getName());
+        videoWatermarkSettings.setImageWidth(getWidth(text, userService.getLocaleOrDefault(message.getFrom().getId())));
+        videoWatermarkSettings.setStateName(watermarkPositionState.getName());
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
-        watermarkImageWidthState.enter(message);
+        watermarkPositionState.enter(message, 4);
     }
 
     @Override
     public WatermarkStateName getName() {
-        return WatermarkStateName.WATERMARK_IMAGE;
+        return WatermarkStateName.WATERMARK_IMAGE_SIZE;
+    }
+
+    private int getWidth(String text, Locale locale) {
+        if (WIDTHS.contains(text)) {
+            return Integer.parseInt(text);
+        }
+
+        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_WATERMARK_IMAGE_WIDTH, locale));
     }
 }

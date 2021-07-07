@@ -17,6 +17,10 @@ public class VideoWatermarkService {
         this.videoWatermarkDao = videoWatermarkDao;
     }
 
+    public VideoWatermark getWatermark(int userId) {
+        return videoWatermarkDao.getWatermark(userId);
+    }
+
     public boolean isExistsWatermark(int userId) {
         return videoWatermarkDao.isExists(userId);
     }
@@ -32,6 +36,7 @@ public class VideoWatermarkService {
         videoWatermark.setFontSize(videoWatermarkSettings.getFontSize());
         videoWatermark.setColor(videoWatermarkSettings.getColor());
         videoWatermark.setWatermarkPosition(videoWatermarkSettings.getWatermarkPosition());
+        videoWatermark.setImageWidth(videoWatermarkSettings.getImageWidth());
 
         videoWatermarkDao.createOrUpdate(videoWatermark);
     }

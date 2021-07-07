@@ -7,14 +7,22 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
+import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
+import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
@@ -36,17 +44,36 @@ public class WatermarkOkState extends BaseWatermarkState {
 
     private VideoWatermarkService videoWatermarkService;
 
+    private MessageMediaService messageMediaService;
+
+    private ConvertionService convertionService;
+
+    private WorkQueueJob workQueueJob;
+
     @Autowired
     public WatermarkOkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                            CommandStateService commandStateService, NoWatermarkState noWatermarkState, VideoWatermarkService videoWatermarkService) {
+                            CommandStateService commandStateService,
+                            VideoWatermarkService videoWatermarkService, MessageMediaService messageMediaService,
+                            ConvertionService convertionService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
-        this.noWatermarkState = noWatermarkState;
         this.videoWatermarkService = videoWatermarkService;
+        this.messageMediaService = messageMediaService;
+        this.convertionService = convertionService;
+    }
+
+    @Autowired
+    public void setWorkQueueJob(WorkQueueJob workQueueJob) {
+        this.workQueueJob = workQueueJob;
+    }
+
+    @Autowired
+    public void setNoWState(NoWatermarkState noWatermarkState) {
+        this.noWatermarkState = noWatermarkState;
     }
 
     @Override
@@ -89,11 +116,39 @@ public class WatermarkOkState extends BaseWatermarkState {
             videoWatermarkSettings.setStateName(noWatermarkState.getName());
             commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
             noWatermarkState.enter(message);
+        } else {
+            ConvertState convertState = createState(message, locale);
+
+            workQueueJob.cancelCurrentTasks(message.getChatId());
+            convertionService.createConversion(message.getFrom(), convertState, Format.WATERMARK, new Locale(convertState.getUserLanguage()));
         }
     }
 
     @Override
     public WatermarkStateName getName() {
         return WatermarkStateName.WATERMARK_OK;
+    }
+
+    private ConvertState createState(Message message, Locale locale) {
+        ConvertState convertState = new ConvertState();
+        convertState.setMessageId(message.getMessageId());
+        convertState.setUserLanguage(locale.getLanguage());
+
+        MessageMedia media = messageMediaService.getMedia(message, locale);
+        if (media != null) {
+            checkVideoFormat(media.getFormat(), locale);
+
+            convertState.addMedia(media);
+        } else {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_VIDEO_FILE, locale));
+        }
+
+        return convertState;
+    }
+
+    private void checkVideoFormat(Format format, Locale locale) {
+        if (format == null || format.getCategory() != FormatCategory.VIDEO) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_VIDEO_FILE, locale));
+        }
     }
 }

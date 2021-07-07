@@ -20,6 +20,8 @@ public class VideoWatermarkSettings {
 
     private VideoWatermarkColor color;
 
+    private Integer imageWidth;
+
     private WatermarkStateName stateName;
 
     public VideoWatermarkType getWatermarkType() {
@@ -76,5 +78,13 @@ public class VideoWatermarkSettings {
 
     public void setImage(MessageMedia image) {
         this.image = image;
+    }
+
+    public Integer getImageWidth() {
+        return imageWidth;
+    }
+
+    public void setImageWidth(Integer imageWidth) {
+        this.imageWidth = imageWidth;
     }
 }

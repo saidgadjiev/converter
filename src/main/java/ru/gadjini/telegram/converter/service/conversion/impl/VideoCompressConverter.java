@@ -13,7 +13,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegCommandPreparer;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -57,14 +57,14 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
+    private FFmpegCommandPreparer videoStreamsChangeHelper;
 
     private FFmpegVideoHelper fFmpegVideoHelper;
 
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
-                                  FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper, FFmpegVideoHelper fFmpegVideoHelper) {
+                                  FFmpegCommandPreparer videoStreamsChangeHelper, FFmpegVideoHelper fFmpegVideoHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;

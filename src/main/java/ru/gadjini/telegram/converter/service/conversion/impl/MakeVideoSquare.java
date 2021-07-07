@@ -11,7 +11,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamsChangeHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegCommandPreparer;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -50,13 +50,13 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper;
+    private FFmpegCommandPreparer videoStreamsChangeHelper;
 
     private FFmpegVideoHelper fFmpegVideoHelper;
 
     public MakeVideoSquare(FFmpegDevice fFmpegDevice, LocalisationService localisationService,
                            UserService userService, FFprobeDevice fFprobeDevice,
-                           FFmpegVideoStreamsChangeHelper videoStreamsChangeHelper,
+                           FFmpegCommandPreparer videoStreamsChangeHelper,
                            FFmpegVideoHelper fFmpegVideoHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;

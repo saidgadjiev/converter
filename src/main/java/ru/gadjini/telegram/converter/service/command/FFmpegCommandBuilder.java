@@ -2,6 +2,8 @@ package ru.gadjini.telegram.converter.service.command;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FFmpegCommandBuilder {
 
@@ -73,11 +75,25 @@ public class FFmpegCommandBuilder {
 
     private static final List<String> DEFAULT_OPTIONS = List.of("-vsync", "2", "-max_muxing_queue_size", "9999", "-pix_fmt", YUV_420_P);
 
+    private List<String> complexFilters = new ArrayList<>();
+
+    private boolean useFilterComplex;
+
     public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
         this.options.addAll(commandBuilder.options);
     }
 
     public FFmpegCommandBuilder() {
+    }
+
+    public FFmpegCommandBuilder useFilterComplex(boolean useFilterComplex) {
+        this.useFilterComplex = useFilterComplex;
+
+        return this;
+    }
+
+    public boolean useFilterComplex() {
+        return useFilterComplex;
     }
 
     public FFmpegCommandBuilder safe(String s) {
@@ -377,6 +393,16 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder complexFilter(String filter) {
+        complexFilters.add(filter);
+
+        return this;
+    }
+
+    public List<String> getComplexFilters() {
+        return complexFilters;
+    }
+
     public FFmpegCommandBuilder filterAudio(String filter) {
         options.add("-af");
         options.add(filter);
@@ -533,6 +559,12 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder complexFilters() {
+        options.addAll(getComplexFilterOptions());
+
+        return this;
+    }
+
     public String[] build() {
         return options.toArray(new String[0]);
     }
@@ -543,5 +575,16 @@ public class FFmpegCommandBuilder {
         command.addAll(options);
 
         return command.toArray(new String[0]);
+    }
+
+    private List<String> getComplexFilterOptions() {
+        List<String> options = new ArrayList<>();
+        if (useFilterComplex && !complexFilters.isEmpty()) {
+            options.add("-filter_complex");
+            String complexFilter = String.join(";", complexFilters);
+            options.add(complexFilter);
+        }
+
+        return options;
     }
 }

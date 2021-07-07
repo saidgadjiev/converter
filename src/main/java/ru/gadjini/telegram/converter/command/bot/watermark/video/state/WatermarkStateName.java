@@ -10,6 +10,8 @@ public enum WatermarkStateName {
 
     WATERMARK_IMAGE,
 
+    WATERMARK_IMAGE_SIZE,
+
     WATERMARK_TEXT_FONT_SIZE,
 
     WATERMARK_POSITION,
