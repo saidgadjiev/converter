@@ -111,6 +111,11 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
+    public ReplyKeyboardMarkup watermarkImageTransparencyKeyboard(long chatId, Locale locale, List<String> transparencies) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkImageTransparencyKeyboard(chatId, locale, transparencies));
+    }
+
+    @Override
     public ReplyKeyboardMarkup watermarkImageKeyboard(long chatId, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.watermarkImageKeyboard(chatId, locale));
     }

@@ -229,7 +229,20 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     public ReplyKeyboardMarkup watermarkImageSizeKeyboard(long chatId, Locale locale, List<String> widths) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        List<List<String>> lists = Lists.partition(widths, 3);
+        List<List<String>> lists = Lists.partition(widths, 4);
+        for (List<String> list : lists) {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(list.toArray(String[]::new)));
+        }
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup watermarkImageTransparencyKeyboard(long chatId, Locale locale, List<String> transparencies) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        List<List<String>> lists = Lists.partition(transparencies, 5);
         for (List<String> list : lists) {
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(list.toArray(String[]::new)));
         }

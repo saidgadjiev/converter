@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.dao;
 
-import com.aspose.imaging.internal.jj.V;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,11 +43,12 @@ public class VideoWatermarkDao {
 
     public void createOrUpdate(VideoWatermark videoWatermark) {
         jdbcTemplate.update(
-                "INSERT INTO video_watermark(user_id, type, position, wtext, image, font_size, color, image_height) " +
+                "INSERT INTO video_watermark(user_id, type, position, wtext, image, font_size, color, image_height, transparency) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (user_id) DO UPDATE " +
                         "SET type = excluded.type, position = excluded.position, wtext = excluded.wtext, " +
                         "image = excluded.image, font_size = excluded.font_size, color = excluded.color, " +
-                        "image_height = excluded.image_height",
+                        "image_height = excluded.image_height," +
+                        "transparency = excluded.transparency",
                 ps -> {
                     ps.setInt(1, videoWatermark.getUserId());
                     ps.setString(2, videoWatermark.getWatermarkType().name());
@@ -56,15 +56,17 @@ public class VideoWatermarkDao {
                     if (videoWatermark.getWatermarkType().equals(VideoWatermarkType.TEXT)) {
                         ps.setString(4, videoWatermark.getText());
                         ps.setNull(5, Types.OTHER);
-                        ps.setString(6, videoWatermark.getFontSize());
+                        ps.setInt(6, videoWatermark.getFontSize());
                         ps.setString(7, videoWatermark.getColor().name());
                         ps.setNull(8, Types.INTEGER);
+                        ps.setNull(9, Types.VARCHAR);
                     } else {
                         ps.setNull(4, Types.VARCHAR);
                         ps.setObject(5, videoWatermark.getImage().sqlObject());
-                        ps.setNull(6, Types.VARCHAR);
+                        ps.setNull(6, Types.INTEGER);
                         ps.setNull(7, Types.VARCHAR);
-                        ps.setInt(8, videoWatermark.getImageWidth());
+                        ps.setInt(8, videoWatermark.getImageHeight());
+                        ps.setString(9, videoWatermark.getTransparency());
                     }
                 }
         );
@@ -82,15 +84,18 @@ public class VideoWatermarkDao {
         if (StringUtils.isNotBlank(c)) {
             videoWatermark.setColor(VideoWatermarkColor.valueOf(c));
         }
-        videoWatermark.setFontSize(rs.getString(VideoWatermark.FONT_SIZE));
+        int fontSize = rs.getInt(VideoWatermark.FONT_SIZE);
+        if (rs.wasNull()) {
+            videoWatermark.setFontSize(fontSize);
+        }
         videoWatermark.setText(rs.getString(VideoWatermark.TEXT));
         videoWatermark.setWatermarkType(VideoWatermarkType.valueOf(rs.getString(VideoWatermark.TYPE)));
 
-        int imageWidth = rs.getInt(VideoWatermark.IMAGE_WIDTH);
+        int imageWidth = rs.getInt(VideoWatermark.IMAGE_HEIGHT);
         if (rs.wasNull()) {
-            videoWatermark.setImageWidth(null);
+            videoWatermark.setImageHeight(null);
         } else {
-            videoWatermark.setImageWidth(imageWidth);
+            videoWatermark.setImageHeight(imageWidth);
         }
 
         String imageFileId = rs.getString(TgFile.FILE_ID);
@@ -101,6 +106,7 @@ public class VideoWatermarkDao {
             file.setFormat(Format.valueOf(rs.getString(TgFile.FORMAT)));
             videoWatermark.setImage(file);
         }
+        videoWatermark.setTransparency(rs.getString(VideoWatermark.TRANSPARENCY));
 
         return videoWatermark;
     }

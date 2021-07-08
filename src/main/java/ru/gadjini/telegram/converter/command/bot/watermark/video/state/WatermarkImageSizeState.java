@@ -21,9 +21,11 @@ import java.util.List;
 import java.util.Locale;
 
 @Component
-public class WatermarkImageWidthState extends BaseWatermarkState {
+public class WatermarkImageSizeState extends BaseWatermarkState {
 
-    private static final List<String> HEIGHTS = List.of("16", "32", "64", "128", "256", "512");
+    private static final String AUTO = "Auto";
+
+    private static final List<String> HEIGHTS = List.of("Auto", "8", "16", "32", "64", "128", "256", "512");
 
     private MessageService messageService;
 
@@ -35,18 +37,22 @@ public class WatermarkImageWidthState extends BaseWatermarkState {
 
     private CommandStateService commandStateService;
 
-    private WatermarkPositionState watermarkPositionState;
+    private WatermarkImageTransparencyState transparencyState;
 
     @Autowired
-    public WatermarkImageWidthState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
-                                    UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                                    CommandStateService commandStateService, WatermarkPositionState watermarkPositionState) {
+    public WatermarkImageSizeState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
+                                   UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                                   CommandStateService commandStateService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
-        this.watermarkPositionState = watermarkPositionState;
+    }
+
+    @Autowired
+    public void setTransparencyState(WatermarkImageTransparencyState transparencyState) {
+        this.transparencyState = transparencyState;
     }
 
     @Override
@@ -67,10 +73,10 @@ public class WatermarkImageWidthState extends BaseWatermarkState {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
                 vMarkCommand.getCommandIdentifier(),
                 true, VideoWatermarkSettings.class);
-        videoWatermarkSettings.setImageHeight(getWidth(text, userService.getLocaleOrDefault(message.getFrom().getId())));
-        videoWatermarkSettings.setStateName(watermarkPositionState.getName());
+        videoWatermarkSettings.setImageHeight(getHeight(text, userService.getLocaleOrDefault(message.getFrom().getId())));
+        videoWatermarkSettings.setStateName(transparencyState.getName());
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
-        watermarkPositionState.enter(message, 4);
+        transparencyState.enter(message);
     }
 
     @Override
@@ -78,9 +84,9 @@ public class WatermarkImageWidthState extends BaseWatermarkState {
         return WatermarkStateName.WATERMARK_IMAGE_SIZE;
     }
 
-    private int getWidth(String text, Locale locale) {
+    private Integer getHeight(String text, Locale locale) {
         if (HEIGHTS.contains(text)) {
-            return Integer.parseInt(text);
+            return text.equals(AUTO) ? null : Integer.parseInt(text);
         }
 
         throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_WATERMARK_IMAGE_HEIGHT, locale));

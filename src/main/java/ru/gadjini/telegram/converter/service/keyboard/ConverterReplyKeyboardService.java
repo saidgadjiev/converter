@@ -36,6 +36,8 @@ public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
 
     ReplyKeyboardMarkup watermarkImageSizeKeyboard(long chatId, Locale locale, List<String> widths);
 
+    ReplyKeyboardMarkup watermarkImageTransparencyKeyboard(long chatId, Locale locale, List<String> transparencies);
+
     ReplyKeyboardMarkup watermarkImageKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardMarkup watermarkTextKeyboard(long chatId, Locale locale);

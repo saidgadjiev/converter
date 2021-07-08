@@ -33,7 +33,7 @@ public class WatermarkImageState extends BaseWatermarkState {
 
     private CommandStateService commandStateService;
 
-    private WatermarkImageWidthState watermarkImageWidthState;
+    private WatermarkImageSizeState watermarkImageWidthState;
 
     private MessageMediaService messageMediaService;
 
@@ -51,7 +51,7 @@ public class WatermarkImageState extends BaseWatermarkState {
     }
 
     @Autowired
-    public void setWatermarkImageWidthState(WatermarkImageWidthState watermarkImageWidthState) {
+    public void setWatermarkImageWidthState(WatermarkImageSizeState watermarkImageWidthState) {
         this.watermarkImageWidthState = watermarkImageWidthState;
     }
 

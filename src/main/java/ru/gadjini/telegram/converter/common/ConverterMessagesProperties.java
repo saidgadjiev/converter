@@ -308,4 +308,10 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_INCORRECT_WATERMARK_TYPE = "message.incorrect.watermark.type";
 
     public static final String MESSAGE_INCORRECT_VIDEO_FILE = "message.incorrect.video.file";
+
+    public static final String MESSAGE_INCORRECT_FONT_SIZE = "message.incorrect.font.size";
+
+    public static final String MESSAGE_WATERMARK_IMAGE_INCORRECT_TRANSPARENCY = "message.watermark.image.incorrect.transparency";
+
+    public static final String MESSAGE_WATERMARK_IMAGE_TRANSPARENCY_WELCOME = "message.watermark.image.transparency.welcome";
 }

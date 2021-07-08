@@ -36,7 +36,7 @@ public class VideoWatermarkService {
         videoWatermark.setFontSize(videoWatermarkSettings.getFontSize());
         videoWatermark.setColor(videoWatermarkSettings.getColor());
         videoWatermark.setWatermarkPosition(videoWatermarkSettings.getWatermarkPosition());
-        videoWatermark.setImageWidth(videoWatermarkSettings.getImageHeight());
+        videoWatermark.setImageHeight(videoWatermarkSettings.getImageHeight());
 
         videoWatermarkDao.createOrUpdate(videoWatermark);
     }

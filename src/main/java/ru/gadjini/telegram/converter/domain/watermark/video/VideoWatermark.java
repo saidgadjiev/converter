@@ -18,7 +18,9 @@ public class VideoWatermark {
 
     public static final String COLOR = "color";
 
-    public static final String IMAGE_WIDTH = "image_width";
+    public static final String IMAGE_HEIGHT = "image_height";
+
+    public static final String TRANSPARENCY = "transparency";
 
     private VideoWatermarkType watermarkType;
 
@@ -30,9 +32,11 @@ public class VideoWatermark {
 
     private TgFile image;
 
-    private Integer imageWidth;
+    private Integer imageHeight;
 
-    private String fontSize;
+    private String transparency;
+
+    private Integer fontSize;
 
     private VideoWatermarkColor color;
 
@@ -68,11 +72,11 @@ public class VideoWatermark {
         this.image = image;
     }
 
-    public String getFontSize() {
+    public Integer getFontSize() {
         return fontSize;
     }
 
-    public void setFontSize(String fontSize) {
+    public void setFontSize(Integer fontSize) {
         this.fontSize = fontSize;
     }
 
@@ -92,11 +96,19 @@ public class VideoWatermark {
         this.userId = userId;
     }
 
-    public Integer getImageWidth() {
-        return imageWidth;
+    public Integer getImageHeight() {
+        return imageHeight;
     }
 
-    public void setImageWidth(Integer imageWidth) {
-        this.imageWidth = imageWidth;
+    public void setImageHeight(Integer imageHeight) {
+        this.imageHeight = imageHeight;
+    }
+
+    public String getTransparency() {
+        return transparency;
+    }
+
+    public void setTransparency(String transparency) {
+        this.transparency = transparency;
     }
 }

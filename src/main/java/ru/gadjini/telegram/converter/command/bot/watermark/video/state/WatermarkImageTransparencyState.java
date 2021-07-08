@@ -21,12 +21,10 @@ import java.util.List;
 import java.util.Locale;
 
 @Component
-public class WatermarkTextFontSizeState extends BaseWatermarkState {
+public class WatermarkImageTransparencyState extends BaseWatermarkState {
 
-    private static final String AUTO_SIZE = "Auto";
-
-    private static final List<String> FONT_SIZES = List.of("Auto", "20", "24", "28", "32", "36", "40", "46", "50",
-            "54", "60", "66");
+    private static final List<String> TRANSPARENCIES = List.of("1.0", "0.9", "0.8", "0.7", "0.6", "0.5", "0.4", "0.3",
+            "0.2", "0.1");
 
     private MessageService messageService;
 
@@ -38,22 +36,18 @@ public class WatermarkTextFontSizeState extends BaseWatermarkState {
 
     private CommandStateService commandStateService;
 
-    private WatermarkColorState watermarkColorState;
+    private WatermarkPositionState watermarkPositionState;
 
     @Autowired
-    public WatermarkTextFontSizeState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
-                                      UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                                      CommandStateService commandStateService) {
+    public WatermarkImageTransparencyState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
+                                           UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                                           CommandStateService commandStateService, WatermarkPositionState watermarkPositionState) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
-    }
-
-    @Autowired
-    public void setWatermarkPositionState(WatermarkColorState colorState) {
-        this.watermarkColorState = colorState;
+        this.watermarkPositionState = watermarkPositionState;
     }
 
     @Override
@@ -62,8 +56,8 @@ public class WatermarkTextFontSizeState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_TEXT_FONT_SIZE_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.watermarkTextFontSizeKeyboard(message.getChatId(), locale, FONT_SIZES))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_TRANSPARENCY_WELCOME, locale))
+                        .replyMarkup(replyKeyboardService.watermarkImageTransparencyKeyboard(message.getChatId(), locale, TRANSPARENCIES))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
@@ -74,22 +68,22 @@ public class WatermarkTextFontSizeState extends BaseWatermarkState {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
                 vMarkCommand.getCommandIdentifier(),
                 true, VideoWatermarkSettings.class);
-        videoWatermarkSettings.setFontSize(getFontSize(text, userService.getLocaleOrDefault(message.getFrom().getId())));
-        videoWatermarkSettings.setStateName(watermarkColorState.getName());
+        videoWatermarkSettings.setTransparency(getTransparency(text, userService.getLocaleOrDefault(message.getFrom().getId())));
+        videoWatermarkSettings.setStateName(watermarkPositionState.getName());
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
-        watermarkColorState.enter(message);
+        watermarkPositionState.enter(message, 3);
     }
 
     @Override
     public WatermarkStateName getName() {
-        return WatermarkStateName.WATERMARK_TEXT_FONT_SIZE;
+        return WatermarkStateName.WATERMARK_IMAGE_TRANSPARENCY;
     }
 
-    private Integer getFontSize(String text, Locale locale) {
-        if (FONT_SIZES.contains(text)) {
-            return text.equals(AUTO_SIZE) ? null : Integer.parseInt(text);
+    private String getTransparency(String text, Locale locale) {
+        if (TRANSPARENCIES.contains(text)) {
+            return text;
         }
 
-        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_FONT_SIZE, locale));
+        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_INCORRECT_TRANSPARENCY, locale));
     }
 }

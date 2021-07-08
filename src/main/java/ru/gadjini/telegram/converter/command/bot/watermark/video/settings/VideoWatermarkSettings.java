@@ -16,11 +16,13 @@ public class VideoWatermarkSettings {
 
     private MessageMedia image;
 
-    private String fontSize;
+    private Integer fontSize;
 
     private VideoWatermarkColor color;
 
     private Integer imageHeight;
+
+    private String transparency;
 
     private WatermarkStateName stateName;
 
@@ -56,11 +58,11 @@ public class VideoWatermarkSettings {
         this.watermarkPosition = watermarkPosition;
     }
 
-    public String getFontSize() {
+    public Integer getFontSize() {
         return fontSize;
     }
 
-    public void setFontSize(String fontSize) {
+    public void setFontSize(Integer fontSize) {
         this.fontSize = fontSize;
     }
 
@@ -86,5 +88,13 @@ public class VideoWatermarkSettings {
 
     public void setImageHeight(Integer imageHeight) {
         this.imageHeight = imageHeight;
+    }
+
+    public String getTransparency() {
+        return transparency;
+    }
+
+    public void setTransparency(String transparency) {
+        this.transparency = transparency;
     }
 }
