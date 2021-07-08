@@ -28,7 +28,13 @@ public class FFmpegAudioConversionHelper {
         this.fFprobeDevice = fFprobeDevice;
     }
 
+    public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, int streamIndex, Format targetFormat) {
+        commandBuilder.mapAudio(streamIndex);
+        addAudioCodecOptions(commandBuilder, targetFormat);
+    }
+
     public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
+        commandBuilder.mapAudio();
         addAudioCodecOptions(commandBuilder, targetFormat);
     }
 
@@ -48,6 +54,7 @@ public class FFmpegAudioConversionHelper {
     }
 
     public void convertAudioCodecs(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
+        commandBuilder.mapAudio();
         addAudioCodecOptions(commandBuilder, targetFormat);
     }
 
@@ -58,9 +65,9 @@ public class FFmpegAudioConversionHelper {
         for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
             FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamMapIndex);
 
-            commandBuilder.mapVideo(audioStream.getInput(), audioStreamMapIndex);
+            commandBuilder.mapAudio(audioStream.getInput(), audioStreamMapIndex);
             if (isCopyableAudioCodecs(baseCommand, result, targetFormat, audioStream.getInput(), audioStreamMapIndex)) {
-                commandBuilder.copyVideo(outCodecIndex);
+                commandBuilder.copyAudio(outCodecIndex);
             } else {
                 addAudioCodecOptions(commandBuilder, outCodecIndex, targetFormat);
             }

@@ -82,12 +82,6 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         }
 
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
-        commandBuilder.mapAudio();
-        commandBuilder.ba(bitrate + "k");
-
-        if (MP3.equals(compressionFormat)) {
-            commandBuilder.ar(normalizeFrequency(frequency));
-        }
 
         try {
             audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
@@ -97,6 +91,12 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
                 audioConversionHelper.convertAudioCodecs(commandBuilder, conversionQueueItem.getFirstFileFormat());
             }
             audioConversionHelper.addAudioTargetOptions(commandBuilder, conversionQueueItem.getFirstFileFormat());
+            commandBuilder.ba(bitrate + "k");
+
+            if (MP3.equals(compressionFormat)) {
+                commandBuilder.ar(normalizeFrequency(frequency));
+            }
+
             commandBuilder.out(out.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
         } catch (InterruptedException e) {

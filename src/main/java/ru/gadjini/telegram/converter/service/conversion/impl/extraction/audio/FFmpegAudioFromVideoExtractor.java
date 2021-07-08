@@ -71,12 +71,12 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
 
         try {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
-                    .input(file.getAbsolutePath()).mapAudio(streamIndex);
+                    .input(file.getAbsolutePath());
 
             if (fileQueueItem.getTargetFormat().canBeSentAsVoice()) {
-                audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, fileQueueItem.getTargetFormat());
+                audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, streamIndex, fileQueueItem.getTargetFormat());
             } else {
-                audioConversionHelper.convertAudioCodecs(commandBuilder, fileQueueItem.getTargetFormat());
+                audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream), fileQueueItem.getTargetFormat(), result);
             }
             audioConversionHelper.addAudioTargetOptions(commandBuilder, fileQueueItem.getTargetFormat());
             commandBuilder.out(result.getAbsolutePath());
