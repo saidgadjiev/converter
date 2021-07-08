@@ -7,6 +7,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
 
+    public static final String MESSAGE_WATERMARK_QUEUED = "message.watermark.queued";
+
     public static final String MESSAGE_FILES_QUEUED = "message.files.queued";
 
     public static final String MESSAGE_COMPRESS_QUEUED = "message.compress.queued";
@@ -318,4 +320,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_TEXT_WATERMARK = "message.text.watermark";
 
     public static final String MESSAGE_IMAGE_WATERMARK = "message.image.watermark";
+
+    public static final String WATERMARK_ADDING_STEP = "watermark.adding.step";
 }

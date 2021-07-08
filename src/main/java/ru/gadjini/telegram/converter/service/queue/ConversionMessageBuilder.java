@@ -98,14 +98,14 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
         StringBuilder formatSizeInfo = new StringBuilder();
         if (format != null) {
-            formatSizeInfo.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT, new Object[] {format.getName()}, locale));
+            formatSizeInfo.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT, new Object[]{format.getName()}, locale));
         }
         if (size != null) {
             if (formatSizeInfo.length() > 0) {
                 formatSizeInfo.append(", ");
             }
             formatSizeInfo.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_SIZE,
-                    new Object[] {MemoryUtils.humanReadableByteCount(size)}, locale));
+                    new Object[]{MemoryUtils.humanReadableByteCount(size)}, locale));
         }
         if (applicationProperties.is(FormatsConfiguration.DOCUMENT_CONVERTER)) {
             message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION_DEFAULT_CONVERSION, locale));
@@ -193,6 +193,9 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         } else if (queueItem.getTargetFormat() == Format.VMAKE) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_QUEUED,
                     new Object[]{VaiMakeConverter.OUTPUT_FORMAT.getName(), queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.WATERMARK) {
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_QUEUED,
+                    new Object[]{queueItem.getQueuePosition()}, locale));
         } else {
             String queuedMessageCode = queueItem.getFiles().size() > 1 ? ConverterMessagesProperties.MESSAGE_FILES_QUEUED : ConverterMessagesProperties.MESSAGE_FILE_QUEUED;
             text.append(localisationService.getMessage(queuedMessageCode, new Object[]{queueItem.getTargetFormat().getName(), queueItem.getQueuePosition()}, locale));
@@ -231,6 +234,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 : targetFormat == Format.MUTE ? ConverterMessagesProperties.MUTING_STEP
                 : targetFormat == Format.CUT ? ConverterMessagesProperties.CUTTING_STEP
                 : targetFormat == Format.PROBE ? ConverterMessagesProperties.PROBING_STEP
+                : targetFormat == Format.WATERMARK ? ConverterMessagesProperties.WATERMARK_ADDING_STEP
                 : ConverterMessagesProperties.CONVERTING_STEP;
 
         switch (conversionStep) {
