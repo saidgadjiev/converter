@@ -121,6 +121,9 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             return settingsState.getFormatOrDefault(DEFAULT_AUDIO_COMPRESS_FORMAT);
         }
+        if (fileQueueItem.getTargetFormat() == Format.CUT) {
+            return fileQueueItem.getFirstFileFormat();
+        }
 
         return fileQueueItem.getTargetFormat() == Format.COMPRESS ? DEFAULT_AUDIO_COMPRESS_FORMAT : fileQueueItem.getTargetFormat();
     }
