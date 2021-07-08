@@ -11,8 +11,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.AMR;
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.OGG;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Service
 public class FFmpegAudioConversionHelper {
@@ -80,7 +79,7 @@ public class FFmpegAudioConversionHelper {
 
         if (target == AMR) {
             commandBuilder.ar("8000").ac("1");
-        } else if (target == OGG) {
+        } else if (target == OGG || target == OPUS) {
             commandBuilder.ar("48000");
         }
     }
@@ -92,7 +91,7 @@ public class FFmpegAudioConversionHelper {
     }
 
     private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target) {
-        if (target == OGG) {
+        if (target == OGG || target == OPUS) {
             commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS);
         }
     }
