@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,10 +59,23 @@ public class FFmpegVideoHelper {
             if (FFmpegCommandBuilder.H264_CODEC.equals(videoStream.getCodecName())) {
                 commandBuilder.copyVideo(outCodecIndex);
             } else {
-                commandBuilder.videoCodec(outCodecIndex, FFmpegCommandBuilder.H264_CODEC)
-                        .filterVideo(outCodecIndex, scale);
+                commandBuilder.videoCodec(outCodecIndex, FFmpegCommandBuilder.H264_CODEC);
+                addScaleFilterForH264(commandBuilder, videoStream, outCodecIndex, scale);
             }
             ++outCodecIndex;
+        }
+    }
+
+    public void addScaleFilterForH264(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream stream,
+                                      int codecIndex, String scale) {
+        if (StringUtils.isNotBlank(scale)
+                && (!FFmpegCommandBuilder.EVEN_SCALE.equals(scale)
+                || !NumberUtils.isEvent(stream.getWidth()) || !NumberUtils.isEvent(stream.getHeight()))) {
+            if (commandBuilder.useFilterComplex()) {
+                commandBuilder.complexFilter("[v:" + codecIndex + "]" + scale + "[sv] ");
+            } else {
+                commandBuilder.filterVideo(codecIndex, scale);
+            }
         }
     }
 
@@ -80,12 +94,7 @@ public class FFmpegVideoHelper {
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
             commandBuilder.videoCodec(outCodecIndex, FFmpegCommandBuilder.H264_CODEC);
-
-            if (commandBuilder.useFilterComplex()) {
-                commandBuilder.complexFilter("[v:" + outCodecIndex + "]" + scale + "[sv] ");
-            } else {
-                commandBuilder.filterVideo(outCodecIndex, scale);
-            }
+            addScaleFilterForH264(commandBuilder, videoStream, outCodecIndex, scale);
 
             ++outCodecIndex;
         }
@@ -173,13 +182,7 @@ public class FFmpegVideoHelper {
         }
         if (convertibleToH264) {
             commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.H264_CODEC);
-            if (StringUtils.isNotBlank(h264Scale)) {
-                if (commandBuilder.useFilterComplex()) {
-                    commandBuilder.complexFilter("[v:" + videoStreamIndex + "]" + h264Scale + "[sv]");
-                } else {
-                    commandBuilder.filterVideo(videoStreamIndex, h264Scale);
-                }
-            }
+            addScaleFilterForH264(commandBuilder, videoStream, videoStreamIndex, h264Scale);
             return true;
         } else if (FFmpegCommandBuilder.VP9_CODEC.equals(videoStream.getCodecName())) {
             commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.VP8_CODEC);

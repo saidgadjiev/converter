@@ -120,13 +120,13 @@ public class FFprobeDevice {
 
     private String[] getVideoStreamsCommand(String in) {
         return new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=index,codec_name,codec_type", "-of", "json", in
+                "ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=index,codec_name,codec_type,width,height", "-of", "json", in
         };
     }
 
     private String[] getAllStreamsCommand(String in) {
         return new String[]{
-                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type:stream_tags=language", "-of", "json", in
+                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type,width,height:stream_tags=language", "-of", "json", in
         };
     }
 
