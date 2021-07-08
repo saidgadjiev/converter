@@ -20,7 +20,7 @@ public class VideoWatermarkSettings {
 
     private VideoWatermarkColor color;
 
-    private Integer imageWidth;
+    private Integer imageHeight;
 
     private WatermarkStateName stateName;
 
@@ -80,11 +80,11 @@ public class VideoWatermarkSettings {
         this.image = image;
     }
 
-    public Integer getImageWidth() {
-        return imageWidth;
+    public Integer getImageHeight() {
+        return imageHeight;
     }
 
-    public void setImageWidth(Integer imageWidth) {
-        this.imageWidth = imageWidth;
+    public void setImageHeight(Integer imageHeight) {
+        this.imageHeight = imageHeight;
     }
 }

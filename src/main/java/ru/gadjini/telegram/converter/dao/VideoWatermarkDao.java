@@ -44,11 +44,11 @@ public class VideoWatermarkDao {
 
     public void createOrUpdate(VideoWatermark videoWatermark) {
         jdbcTemplate.update(
-                "INSERT INTO video_watermark(user_id, type, position, wtext, image, font_size, color, image_width) " +
+                "INSERT INTO video_watermark(user_id, type, position, wtext, image, font_size, color, image_height) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (user_id) DO UPDATE " +
                         "SET type = excluded.type, position = excluded.position, wtext = excluded.wtext, " +
                         "image = excluded.image, font_size = excluded.font_size, color = excluded.color, " +
-                        "image_width = excluded.image_width",
+                        "image_height = excluded.image_height",
                 ps -> {
                     ps.setInt(1, videoWatermark.getUserId());
                     ps.setString(2, videoWatermark.getWatermarkType().name());

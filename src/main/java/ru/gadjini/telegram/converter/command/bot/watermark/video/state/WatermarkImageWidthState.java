@@ -8,7 +8,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
-import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkColor;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
@@ -24,7 +23,7 @@ import java.util.Locale;
 @Component
 public class WatermarkImageWidthState extends BaseWatermarkState {
 
-    private static final List<String> WIDTHS = List.of("8", "16", "32", "64", "128", "256");
+    private static final List<String> HEIGHTS = List.of("16", "32", "64", "128", "256", "512");
 
     private MessageService messageService;
 
@@ -56,8 +55,8 @@ public class WatermarkImageWidthState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_WIDTH_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.watermarkImageWidthKeyboard(message.getChatId(), locale, WIDTHS))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_HEIGHT_WELCOME, locale))
+                        .replyMarkup(replyKeyboardService.watermarkImageSizeKeyboard(message.getChatId(), locale, HEIGHTS))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
@@ -68,7 +67,7 @@ public class WatermarkImageWidthState extends BaseWatermarkState {
         VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
                 vMarkCommand.getCommandIdentifier(),
                 true, VideoWatermarkSettings.class);
-        videoWatermarkSettings.setImageWidth(getWidth(text, userService.getLocaleOrDefault(message.getFrom().getId())));
+        videoWatermarkSettings.setImageHeight(getWidth(text, userService.getLocaleOrDefault(message.getFrom().getId())));
         videoWatermarkSettings.setStateName(watermarkPositionState.getName());
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
         watermarkPositionState.enter(message, 4);
@@ -80,10 +79,10 @@ public class WatermarkImageWidthState extends BaseWatermarkState {
     }
 
     private int getWidth(String text, Locale locale) {
-        if (WIDTHS.contains(text)) {
+        if (HEIGHTS.contains(text)) {
             return Integer.parseInt(text);
         }
 
-        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_WATERMARK_IMAGE_WIDTH, locale));
+        throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_WATERMARK_IMAGE_HEIGHT, locale));
     }
 }

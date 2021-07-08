@@ -22,8 +22,8 @@ import java.util.Locale;
 @Component
 public class WatermarkTextFontSizeState extends BaseWatermarkState {
 
-    private static final List<String> FONT_SIZES = List.of("18", "20", "24", "28", "30", "32", "36", "40", "46", "50",
-            "54", "60");
+    private static final List<String> FONT_SIZES = List.of("20", "24", "28", "30", "32", "36", "40", "46", "50",
+            "54", "60", "66");
 
     private MessageService messageService;
 

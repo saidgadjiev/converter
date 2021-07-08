@@ -226,7 +226,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup watermarkImageWidthKeyboard(long chatId, Locale locale, List<String> widths) {
+    public ReplyKeyboardMarkup watermarkImageSizeKeyboard(long chatId, Locale locale, List<String> widths) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         List<List<String>> lists = Lists.partition(widths, 3);

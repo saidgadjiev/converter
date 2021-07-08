@@ -106,8 +106,8 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
-    public ReplyKeyboardMarkup watermarkImageWidthKeyboard(long chatId, Locale locale, List<String> widths) {
-        return setCurrentKeyboard(chatId, keyboardService.watermarkImageWidthKeyboard(chatId, locale, widths));
+    public ReplyKeyboardMarkup watermarkImageSizeKeyboard(long chatId, Locale locale, List<String> widths) {
+        return setCurrentKeyboard(chatId, keyboardService.watermarkImageSizeKeyboard(chatId, locale, widths));
     }
 
     @Override

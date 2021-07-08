@@ -289,7 +289,7 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_WATERMARK_TEXT_COLOR_WELCOME = "message.watermark.text.color.welcome";
 
-    public static final String MESSAGE_WATERMARK_IMAGE_WIDTH_WELCOME = "message.watermark.image.width.welcome";
+    public static final String MESSAGE_WATERMARK_IMAGE_HEIGHT_WELCOME = "message.watermark.image.height.welcome";
 
     public static final String MESSAGE_WATERMARK_CREATED = "message.watermark.created";
 
@@ -303,7 +303,7 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_INCORRECT_WATERMARK_COLOR = "message.incorrect.watermark.color";
 
-    public static final String MESSAGE_INCORRECT_WATERMARK_IMAGE_WIDTH = "message.incorrect.watermark.image.width";
+    public static final String MESSAGE_INCORRECT_WATERMARK_IMAGE_HEIGHT = "message.incorrect.watermark.image.height";
 
     public static final String MESSAGE_INCORRECT_WATERMARK_TYPE = "message.incorrect.watermark.type";
 
