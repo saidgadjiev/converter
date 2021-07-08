@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.command.bot.watermark.video.state;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -9,6 +10,8 @@ import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermark;
+import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkService;
@@ -78,11 +81,13 @@ public class WatermarkOkState extends BaseWatermarkState {
 
     @Override
     public void enter(Message message, Object... args) {
+        VideoWatermark videoWatermark = videoWatermarkService.getWatermark(message.getFrom().getId());
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_OK_WELCOME, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_OK_WELCOME, locale) + "\n\n" +
+                                buildWatermarkInfo(videoWatermark, locale))
                         .replyMarkup(replyKeyboardService.watermarkOkKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
@@ -95,11 +100,13 @@ public class WatermarkOkState extends BaseWatermarkState {
 
         videoWatermarkService.createOrUpdate(message.getFrom().getId(), videoWatermarkSettings);
 
+        VideoWatermark videoWatermark = videoWatermarkService.getWatermark(message.getFrom().getId());
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_CREATED, locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_CREATED, locale) + "\n\n" +
+                                buildWatermarkInfo(videoWatermark, locale))
                         .replyMarkup(replyKeyboardService.watermarkOkKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
@@ -149,6 +156,34 @@ public class WatermarkOkState extends BaseWatermarkState {
     private void checkVideoFormat(Format format, Locale locale) {
         if (format == null || format.getCategory() != FormatCategory.VIDEO) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_VIDEO_FILE, locale));
+        }
+    }
+
+    private String buildWatermarkInfo(VideoWatermark videoWatermark, Locale locale) {
+        if (videoWatermark.getWatermarkType() == VideoWatermarkType.TEXT) {
+            String text = StringUtils.substring(videoWatermark.getText(), 0, 128);
+            String positionMessageCode = videoWatermark.getWatermarkPosition().name().toLowerCase().replace("_", ".");
+            return localisationService.getMessage(
+                    ConverterMessagesProperties.MESSAGE_TEXT_WATERMARK,
+                    new Object[] {
+                            text + (videoWatermark.getText().length() > 128 ? "..." : ""),
+                            videoWatermark.getFontSize() == null ? WatermarkTextFontSizeState.AUTO_SIZE : videoWatermark.getFontSize(),
+                            videoWatermark.getColor().name().toLowerCase(),
+                            localisationService.getMessage(positionMessageCode, locale)
+                    },
+                    locale
+            );
+        } else {
+            String positionMessageCode = videoWatermark.getWatermarkPosition().name().toLowerCase().replace("_", ".");
+            return localisationService.getMessage(
+                    ConverterMessagesProperties.MESSAGE_IMAGE_WATERMARK,
+                    new Object[] {
+                            videoWatermark.getImageHeight() == null ? WatermarkImageSizeState.AUTO : videoWatermark.getImageHeight(),
+                            videoWatermark.getTransparency(),
+                            localisationService.getMessage(positionMessageCode, locale)
+                    },
+                    locale
+            );
         }
     }
 }

@@ -45,4 +45,6 @@ public class ConverterCommandNames {
     public static final String SHOW_EXTRACTION_LANGUAGES = "sl";
 
     public static final String VMARK = "vmark";
+
+    public static final String VMARK_IMG = "vmark_img";
 }

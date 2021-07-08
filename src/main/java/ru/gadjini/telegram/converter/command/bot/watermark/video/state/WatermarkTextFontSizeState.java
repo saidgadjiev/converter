@@ -23,7 +23,7 @@ import java.util.Locale;
 @Component
 public class WatermarkTextFontSizeState extends BaseWatermarkState {
 
-    private static final String AUTO_SIZE = "Auto";
+    public static final String AUTO_SIZE = "Auto";
 
     private static final List<String> FONT_SIZES = List.of("Auto", "20", "24", "28", "32", "36", "40", "46", "50",
             "54", "60", "66");

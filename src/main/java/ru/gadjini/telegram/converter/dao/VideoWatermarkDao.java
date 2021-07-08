@@ -44,7 +44,7 @@ public class VideoWatermarkDao {
     public void createOrUpdate(VideoWatermark videoWatermark) {
         jdbcTemplate.update(
                 "INSERT INTO video_watermark(user_id, type, position, wtext, image, font_size, color, image_height, transparency) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (user_id) DO UPDATE " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (user_id) DO UPDATE " +
                         "SET type = excluded.type, position = excluded.position, wtext = excluded.wtext, " +
                         "image = excluded.image, font_size = excluded.font_size, color = excluded.color, " +
                         "image_height = excluded.image_height," +
@@ -56,7 +56,11 @@ public class VideoWatermarkDao {
                     if (videoWatermark.getWatermarkType().equals(VideoWatermarkType.TEXT)) {
                         ps.setString(4, videoWatermark.getText());
                         ps.setNull(5, Types.OTHER);
-                        ps.setInt(6, videoWatermark.getFontSize());
+                        if (videoWatermark.getFontSize() != null) {
+                            ps.setInt(6, videoWatermark.getFontSize());
+                        } else {
+                            ps.setNull(6, Types.INTEGER);
+                        }
                         ps.setString(7, videoWatermark.getColor().name());
                         ps.setNull(8, Types.INTEGER);
                         ps.setNull(9, Types.VARCHAR);
@@ -65,7 +69,11 @@ public class VideoWatermarkDao {
                         ps.setObject(5, videoWatermark.getImage().sqlObject());
                         ps.setNull(6, Types.INTEGER);
                         ps.setNull(7, Types.VARCHAR);
-                        ps.setInt(8, videoWatermark.getImageHeight());
+                        if (videoWatermark.getImageHeight() != null) {
+                            ps.setInt(8, videoWatermark.getImageHeight());
+                        } else {
+                            ps.setNull(8, Types.INTEGER);
+                        }
                         ps.setString(9, videoWatermark.getTransparency());
                     }
                 }
@@ -85,17 +93,15 @@ public class VideoWatermarkDao {
             videoWatermark.setColor(VideoWatermarkColor.valueOf(c));
         }
         int fontSize = rs.getInt(VideoWatermark.FONT_SIZE);
-        if (rs.wasNull()) {
+        if (!rs.wasNull()) {
             videoWatermark.setFontSize(fontSize);
         }
         videoWatermark.setText(rs.getString(VideoWatermark.TEXT));
         videoWatermark.setWatermarkType(VideoWatermarkType.valueOf(rs.getString(VideoWatermark.TYPE)));
 
-        int imageWidth = rs.getInt(VideoWatermark.IMAGE_HEIGHT);
-        if (rs.wasNull()) {
-            videoWatermark.setImageHeight(null);
-        } else {
-            videoWatermark.setImageHeight(imageWidth);
+        int imageHeight = rs.getInt(VideoWatermark.IMAGE_HEIGHT);
+        if (!rs.wasNull()) {
+            videoWatermark.setImageHeight(imageHeight);
         }
 
         String imageFileId = rs.getString(TgFile.FILE_ID);

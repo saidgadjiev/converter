@@ -160,7 +160,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
         filter.append("drawtext=text='").append(videoWatermark.getText()).append("':")
                 .append(getTextXY(videoWatermark.getWatermarkPosition())).append(":")
-                .append("fontfile=").append(getFontPath("times")).append(":")
+                .append("fontfile=").append(getFontPath("tahoma")).append(":")
                 .append("fontsize=").append(videoWatermark.getFontSize() == null ? "(h/30)" : videoWatermark.getFontSize()).append(":")
                 .append("fontcolor=").append(videoWatermark.getColor().name().toLowerCase());
 
@@ -170,7 +170,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
     private String createImageWatermarkFilter(String videoComplexFilterInLink, VideoWatermark videoWatermark) {
         StringBuilder filter = new StringBuilder();
 
-        filter.append("[1]scale=-2:").append(videoWatermark.getImageHeight() == null ? "ih*0.1" : videoWatermark.getImageHeight())
+        filter.append("[1]scale=-2:").append(videoWatermark.getImageHeight() == null ? "ih*0.2" : videoWatermark.getImageHeight())
                 .append("[wm];[wm]lut=a=val*").append(videoWatermark.getTransparency()).append("[a];[").append(videoComplexFilterInLink)
                 .append("][a]overlay=").append(getImageXY(videoWatermark.getWatermarkPosition()));
 

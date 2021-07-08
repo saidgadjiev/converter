@@ -314,4 +314,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_WATERMARK_IMAGE_INCORRECT_TRANSPARENCY = "message.watermark.image.incorrect.transparency";
 
     public static final String MESSAGE_WATERMARK_IMAGE_TRANSPARENCY_WELCOME = "message.watermark.image.transparency.welcome";
+
+    public static final String MESSAGE_TEXT_WATERMARK = "message.text.watermark";
+
+    public static final String MESSAGE_IMAGE_WATERMARK = "message.image.watermark";
 }

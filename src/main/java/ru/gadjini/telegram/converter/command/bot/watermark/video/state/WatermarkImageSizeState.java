@@ -23,7 +23,7 @@ import java.util.Locale;
 @Component
 public class WatermarkImageSizeState extends BaseWatermarkState {
 
-    private static final String AUTO = "Auto";
+    public static final String AUTO = "Auto";
 
     private static final List<String> HEIGHTS = List.of("Auto", "8", "16", "32", "64", "128", "256", "512");
 
