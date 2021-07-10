@@ -207,6 +207,12 @@
             <artifactId>smart-bot-commons</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.neovisionaries</groupId>
+            <artifactId>nv-i18n</artifactId>
+            <version>1.28</version>
+        </dependency>
     </dependencies>
 
     <profiles>

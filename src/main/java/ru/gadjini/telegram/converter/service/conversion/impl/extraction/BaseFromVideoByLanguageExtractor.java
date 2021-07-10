@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl.extraction;
 
+import com.neovisionaries.i18n.LanguageAlpha3Code;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -196,18 +197,10 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
         if (StringUtils.isBlank(lang)) {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE_UNKNOWN, locale);
         }
-        String displayLanguage = null;
-        String[] languages = Locale.getISOLanguages();
-        for (String language : languages) {
-            Locale l = new Locale(language);
-            if (l.getISO3Language().equals(lang)) {
-                displayLanguage = StringUtils.capitalize(l.getDisplayLanguage(locale));
-            }
-        }
 
         return localisationService.getMessage(
                 ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE, new Object[] {
-                        StringUtils.defaultIfBlank(displayLanguage, lang)
+                        StringUtils.defaultIfBlank(getLanguageDisplay(lang, locale), lang)
                 },
                 locale
         );
@@ -225,5 +218,24 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
         audioExtractionState.setLanguages(languages);
 
         return audioExtractionState;
+    }
+
+    private String getLanguageDisplay(String lang, Locale locale) {
+        String displayLanguage = null;
+        LanguageAlpha3Code byCode = LanguageAlpha3Code.getByCode(lang);
+        if (byCode != null) {
+            displayLanguage = StringUtils.capitalize(byCode.getAlpha2().toLocale().getDisplayLanguage(locale));
+        }
+        if (StringUtils.isBlank(displayLanguage)) {
+            String[] languages = Locale.getISOLanguages();
+            for (String language : languages) {
+                Locale l = new Locale(language);
+                if (l.getISO3Language().equals(lang)) {
+                    displayLanguage = StringUtils.capitalize(l.getDisplayLanguage(locale));
+                }
+            }
+        }
+
+        return displayLanguage;
     }
 }
