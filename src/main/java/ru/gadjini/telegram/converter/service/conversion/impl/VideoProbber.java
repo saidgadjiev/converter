@@ -55,7 +55,7 @@ public class VideoProbber extends BaseAny2AnyConverter {
 
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0, true);
 
             String text = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_PROBE_RESULT,
                     new Object[]{fileQueueItem.getFirstFileFormat().getName(),

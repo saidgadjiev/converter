@@ -68,6 +68,10 @@ public class FFprobeDevice {
     }
 
     public WHD getWHD(String in, int index) throws InterruptedException {
+        return getWHD(in, index, false);
+    }
+
+    public WHD getWHD(String in, int index, boolean throwEx) throws InterruptedException {
         WHD whd = new WHD();
         try {
             FFprobeDevice.FFprobeResult probeVideoStream = probeVideoStream(in, index);
@@ -79,14 +83,18 @@ public class FFprobeDevice {
                 }
                 FFprobeDevice.FFprobeFormat fFprobeFormat = probeVideoStream.getFormat();
                 if (fFprobeFormat != null) {
-                    Long duration = probeVideoStream.getFormat().getDuration();
+                    Long duration = probeVideoStream.getFormat().getDuration() != null ? probeVideoStream.getFormat().getDuration().longValue() : null;
                     whd.setDuration(duration);
                 }
             }
         } catch (InterruptedException e) {
             throw e;
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            if (throwEx) {
+                throw e;
+            } else {
+                LOGGER.error(e.getMessage(), e);
+            }
         }
 
         return whd;
@@ -196,13 +204,13 @@ public class FFprobeDevice {
 
     public static class FFprobeFormat {
 
-        private Long duration;
+        private Double duration;
 
-        public Long getDuration() {
+        public Double getDuration() {
             return duration;
         }
 
-        public void setDuration(Long duration) {
+        public void setDuration(Double duration) {
             this.duration = duration;
         }
     }
