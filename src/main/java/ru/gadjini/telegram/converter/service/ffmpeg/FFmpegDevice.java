@@ -38,6 +38,12 @@ public class FFmpegDevice {
                 && !result.contains("error reading header");
     }
 
+    public boolean isChannelMapError(String ... command) throws InterruptedException {
+        String result = processExecutor.tryExecute(command, 6);
+
+        return result.contains("Invalid channel layout 5.1(side)");
+    }
+
     public boolean isExecutable(String ... command) throws InterruptedException {
         String result = processExecutor.tryExecute(command, 6);
 

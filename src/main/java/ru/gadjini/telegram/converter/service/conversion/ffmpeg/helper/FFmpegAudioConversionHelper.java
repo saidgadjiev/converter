@@ -75,30 +75,31 @@ public class FFmpegAudioConversionHelper {
         }
     }
 
-    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target) {
-        addAudioTargetOptions(commandBuilder, target, false);
-    }
+    public void addChannelMapFilter(FFmpegCommandBuilder commandBuilder, SmartTempFile out) throws InterruptedException {
+        FFmpegCommandBuilder command = new FFmpegCommandBuilder(commandBuilder);
+        command.out(out.getAbsolutePath());
 
-    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target, boolean audioExtraction) {
-        if (audioExtraction) {
+        if (fFmpegDevice.isChannelMapError(command.buildFullCommand())) {
             commandBuilder.filterAudio("channelmap=channel_layout=5.1");
         }
+    }
 
-        if (target == AMR) {
+    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+        if (target.getAssociatedFormat() == AMR) {
             commandBuilder.ar("8000").ac("1");
-        } else if (target == OGG || target == OPUS) {
+        } else if (target.getAssociatedFormat().canBeSentAsVoice()) {
             commandBuilder.ar("48000");
         }
     }
 
     private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, int streamIndex, Format target) {
-        if (target == OGG) {
+        if (target.getAssociatedFormat() == OGG) {
             commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.OPUS);
         }
     }
 
     private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target) {
-        if (target == OGG || target == OPUS) {
+        if (target.getAssociatedFormat().canBeSentAsVoice()) {
             commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS);
         }
     }
