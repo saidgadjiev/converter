@@ -14,9 +14,11 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,8 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
     public static final int AUDIO_FILE_INDEX = 1;
 
     public static final int VIDEO_FILE_INDEX = 0;
+
+    public static final int SUBTITLES_FILE_INDEX = 2;
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(Format.VIDEOAUDIO), List.of(Format.MERGE)
@@ -66,18 +70,43 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem conversionQueueItem) {
-        SmartTempFile video = conversionQueueItem.getDownloadedFiles().get(VIDEO_FILE_INDEX);
-        SmartTempFile audio = conversionQueueItem.getDownloadedFiles().get(AUDIO_FILE_INDEX);
+        TgFile videoFile = conversionQueueItem.getFiles().stream()
+                .filter(f -> f.getFormat().getCategory() == FormatCategory.VIDEO)
+                .findAny().orElseThrow();
+        SmartTempFile video = conversionQueueItem.getDownloadedFileOrThrow(videoFile.getFileId());
+        TgFile audioFile = conversionQueueItem.getFiles().stream()
+                .filter(f -> f.getFormat().getCategory() == FormatCategory.AUDIO)
+                .findAny().orElse(null);
 
-        Format targetFormat = conversionQueueItem.getFiles().get(VIDEO_FILE_INDEX).getFormat();
+        SmartTempFile audio = null;
+        if (audioFile != null) {
+            audio = conversionQueueItem.getDownloadedFileOrThrow(audioFile.getFileId());
+        }
+
+        TgFile subtitlesFile = conversionQueueItem.getFiles().stream()
+                .filter(f -> f.getFormat().getCategory() == FormatCategory.SUBTITLES)
+                .findAny().orElse(null);
+
+        SmartTempFile subtitles = null;
+        if (subtitlesFile != null) {
+            subtitles = conversionQueueItem.getDownloadedFileOrThrow(subtitlesFile.getFileId());
+        }
+
+        Format targetFormat = videoFile.getFormat();
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, conversionQueueItem.getUserId(),
                 conversionQueueItem.getFirstFileId(), TAG, targetFormat.getExt());
 
         try {
             List<FFprobeDevice.Stream> videoStreamsForConversion = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             videoStreamsForConversion.forEach(s -> s.setInput(0));
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(video.getAbsolutePath())
-                    .input(audio.getAbsolutePath());
+            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(video.getAbsolutePath());
+
+            if (audio != null) {
+                commandBuilder.input(audio.getAbsolutePath());
+            }
+            if (subtitles != null) {
+                commandBuilder.input(subtitles.getAbsolutePath());
+            }
 
             if (targetFormat.canBeSentAsVideo()) {
                 fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion, targetFormat);
@@ -85,15 +114,26 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, videoStreamsForConversion, targetFormat, result);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
-            List<FFprobeDevice.Stream> audioStreamsForConversion = fFprobeDevice.getAllStreams(audio.getAbsolutePath());
-            audioStreamsForConversion.forEach(s -> s.setInput(1));
             FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
-            if (targetFormat.canBeSentAsVideo()) {
-                fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
-            } else {
-                fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, audioStreamsForConversion, result, targetFormat);
+            if (audio != null) {
+                List<FFprobeDevice.Stream> audioStreamsForConversion = fFprobeDevice.getAllStreams(audio.getAbsolutePath());
+                audioStreamsForConversion.forEach(s -> s.setInput(1));
+                baseCommand = new FFmpegCommandBuilder(commandBuilder);
+                if (targetFormat.canBeSentAsVideo()) {
+                    fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
+                } else {
+                    fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, audioStreamsForConversion, result, targetFormat);
+                }
+                if (subtitles == null) {
+                    fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
+                }
             }
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
+            if (subtitles != null) {
+                int subtitlesInput = audio == null ? 1 : 2;
+                List<FFprobeDevice.Stream> subtitlesStreams = fFprobeDevice.getAllStreams(subtitles.getAbsolutePath());
+                subtitlesStreams.forEach(f -> f.setInput(subtitlesInput));
+                fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, subtitlesStreams, result, targetFormat);
+            }
             if (WEBM.equals(targetFormat)) {
                 commandBuilder.vp8QualityOptions();
             }
@@ -105,7 +145,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
-            String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFiles().get(VIDEO_FILE_INDEX).getFileName(),
+            String fileName = Any2AnyFileNameUtils.getFileName(videoFile.getFileName(),
                     targetFormat.getExt());
             if (targetFormat.canBeSentAsVideo()) {
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);

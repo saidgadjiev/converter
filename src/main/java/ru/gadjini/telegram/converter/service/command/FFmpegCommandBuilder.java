@@ -248,7 +248,7 @@ public class FFmpegCommandBuilder {
         if (input == null) {
             options.add("s:" + index);
         } else {
-            options.add(index + ":s:" + index);
+            options.add(input + ":s:" + index);
         }
 
         return this;

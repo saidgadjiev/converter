@@ -205,6 +205,14 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VAIMAKE_CLICK = "message.vaimake.click";
 
+    public static final String MESSAGE_VAVMERGE_AWAITING_VIDEO_SUBTITLES = "message.vavmerge.awaiting.video.subtitles";
+
+    public static final String MESSAGE_VAVMERGE_AWAITING_AUDIO_SUBTITLES = "message.vavmerge.awaiting.audio.subtitles";
+
+    public static final String MESSAGE_VAVMERGE_AWAITING_SUBTITLES = "message.vavmerge.awaiting.subtitles";
+
+    public static final String MESSAGE_VAVMERGE_AWAITING_VIDEO_AUDIO = "message.vavmerge.awaiting.video.audio";
+
     public static final String MESSAGE_VAVMERGE_AWAITING_VIDEO = "message.vavmerge.awaiting.video";
 
     public static final String MESSAGE_VAVMERGE_AWAITING_AUDIO = "message.vavmerge.awaiting.audio";

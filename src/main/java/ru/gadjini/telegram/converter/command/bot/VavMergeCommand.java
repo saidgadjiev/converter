@@ -31,14 +31,13 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
-import static ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter.AUDIO_FILE_INDEX;
-import static ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter.VIDEO_FILE_INDEX;
+import static ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter.*;
 
 @Component
 @SuppressWarnings("CPD-START")
 public class VavMergeCommand implements NavigableBotCommand, BotCommand {
 
-    private static final Set<FormatCategory> ACCEPT_CATEGORIES = Set.of(FormatCategory.VIDEO, FormatCategory.AUDIO);
+    private static final Set<FormatCategory> ACCEPT_CATEGORIES = Set.of(FormatCategory.VIDEO, FormatCategory.AUDIO, FormatCategory.SUBTITLES);
 
     private MessageService messageService;
 
@@ -109,12 +108,11 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
             Locale locale = new Locale(existsState.getUserLanguage());
             MessageMedia media = messageMediaService.getMedia(message, locale);
             if (media != null) {
-                checkSecondMedia(existsState, media);
                 existsState.setMedia(getIndex(media), media);
 
                 messageService.sendMessage(
                         SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_CLICK, locale))
+                                .text(getAwaitingMessage(existsState))
                                 .parseMode(ParseMode.HTML)
                                 .replyMarkup(replyKeyboardService.vavmergeKeyboard(message.getChatId(), locale))
                                 .build()
@@ -134,6 +132,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
                     commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 } else if (Objects.equals(text, vmakeCommand)) {
                     validateVavMerge(existsState);
+                    existsState.getFiles().removeIf(Objects::isNull);
                     convertionService.createConversion(message.getFrom(), existsState, Format.MERGE, locale);
                     commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
                 }
@@ -162,7 +161,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
     }
 
     private ConvertState createState(Message message, Locale locale) {
-        ConvertState convertState = new ConvertState(2);
+        ConvertState convertState = new ConvertState(3);
         convertState.setMessageId(message.getMessageId());
         convertState.setUserLanguage(locale.getLanguage());
         MessageMedia media = messageMediaService.getMedia(message, locale);
@@ -174,11 +173,14 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
     }
 
     private int getIndex(MessageMedia media) {
-        return media.getFormat().getCategory() == FormatCategory.AUDIO ? AUDIO_FILE_INDEX : VIDEO_FILE_INDEX;
+        return media.getFormat().getCategory() == FormatCategory.AUDIO ? AUDIO_FILE_INDEX
+                : media.getFormat().getCategory() == FormatCategory.SUBTITLES
+                ? SUBTITLES_FILE_INDEX : VIDEO_FILE_INDEX;
     }
 
     private void validateVavMerge(ConvertState convertState) {
-        if (convertState.getMedia(AUDIO_FILE_INDEX) != null && convertState.getMedia(VIDEO_FILE_INDEX) != null) {
+        if ((convertState.getMedia(AUDIO_FILE_INDEX) != null || convertState.getMedia(SUBTITLES_FILE_INDEX) != null)
+                && convertState.getMedia(VIDEO_FILE_INDEX) != null) {
             return;
         }
 
@@ -186,8 +188,23 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
     }
 
     private String getAwaitingMessage(ConvertState convertState) {
-        if (convertState.getMedia(AUDIO_FILE_INDEX) != null) {
+        if (isAudioOnly(convertState)) {
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_VIDEO_SUBTITLES,
+                    new Locale(convertState.getUserLanguage()));
+        } else if (isSubtitlesOnly(convertState)) {
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_VIDEO_AUDIO,
+                    new Locale(convertState.getUserLanguage()));
+        } else if (isVideoOnly(convertState)) {
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_AUDIO_SUBTITLES,
+                    new Locale(convertState.getUserLanguage()));
+        } else if (isAudioVideoOnly(convertState)) {
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_SUBTITLES,
+                    new Locale(convertState.getUserLanguage()));
+        } else if (isAudioSubtitlesOnly(convertState)) {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_VIDEO,
+                    new Locale(convertState.getUserLanguage()));
+        } else if (isAllDone(convertState)) {
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_CLICK,
                     new Locale(convertState.getUserLanguage()));
         } else {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_AUDIO,
@@ -195,18 +212,40 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand {
         }
     }
 
-    private void checkSecondMedia(ConvertState convertState, MessageMedia media) {
-        if (convertState.getMedia(AUDIO_FILE_INDEX) != null) {
-            if (media == null || media.getFormat().getCategory() != FormatCategory.VIDEO) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_VIDEO,
-                        new Locale(convertState.getUserLanguage())));
-            }
-        } else {
-            if (media == null || media.getFormat().getCategory() != FormatCategory.AUDIO) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_AWAITING_AUDIO,
-                        new Locale(convertState.getUserLanguage())));
-            }
-        }
+    private boolean isAllDone(ConvertState convertState) {
+        return convertState.getMedia(VIDEO_FILE_INDEX) != null
+                && convertState.getMedia(SUBTITLES_FILE_INDEX) != null
+                && convertState.getMedia(AUDIO_FILE_INDEX) != null;
+    }
+
+    private boolean isAudioSubtitlesOnly(ConvertState convertState) {
+        return convertState.getMedia(VIDEO_FILE_INDEX) == null
+                && convertState.getMedia(SUBTITLES_FILE_INDEX) != null
+                && convertState.getMedia(AUDIO_FILE_INDEX) != null;
+    }
+
+    private boolean isAudioVideoOnly(ConvertState convertState) {
+        return convertState.getMedia(VIDEO_FILE_INDEX) != null
+                && convertState.getMedia(SUBTITLES_FILE_INDEX) == null
+                && convertState.getMedia(AUDIO_FILE_INDEX) != null;
+    }
+
+    private boolean isVideoOnly(ConvertState convertState) {
+        return convertState.getMedia(VIDEO_FILE_INDEX) != null
+                && convertState.getMedia(SUBTITLES_FILE_INDEX) == null
+                && convertState.getMedia(AUDIO_FILE_INDEX) == null;
+    }
+
+    private boolean isSubtitlesOnly(ConvertState convertState) {
+        return convertState.getMedia(SUBTITLES_FILE_INDEX) != null
+                && convertState.getMedia(AUDIO_FILE_INDEX) == null
+                && convertState.getMedia(VIDEO_FILE_INDEX) == null;
+    }
+
+    private boolean isAudioOnly(ConvertState convertState) {
+        return convertState.getMedia(AUDIO_FILE_INDEX) != null
+                && convertState.getMedia(SUBTITLES_FILE_INDEX) == null
+                && convertState.getMedia(VIDEO_FILE_INDEX) == null;
     }
 
     private void checkMedia(MessageMedia media, Locale locale) {
