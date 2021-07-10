@@ -131,7 +131,7 @@ public class WatermarkOkState extends BaseWatermarkState {
 
             videoWatermarkSettings.setStateName(noWatermarkState.getName());
             commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
-            noWatermarkState.enter(message);
+            noWatermarkState.enter(message, false);
         } else {
             ConvertState convertState = createState(message, locale);
 

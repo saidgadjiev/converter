@@ -168,14 +168,18 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup watermarkTypeKeyboard(long chatId, Locale locale) {
+    public ReplyKeyboardMarkup watermarkTypeKeyboard(long chatId, Locale locale, boolean creation) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(
                 localisationService.getMessage(ConverterMessagesProperties.IMAGE_WATERMARK_COMMAND_NAME, locale),
                 localisationService.getMessage(ConverterMessagesProperties.TEXT_WATERMARK_COMMAND_NAME, locale)
         ));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
+        if (creation) {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        } else {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
+        }
 
         return replyKeyboardMarkup;
     }

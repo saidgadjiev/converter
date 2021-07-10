@@ -65,7 +65,7 @@ public class NoWatermarkState extends BaseWatermarkState {
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NO_WATERMARK_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.watermarkTypeKeyboard(message.getChatId(), locale))
+                        .replyMarkup(replyKeyboardService.watermarkTypeKeyboard(message.getChatId(), locale, (Boolean) args[0]))
                         .parseMode(ParseMode.HTML)
                         .build()
         );

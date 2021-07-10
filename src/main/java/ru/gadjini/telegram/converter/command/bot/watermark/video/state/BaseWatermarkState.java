@@ -78,7 +78,7 @@ public abstract class BaseWatermarkState implements VideoWatermarkState {
                 watermarkOkState.enter(message);
             } else {
                 videoWatermarkSettings.setStateName(noWatermarkState.getName());
-                noWatermarkState.enter(message);
+                noWatermarkState.enter(message, true);
             }
             commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
         } else {

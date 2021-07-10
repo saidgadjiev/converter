@@ -26,7 +26,7 @@ public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
 
     ReplyKeyboardMarkup vavmergeKeyboard(long chatId, Locale locale);
 
-    ReplyKeyboardMarkup watermarkTypeKeyboard(long chatId, Locale locale);
+    ReplyKeyboardMarkup watermarkTypeKeyboard(long chatId, Locale locale, boolean creation);
 
     ReplyKeyboardMarkup watermarkTextFontSizeKeyboard(long chatId, Locale locale, List<String> fontSizes);
 

@@ -84,7 +84,7 @@ public class VMarkCommand implements BotCommand, NavigableBotCommand {
             watermarkOkState.enter(message);
         } else {
             videoWatermarkSettings.setStateName(noWatermarkState.getName());
-            noWatermarkState.enter(message);
+            noWatermarkState.enter(message, true);
         }
         commandStateService.setState(message.getChatId(), getCommandIdentifier(), videoWatermarkSettings);
     }
