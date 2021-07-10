@@ -80,7 +80,7 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
 
             if (fileQueueItem.getTargetFormat().canBeSentAsVoice()) {
                 audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream),
-                        fileQueueItem.getTargetFormat(), result, FFmpegCommandBuilder.OPUS_CODEC_NAME);
+                        fileQueueItem.getTargetFormat(), result, FFmpegCommandBuilder.OPUS_CODEC_NAME, FFmpegCommandBuilder.OPUS);
             } else {
                 audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream),
                         fileQueueItem.getTargetFormat(), result);

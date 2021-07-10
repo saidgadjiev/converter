@@ -123,19 +123,23 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
 
     public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> audioStreams,
                                          Format targetFormat, SmartTempFile result) throws InterruptedException {
-        copyOrConvertAudioCodecs(commandBuilder, audioStreams, targetFormat, result, null);
+        copyOrConvertAudioCodecs(commandBuilder, audioStreams, targetFormat, result, null, null);
     }
 
     public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> audioStreams,
-                                         Format targetFormat, SmartTempFile result, String targetCodec) throws InterruptedException {
+                                         Format targetFormat, SmartTempFile result, String targetCodecName, String targetCodec) throws InterruptedException {
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         int outCodecIndex = 0;
         for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
             FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamMapIndex);
 
             commandBuilder.mapAudio(audioStream.getInput(), audioStreamMapIndex);
-            if (StringUtils.isNotBlank(targetCodec) && targetCodec.equals(audioStream.getCodecName())) {
-                commandBuilder.copyAudio(outCodecIndex);
+            if (StringUtils.isNotBlank(targetCodecName)) {
+                if (targetCodecName.equals(audioStream.getCodecName())) {
+                    commandBuilder.copyAudio(outCodecIndex);
+                } else {
+                    commandBuilder.audioCodec(outCodecIndex, targetCodec);
+                }
             } else {
                 if (isCopyableAudioCodecs(baseCommand, result, targetFormat, audioStream.getInput(), audioStreamMapIndex)) {
                     commandBuilder.copyAudio(outCodecIndex);
