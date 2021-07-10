@@ -15,7 +15,7 @@ public class ConversionReportService {
         this.conversionReportDao = conversionReportDao;
     }
 
-    public void createReport(int userId, int queueItemId) {
+    public void createReport(long userId, int queueItemId) {
         ConversionReport fileReport = new ConversionReport();
         fileReport.setUserId(userId);
         fileReport.setQueueItemId(queueItemId);

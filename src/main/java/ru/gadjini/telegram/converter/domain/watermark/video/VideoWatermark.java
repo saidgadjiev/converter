@@ -26,7 +26,7 @@ public class VideoWatermark {
 
     private VideoWatermarkPosition watermarkPosition;
 
-    private int userId;
+    private long userId;
 
     private String text;
 
@@ -88,11 +88,11 @@ public class VideoWatermark {
         this.color = color;
     }
 
-    public int getUserId() {
+    public long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(long userId) {
         this.userId = userId;
     }
 

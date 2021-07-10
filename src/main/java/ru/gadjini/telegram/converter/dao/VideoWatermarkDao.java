@@ -25,18 +25,18 @@ public class VideoWatermarkDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public VideoWatermark getWatermark(int userId) {
+    public VideoWatermark getWatermark(long userId) {
         return jdbcTemplate.query(
                 "SELECT *, (image).* FROM video_watermark WHERE user_id = ?",
-                ps -> ps.setInt(1, userId),
+                ps -> ps.setLong(1, userId),
                 rs -> rs.next() ? map(rs) : null
         );
     }
 
-    public Boolean isExists(int userId) {
+    public Boolean isExists(long userId) {
         return jdbcTemplate.query(
                 "SELECT TRUE as res FROM video_watermark WHERE user_id = ?",
-                ps -> ps.setInt(1, userId),
+                ps -> ps.setLong(1, userId),
                 rs -> rs.next() ? true : false
         );
     }
@@ -50,7 +50,7 @@ public class VideoWatermarkDao {
                         "image_height = excluded.image_height," +
                         "transparency = excluded.transparency",
                 ps -> {
-                    ps.setInt(1, videoWatermark.getUserId());
+                    ps.setLong(1, videoWatermark.getUserId());
                     ps.setString(2, videoWatermark.getWatermarkType().name());
                     ps.setString(3, videoWatermark.getWatermarkPosition().name());
                     if (videoWatermark.getWatermarkType().equals(VideoWatermarkType.TEXT)) {

@@ -74,7 +74,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
                     PreparedStatement ps = con.prepareStatement("INSERT INTO " + TYPE +
                             " (user_id, files, reply_to_message_id, target_format, status, extra, converter)\n" +
                             "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *", Statement.RETURN_GENERATED_KEYS);
-                    ps.setInt(1, queueItem.getUserId());
+                    ps.setLong(1, queueItem.getUserId());
 
                     Object[] files = queueItem.getFiles().stream().map(TgFile::sqlObject).toArray();
                     Array array = con.createArrayOf(TgFile.TYPE, files);
@@ -293,11 +293,11 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
     }
 
     @Override
-    public List<ConversionQueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
+    public List<ConversionQueueItem> deleteAndGetProcessingOrWaitingByUserId(long userId) {
         return jdbcTemplate.query("DELETE FROM conversion_queue WHERE user_id = ? " +
                         " AND converter IN(" + inConverters() + ") " +
                         " AND status IN (0, 1) RETURNING id, status, server",
-                ps -> ps.setInt(1, userId),
+                ps -> ps.setLong(1, userId),
                 (rs, rowNum) -> mapDeleteItem(rs)
         );
     }

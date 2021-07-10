@@ -295,7 +295,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
         throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
-    private void checkSrcFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
+    private void checkSrcFormat(long userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
             LOGGER.warn("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
@@ -310,7 +310,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
         }
     }
 
-    private void checkTargetFormat(int userId, Format format, Format target, String text, long size, Locale locale) {
+    private void checkTargetFormat(long userId, Format format, Format target, String text, long size, Locale locale) {
         if (target == null) {
             LOGGER.warn("Target format is null({}, {})", userId, text);
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));

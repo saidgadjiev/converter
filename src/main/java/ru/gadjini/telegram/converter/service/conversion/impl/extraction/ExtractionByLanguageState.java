@@ -9,7 +9,7 @@ public class ExtractionByLanguageState {
 
     private int replyToMessageId;
 
-    private int userId;
+    private long userId;
 
     private String filePath;
 
@@ -21,11 +21,11 @@ public class ExtractionByLanguageState {
 
     private List<String> languages;
 
-    public int getUserId() {
+    public long getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(long userId) {
         this.userId = userId;
     }
 

@@ -20,7 +20,7 @@ public class ConversionReportDao {
                 "INSERT INTO " + ConversionReport.TYPE + "(user_id, queue_item_id) VALUES (?, ?) " +
                         "ON CONFLICT (user_id, queue_item_id) DO NOTHING",
                 ps -> {
-                    ps.setInt(1, fileReport.getUserId());
+                    ps.setLong(1, fileReport.getUserId());
                     ps.setInt(2, fileReport.getQueueItemId());
                 }
         );

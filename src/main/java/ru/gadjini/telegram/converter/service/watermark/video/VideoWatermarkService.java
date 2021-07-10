@@ -17,15 +17,15 @@ public class VideoWatermarkService {
         this.videoWatermarkDao = videoWatermarkDao;
     }
 
-    public VideoWatermark getWatermark(int userId) {
+    public VideoWatermark getWatermark(long userId) {
         return videoWatermarkDao.getWatermark(userId);
     }
 
-    public boolean isExistsWatermark(int userId) {
+    public boolean isExistsWatermark(long userId) {
         return videoWatermarkDao.isExists(userId);
     }
 
-    public void createOrUpdate(int userId, VideoWatermarkSettings videoWatermarkSettings) {
+    public void createOrUpdate(long userId, VideoWatermarkSettings videoWatermarkSettings) {
         VideoWatermark videoWatermark = new VideoWatermark();
         videoWatermark.setUserId(userId);
         videoWatermark.setWatermarkType(videoWatermarkSettings.getWatermarkType());

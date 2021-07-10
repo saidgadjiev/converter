@@ -109,7 +109,7 @@ public class AudioMerger extends BaseAny2AnyConverter {
         }
     }
 
-    private SmartTempFile createFilesListFile(int userId, List<SmartTempFile> files) {
+    private SmartTempFile createFilesListFile(long userId, List<SmartTempFile> files) {
         SmartTempFile filesList = tempFileService().createTempFile(FileTarget.TEMP, userId, TAG, Format.TXT.getExt());
         try (PrintWriter printWriter = new PrintWriter(filesList.getAbsolutePath())) {
             for (SmartTempFile downloadedFile : files) {
