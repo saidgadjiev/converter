@@ -196,7 +196,14 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
         if (StringUtils.isBlank(lang)) {
             return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE_UNKNOWN, locale);
         }
-        String displayLanguage = new Locale(lang).getDisplayLanguage(locale);
+        String displayLanguage = null;
+        String[] languages = Locale.getISOLanguages();
+        for (String language : languages) {
+            Locale l = new Locale(language);
+            if (l.getISO3Language().equals(lang)) {
+                displayLanguage = StringUtils.capitalize(l.getDisplayLanguage(locale));
+            }
+        }
 
         return localisationService.getMessage(
                 ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE, new Object[] {
