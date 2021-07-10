@@ -16,6 +16,8 @@ public abstract class BaseWatermarkState implements VideoWatermarkState {
 
     private LocalisationService localisationService;
 
+    private VideoWatermarkStateInitializer videoWatermarkStateInitializer;
+
     private VideoWatermarkService videoWatermarkService;
 
     private WatermarkOkState watermarkOkState;
@@ -27,8 +29,13 @@ public abstract class BaseWatermarkState implements VideoWatermarkState {
     private UserService userService;
 
     @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setNoWatermarkState(NoWatermarkState noWatermarkState) {
+        this.noWatermarkState = noWatermarkState;
+    }
+
+    @Autowired
+    public void setVideoWatermarkService(VideoWatermarkService videoWatermarkService) {
+        this.videoWatermarkService = videoWatermarkService;
     }
 
     @Autowired
@@ -37,18 +44,18 @@ public abstract class BaseWatermarkState implements VideoWatermarkState {
     }
 
     @Autowired
-    public void setNoWatermarkState(NoWatermarkState noWatermarkState) {
-        this.noWatermarkState = noWatermarkState;
+    public void setVideoWatermarkStateInitializer(VideoWatermarkStateInitializer videoWatermarkStateInitializer) {
+        this.videoWatermarkStateInitializer = videoWatermarkStateInitializer;
+    }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     @Autowired
     public void setCommandStateService(CommandStateService commandStateService) {
         this.commandStateService = commandStateService;
-    }
-
-    @Autowired
-    public void setVideoWatermarkService(VideoWatermarkService videoWatermarkService) {
-        this.videoWatermarkService = videoWatermarkService;
     }
 
     @Autowired
@@ -62,7 +69,8 @@ public abstract class BaseWatermarkState implements VideoWatermarkState {
 
         if (localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale).equals(text)) {
             VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(
-                    message.getFrom().getId(), vMarkCommand.getCommandIdentifier(), true, VideoWatermarkSettings.class
+                    message.getFrom().getId(), vMarkCommand.getCommandIdentifier(), true, VideoWatermarkSettings.class,
+                    () -> videoWatermarkStateInitializer.initAndGet(message, vMarkCommand)
             );
 
             if (videoWatermarkService.isExistsWatermark(message.getFrom().getId())) {

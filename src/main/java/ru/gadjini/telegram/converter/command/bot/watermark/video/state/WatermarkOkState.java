@@ -47,6 +47,8 @@ public class WatermarkOkState extends BaseWatermarkState {
 
     private VideoWatermarkService videoWatermarkService;
 
+    private VideoWatermarkStateInitializer stateInitializer;
+
     private MessageMediaService messageMediaService;
 
     private ConvertionService convertionService;
@@ -57,7 +59,8 @@ public class WatermarkOkState extends BaseWatermarkState {
     public WatermarkOkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             CommandStateService commandStateService,
-                            VideoWatermarkService videoWatermarkService, MessageMediaService messageMediaService,
+                            VideoWatermarkService videoWatermarkService,
+                            MessageMediaService messageMediaService,
                             ConvertionService convertionService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
@@ -67,6 +70,11 @@ public class WatermarkOkState extends BaseWatermarkState {
         this.videoWatermarkService = videoWatermarkService;
         this.messageMediaService = messageMediaService;
         this.convertionService = convertionService;
+    }
+
+    @Autowired
+    public void setStateInitializer(VideoWatermarkStateInitializer videoWatermarkStateInitializer) {
+        this.stateInitializer = videoWatermarkStateInitializer;
     }
 
     @Autowired
@@ -118,7 +126,8 @@ public class WatermarkOkState extends BaseWatermarkState {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (localisationService.getMessage(ConverterMessagesProperties.CHANGE_WATERMARK_COMMAND_NAME, locale).equals(text)) {
             VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
-                    vMarkCommand.getCommandIdentifier(), true, VideoWatermarkSettings.class);
+                    vMarkCommand.getCommandIdentifier(), true, VideoWatermarkSettings.class,
+                    () -> stateInitializer.initAndGet(message, vMarkCommand));
 
             videoWatermarkSettings.setStateName(noWatermarkState.getName());
             commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);

@@ -194,7 +194,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
 
     protected final String getLanguageMessage(String lang, Locale locale) {
         if (StringUtils.isBlank(lang)) {
-            return null;
+            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE_UNKNOWN, locale);
         }
         String displayLanguage = new Locale(lang).getDisplayLanguage(locale);
 
