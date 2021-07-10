@@ -17,6 +17,10 @@ public class FFmpegCommandBuilder {
 
     public static final String _3GP_SCALE = "scale=176:144";
 
+    public static final String H263_PLUS_SCALE = "scale='min(2048,iw)':min'(1152,ih)'";
+
+    public static final String H263_PLUS_CODEC = "h263p";
+
     public static final String PRESET_VERY_FAST = "veryfast";
 
     public static final String OPUS = "libopus";
@@ -530,6 +534,13 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder f(String format) {
         options.add("-f");
         options.add(format);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder q(String streamSpecifier, String q) {
+        options.add("-q:" + streamSpecifier);
+        options.add(q);
 
         return this;
     }
