@@ -122,17 +122,19 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             if (FormatsConfiguration.AUDIO_CONVERTER.equals(applicationProperties.getConverter())) {
                 message
                         .append("\n\n")
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_NON_COMMAND_FEATURES, locale))
+                        .append("\n\n\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DEFAULT_COMPRESSION_SETTINGS,
                                 new Object[]{FFmpegAudioCompressConverter.AUTO_BITRATE + "k",
                                         FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT.getName(),
                                         FFmpegAudioCompressConverter.MP3_FREQUENCY_44
                                 }, locale))
-                        .append("\n\n")
+                        .append("\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale));
             } else {
                 message.append("\n\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE, locale)).append("\n")
-                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_FEATURES, locale));
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_NON_COMMAND_FEATURES, locale));
             }
         }
 

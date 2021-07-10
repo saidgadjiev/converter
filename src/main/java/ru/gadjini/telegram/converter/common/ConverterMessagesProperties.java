@@ -225,7 +225,9 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VAVMERGE_WELCOME = "message.vavmerge.welcome";
 
-    public static final String MESSAGE_NON_COMMAND_FEATURES = "message.non.command.features";
+    public static final String MESSAGE_VIDEO_NON_COMMAND_FEATURES = "message.video.non.command.features";
+
+    public static final String MESSAGE_AUDIO_NON_COMMAND_FEATURES = "message.audio.non.command.features";
 
     public static final String MESSAGE_MEDIA_CUT_WELCOME = "message.media.cut.welcome";
 
@@ -242,6 +244,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_NON_COMMAND_FEATURES_HEADER = "message.non.command.features.header";
 
     public static final String MESSAGE_VIDEO_PROBE_RESULT = "message.video.probe.result";
+
+    public static final String MESSAGE_AUDIO_PROBE_RESULT = "message.audio.probe.result";
 
     public static final String MESSAGE_VMAKE_QUEUED = "message.vmake.queued";
 

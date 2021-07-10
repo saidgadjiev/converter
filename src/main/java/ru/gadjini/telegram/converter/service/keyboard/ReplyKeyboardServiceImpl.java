@@ -305,11 +305,11 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         if (targetFormats.remove(Format.VIDEO_NOTE)) {
             formats.add(Format.VIDEO_NOTE);
         }
-        if (targetFormats.remove(Format.PROBE)) {
-            formats.add(Format.PROBE);
-        }
         if (targetFormats.remove(Format.VOICE)) {
             formats.add(Format.VOICE);
+        }
+        if (targetFormats.remove(Format.PROBE)) {
+            formats.add(Format.PROBE);
         }
 
         return formats;

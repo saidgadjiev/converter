@@ -59,7 +59,7 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
 
         if (applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER)) {
             info.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_FEATURES_HEADER, locale))
-                    .append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_FEATURES, locale));
+                    .append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_NON_COMMAND_FEATURES, locale));
         }
 
         return info.toString();
