@@ -308,6 +308,9 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         if (targetFormats.remove(Format.PROBE)) {
             formats.add(Format.PROBE);
         }
+        if (targetFormats.remove(Format.VOICE)) {
+            formats.add(Format.VOICE);
+        }
 
         return formats;
     }

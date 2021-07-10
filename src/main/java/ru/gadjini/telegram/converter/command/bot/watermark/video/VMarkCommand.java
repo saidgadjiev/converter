@@ -8,6 +8,8 @@ import ru.gadjini.telegram.converter.command.bot.watermark.video.state.NoWaterma
 import ru.gadjini.telegram.converter.command.bot.watermark.video.state.WatermarkOkState;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.state.VideoWatermarkState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
+import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
+import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
@@ -29,15 +31,23 @@ public class VMarkCommand implements BotCommand, NavigableBotCommand {
 
     private CommandStateService commandStateService;
 
+    private ApplicationProperties applicationProperties;
+
     @Autowired
     public VMarkCommand(NoWatermarkState noWatermarkState, WatermarkOkState watermarkOkState,
                         Set<VideoWatermarkState> watermarkStates, VideoWatermarkService videoWatermarkService,
-                        CommandStateService commandStateService) {
+                        CommandStateService commandStateService, ApplicationProperties applicationProperties) {
         this.noWatermarkState = noWatermarkState;
         this.watermarkOkState = watermarkOkState;
         this.watermarkStates = watermarkStates;
         this.videoWatermarkService = videoWatermarkService;
         this.commandStateService = commandStateService;
+        this.applicationProperties = applicationProperties;
+    }
+
+    @Override
+    public boolean accept(Message message) {
+        return applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER);
     }
 
     @Override

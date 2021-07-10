@@ -70,7 +70,7 @@ public class AudioMerger extends BaseAny2AnyConverter {
             try {
                 FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                         .f(FFmpegCommandBuilder.CONCAT).safe("0").input(filesList.getAbsolutePath())
-                        .mapVideo().copyVideo()
+                        .mapAudio().copyAudio()
                         .out(result.getAbsolutePath());
 
                 fFmpegDevice.execute(commandBuilder.buildFullCommand());

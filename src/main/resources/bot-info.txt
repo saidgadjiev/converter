@@ -30,6 +30,7 @@ vavmerge - replace or add audio and subtitles to video
 vaimake - make video from audio and image
 vcut - cut video
 vmark - add watermark to video
+vmerge - merge videos
 subscription - check subscription
 refreshsub - refresh subscription
 language - change language
@@ -39,7 +40,8 @@ goback- Go back
 
 #Audio
 start - restart the bot
-acompress - Compress audio
+acompress - compress audio
+amerge - merge audios
 language - change language
 formats - conversion formats
 help - help
@@ -51,6 +53,9 @@ vedit - change video resolution
 vavmerge - replace or add audio and subtitles to video
 vaimake - make video from audio and image
 vcut - cut video
+acut - cut audio
+vmerge - merge videos
+amerge - merge audios
 vmark - add watermark to video
 acompress - Compress audio
 mergepdfs - merge pdf files

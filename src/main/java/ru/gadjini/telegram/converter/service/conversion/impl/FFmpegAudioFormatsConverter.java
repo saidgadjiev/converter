@@ -73,6 +73,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
             audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, audioStreams, targetFormat, out);
         }
         audioConversionHelper.addAudioTargetOptions(commandBuilder, targetFormat);
+        commandBuilder.out(out.getAbsolutePath());
 
         fFmpegDevice.execute(commandBuilder.buildFullCommand());
     }
