@@ -79,9 +79,11 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
                     .input(file.getAbsolutePath());
 
             if (fileQueueItem.getTargetFormat().canBeSentAsVoice()) {
-                audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, streamIndex, fileQueueItem.getTargetFormat());
+                audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream),
+                        fileQueueItem.getTargetFormat(), result, FFmpegCommandBuilder.OPUS_CODEC_NAME);
             } else {
-                audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream), fileQueueItem.getTargetFormat(), result);
+                audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream),
+                        fileQueueItem.getTargetFormat(), result);
             }
             audioConversionHelper.addAudioTargetOptions(commandBuilder, fileQueueItem.getTargetFormat());
             audioConversionHelper.addChannelMapFilter(commandBuilder, result);
