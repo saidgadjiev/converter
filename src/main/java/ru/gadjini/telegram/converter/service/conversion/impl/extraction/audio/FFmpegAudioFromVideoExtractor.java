@@ -17,12 +17,14 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -46,14 +48,17 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
 
     private FFprobeDevice fFprobeDevice;
 
+    private UserService userService;
+
     private FFmpegAudioStreamInVideoFileConversionHelper audioConversionHelper;
 
     @Autowired
     public FFmpegAudioFromVideoExtractor(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                         FFmpegAudioStreamInVideoFileConversionHelper audioConversionHelper) {
+                                         UserService userService, FFmpegAudioStreamInVideoFileConversionHelper audioConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.userService = userService;
         this.audioConversionHelper = audioConversionHelper;
     }
 
@@ -86,6 +91,7 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
                     String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
 
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             if (fileQueueItem.getTargetFormat().canBeSentAsAudio()) {
                 long durationInSeconds = 0;
                 try {
@@ -97,12 +103,12 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
                 }
 
                 if (fileQueueItem.getTargetFormat().equals(VOICE)) {
-                    return new VoiceResult(fileName, result, (int) durationInSeconds, audioStream.getLanguage());
+                    return new VoiceResult(fileName, result, (int) durationInSeconds, getLanguageMessage(audioStream.getLanguage(), locale));
                 } else {
-                    return new AudioResult(fileName, result, (int) durationInSeconds, audioStream.getLanguage());
+                    return new AudioResult(fileName, result, (int) durationInSeconds, getLanguageMessage(audioStream.getLanguage(), locale));
                 }
             } else {
-                return new FileResult(fileName, result, audioStream.getLanguage());
+                return new FileResult(fileName, result, getLanguageMessage(audioStream.getLanguage(), locale));
             }
         } catch (Exception e) {
             tempFileService().delete(result);

@@ -330,4 +330,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_IMAGE_WATERMARK = "message.image.watermark";
 
     public static final String WATERMARK_ADDING_STEP = "watermark.adding.step";
+
+    public static final String MESSAGE_STREAM_LANGUAGE = "message.stream.language";
 }

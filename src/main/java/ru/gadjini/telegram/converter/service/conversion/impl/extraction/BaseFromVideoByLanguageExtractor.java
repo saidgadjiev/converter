@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
@@ -190,6 +191,20 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
     protected abstract String getStreamSpecifier();
 
     protected abstract String getStreamsToExtractNotFoundMessage();
+
+    protected final String getLanguageMessage(String lang, Locale locale) {
+        if (StringUtils.isBlank(lang)) {
+            return null;
+        }
+        String displayLanguage = new Locale(lang).getDisplayLanguage(locale);
+
+        return localisationService.getMessage(
+                ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE, new Object[] {
+                        StringUtils.defaultIfBlank(displayLanguage, lang)
+                },
+                locale
+        );
+    }
 
     private ExtractionByLanguageState createState(ConversionQueueItem queueItem, List<String> languages) {
         ExtractionByLanguageState audioExtractionState = new ExtractionByLanguageState();

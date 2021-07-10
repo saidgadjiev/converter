@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -33,10 +34,13 @@ public class FFmpegVideoSubtitlesExtractor extends BaseFromVideoByLanguageExtrac
 
     private FFmpegDevice fFmpegDevice;
 
+    private UserService userService;
+
     @Autowired
-    public FFmpegVideoSubtitlesExtractor(FFmpegDevice fFmpegDevice) {
+    public FFmpegVideoSubtitlesExtractor(FFmpegDevice fFmpegDevice, UserService userService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
+        this.userService = userService;
     }
 
     @Override
@@ -58,7 +62,7 @@ public class FFmpegVideoSubtitlesExtractor extends BaseFromVideoByLanguageExtrac
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
                     String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());
-            return new FileResult(fileName, result, subtitleStream.getLanguage());
+            return new FileResult(fileName, result, getLanguageMessage(subtitleStream.getLanguage(), userService.getLocaleOrDefault(fileQueueItem.getUserId())));
         } catch (Exception e) {
             tempFileService().delete(result);
             throw e;
