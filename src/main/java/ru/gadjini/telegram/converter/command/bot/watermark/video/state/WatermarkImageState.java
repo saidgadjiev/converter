@@ -33,7 +33,7 @@ public class WatermarkImageState extends BaseWatermarkState {
 
     private CommandStateService commandStateService;
 
-    private WatermarkImageSizeState watermarkImageWidthState;
+    private WatermarkImageSizeState watermarkImageSizeState;
 
     private MessageMediaService messageMediaService;
 
@@ -51,8 +51,8 @@ public class WatermarkImageState extends BaseWatermarkState {
     }
 
     @Autowired
-    public void setWatermarkImageWidthState(WatermarkImageSizeState watermarkImageWidthState) {
-        this.watermarkImageWidthState = watermarkImageWidthState;
+    public void setWatermarkImageSizeState(WatermarkImageSizeState watermarkImageSizeState) {
+        this.watermarkImageSizeState = watermarkImageSizeState;
     }
 
     @Override
@@ -77,9 +77,9 @@ public class WatermarkImageState extends BaseWatermarkState {
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
         videoWatermarkSettings.setImage(media);
-        videoWatermarkSettings.setStateName(watermarkImageWidthState.getName());
+        videoWatermarkSettings.setStateName(watermarkImageSizeState.getName());
         commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
-        watermarkImageWidthState.enter(message);
+        watermarkImageSizeState.enter(message);
     }
 
     @Override

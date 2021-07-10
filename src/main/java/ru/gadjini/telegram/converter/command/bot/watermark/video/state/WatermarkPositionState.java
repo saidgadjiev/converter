@@ -38,12 +38,16 @@ public class WatermarkPositionState extends BaseWatermarkState {
     @Autowired
     public WatermarkPositionState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                                   UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                                  CommandStateService commandStateService, WatermarkOkState watermarkOkState) {
+                                  CommandStateService commandStateService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
+    }
+
+    @Autowired
+    public void setOkState(WatermarkOkState watermarkOkState) {
         this.watermarkOkState = watermarkOkState;
     }
 

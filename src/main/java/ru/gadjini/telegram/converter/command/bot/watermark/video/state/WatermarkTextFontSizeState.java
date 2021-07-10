@@ -52,7 +52,7 @@ public class WatermarkTextFontSizeState extends BaseWatermarkState {
     }
 
     @Autowired
-    public void setWatermarkPositionState(WatermarkColorState colorState) {
+    public void setColorState(WatermarkColorState colorState) {
         this.watermarkColorState = colorState;
     }
 

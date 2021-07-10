@@ -41,13 +41,17 @@ public class WatermarkImageTransparencyState extends BaseWatermarkState {
     @Autowired
     public WatermarkImageTransparencyState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                                            UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                                           CommandStateService commandStateService, WatermarkPositionState watermarkPositionState) {
+                                           CommandStateService commandStateService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
-        this.watermarkPositionState = watermarkPositionState;
+    }
+
+    @Autowired
+    public void setWatermarkPositionState(WatermarkPositionState positionState) {
+        this.watermarkPositionState = positionState;
     }
 
     @Override
