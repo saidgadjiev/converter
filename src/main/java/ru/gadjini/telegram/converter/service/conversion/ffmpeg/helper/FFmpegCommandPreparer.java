@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -10,8 +9,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
 
 @Service
 public class FFmpegCommandPreparer {
@@ -22,16 +19,13 @@ public class FFmpegCommandPreparer {
 
     private FFmpegVideoHelper fFmpegVideoHelper;
 
-    private FFprobeDevice fFprobeDevice;
-
     @Autowired
     public FFmpegCommandPreparer(FFmpegSubtitlesHelper subtitlesHelper,
                                  FFmpegAudioHelper fFmpegAudioHelper,
-                                 FFmpegVideoHelper fFmpegVideoHelper, FFprobeDevice fFprobeDevice) {
+                                 FFmpegVideoHelper fFmpegVideoHelper) {
         this.subtitlesHelper = subtitlesHelper;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
-        this.fFprobeDevice = fFprobeDevice;
     }
 
     public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
