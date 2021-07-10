@@ -127,6 +127,12 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 if (subtitles == null) {
                     fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
                 }
+            } else {
+                if (targetFormat.canBeSentAsVideo()) {
+                    fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion);
+                } else {
+                    fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
+                }
             }
             if (subtitles != null) {
                 int subtitlesInput = audio == null ? 1 : 2;

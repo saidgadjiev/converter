@@ -26,9 +26,10 @@ goback- Go back
 #Video
 start - restart the bot
 vedit - change video resolution
-vavmerge - replace or add audio to video
+vavmerge - replace or add audio and subtitles to video
 vaimake - make video from audio and image
 vcut - cut video
+vmark - add watermark to video
 subscription - check subscription
 refreshsub - refresh subscription
 language - change language
@@ -38,7 +39,23 @@ goback- Go back
 
 #Audio
 start - restart the bot
-acompress - Change video resolution
+acompress - Compress audio
+language - change language
+formats - conversion formats
+help - help
+goback- Go back
+
+#All
+start - restart the bot
+vedit - change video resolution
+vavmerge - replace or add audio and subtitles to video
+vaimake - make video from audio and image
+vcut - cut video
+vmark - add watermark to video
+acompress - Compress audio
+mergepdfs - merge pdf files
+subscription - check subscription
+refreshsub - refresh subscription
 language - change language
 formats - conversion formats
 help - help
