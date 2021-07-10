@@ -42,6 +42,7 @@ goback- Go back
 start - restart the bot
 acompress - compress audio
 amerge - merge audios
+acut - cut audio
 language - change language
 formats - conversion formats
 help - help
