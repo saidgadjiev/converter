@@ -7,7 +7,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -37,14 +37,14 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegAudioHelper fFmpegAudioHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
     @Autowired
-    public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegAudioHelper fFmpegAudioHelper) {
+    public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
-        this.fFmpegAudioHelper = fFmpegAudioHelper;
+        this.videoAudioConversionHelper = videoAudioConversionHelper;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                     .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).t(durationInSeconds);
 
             List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
-            fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);
+            videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 

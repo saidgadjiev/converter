@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
-public class FFmpegSubtitlesHelper {
+public class FFmpegSubtitlesStreamConversionHelper {
 
     private FFmpegDevice fFmpegDevice;
 
     @Autowired
-    public FFmpegSubtitlesHelper(FFmpegDevice fFmpegDevice) {
+    public FFmpegSubtitlesStreamConversionHelper(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
     }
 

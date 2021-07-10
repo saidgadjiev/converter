@@ -14,10 +14,9 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -58,11 +57,11 @@ public class VideoCutter extends BaseAny2AnyConverter {
             Format.filter(FormatCategory.VIDEO), List.of(CUT)
     );
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
-    private FFmpegAudioHelper fFmpegAudioHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
-    private FFmpegSubtitlesHelper fFmpegSubtitlesHelper;
+    private FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper;
 
     private FFmpegDevice fFmpegDevice;
 
@@ -75,12 +74,12 @@ public class VideoCutter extends BaseAny2AnyConverter {
     private Jackson jackson;
 
     @Autowired
-    public VideoCutter(FFmpegVideoHelper fFmpegVideoHelper, FFmpegAudioHelper fFmpegAudioHelper,
-                       FFmpegSubtitlesHelper fFmpegSubtitlesHelper, FFmpegDevice fFmpegDevice,
+    public VideoCutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+                       FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper, FFmpegDevice fFmpegDevice,
                        FFprobeDevice fFprobeDevice, UserService userService, LocalisationService localisationService, Jackson jackson) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
-        this.fFmpegAudioHelper = fFmpegAudioHelper;
+        this.videoAudioConversionHelper = videoAudioConversionHelper;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
@@ -98,7 +97,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
@@ -116,9 +115,9 @@ public class VideoCutter extends BaseAny2AnyConverter {
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
             FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                fFmpegAudioHelper.convertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+                videoAudioConversionHelper.convertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
             } else {
-                fFmpegAudioHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
+                videoAudioConversionHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
             }
             fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
             if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {

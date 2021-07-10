@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -10,19 +10,19 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
-public class FFmpegCommandPreparer {
+@Component
+public class FFmpegVideoCommandPreparer {
 
-    private FFmpegSubtitlesHelper subtitlesHelper;
+    private FFmpegSubtitlesStreamConversionHelper subtitlesHelper;
 
-    private FFmpegAudioHelper fFmpegAudioHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper fFmpegAudioHelper;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     @Autowired
-    public FFmpegCommandPreparer(FFmpegSubtitlesHelper subtitlesHelper,
-                                 FFmpegAudioHelper fFmpegAudioHelper,
-                                 FFmpegVideoHelper fFmpegVideoHelper) {
+    public FFmpegVideoCommandPreparer(FFmpegSubtitlesStreamConversionHelper subtitlesHelper,
+                                      FFmpegAudioStreamInVideoFileConversionHelper fFmpegAudioHelper,
+                                      FFmpegVideoStreamConversionHelper fFmpegVideoHelper) {
         this.subtitlesHelper = subtitlesHelper;
         this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
@@ -36,7 +36,7 @@ public class FFmpegCommandPreparer {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); videoStreamMapIndex++) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStreamMapIndex);

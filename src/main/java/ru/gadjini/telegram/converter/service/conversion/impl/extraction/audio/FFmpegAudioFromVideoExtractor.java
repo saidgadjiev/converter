@@ -11,7 +11,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VoiceResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.extraction.BaseFromVideoByLanguageExtractor;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -46,11 +46,11 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegAudioConversionHelper audioConversionHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper audioConversionHelper;
 
     @Autowired
     public FFmpegAudioFromVideoExtractor(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                         FFmpegAudioConversionHelper audioConversionHelper) {
+                                         FFmpegAudioStreamInVideoFileConversionHelper audioConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
@@ -64,7 +64,7 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
 
     @Override
     public ConversionResult doExtract(ConversionQueueItem fileQueueItem, SmartTempFile file,
-                                            List<FFprobeDevice.Stream> audioStreams, int streamIndex) throws InterruptedException {
+                                      List<FFprobeDevice.Stream> audioStreams, int streamIndex) throws InterruptedException {
         FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());

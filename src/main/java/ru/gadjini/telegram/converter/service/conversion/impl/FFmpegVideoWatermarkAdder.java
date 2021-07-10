@@ -13,9 +13,9 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkService;
@@ -41,31 +41,31 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
     private static final String TAG = "vmark";
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     private VideoWatermarkService videoWatermarkService;
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegAudioHelper audioHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
     private FFmpegDevice fFmpegDevice;
 
-    private FFmpegSubtitlesHelper subtitlesHelper;
+    private FFmpegSubtitlesStreamConversionHelper subtitlesHelper;
 
     private FontProperties fontProperties;
 
     @Autowired
-    public FFmpegVideoWatermarkAdder(FFmpegVideoHelper fFmpegVideoHelper,
+    public FFmpegVideoWatermarkAdder(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                                      VideoWatermarkService videoWatermarkService,
-                                     FFprobeDevice fFprobeDevice, FFmpegAudioHelper audioHelper,
-                                     FFmpegDevice fFmpegDevice, FFmpegSubtitlesHelper subtitlesHelper,
+                                     FFprobeDevice fFprobeDevice, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+                                     FFmpegDevice fFmpegDevice, FFmpegSubtitlesStreamConversionHelper subtitlesHelper,
                                      FontProperties fontProperties) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoWatermarkService = videoWatermarkService;
         this.fFprobeDevice = fFprobeDevice;
-        this.audioHelper = audioHelper;
+        this.videoAudioConversionHelper = videoAudioConversionHelper;
         this.fFmpegDevice = fFmpegDevice;
         this.subtitlesHelper = subtitlesHelper;
         this.fontProperties = fontProperties;
@@ -123,9 +123,9 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
             FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                audioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+                videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
             } else {
-                audioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
+                videoAudioConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
             }
             subtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
             if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {

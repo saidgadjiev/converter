@@ -7,7 +7,7 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -49,19 +49,19 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     private UserService userService;
 
-    private FFmpegAudioConversionHelper audioConversionHelper;
+    private FFmpegAudioStreamConversionHelper fFmpegAudioHelper;
 
     private LocalisationService localisationService;
 
     @Autowired
     public FFmpegAudioCompressConverter(Jackson jackson, FFmpegDevice fFmpegDevice,
-                                        UserService userService, FFmpegAudioConversionHelper audioConversionHelper,
+                                        UserService userService, FFmpegAudioStreamConversionHelper fFmpegAudioHelper,
                                         LocalisationService localisationService) {
         super(MAP);
         this.json = jackson;
         this.fFmpegDevice = fFmpegDevice;
         this.userService = userService;
-        this.audioConversionHelper = audioConversionHelper;
+        this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.localisationService = localisationService;
     }
 
@@ -84,13 +84,13 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
 
         try {
-            audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
+            fFmpegAudioHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
             if (compressionFormat.canBeSentAsVoice()) {
-                audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, compressionFormat);
+                fFmpegAudioHelper.convertAudioCodecsForTelegramVoice(commandBuilder);
             } else {
-                audioConversionHelper.convertAudioCodecs(commandBuilder, compressionFormat);
+                fFmpegAudioHelper.convertAudioCodecs(commandBuilder, compressionFormat);
             }
-            audioConversionHelper.addAudioTargetOptions(commandBuilder, compressionFormat, false);
+            fFmpegAudioHelper.addAudioTargetOptions(commandBuilder, compressionFormat, false);
             commandBuilder.ba(bitrate + "k");
 
             if (MP3.equals(compressionFormat)) {

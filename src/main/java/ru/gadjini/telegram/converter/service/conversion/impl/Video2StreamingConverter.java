@@ -7,8 +7,8 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -34,19 +34,19 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoConverter fFmpegVideoFormatsConverter;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
-    private FFmpegAudioHelper fFmpegAudioHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
     @Autowired
     public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter,
-                                    FFmpegVideoHelper fFmpegVideoHelper,
-                                    FFmpegAudioHelper fFmpegAudioHelper) {
+                                    FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
+                                    FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoFormatsConverter = fFmpegVideoFormatsConverter;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
-        this.fFmpegAudioHelper = fFmpegAudioHelper;
+        this.videoAudioConversionHelper = videoAudioConversionHelper;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             if (fFmpegVideoHelper.isVideoStreamsValidForTelegramVideo(allStreams)
-                    && fFmpegAudioHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
+                    && videoAudioConversionHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
                 Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());

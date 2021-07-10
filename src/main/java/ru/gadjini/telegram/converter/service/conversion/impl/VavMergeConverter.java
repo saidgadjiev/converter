@@ -8,9 +8,9 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -45,20 +45,20 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegAudioHelper fFmpegAudioHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
-    private FFmpegSubtitlesHelper fFmpegSubtitlesHelper;
+    private FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper;
 
     @Autowired
     public VavMergeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                             FFmpegAudioHelper fFmpegAudioHelper,
-                             FFmpegVideoHelper fFmpegVideoHelper, FFmpegSubtitlesHelper fFmpegSubtitlesHelper) {
+                             FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+                             FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
-        this.fFmpegAudioHelper = fFmpegAudioHelper;
+        this.videoAudioConversionHelper = videoAudioConversionHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
     }
@@ -120,18 +120,18 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 audioStreamsForConversion.forEach(s -> s.setInput(1));
                 baseCommand = new FFmpegCommandBuilder(commandBuilder);
                 if (targetFormat.canBeSentAsVideo()) {
-                    fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
+                    videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
                 } else {
-                    fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, audioStreamsForConversion, result, targetFormat);
+                    videoAudioConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, audioStreamsForConversion, result, targetFormat);
                 }
                 if (subtitles == null) {
                     fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
                 }
             } else {
                 if (targetFormat.canBeSentAsVideo()) {
-                    fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion);
+                    videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion);
                 } else {
-                    fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
+                    videoAudioConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
                 }
             }
             if (subtitles != null) {

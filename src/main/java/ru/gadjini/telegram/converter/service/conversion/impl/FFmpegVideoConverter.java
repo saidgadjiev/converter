@@ -9,9 +9,9 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -56,22 +56,23 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegSubtitlesHelper fFmpegHelper;
+    private FFmpegSubtitlesStreamConversionHelper fFmpegHelper;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
-    private FFmpegAudioHelper fFmpegAudioHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
     @Autowired
     public FFmpegVideoConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                FFmpegSubtitlesHelper fFmpegHelper,
-                                FFmpegVideoHelper fFmpegVideoHelper, FFmpegAudioHelper fFmpegAudioHelper) {
+                                FFmpegSubtitlesStreamConversionHelper fFmpegHelper,
+                                FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
+                                FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegHelper = fFmpegHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
-        this.fFmpegAudioHelper = fFmpegAudioHelper;
+        this.videoAudioConversionHelper = videoAudioConversionHelper;
     }
 
     @Override
@@ -113,9 +114,9 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         if (targetFormat.canBeSentAsVideo()) {
-            fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+            videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {
-            fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
+            videoAudioConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
         }
         if (targetFormat != AVI_H263_PLUS) {
             fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);

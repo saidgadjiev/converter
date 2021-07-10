@@ -2,7 +2,7 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -12,17 +12,20 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
-@Service
-public class FFmpegVideoHelper {
+@Component
+public class FFmpegVideoStreamConversionHelper {
+
+    private static final Set<String> IMAGE_CODECS = Set.of(FFmpegCommandBuilder.BMP, FFmpegCommandBuilder.PNG, FFmpegCommandBuilder.MJPEG);
 
     private FFmpegDevice fFmpegDevice;
 
     @Autowired
-    public FFmpegVideoHelper(FFmpegDevice fFmpegDevice) {
+    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
     }
 
@@ -52,7 +55,7 @@ public class FFmpegVideoHelper {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
@@ -66,19 +69,6 @@ public class FFmpegVideoHelper {
         }
     }
 
-    public void addScaleFilterForH264(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream stream,
-                                      int codecIndex, String scale) {
-        if (StringUtils.isNotBlank(scale)
-                && (!FFmpegCommandBuilder.EVEN_SCALE.equals(scale)
-                || !NumberUtils.isEvent(stream.getWidth()) || !NumberUtils.isEvent(stream.getHeight()))) {
-            if (commandBuilder.useFilterComplex()) {
-                commandBuilder.complexFilter("[v:" + codecIndex + "]" + scale + "[sv] ");
-            } else {
-                commandBuilder.filterVideo(codecIndex, scale);
-            }
-        }
-    }
-
     public void convertVideoCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
                                                    Format targetFormat) {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
@@ -89,7 +79,7 @@ public class FFmpegVideoHelper {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
@@ -112,18 +102,18 @@ public class FFmpegVideoHelper {
                 .collect(Collectors.toList());
         String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE :
                 targetFormat == AVI_H263_PLUS ? FFmpegCommandBuilder.H263_PLUS_SCALE :
-        FFmpegCommandBuilder.EVEN_SCALE;
+                        FFmpegCommandBuilder.EVEN_SCALE;
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
             if (StringUtils.isNotBlank(videoCodec)) {
-                 commandBuilder.videoCodec(outCodecIndex, videoCodec).filterVideo(outCodecIndex, scale);
+                commandBuilder.videoCodec(outCodecIndex, videoCodec).filterVideo(outCodecIndex, scale);
             } else {
                 if (isCopyableVideoCodecs(baseCommand, result, targetFormat, videoStream.getInput(), videoStreamMapIndex)) {
                     commandBuilder.copyVideo(outCodecIndex);
@@ -151,7 +141,7 @@ public class FFmpegVideoHelper {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
@@ -220,7 +210,33 @@ public class FFmpegVideoHelper {
         }
     }
 
-    public void addVideoCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
+    public static boolean isExtraVideoStream(List<FFprobeDevice.Stream> videoStreams, FFprobeDevice.Stream videoStream) {
+        if (videoStreams.size() == 1 && isImageStream(videoStream.getCodecName())) {
+            return false;
+        }
+        if (videoStreams.stream().allMatch(s -> isImageStream(s.getCodecName()))) {
+            return false;
+        }
+
+        return isImageStream(videoStream.getCodecName());
+    }
+
+    public static int getFirstVideoStreamIndex(List<FFprobeDevice.Stream> allStreams) {
+        List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
+                .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+
+        for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
+            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
+            if (!FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+                return videoStreamMapIndex;
+            }
+        }
+
+        return 0;
+    }
+
+    private void addVideoCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
         if (target == WEBM) {
             commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC);
         } else if (target == _3GP) {
@@ -230,5 +246,22 @@ public class FFmpegVideoHelper {
         } else if (target == WMV) {
             commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.WMV2);
         }
+    }
+
+    private void addScaleFilterForH264(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream stream,
+                                       int codecIndex, String scale) {
+        if (StringUtils.isNotBlank(scale)
+                && (!FFmpegCommandBuilder.EVEN_SCALE.equals(scale)
+                || !NumberUtils.isEvent(stream.getWidth()) || !NumberUtils.isEvent(stream.getHeight()))) {
+            if (commandBuilder.useFilterComplex()) {
+                commandBuilder.complexFilter("[v:" + codecIndex + "]" + scale + "[sv] ");
+            } else {
+                commandBuilder.filterVideo(codecIndex, scale);
+            }
+        }
+    }
+
+    private static boolean isImageStream(String codecName) {
+        return IMAGE_CODECS.contains(codecName);
     }
 }

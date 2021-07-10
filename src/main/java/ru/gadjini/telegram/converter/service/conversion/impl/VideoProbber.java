@@ -10,7 +10,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.MessageResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -33,14 +33,14 @@ public class VideoProbber extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     private LocalisationService localisationService;
 
     private UserService userService;
 
     @Autowired
-    public VideoProbber(FFprobeDevice fFprobeDevice, FFmpegVideoHelper fFmpegVideoHelper,
+    public VideoProbber(FFprobeDevice fFprobeDevice, FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                         LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;

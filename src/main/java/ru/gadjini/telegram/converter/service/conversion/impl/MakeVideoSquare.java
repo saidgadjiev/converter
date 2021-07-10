@@ -9,9 +9,8 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegCommandPreparer;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -50,14 +49,14 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegCommandPreparer videoStreamsChangeHelper;
+    private FFmpegVideoCommandPreparer videoStreamsChangeHelper;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     public MakeVideoSquare(FFmpegDevice fFmpegDevice, LocalisationService localisationService,
                            UserService userService, FFprobeDevice fFprobeDevice,
-                           FFmpegCommandPreparer videoStreamsChangeHelper,
-                           FFmpegVideoHelper fFmpegVideoHelper) {
+                           FFmpegVideoCommandPreparer videoStreamsChangeHelper,
+                           FFmpegVideoStreamConversionHelper fFmpegVideoHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -76,7 +75,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         try {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             if (Objects.equals(srcWhd.getHeight(), srcWhd.getWidth())) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_ALREADY_SQUARE,

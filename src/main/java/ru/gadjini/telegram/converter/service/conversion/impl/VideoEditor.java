@@ -11,9 +11,8 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegCommandPreparer;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -55,14 +54,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private LocalisationService localisationService;
 
-    private FFmpegCommandPreparer videoStreamsChangeHelper;
+    private FFmpegVideoCommandPreparer videoStreamsChangeHelper;
 
-    private FFmpegVideoHelper fFmpegHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegHelper;
 
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
                        FFmpegDevice fFmpegDevice, Jackson jackson, LocalisationService localisationService,
-                       FFmpegCommandPreparer videoStreamsChangeHelper, FFmpegVideoHelper fFmpegHelper) {
+                       FFmpegVideoCommandPreparer videoStreamsChangeHelper, FFmpegVideoStreamConversionHelper fFmpegHelper) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
@@ -91,7 +90,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             if (Objects.equals(srcWhd.getHeight(), height)) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,

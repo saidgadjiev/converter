@@ -8,8 +8,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoNoteResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -41,14 +40,14 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     private LocalisationService localisationService;
 
     private UserService userService;
 
     @Autowired
-    public VideoNoteMaker(FFprobeDevice fFprobeDevice, FFmpegVideoHelper fFmpegVideoHelper,
+    public VideoNoteMaker(FFprobeDevice fFprobeDevice, FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                           LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
@@ -67,7 +66,7 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
             fFmpegVideoHelper.validateVideoIntegrity(file);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
-                    FFmpegVideoConversionHelper.getFirstVideoStreamIndex(allStreams));
+                    FFmpegVideoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             if (!Objects.equals(whd.getHeight(), whd.getWidth())) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION,

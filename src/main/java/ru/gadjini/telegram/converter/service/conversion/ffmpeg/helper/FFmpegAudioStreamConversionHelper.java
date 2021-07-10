@@ -1,7 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -11,31 +11,23 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.AMR;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.OGG;
 
-@Service
-public class FFmpegAudioConversionHelper {
+@Component
+@SuppressWarnings("CPD-START")
+public class FFmpegAudioStreamConversionHelper {
 
     private static final int COVER_INDEX = 0;
 
-    private FFmpegDevice fFmpegDevice;
-
     private FFprobeDevice fFprobeDevice;
 
+    private FFmpegDevice fFmpegDevice;
+
     @Autowired
-    public FFmpegAudioConversionHelper(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
-        this.fFmpegDevice = fFmpegDevice;
+    public FFmpegAudioStreamConversionHelper(FFprobeDevice fFprobeDevice, FFmpegDevice fFmpegDevice) {
         this.fFprobeDevice = fFprobeDevice;
-    }
-
-    public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, int streamIndex, Format targetFormat) {
-        commandBuilder.mapAudio(streamIndex);
-        addAudioCodecOptions(commandBuilder, targetFormat);
-    }
-
-    public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
-        commandBuilder.mapAudio(0);
-        addAudioCodecOptions(commandBuilder, targetFormat);
+        this.fFmpegDevice = fFmpegDevice;
     }
 
     public void copyOrConvertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream audioStream) {
@@ -47,62 +39,8 @@ public class FFmpegAudioConversionHelper {
         }
     }
 
-    public void convertAudioCodecs(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
-        commandBuilder.mapAudio(0);
-        addAudioCodecOptions(commandBuilder, targetFormat);
-    }
-
-    public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> audioStreams,
-                                         Format targetFormat, SmartTempFile result) throws InterruptedException {
-        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
-        int outCodecIndex = 0;
-        for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
-            FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamMapIndex);
-
-            commandBuilder.mapAudio(audioStream.getInput(), audioStreamMapIndex);
-            if (isCopyableAudioCodecs(baseCommand, result, targetFormat, audioStream.getInput(), audioStreamMapIndex)) {
-                commandBuilder.copyAudio(outCodecIndex);
-            } else {
-                addAudioCodecOptions(commandBuilder, outCodecIndex, targetFormat);
-            }
-            ++outCodecIndex;
-        }
-    }
-
-    public void addChannelMapFilter(FFmpegCommandBuilder commandBuilder, SmartTempFile out) throws InterruptedException {
-        FFmpegCommandBuilder command = new FFmpegCommandBuilder(commandBuilder);
-        command.out(out.getAbsolutePath());
-
-        if (fFmpegDevice.isChannelMapError(command.buildFullCommand())) {
-            commandBuilder.filterAudio("channelmap=channel_layout=5.1");
-        }
-    }
-
-    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target) {
-        addAudioTargetOptions(commandBuilder, target, true);
-    }
-
-    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target, boolean appendAr) {
-        if (target.getAssociatedFormat() == AMR) {
-            if (appendAr) {
-                commandBuilder.ar("8000");
-            }
-            commandBuilder.ac("1");
-        } else if (target.getAssociatedFormat().canBeSentAsVoice() && appendAr) {
-            commandBuilder.ar("48000");
-        }
-    }
-
-    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, int streamIndex, Format target) {
-        if (target.getAssociatedFormat() == OGG) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.OPUS);
-        }
-    }
-
-    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target) {
-        if (target.getAssociatedFormat().canBeSentAsVoice()) {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS);
-        }
+    public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder) {
+        commandBuilder.mapAudio(0).audioCodec(FFmpegCommandBuilder.OPUS);
     }
 
     public void addCopyableCoverArtOptions(SmartTempFile in, SmartTempFile out, FFmpegCommandBuilder commandBuilder) throws InterruptedException {
@@ -124,6 +62,43 @@ public class FFmpegAudioConversionHelper {
         return false;
     }
 
+    public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> audioStreams,
+                                         Format targetFormat, SmartTempFile result) throws InterruptedException {
+        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+        int outCodecIndex = 0;
+        for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
+            FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamMapIndex);
+
+            commandBuilder.mapAudio(audioStream.getInput(), audioStreamMapIndex);
+            if (isCopyableAudioCodecs(baseCommand, result, targetFormat, audioStream.getInput(), audioStreamMapIndex)) {
+                commandBuilder.copyAudio(outCodecIndex);
+            } else {
+                addAudioCodecOptions(commandBuilder, outCodecIndex, targetFormat);
+            }
+            ++outCodecIndex;
+        }
+    }
+
+    public void convertAudioCodecs(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
+        commandBuilder.mapAudio(0);
+        addAudioCodecOptions(commandBuilder, targetFormat);
+    }
+
+    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+        addAudioTargetOptions(commandBuilder, target, true);
+    }
+
+    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target, boolean appendAr) {
+        if (target.getAssociatedFormat() == AMR) {
+            if (appendAr) {
+                commandBuilder.ar("8000");
+            }
+            commandBuilder.ac("1");
+        } else if (target.getAssociatedFormat().canBeSentAsVoice() && appendAr) {
+            commandBuilder.ar("48000");
+        }
+    }
+
     private boolean isCopyableAudioCodecs(FFmpegCommandBuilder baseCommand, SmartTempFile out,
                                           Format targetFormat, Integer input, int streamMapIndex) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
@@ -135,4 +110,15 @@ public class FFmpegAudioConversionHelper {
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
+    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, int streamIndex, Format target) {
+        if (target.getAssociatedFormat() == OGG) {
+            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.OPUS);
+        }
+    }
+
+    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+        if (target.getAssociatedFormat().canBeSentAsVoice()) {
+            commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS);
+        }
+    }
 }

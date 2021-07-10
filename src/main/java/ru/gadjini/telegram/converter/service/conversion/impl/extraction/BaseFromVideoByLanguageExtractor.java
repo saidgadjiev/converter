@@ -12,7 +12,7 @@ import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResults;
 import ru.gadjini.telegram.converter.service.conversion.api.result.MessageResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
@@ -35,7 +35,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
 
     private CommandStateService commandStateService;
 
-    private FFmpegVideoHelper fFmpegVideoHelper;
+    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     private UserService userService;
 
@@ -72,7 +72,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
     }
 
     @Autowired
-    public void setfFmpegVideoHelper(FFmpegVideoHelper fFmpegVideoHelper) {
+    public void setfFmpegVideoHelper(FFmpegVideoStreamConversionHelper fFmpegVideoHelper) {
         this.fFmpegVideoHelper = fFmpegVideoHelper;
     }
 
