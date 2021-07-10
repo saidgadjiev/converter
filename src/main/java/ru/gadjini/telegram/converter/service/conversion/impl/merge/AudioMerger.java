@@ -10,6 +10,8 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioFormatsConverter;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -41,14 +43,17 @@ public class AudioMerger extends BaseAny2AnyConverter {
 
     private FFmpegDevice fFmpegDevice;
 
+    private FFmpegAudioConversionHelper audioConversionHelper;
+
     private FFmpegAudioFormatsConverter audioFormatsConverter;
 
     @Autowired
     public AudioMerger(FFprobeDevice fFprobeDevice, FFmpegDevice fFmpegDevice,
-                       FFmpegAudioFormatsConverter audioFormatsConverter) {
+                       FFmpegAudioConversionHelper audioConversionHelper, FFmpegAudioFormatsConverter audioFormatsConverter) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
+        this.audioConversionHelper = audioConversionHelper;
         this.audioFormatsConverter = audioFormatsConverter;
     }
 
@@ -70,8 +75,10 @@ public class AudioMerger extends BaseAny2AnyConverter {
             try {
                 FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                         .f(FFmpegCommandBuilder.CONCAT).safe("0").input(filesList.getAbsolutePath())
-                        .mapAudio().copyAudio()
-                        .out(result.getAbsolutePath());
+                        .mapAudio(0).copyAudio();
+
+                audioConversionHelper.addAudioTargetOptions(commandBuilder, targetFormat);
+                commandBuilder.out(result.getAbsolutePath());
 
                 fFmpegDevice.execute(commandBuilder.buildFullCommand());
 

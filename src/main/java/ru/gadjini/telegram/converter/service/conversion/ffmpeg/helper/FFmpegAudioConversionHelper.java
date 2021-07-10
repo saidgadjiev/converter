@@ -34,27 +34,21 @@ public class FFmpegAudioConversionHelper {
     }
 
     public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
-        commandBuilder.mapAudio();
+        commandBuilder.mapAudio(0);
         addAudioCodecOptions(commandBuilder, targetFormat);
     }
 
-    public void copyOrConvertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> audioStreams) {
-        int outCodecIndex = 0;
-        for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
-            FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamMapIndex);
-
-            commandBuilder.mapAudio(audioStream.getInput(), audioStreamMapIndex);
-            if (FFmpegCommandBuilder.OPUS.equals(audioStream.getCodecName())) {
-                commandBuilder.copyAudio(outCodecIndex);
-            } else {
-                commandBuilder.audioCodec(outCodecIndex, FFmpegCommandBuilder.OPUS);
-            }
-            ++outCodecIndex;
+    public void copyOrConvertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream audioStream) {
+        commandBuilder.mapAudio(audioStream.getInput(), 0);
+        if (FFmpegCommandBuilder.OPUS_CODEC_NAME.equals(audioStream.getCodecName())) {
+            commandBuilder.copyAudio();
+        } else {
+            commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS);
         }
     }
 
     public void convertAudioCodecs(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
-        commandBuilder.mapAudio();
+        commandBuilder.mapAudio(0);
         addAudioCodecOptions(commandBuilder, targetFormat);
     }
 
@@ -85,9 +79,16 @@ public class FFmpegAudioConversionHelper {
     }
 
     public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+        addAudioTargetOptions(commandBuilder, target, true);
+    }
+
+    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target, boolean appendAr) {
         if (target.getAssociatedFormat() == AMR) {
-            commandBuilder.ar("8000").ac("1");
-        } else if (target.getAssociatedFormat().canBeSentAsVoice()) {
+            if (appendAr) {
+                commandBuilder.ar("8000");
+            }
+            commandBuilder.ac("1");
+        } else if (target.getAssociatedFormat().canBeSentAsVoice() && appendAr) {
             commandBuilder.ar("48000");
         }
     }

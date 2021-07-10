@@ -68,7 +68,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
         audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
         if (targetFormat.canBeSentAsVoice()) {
-            audioConversionHelper.copyOrConvertAudioCodecsForTelegramVoice(commandBuilder, audioStreams);
+            audioConversionHelper.copyOrConvertAudioCodecsForTelegramVoice(commandBuilder, audioStreams.stream().findFirst().get());
         } else {
             audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, audioStreams, targetFormat, out);
         }
@@ -80,7 +80,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
 
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
-                .input(in.getAbsolutePath()).mapAudio();
+                .input(in.getAbsolutePath()).mapAudio(0);
         audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
         if (targetFormat.canBeSentAsVoice()) {
             audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, targetFormat);

@@ -85,12 +85,12 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
         try {
             audioConversionHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-            if (conversionQueueItem.getFirstFileFormat().canBeSentAsVoice()) {
-                audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, conversionQueueItem.getFirstFileFormat());
+            if (compressionFormat.canBeSentAsVoice()) {
+                audioConversionHelper.convertAudioCodecsForTelegramVoice(commandBuilder, compressionFormat);
             } else {
-                audioConversionHelper.convertAudioCodecs(commandBuilder, conversionQueueItem.getFirstFileFormat());
+                audioConversionHelper.convertAudioCodecs(commandBuilder, compressionFormat);
             }
-            audioConversionHelper.addAudioTargetOptions(commandBuilder, conversionQueueItem.getFirstFileFormat());
+            audioConversionHelper.addAudioTargetOptions(commandBuilder, compressionFormat, false);
             commandBuilder.ba(bitrate + "k");
 
             if (MP3.equals(compressionFormat)) {
