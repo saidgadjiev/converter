@@ -281,6 +281,14 @@ public class ConverterMessagesProperties {
 
     public static final String CUT_VIDEO_COMMAND_DESCRIPTION = "cut.video.command.description";
 
+    public static final String CUT_AUDIO_COMMAND_DESCRIPTION = "cut.audio.command.description";
+
+    public static final String VMARK_COMMAND_DESCRIPTION = "vmark.command.description";
+
+    public static final String VMERGE_COMMAND_DESCRIPTION = "vmerge.command.description";
+
+    public static final String AMERGE_COMMAND_DESCRIPTION = "amerge.command.description";
+
     public static final String MESSAGE_CHOOSE_AUDIO_LANGUAGE = "message.choose.audio.language";
 
     public static final String MESSAGE_CHOOSE_SUBTITLE_LANGUAGE = "message.choose.subtitle.language";
