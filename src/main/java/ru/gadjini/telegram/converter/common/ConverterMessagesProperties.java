@@ -241,7 +241,9 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_MEDIA_CUT_INVALID_END_POINT = "message.media.cut.invalid.end.point";
 
-    public static final String MESSAGE_NON_COMMAND_FEATURES_HEADER = "message.non.command.features.header";
+    public static final String MESSAGE_NON_COMMAND_VIDEO_FEATURES_HEADER = "message.non.command.video.features.header";
+
+    public static final String MESSAGE_NON_COMMAND_AUDIO_FEATURES_HEADER = "message.non.command.audio.features.header";
 
     public static final String MESSAGE_VIDEO_PROBE_RESULT = "message.video.probe.result";
 

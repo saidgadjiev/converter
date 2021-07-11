@@ -63,10 +63,10 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.HELP_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.HELP_COMMAND_DESCRIPTION, locale));
 
         if (applicationProperties.is(FormatsConfiguration.AUDIO_CONVERTER)) {
-            info.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_FEATURES_HEADER, locale))
+            info.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_AUDIO_FEATURES_HEADER, locale))
                     .append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_NON_COMMAND_FEATURES, locale));
         } else if (applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER)) {
-            info.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_FEATURES_HEADER, locale))
+            info.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NON_COMMAND_VIDEO_FEATURES_HEADER, locale))
                     .append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_NON_COMMAND_FEATURES, locale));
         }
 
