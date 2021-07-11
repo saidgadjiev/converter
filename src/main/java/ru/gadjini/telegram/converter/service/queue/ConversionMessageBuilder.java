@@ -122,6 +122,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             if (FormatsConfiguration.AUDIO_CONVERTER.equals(applicationProperties.getConverter())) {
                 message
                         .append("\n\n")
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE, locale)).append("\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_NON_COMMAND_FEATURES, locale))
                         .append("\n\n\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DEFAULT_COMPRESSION_SETTINGS,
