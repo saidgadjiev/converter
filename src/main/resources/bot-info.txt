@@ -15,9 +15,10 @@ I'm powerful video compressor, converter and editor. Let's start
 I can convert and compress audios.
 
 Commands:
-#All
+#Document
 start - restart the bot
 mergepdfs - merge pdf files
+botlist - list of all our bots
 language - change language
 formats - conversion formats
 help - help
@@ -31,6 +32,7 @@ vaimake - make video from audio and image
 vcut - cut video
 vmark - add watermark to video
 vmerge - merge videos
+botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription
 language - change language
@@ -43,6 +45,7 @@ start - restart the bot
 acompress - compress audio
 amerge - merge audios
 acut - cut audio
+botlist - list of all our bots
 language - change language
 formats - conversion formats
 help - help
@@ -60,6 +63,7 @@ amerge - merge audios
 vmark - add watermark to video
 acompress - Compress audio
 mergepdfs - merge pdf files
+botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription
 language - change language
