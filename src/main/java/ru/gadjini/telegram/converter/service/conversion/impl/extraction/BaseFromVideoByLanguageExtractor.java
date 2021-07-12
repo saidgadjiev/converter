@@ -223,7 +223,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
     private String getLanguageDisplay(String lang, Locale locale) {
         String displayLanguage = null;
         LanguageAlpha3Code byCode = LanguageAlpha3Code.getByCode(lang);
-        if (byCode != null) {
+        if (byCode != null && byCode.getAlpha2() != null) {
             displayLanguage = StringUtils.capitalize(byCode.getAlpha2().toLocale().getDisplayLanguage(locale));
         }
         if (StringUtils.isBlank(displayLanguage)) {
