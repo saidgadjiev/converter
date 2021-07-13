@@ -46,7 +46,7 @@ public class FFmpegVideoStreamConversionHelper {
     }
 
     public void copyOrConvertVideoCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                                         Format targetFormat) {
+                                                         Format targetFormat, long fileSize) {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
@@ -65,12 +65,13 @@ public class FFmpegVideoStreamConversionHelper {
                 commandBuilder.videoCodec(outCodecIndex, FFmpegCommandBuilder.H264_CODEC);
                 addScaleFilterForH264(commandBuilder, videoStream, outCodecIndex, scale);
             }
+            commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
             ++outCodecIndex;
         }
     }
 
     public void convertVideoCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                                   Format targetFormat) {
+                                                   Format targetFormat, long fileSize) {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
@@ -85,18 +86,19 @@ public class FFmpegVideoStreamConversionHelper {
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
             commandBuilder.videoCodec(outCodecIndex, FFmpegCommandBuilder.H264_CODEC);
             addScaleFilterForH264(commandBuilder, videoStream, outCodecIndex, scale);
+            commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
 
             ++outCodecIndex;
         }
     }
 
     public void copyOrConvertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                         Format targetFormat, SmartTempFile result) throws InterruptedException {
-        copyOrConvertVideoCodecs(commandBuilder, allStreams, targetFormat, result, null);
+                                         Format targetFormat, SmartTempFile result, long fileSize) throws InterruptedException {
+        copyOrConvertVideoCodecs(commandBuilder, allStreams, targetFormat, result, null, fileSize);
     }
 
     public void copyOrConvertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                         Format targetFormat, SmartTempFile result, String videoCodec) throws InterruptedException {
+                                         Format targetFormat, SmartTempFile result, String videoCodec, long fileSize) throws InterruptedException {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
@@ -126,12 +128,13 @@ public class FFmpegVideoStreamConversionHelper {
                     }
                 }
             }
+            commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
             ++outCodecIndex;
         }
     }
 
     public void convertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                   Format targetFormat, SmartTempFile result) throws InterruptedException {
+                                   Format targetFormat, SmartTempFile result, long fileSize) throws InterruptedException {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
@@ -152,6 +155,7 @@ public class FFmpegVideoStreamConversionHelper {
                     convertibleToH264, scale)) {
                 addVideoCodecByTargetFormat(commandBuilder, targetFormat, outCodecIndex);
             }
+            commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
             ++outCodecIndex;
         }
     }

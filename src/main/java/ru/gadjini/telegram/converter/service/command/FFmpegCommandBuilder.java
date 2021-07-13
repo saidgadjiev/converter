@@ -1,11 +1,14 @@
 package ru.gadjini.telegram.converter.service.command;
 
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FFmpegCommandBuilder {
 
-    public static final String DEFAULT_CRF = "26";
+    private static final int DEFAULT_AUDIO_BIT_RATE = 128;
 
     public static final String CRF = "-crf";
 
@@ -449,7 +452,13 @@ public class FFmpegCommandBuilder {
             crf("5");
         }
 
-        bv("1M");
+        if (options.stream().noneMatch(o -> o.contains("-b:v"))) {
+            bv("1M");
+            options.add("-maxrate");
+            options.add("1M");
+            options.add("-bufsize");
+            options.add("1.5M");
+        }
 
         return this;
     }
@@ -484,6 +493,13 @@ public class FFmpegCommandBuilder {
 
     public FFmpegCommandBuilder ba(String ba) {
         options.add("-b:a");
+        options.add(ba);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder ba(int index, String ba) {
+        options.add("-b:a:" + index);
         options.add(ba);
 
         return this;
@@ -558,13 +574,44 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder defaultOptions() {
-        List<String> def = new ArrayList<>();
-        if (!options.contains(CRF)) {
-            def.add(CRF);
-            def.add(DEFAULT_CRF);
+    public FFmpegCommandBuilder keepVideoBitRate(int index, long fileSize, Long duration, List<FFprobeDevice.Stream> allStreams) {
+        if (fileSize == 0 || fileSize < 0) {
+            return this;
         }
-        options.addAll(def);
+        if (duration == null) {
+            return this;
+        }
+        List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
+                .filter(f -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(f.getCodecType()))
+                .collect(Collectors.toList());
+        FFprobeDevice.Stream firstAudioStream = audioStreams.stream().findFirst().orElse(null);
+        long bitRate;
+        if (firstAudioStream == null) {
+            bitRate = calculateBitRate(fileSize, duration);
+        } else {
+            bitRate = calculateBitRate(fileSize, duration, firstAudioStream.getBitRate() == null ? DEFAULT_AUDIO_BIT_RATE : firstAudioStream.getBitRate() / 1000);
+        }
+        bv(index, bitRate + "k");
+        if (!options.contains("-maxrate")) {
+            options.add("-maxrate");
+            options.add(bitRate + "k");
+            options.add("-bufsize");
+            options.add((long) (bitRate * 1.5) + "k");
+        }
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder keepAudioBitRate(int index, Long bitRate) {
+        if (bitRate == null) {
+            return this;
+        }
+        ba(index, bitRate / 1000 + "k");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder defaultOptions() {
         options.addAll(DEFAULT_OPTIONS);
 
         return this;
@@ -597,5 +644,15 @@ public class FFmpegCommandBuilder {
         }
 
         return options;
+    }
+
+    private long calculateBitRate(long fileSize, long duration) {
+        return (fileSize / 1024 * 8) / duration;
+    }
+
+    private long calculateBitRate(long fileSize, long duration, long audioBitRate) {
+        long videoBitRate = (fileSize / 1024 * 8) / duration;
+
+        return audioBitRate >= videoBitRate ? videoBitRate : videoBitRate - audioBitRate;
     }
 }

@@ -86,7 +86,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, SCALE, fileQueueItem.getFirstFileFormat());
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, SCALE,
+                    fileQueueItem.getFirstFileFormat(), false, null);
             commandBuilder.crf("30");
 
             if (fileQueueItem.getTargetFormat() == WEBM) {

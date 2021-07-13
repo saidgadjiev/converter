@@ -25,10 +25,6 @@ import java.util.Map;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
-/**
- * MP4 -> WEBM very slow
- * WEBM -> MP4 very slow
- */
 @Component
 @SuppressWarnings("CPD-START")
 public class FFmpegVideoConverter extends BaseAny2AnyConverter {
@@ -105,10 +101,10 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
         commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
         if (targetFormat.canBeSentAsVideo()) {
-            fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, targetFormat);
+            fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, targetFormat, fileQueueItem.getSize());
         } else {
             fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, targetFormat, result,
-                    targetFormat == AVI_H263_PLUS ? FFmpegCommandBuilder.H263_PLUS_CODEC : null);
+                    targetFormat == AVI_H263_PLUS ? FFmpegCommandBuilder.H263_PLUS_CODEC : null, fileQueueItem.getSize());
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
 

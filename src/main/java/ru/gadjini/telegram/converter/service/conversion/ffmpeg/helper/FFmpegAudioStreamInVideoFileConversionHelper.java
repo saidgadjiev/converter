@@ -30,15 +30,30 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
     }
 
     public void convertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams, Format targetFormat) {
-        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
+        List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
+                .filter(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))
+                .collect(Collectors.toList());
+        if (!audioStreams.isEmpty()) {
             commandBuilder.mapAudio();
+            for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); audioStreamIndex++) {
+                commandBuilder.keepAudioBitRate(audioStreamIndex, audioStreams.get(audioStreamIndex).getBitRate());
+            }
+
             addAudioCodecByTargetFormat(commandBuilder, targetFormat);
         }
     }
 
     public void convertAudioCodecsForTelegramVideo(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams) {
-        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
+        List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
+                .filter(stream -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))
+                .collect(Collectors.toList());
+        if (!audioStreams.isEmpty()) {
             commandBuilder.mapAudio();
+
+            for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); audioStreamIndex++) {
+                commandBuilder.keepAudioBitRate(audioStreamIndex, audioStreams.get(audioStreamIndex).getBitRate());
+            }
+
             commandBuilder.audioCodec(TELEGRAM_VIDEO_AUDIO_CODEC);
         }
     }
@@ -68,6 +83,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                 } else {
                     audioIndexes.put(audioStreamIndex, false);
                 }
+                commandBuilder.keepAudioBitRate(audioStreamIndex, audioStream.getBitRate());
             }
             if (audioIndexes.values().stream().allMatch(s -> s)) {
                 commandBuilder.copyAudio();
@@ -104,6 +120,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                 } else {
                     copyAudiosIndexes.put(audioStreamIndex, false);
                 }
+                commandBuilder.keepAudioBitRate(audioStreamIndex, audioStreams.get(audioStreamIndex).getBitRate());
             }
             if (copyAudiosIndexes.values().stream().allMatch(a -> a)) {
                 commandBuilder.copyAudio();
@@ -147,6 +164,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                     addAudioCodecOptions(commandBuilder, outCodecIndex, targetFormat);
                 }
             }
+            commandBuilder.keepAudioBitRate(audioStreamMapIndex, audioStream.getBitRate());
             ++outCodecIndex;
         }
     }

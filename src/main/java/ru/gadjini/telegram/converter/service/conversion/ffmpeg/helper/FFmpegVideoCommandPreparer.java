@@ -29,7 +29,8 @@ public class FFmpegVideoCommandPreparer {
     }
 
     public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                              SmartTempFile result, String scale, Format targetFormat) throws InterruptedException {
+                                              SmartTempFile result, String scale, Format targetFormat, boolean keepVideoBitRate,
+                                              Long fileSize) throws InterruptedException {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
@@ -49,6 +50,9 @@ public class FFmpegVideoCommandPreparer {
             }
             if (!convertibleToH264) {
                 commandBuilder.filterVideo(outCodecIndex, scale);
+            }
+            if (keepVideoBitRate) {
+                commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
             }
             ++outCodecIndex;
         }

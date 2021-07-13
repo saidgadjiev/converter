@@ -104,9 +104,9 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
+                fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
             } else {
-                fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
+                fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
             }
 
             if (watermark.getWatermarkType() == VideoWatermarkType.TEXT) {
@@ -131,7 +131,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
                 commandBuilder.vp8QualityOptions();
             }
-            commandBuilder.fastConversion();
+            commandBuilder.fastConversion().defaultOptions();
             commandBuilder.out(result.getAbsolutePath());
 
             fFmpegDevice.execute(commandBuilder.buildFullCommand());

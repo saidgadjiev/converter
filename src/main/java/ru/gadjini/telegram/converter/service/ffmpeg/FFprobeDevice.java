@@ -58,8 +58,13 @@ public class FFprobeDevice {
         String result = processExecutor.executeWithResult(getAllStreamsCommand(in));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
-        });
+        FFprobeResult fFprobeResult = jsonMapper.convertValue(json, FFprobeResult.class);
+
+        for (Stream stream : fFprobeResult.getStreams()) {
+            stream.setFormat(fFprobeResult.getFormat());
+        }
+
+        return fFprobeResult.getStreams();
     }
 
     public FFprobeResult probeVideoStream(String in, int index) throws InterruptedException {
@@ -83,7 +88,7 @@ public class FFprobeDevice {
                 }
                 FFprobeDevice.FFprobeFormat fFprobeFormat = probeVideoStream.getFormat();
                 if (fFprobeFormat != null) {
-                    Long duration = probeVideoStream.getFormat().getDuration() != null ? probeVideoStream.getFormat().getDuration().longValue() : null;
+                    Long duration = probeVideoStream.getFormat().getDuration();
                     whd.setDuration(duration);
                 }
             }
@@ -134,7 +139,7 @@ public class FFprobeDevice {
 
     private String[] getAllStreamsCommand(String in) {
         return new String[]{
-                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type,width,height:stream_tags=language", "-of", "json", in
+                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type,width,height,bit_rate:stream_tags=language:format=duration", "-of", "json", in
         };
     }
 
@@ -206,8 +211,8 @@ public class FFprobeDevice {
 
         private Double duration;
 
-        public Double getDuration() {
-            return duration;
+        public Long getDuration() {
+            return duration == null ? null : duration.longValue();
         }
 
         public void setDuration(Double duration) {
@@ -239,7 +244,12 @@ public class FFprobeDevice {
 
         private Integer height;
 
+        @JsonProperty("bit_rate")
+        private Long bitRate;
+
         private Integer input;
+
+        private FFprobeFormat format;
 
         public String getCodecName() {
             return codecName;
@@ -279,6 +289,26 @@ public class FFprobeDevice {
 
         public Integer getInput() {
             return input;
+        }
+
+        public Long getBitRate() {
+            return bitRate;
+        }
+
+        public void setBitRate(Long bitRate) {
+            this.bitRate = bitRate;
+        }
+
+        public FFprobeFormat getFormat() {
+            return format;
+        }
+
+        public void setFormat(FFprobeFormat format) {
+            this.format = format;
+        }
+
+        public Long getDuration() {
+            return format == null ? null : format.getDuration();
         }
     }
 }

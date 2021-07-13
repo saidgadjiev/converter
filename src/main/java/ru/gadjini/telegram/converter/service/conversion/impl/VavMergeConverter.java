@@ -109,9 +109,11 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
             }
 
             if (targetFormat.canBeSentAsVideo()) {
-                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion, targetFormat);
+                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion,
+                        targetFormat, conversionQueueItem.getSize());
             } else {
-                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, videoStreamsForConversion, targetFormat, result);
+                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, videoStreamsForConversion, targetFormat,
+                        result, conversionQueueItem.getSize());
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
             FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
