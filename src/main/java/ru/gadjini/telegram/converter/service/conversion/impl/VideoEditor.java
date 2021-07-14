@@ -103,7 +103,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
                     fileQueueItem.getFirstFileFormat(), true, fileQueueItem.getSize());
 
-            if (fileQueueItem.getTargetFormat() == WEBM) {
+            if (fileQueueItem.getFirstFileFormat() == WEBM) {
                 commandBuilder.vp8QualityOptions();
             }
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
