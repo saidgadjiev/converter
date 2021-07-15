@@ -176,7 +176,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
             ConvertState convertState = toConvertState(existsState);
             convertionService.createConversion(callbackQuery.getFrom(), convertState, Format.MERGE, new Locale(existsState.getUserLanguage()));
             commandStateService.deleteState(callbackQuery.getFrom().getId(), getCommandIdentifier());
-            messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
+            messageService.removeInlineKeyboard(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
         }
     }
 
