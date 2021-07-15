@@ -71,20 +71,29 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
             List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
                     .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
+            List<Integer> inputs = audioStreams.stream().map(FFprobeDevice.Stream::getInput).distinct().collect(Collectors.toList());
+            int audioStreamIndex = 0;
             Map<Integer, Boolean> audioIndexes = new LinkedHashMap<>();
-            Integer input = audioStreams.iterator().next().getInput();
-            if (appendMapAudio) {
-                commandBuilder.mapAudioInput(input);
-            }
-            for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
-                FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamIndex);
-                if (TELEGRAM_VIDEO_AUDIO_CODEC.equals(audioStream.getCodecName())) {
-                    audioIndexes.put(audioStreamIndex, true);
-                } else {
-                    audioIndexes.put(audioStreamIndex, false);
+
+            for (Integer input : inputs) {
+                if (appendMapAudio) {
+                    commandBuilder.mapAudioInput(input);
                 }
-                commandBuilder.keepAudioBitRate(audioStreamIndex, audioStream.getBitRate());
+                List<FFprobeDevice.Stream> byInput = audioStreams.stream()
+                        .filter(s -> input.equals(s.getInput()))
+                        .collect(Collectors.toList());
+
+                for (FFprobeDevice.Stream audioStream: byInput) {
+                    if (TELEGRAM_VIDEO_AUDIO_CODEC.equals(audioStream.getCodecName())) {
+                        audioIndexes.put(audioStreamIndex, true);
+                    } else {
+                        audioIndexes.put(audioStreamIndex, false);
+                    }
+                    commandBuilder.keepAudioBitRate(audioStreamIndex, audioStream.getBitRate());
+                    ++audioStreamIndex;
+                }
             }
+
             if (audioIndexes.values().stream().allMatch(s -> s)) {
                 commandBuilder.copyAudio();
             } else if (audioIndexes.values().stream().noneMatch(s -> s)) {
