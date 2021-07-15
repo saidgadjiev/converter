@@ -29,13 +29,15 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
 @Component
 public class VavMergeConverter extends BaseAny2AnyConverter {
 
+    public static final String ADD_AUDIO_MODE = "0";
+
+    public static final String REPLACE_AUDIO_MODE = "1";
+
+    public static final String ADD_SUBTITLES_MODE = "2";
+
+    public static final String REPLACE_SUBTITLES_MODE = "3";
+
     private static final String TAG = "vavmerge";
-
-    public static final int AUDIO_FILE_INDEX = 1;
-
-    public static final int VIDEO_FILE_INDEX = 0;
-
-    public static final int SUBTITLES_FILE_INDEX = 2;
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(Format.VIDEOAUDIO), List.of(Format.MERGE)

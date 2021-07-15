@@ -5,7 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.converter.command.bot.vavmerge.VavMergeState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.request.ConverterArg;
+import ru.gadjini.telegram.converter.service.conversion.impl.VavMergeConverter;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 
@@ -25,6 +29,26 @@ public class InlineKeyboardService {
     public InlineKeyboardService(ButtonFactory buttonFactory, SmartInlineKeyboardService smartInlineKeyboardService) {
         this.buttonFactory = buttonFactory;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
+    }
+
+    public InlineKeyboardMarkup getVavMergeSettingsKeyboard(VavMergeState vavMergeState, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_ADD_AUDIO_MODE,
+                        VavMergeConverter.ADD_AUDIO_MODE, vavMergeState.getAudioMode(), ConverterArg.VAV_MERGE_AUDIO_MODE.getKey(), locale),
+                        buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_REPLACE_AUDIO_MODE,
+                                VavMergeConverter.REPLACE_AUDIO_MODE, vavMergeState.getAudioMode(), ConverterArg.VAV_MERGE_AUDIO_MODE.getKey(), locale)));
+
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_ADD_SUBTITLES_MODE,
+                        VavMergeConverter.ADD_SUBTITLES_MODE, vavMergeState.getSubtitlesMode(), ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey(), locale),
+                        buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_REPLACE_SUBTITLES_MODE,
+                                VavMergeConverter.REPLACE_SUBTITLES_MODE, vavMergeState.getSubtitlesMode(), ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey(), locale)));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.vavMergeButton(locale)));
+
+        return inlineKeyboardMarkup;
     }
 
     public InlineKeyboardMarkup getLanguagesRootKeyboard(Locale locale) {

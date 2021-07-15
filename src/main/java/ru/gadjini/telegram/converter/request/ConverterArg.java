@@ -9,7 +9,10 @@ public enum ConverterArg {
     COMPRESSION_FORMAT("k"),
     COMPRESSION_FREQUENCY("v"),
     LANGUAGE("kv"),
-    GO_BACK("gb");
+    GO_BACK("gb"),
+    VAV_MERGE_AUDIO_MODE("va"),
+    VAV_MERGE_SUBTITLES_MODE("vs"),
+    VAV_MERGE("vm");
 
     private final String key;
 

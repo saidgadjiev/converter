@@ -106,6 +106,35 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
+    public InlineKeyboardButton vavMergeAudioModeButton(String nameCode, String mode, String choseMode, String modeArgName, Locale locale) {
+        String btnName = Objects.equals(choseMode, mode)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + localisationService.getMessage(nameCode, locale)
+                : localisationService.getMessage(nameCode, locale);
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.VAVMERGE)
+                        .add(modeArgName, mode)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+
+    public InlineKeyboardButton vavMergeButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.VAVMERGE_START_COMMAND_NAME, locale)
+        );
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.VAVMERGE)
+                        .add(ConverterArg.VAV_MERGE.getKey(), true)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton extractByLanguagesButton(Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
                 localisationService.getMessage(ConverterMessagesProperties.EXTRACT_BY_LANGUAGES_MEDIA_COMMAND_DESCRIPTION, locale)

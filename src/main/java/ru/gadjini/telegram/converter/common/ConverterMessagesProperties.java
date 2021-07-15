@@ -205,23 +205,13 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VAIMAKE_CLICK = "message.vaimake.click";
 
-    public static final String MESSAGE_VAVMERGE_AWAITING_VIDEO_SUBTITLES = "message.vavmerge.awaiting.video.subtitles";
-
     public static final String MESSAGE_VAVMERGE_AWAITING_AUDIO_SUBTITLES = "message.vavmerge.awaiting.audio.subtitles";
 
-    public static final String MESSAGE_VAVMERGE_AWAITING_SUBTITLES = "message.vavmerge.awaiting.subtitles";
-
-    public static final String MESSAGE_VAVMERGE_AWAITING_VIDEO_AUDIO = "message.vavmerge.awaiting.video.audio";
-
     public static final String MESSAGE_VAVMERGE_AWAITING_VIDEO = "message.vavmerge.awaiting.video";
-
-    public static final String MESSAGE_VAVMERGE_AWAITING_AUDIO = "message.vavmerge.awaiting.audio";
 
     public static final String MESSAGE_VAVMERGE_FILES_CANCELED = "message.vavmerge.files.canceled";
 
     public static final String VAVMERGE_COMMAND_NAME = "vavmerge.command.name";
-
-    public static final String MESSAGE_VAVMERGE_CLICK = "message.vavmerge.click";
 
     public static final String MESSAGE_VAVMERGE_WELCOME = "message.vavmerge.welcome";
 
@@ -348,4 +338,16 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_STREAM_LANGUAGE = "message.stream.language";
 
     public static final String MESSAGE_STREAM_LANGUAGE_UNKNOWN = "message.stream.language.unknown";
+
+    public static final String MESSAGE_ADD_AUDIO_MODE = "message.add.audio.mode";
+
+    public static final String MESSAGE_REPLACE_AUDIO_MODE = "message.replace.audio.mode";
+
+    public static final String MESSAGE_ADD_SUBTITLES_MODE = "message.add.subtitles.mode";
+
+    public static final String MESSAGE_REPLACE_SUBTITLES_MODE = "message.replace.subtitles.mode";
+
+    public static final String MESSAGE_MERGE_SETTINGS = "message.merge.settings";
+
+    public static final String VAVMERGE_START_COMMAND_NAME = "vavmerge.start.command.name";
 }

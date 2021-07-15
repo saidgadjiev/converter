@@ -6,7 +6,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 public class SettingsState {
 
-    private int messageId;
+    private Integer messageId;
 
     private String bitrate;
 
@@ -22,6 +22,10 @@ public class SettingsState {
 
     private String languageToExtract;
 
+    private String vavMergeAudioMode;
+
+    private String vavMergeSubtitlesMode;
+
     public String getBitrate() {
         return bitrate;
     }
@@ -30,11 +34,11 @@ public class SettingsState {
         this.bitrate = bitrate;
     }
 
-    public int getMessageId() {
+    public Integer getMessageId() {
         return messageId;
     }
 
-    public void setMessageId(int messageId) {
+    public void setMessageId(Integer messageId) {
         this.messageId = messageId;
     }
 
@@ -92,5 +96,21 @@ public class SettingsState {
 
     public void setLanguageToExtract(String languageToExtract) {
         this.languageToExtract = languageToExtract;
+    }
+
+    public String getVavMergeSubtitlesMode() {
+        return vavMergeSubtitlesMode;
+    }
+
+    public void setVavMergeSubtitlesMode(String vavMergeSubtitlesMode) {
+        this.vavMergeSubtitlesMode = vavMergeSubtitlesMode;
+    }
+
+    public String getVavMergeAudioMode() {
+        return vavMergeAudioMode;
+    }
+
+    public void setVavMergeAudioMode(String vavMergeAudioMode) {
+        this.vavMergeAudioMode = vavMergeAudioMode;
     }
 }
