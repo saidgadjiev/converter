@@ -247,7 +247,7 @@ public class FFprobeDevice {
         @JsonProperty("bit_rate")
         private Long bitRate;
 
-        private Integer input;
+        private Integer input = 0;
 
         private FFprobeFormat format;
 
