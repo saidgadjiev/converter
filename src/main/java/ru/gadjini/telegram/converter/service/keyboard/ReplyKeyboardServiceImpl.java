@@ -297,6 +297,9 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         if (targetFormats.remove(Format.COMPRESS)) {
             formats.add(Format.COMPRESS);
         }
+        if (targetFormats.remove(Format.UPLOAD)) {
+            formats.add(Format.UPLOAD);
+        }
         if (targetFormats.remove(Format.STREAM)) {
             formats.add(Format.STREAM);
         }
