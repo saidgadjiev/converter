@@ -115,6 +115,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CONCATENATE_FILES_QUEUED = "message.concatenate.files.queued";
 
+    public static final String MESSAGE_UPLOAD_QUEUED = "message.upload.queued";
+
     public static final String CONCATENATION_STEP = "concatenation.step";
 
     public static final String MESSAGE_CONCATENATE_MIN_2_FILES = "message.concatenate.min.2.files";

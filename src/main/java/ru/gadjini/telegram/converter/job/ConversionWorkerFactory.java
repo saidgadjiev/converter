@@ -195,6 +195,9 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
         }
 
         private void sendConvertingProgress(ConversionQueueItem queueItem) {
+            if (queueItem.getTargetFormat() == Format.UPLOAD) {
+                return;
+            }
             if (queueItem.getAttempts() == 1) {
                 Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
                 String message = messageBuilder.getConversionProcessingMessage(queueItem,

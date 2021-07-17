@@ -190,6 +190,9 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         } else if (queueItem.getTargetFormat() == Format.PROBE) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_PROBE_QUEUED,
                     new Object[]{queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.UPLOAD) {
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UPLOAD_QUEUED,
+                    new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.CUT) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_QUEUED,
                     new Object[]{queueItem.getQueuePosition()}, locale));
@@ -247,31 +250,31 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                                 ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b>"
                                 + (completedSteps.contains(ConversionStep.DOWNLOADING) ? " " + iconCheck : "") + "\n"
                                 : "") +
-                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>" + (completedSteps.contains(ConversionStep.CONVERTING) ? " " + iconCheck : "") + "\n" +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>" + (completedSteps.contains(ConversionStep.CONVERTING) ? " " + iconCheck : "") + "\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case DOWNLOADING:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + " ...</b>\n"
                         : "") +
-                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>\n" +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case CONVERTING:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
                         : "") +
-                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + " ...</b>\n" +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + " ...</b>\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case UPLOADING:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
                         : "") +
-                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + " ...</b>" : "");
             default:
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
                         : "") +
-                        "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n" +
+                        (targetFormat == Format.UPLOAD ? "" :"<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b> " + iconCheck : "");
         }
     }
