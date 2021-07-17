@@ -283,11 +283,11 @@ public class FFprobeDevice {
             this.width = width;
         }
 
-        public void setInput(Integer input) {
+        public void setInput(int input) {
             this.input = input;
         }
 
-        public Integer getInput() {
+        public int getInput() {
             return input;
         }
 
