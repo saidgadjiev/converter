@@ -53,7 +53,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             }},
             Format.MP3, Map.of(
                     FFmpegAudioCompressConverter.MP3_FREQUENCY_22, List.of("7", "13", "18", FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128"),
-                    FFmpegAudioCompressConverter.MP3_FREQUENCY_44, List.of(FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128")
+                    FFmpegAudioCompressConverter.MP3_FREQUENCY_44, List.of(FFmpegAudioCompressConverter.AUTO_BITRATE, "64", "96", "128", "160", "192", "256")
             )
     );
 
