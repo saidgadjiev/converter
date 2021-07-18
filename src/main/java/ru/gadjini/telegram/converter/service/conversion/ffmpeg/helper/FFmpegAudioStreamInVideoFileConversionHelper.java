@@ -121,7 +121,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                     .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
             Map<Integer, Boolean> copyAudiosIndexes = new LinkedHashMap<>();
-            Integer input = audioStreams.iterator().next().getInput();
+            int input = audioStreams.iterator().next().getInput();
             commandBuilder.mapAudioInput(input);
             for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
                 if (isCopyableAudioCodecs(baseCommand, out, input, audioStreamIndex)) {
