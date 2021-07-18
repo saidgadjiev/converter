@@ -59,13 +59,16 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
     }
 
-    public String getResolutionChangedInfoMessage(Integer sourceHeight, Integer targetHeight, Locale locale) {
+    public String getVideoEditedInfoMessage(long sourceFileSize, long resultSize,
+                                            Integer sourceHeight, Integer targetHeight, Locale locale) {
         if (sourceHeight == null || targetHeight == null) {
             return null;
         }
 
         return localisationService.getMessage(ConverterMessagesProperties.VIDEO_EDITING_RESOLUTION_CHANGED,
-                new Object[]{sourceHeight + "p", targetHeight + "p"}, locale);
+                new Object[]{sourceHeight + "p", targetHeight + "p"}, locale) + "\n\n"
+                + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_RESULT_SIZE,
+                new Object[]{MemoryUtils.humanReadableByteCount(sourceFileSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
     }
 
     public String getUnsupportedCategoryMessage(FormatCategory category, Locale locale) {
@@ -274,7 +277,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 return (srcFormat.isDownloadable()
                         ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
                         : "") +
-                        (targetFormat == Format.UPLOAD ? "" :"<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n") +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b> " + iconCheck : "");
         }
     }

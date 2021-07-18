@@ -54,6 +54,7 @@ public class FFmpegVideoCommandPreparer {
             if (keepVideoBitRate) {
                 commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
             }
+
             ++outCodecIndex;
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);

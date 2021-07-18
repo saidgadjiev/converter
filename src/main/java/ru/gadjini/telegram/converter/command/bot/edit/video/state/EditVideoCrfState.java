@@ -26,7 +26,10 @@ public class EditVideoCrfState extends BaseEditVideoState {
 
     public static final String DEFAULT_CRF = "23";
 
-    public static final List<String> AVAILABLE_CRF = List.of("13", "15", "18", "20", DEFAULT_CRF, "26", "28", "30", "32", "34", "36");
+    public static final String DONT_CHANGE = "x";
+
+    public static final List<String> AVAILABLE_CRF = List.of("x", "13", "15", "18",
+            "20", DEFAULT_CRF, "26", "28", "30", "32", "34", "36", "40");
 
     private MessageService messageService;
 

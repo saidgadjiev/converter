@@ -173,8 +173,6 @@ public class ConverterMessagesProperties {
 
     public static final String VIDEO_EDITING_RESOLUTION_CHANGED = "video.editing.resolution.changed";
 
-    public static final String MESSAGE_VIDEO_RESOLUTION_THE_SAME = "message.video.resolution.the.same";
-
     public static final String MESSAGE_VIDEO_ALREADY_SQUARE = "message.video.already.square";
 
     public static final String MESSAGE_SQUARE_CAPTION = "message.square.caption";
@@ -362,4 +360,10 @@ public class ConverterMessagesProperties {
     public static final String VEDIT_RESOLUTION_COMMAND_NAME = "vedit.resolution.command.name";
 
     public static final String VEDIT_CRF_COMMAND_NAME = "vedit.crf.command.name";
+
+    public static final String MESSAGE_DONT_CHANGE = "message.dont.change";
+
+    public static final String MESSAGE_CHOOSE_EDIT_SETTINGS = "message.choose.edit.settings";
+
+    public static final String MESSAGE_VIDEO_EDIT_RESULT_SIZE = "message.video.edit.result.size";
 }

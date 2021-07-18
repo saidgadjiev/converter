@@ -1,9 +1,12 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
-import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
@@ -11,6 +14,8 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -20,7 +25,6 @@ import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -28,7 +32,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
@@ -52,25 +55,31 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private Jackson jackson;
 
-    private LocalisationService localisationService;
-
     private FFmpegVideoCommandPreparer videoStreamsChangeHelper;
 
-    private FFmpegVideoStreamConversionHelper fFmpegHelper;
+    private FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper;
+
+    private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
+
+    private FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper;
 
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
-                       FFmpegDevice fFmpegDevice, Jackson jackson, LocalisationService localisationService,
-                       FFmpegVideoCommandPreparer videoStreamsChangeHelper, FFmpegVideoStreamConversionHelper fFmpegHelper) {
+                       FFmpegDevice fFmpegDevice, Jackson jackson,
+                       FFmpegVideoCommandPreparer videoStreamsChangeHelper,
+                       FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
+                       FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
+                       FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
         this.jackson = jackson;
-        this.localisationService = localisationService;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
-        this.fFmpegHelper = fFmpegHelper;
+        this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
+        this.videoStreamConversionHelper = videoStreamConversionHelper;
+        this.subtitlesStreamConversionHelper = subtitlesStreamConversionHelper;
     }
 
     @Override
@@ -85,38 +94,65 @@ public class VideoEditor extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            fFmpegHelper.validateVideoIntegrity(file);
+            videoStreamConversionHelper.validateVideoIntegrity(file);
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
-            Integer height = Integer.valueOf(settingsState.getResolution().replace("p", ""));
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), FFmpegVideoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
+                    FFmpegVideoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
-            if (Objects.equals(srcWhd.getHeight(), height)) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_THE_SAME,
-                        new Object[]{settingsState.getResolution()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())))
-                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
-            }
-            String scale = "scale=-2:" + height;
+            String height = settingsState.getResolution().replace("p", "");
+            String scale = EditVideoResolutionState.DONT_CHANGE.equals(settingsState.getResolution()) ? null
+                    : "scale=-2:" + (NumberUtils.isDigits(height) ? height : "ceil(ih" + height + "/2)*2");
+
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
-                    fileQueueItem.getFirstFileFormat(), true, fileQueueItem.getSize());
+
+            if (StringUtils.isBlank(scale)) {
+                if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                    videoStreamConversionHelper.convertVideoCodecsForTelegramVideo(commandBuilder,
+                            allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
+                } else {
+                    videoStreamConversionHelper.convertVideoCodecs(commandBuilder, allStreams,
+                            fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
+                }
+                videoStreamConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+
+                FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+                if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                    audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+                } else {
+                    audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams,
+                            result, fileQueueItem.getFirstFileFormat());
+                }
+                subtitlesStreamConversionHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder,
+                        allStreams, result, fileQueueItem.getFirstFileFormat());
+                commandBuilder.fastConversion();
+            } else {
+                videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
+                        fileQueueItem.getFirstFileFormat(), false, fileQueueItem.getSize());
+            }
 
             if (fileQueueItem.getFirstFileFormat() == WEBM) {
                 commandBuilder.vp8QualityOptions();
             }
+            if (!EditVideoCrfState.DONT_CHANGE.equals(settingsState.getCrf())) {
+                commandBuilder.crf(settingsState.getCrf());
+            }
+
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
-            String resolutionChangedInfo = messageBuilder.getResolutionChangedInfoMessage(srcWhd.getHeight(),
-                    height, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+            String resolutionChangedInfo = messageBuilder.getVideoEditedInfoMessage(fileQueueItem.getSize(),
+                    result.length(), srcWhd.getHeight(),
+                    targetWhd.getHeight(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
 
-                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), targetWhd.getWidth(), height,
+            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem),
+                        targetWhd.getWidth(), targetWhd.getHeight(),
                         targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), resolutionChangedInfo);
             } else {
                 return new FileResult(fileName, result, downloadThumb(fileQueueItem), resolutionChangedInfo);

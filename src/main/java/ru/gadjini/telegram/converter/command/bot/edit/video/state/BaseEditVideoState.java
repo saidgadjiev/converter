@@ -40,7 +40,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
 
         Locale locale = new Locale(convertState.getUserLanguage());
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
-                new Object[]{convertState.getSettings().getResolution(), convertState.getSettings().getCrf()}, locale));
+                new Object[]{getResolutionMessage(convertState.getSettings().getResolution(), locale),
+                        getCrfMessage(convertState.getSettings().getCrf(), locale)}, locale));
         message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
@@ -63,5 +64,15 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                         : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
                         EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage())))
                 .build());
+    }
+
+    private String getResolutionMessage(String resolution, Locale locale) {
+        return EditVideoResolutionState.DONT_CHANGE.equals(resolution) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution;
+    }
+
+    private String getCrfMessage(String crf, Locale locale) {
+        return EditVideoResolutionState.DONT_CHANGE.equals(crf) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : crf;
     }
 }

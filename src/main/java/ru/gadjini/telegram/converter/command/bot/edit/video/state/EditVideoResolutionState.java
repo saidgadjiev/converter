@@ -7,7 +7,6 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageRe
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
-import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
@@ -25,10 +24,12 @@ import java.util.Objects;
 @Component
 public class EditVideoResolutionState extends BaseEditVideoState {
 
-    public static final String DEFAULT_RESOLUTION = "144p";
+    public static final String DEFAULT_RESOLUTION = "480p";
 
-    public static final List<String> AVAILABLE_RESOLUTIONS = List.of("1080p", "720p", "480p", "360p", "240p",
-            DEFAULT_RESOLUTION, "64p", "32p", "/1.5", "/2", "/3", "*1.5");
+    public static final String DONT_CHANGE = "x";
+
+    public static final List<String> AVAILABLE_RESOLUTIONS = List.of("x", "1080p", "720p", "480p", "360p", "240p",
+            DEFAULT_RESOLUTION, "64p", "32p", "/1.5p", "/2p", "/3p", "*1.5p");
 
     private MessageService messageService;
 

@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.bot.vavmerge.VavMergeState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
@@ -96,6 +98,11 @@ public class InlineKeyboardService {
 
     public InlineKeyboardMarkup getVideoEditResolutionsKeyboard(String currentResolution, List<String> resolutions, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        resolutions = new ArrayList<>(resolutions);
+        resolutions.remove(EditVideoCrfState.DONT_CHANGE);
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.resolutionButton(currentResolution, EditVideoResolutionState.DONT_CHANGE, locale)));
         List<List<String>> lists = Lists.partition(resolutions, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
@@ -111,6 +118,10 @@ public class InlineKeyboardService {
 
     public InlineKeyboardMarkup getVideoEditCrfKeyboard(String currentCrf, List<String> crfs, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        crfs = new ArrayList<>(crfs);
+        crfs.remove(EditVideoCrfState.DONT_CHANGE);
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoCrfState.DONT_CHANGE, locale)));
         List<List<String>> lists = Lists.partition(crfs, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();

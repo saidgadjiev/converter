@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
@@ -196,9 +197,13 @@ public class ButtonFactory {
     }
 
     public InlineKeyboardButton resolutionButton(String currentResolution, String resolution, Locale locale) {
+        String resolutionName = resolution;
+        if (EditVideoResolutionState.DONT_CHANGE.equals(resolution)) {
+            resolutionName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale);
+        }
         String btnName = Objects.equals(currentResolution, resolution)
-                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + resolution
-                : resolution;
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + resolutionName
+                : resolutionName;
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
@@ -211,9 +216,13 @@ public class ButtonFactory {
     }
 
     public InlineKeyboardButton crfButton(String currentCrf, String crf, Locale locale) {
+        String crfName = crf;
+        if (EditVideoResolutionState.DONT_CHANGE.equals(crf)) {
+            crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale);
+        }
         String btnName = Objects.equals(currentCrf, crf)
-                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crf
-                : crf;
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crfName
+                : crfName;
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +

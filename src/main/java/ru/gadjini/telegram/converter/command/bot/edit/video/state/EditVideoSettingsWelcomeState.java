@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.command.bot.edit.video.state;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
@@ -9,11 +10,13 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -32,6 +35,8 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private EditVideoResolutionState resolutionState;
 
+    private LocalisationService localisationService;
+
     private EditVideoCrfState crfState;
 
     private WorkQueueJob workQueueJob;
@@ -44,6 +49,11 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
+    }
+
+    @Autowired
+    public void setLocalService(LocalisationService localisationService) {
+        this.localisationService = localisationService;
     }
 
     @Autowired
@@ -109,16 +119,35 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
             EditVideoState editVideoState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
                     ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
-            workQueueJob.cancelCurrentTasks(callbackQuery.getMessage().getChatId());
-            convertionService.createConversion(callbackQuery.getFrom(), editVideoState.getState(), Format.EDIT,
-                    new Locale(editVideoState.getState().getUserLanguage()));
-            commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.EDIT_VIDEO);
-            messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
+            if (validate(callbackQuery.getId(), editVideoState)) {
+                workQueueJob.cancelCurrentTasks(callbackQuery.getMessage().getChatId());
+                convertionService.createConversion(callbackQuery.getFrom(), editVideoState.getState(), Format.EDIT,
+                        new Locale(editVideoState.getState().getUserLanguage()));
+                commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.EDIT_VIDEO);
+                messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
+            }
         }
     }
 
     @Override
     public EditVideoSettingsStateName getName() {
         return EditVideoSettingsStateName.WELCOME;
+    }
+
+    private boolean validate(String queryId, EditVideoState editVideoState) {
+        if (EditVideoResolutionState.DONT_CHANGE.equals(editVideoState.getSettings().getResolution())
+                && EditVideoCrfState.DONT_CHANGE.equals(editVideoState.getSettings().getCrf())) {
+            messageService.sendAnswerCallbackQuery(
+                    AnswerCallbackQuery.builder()
+                            .callbackQueryId(queryId)
+                            .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_EDIT_SETTINGS,
+                                    new Locale(editVideoState.getUserLanguage())))
+                            .showAlert(true).build()
+            );
+
+            return false;
+        }
+
+        return true;
     }
 }

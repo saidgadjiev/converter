@@ -86,7 +86,8 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
             int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
             String scale = "scale='iw:ih':force_original_aspect_ratio=decrease,pad=" + size + ":" + size + ":(ow-iw)/2:(oh-ih)/2";
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale, TARGET_FORMAT, true, fileQueueItem.getSize());
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
+                    TARGET_FORMAT, true, fileQueueItem.getSize());
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
