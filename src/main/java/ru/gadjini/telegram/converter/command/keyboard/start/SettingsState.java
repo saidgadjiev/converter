@@ -12,6 +12,8 @@ public class SettingsState {
 
     private String resolution;
 
+    private String crf;
+
     private String frequency;
 
     private Format format;
@@ -112,5 +114,13 @@ public class SettingsState {
 
     public void setVavMergeAudioMode(String vavMergeAudioMode) {
         this.vavMergeAudioMode = vavMergeAudioMode;
+    }
+
+    public String getCrf() {
+        return crf;
+    }
+
+    public void setCrf(String crf) {
+        this.crf = crf;
     }
 }

@@ -155,13 +155,17 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CHOOSE_VIDEO_RESOLUTION = "message.choose.video.resolution";
 
+    public static final String MESSAGE_CHOOSE_VIDEO_CRF = "message.choose.video.crf";
+
     public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
+
+    public static final String MESSAGE_CRF_SELECTED = "message.crf.selected";
 
     public static final String MESSAGE_SEND_VIDEO_TO_EDIT = "message.send.video.to.edit";
 
-    public static final String MESSAGE_VIDEO_EDIT_SETTINGS_RESOLUTION = "message.video.edit.settings.resolution";
+    public static final String MESSAGE_VIDEO_EDIT_SETTINGS = "message.video.edit.settings";
 
-    public static final String MESSAGE_VIDEO_EDIT_SETTINGS_CHOOSE_RESOLUTION = "message.video.edit.settings.choose.resolution";
+    public static final String MESSAGE_VIDEO_EDIT_CHOOSE_SETTINGS = "message.video.edit.choose.settings";
 
     public static final String MESSAGE_VIDEO_WILL_BE_EDITED = "message.video.will.be.edited";
 
@@ -176,6 +180,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_SQUARE_CAPTION = "message.square.caption";
 
     public static final String MESSAGE_VIDEO_RESOLUTION_WARN = "message.video.resolution.warn";
+
+    public static final String MESSAGE_VIDEO_CRF_WARN = "message.video.crf.warn";
 
     public static final String MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT = "message.compress.audio.output.format";
 
@@ -352,4 +358,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_MERGE_SETTINGS = "message.merge.settings";
 
     public static final String VAVMERGE_START_COMMAND_NAME = "vavmerge.start.command.name";
+
+    public static final String VEDIT_RESOLUTION_COMMAND_NAME = "vedit.resolution.command.name";
+
+    public static final String VEDIT_CRF_COMMAND_NAME = "vedit.crf.command.name";
 }

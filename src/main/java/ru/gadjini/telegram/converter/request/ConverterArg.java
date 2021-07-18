@@ -12,7 +12,10 @@ public enum ConverterArg {
     GO_BACK("gb"),
     VAV_MERGE_AUDIO_MODE("va"),
     VAV_MERGE_SUBTITLES_MODE("vs"),
-    VAV_MERGE("vm");
+    VAV_MERGE("vm"),
+    VEDIT_CHOOSE_RESOLUTION("vt"),
+    VEDIT_CHOOSE_CRF("vc"),
+    CRF("cf");
 
     private final String key;
 

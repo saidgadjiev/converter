@@ -28,6 +28,32 @@ public class ButtonFactory {
         this.localisationService = localisationService;
     }
 
+    public InlineKeyboardButton chooseResolutionButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.VEDIT_RESOLUTION_COMMAND_NAME, locale));
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.VEDIT_CHOOSE_RESOLUTION.getKey(), true)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton chooseCrfButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.VEDIT_CRF_COMMAND_NAME, locale));
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.VEDIT_CHOOSE_CRF.getKey(), true)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton report(int queryItemId, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(ConverterMessagesProperties.REPORT_COMMAND_DESCRIPTION, locale));
         inlineKeyboardButton.setCallbackData(ConverterCommandNames.REPORT_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
@@ -179,6 +205,21 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
                         .add(ConverterArg.RESOLUTION.getKey(), resolution)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton crfButton(String currentCrf, String crf, Locale locale) {
+        String btnName = Objects.equals(currentCrf, crf)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crf
+                : crf;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.CRF.getKey(), crf)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

@@ -80,7 +80,21 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getVideoEditSettingsKeyboard(String currentResolution, List<String> resolutions, Locale locale) {
+    public InlineKeyboardMarkup getVideoEditSettingsKeyboard(Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.chooseResolutionButton(locale),
+                buttonFactory.chooseCrfButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.editVideoButton(locale)
+        ));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getVideoEditResolutionsKeyboard(String currentResolution, List<String> resolutions, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         List<List<String>> lists = Lists.partition(resolutions, 3);
         for (List<String> list : lists) {
@@ -90,7 +104,22 @@ public class InlineKeyboardService {
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.editVideoButton(locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(ConverterCommandNames.EDIT_VIDEO, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getVideoEditCrfKeyboard(String currentCrf, List<String> crfs, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        List<List<String>> lists = Lists.partition(crfs, 3);
+        for (List<String> list : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (String crf : list) {
+                buttons.add(buttonFactory.crfButton(currentCrf, crf, locale));
+            }
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(ConverterCommandNames.EDIT_VIDEO, locale)));
 
         return inlineKeyboardMarkup;
     }
