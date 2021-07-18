@@ -366,4 +366,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_CHOOSE_EDIT_SETTINGS = "message.choose.edit.settings";
 
     public static final String MESSAGE_VIDEO_EDIT_RESULT_SIZE = "message.video.edit.result.size";
+
+    public static final String MESSAGE_ONLY_URL_CAN_BE_UPLOADED = "message.only.url.can.be.uploaded";
 }

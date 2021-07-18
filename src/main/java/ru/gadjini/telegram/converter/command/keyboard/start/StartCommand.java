@@ -36,7 +36,9 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
+import ru.gadjini.telegram.smart.bot.commons.utils.UrlUtils;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -161,7 +163,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
                 return;
             }
             Format srcFormatToCheck = convertState.getMultiMediaFormat() != null ? convertState.getMultiMediaFormat() : convertState.getFirstFormat();
-            checkTargetFormat(message.getFrom().getId(), srcFormatToCheck, associatedFormat, text, convertState.getFirstFile().getFileSize(), locale);
+            checkTargetFormat(message.getFrom().getId(), convertState.getFiles(),
+                    srcFormatToCheck, associatedFormat, text, convertState.getFirstFile().getFileSize(), locale);
             conversionJob.cancelCurrentTasks(message.getFrom().getId());
 
             conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale, (Void) -> {
@@ -310,10 +313,14 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
         }
     }
 
-    private void checkTargetFormat(long userId, Format format, Format target, String text, long size, Locale locale) {
+    private void checkTargetFormat(long userId, List<MessageMedia> files, Format format, Format target,
+                                   String text, long size, Locale locale) {
         if (target == null) {
             LOGGER.warn("Target format is null({}, {})", userId, text);
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        }
+        if (target == Format.UPLOAD && files.stream().anyMatch(s -> !UrlUtils.isUrl(s.getFileId()))) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ONLY_URL_CAN_BE_UPLOADED, locale));
         }
         if (Objects.equals(format, target)) {
             LOGGER.warn("Same formats({}, {})", userId, format);
