@@ -320,7 +320,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (target == Format.UPLOAD && files.stream().anyMatch(s -> !UrlUtils.isUrl(s.getFileId()))) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ONLY_URL_CAN_BE_UPLOADED, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ONLY_MEDIA_FROM_LINK_CAN_BE_UPLOADED, locale));
         }
         if (Objects.equals(format, target)) {
             LOGGER.warn("Same formats({}, {})", userId, format);

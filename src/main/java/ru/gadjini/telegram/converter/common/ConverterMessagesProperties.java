@@ -367,5 +367,9 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VIDEO_EDIT_RESULT_SIZE = "message.video.edit.result.size";
 
-    public static final String MESSAGE_ONLY_URL_CAN_BE_UPLOADED = "message.only.url.can.be.uploaded";
+    public static final String MESSAGE_ONLY_MEDIA_FROM_LINK_CAN_BE_UPLOADED = "message.only.media.from.link.can.be.uploaded";
+
+    public static final String MESSAGE_INCORRECT_MEDIA_LINK = "message.incorrect.media.link";
+
+    public static final String MESSAGE_UNSUPPORTED_MEDIA_SOURCE = "message.unsupported.media.source";
 }
