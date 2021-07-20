@@ -94,10 +94,10 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
                 }
 
                 String caption = null;
-                if (targetFormat == Format.COMPRESS) {
+                if (fileQueueItem.getTargetFormat() == Format.COMPRESS) {
                     caption = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), result.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
                 }
-                if (targetFormat == Format.VOICE) {
+                if (fileQueueItem.getTargetFormat() == Format.VOICE) {
                     return new VoiceResult(fileName, result, fileQueueItem.getFirstFile().getDuration(), null);
                 } else {
                     return new AudioResult(fileName, result, fileQueueItem.getFirstFile().getAudioPerformer(),
