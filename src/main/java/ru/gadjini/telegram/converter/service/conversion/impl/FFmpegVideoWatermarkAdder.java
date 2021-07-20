@@ -108,9 +108,11 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
+                fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams,
+                        fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
             } else {
-                fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
+                fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(),
+                        result, fileQueueItem.getSize());
             }
 
             if (watermark.getWatermarkType() == VideoWatermarkType.TEXT) {

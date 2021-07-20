@@ -95,7 +95,11 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 throw e;
             } catch (Throwable e) {
                 LOGGER.error("Incorrect url({}, {})", url, e.getMessage());
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_MEDIA_LINK, locale));
+                if (e.getMessage().equals("Unsupported media source")) {
+                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_MEDIA_SOURCE, locale));
+                } else {
+                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_MEDIA_LINK, locale));
+                }
             }
         }
 
@@ -103,6 +107,8 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
     }
 
     private boolean containsUnsupportedMediaSource(String url) {
-        return url.toLowerCase().contains("youtube") || url.contains("tiktok") || url.contains("instagram");
+        url = url.toLowerCase();
+
+        return url.contains("youtube") || url.contains("tiktok") || url.contains("instagram");
     }
 }

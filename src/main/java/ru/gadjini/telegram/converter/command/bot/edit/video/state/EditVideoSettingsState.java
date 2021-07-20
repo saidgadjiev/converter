@@ -13,10 +13,6 @@ public interface EditVideoSettingsState {
 
     }
 
-    default void update(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState) {
-
-    }
-
     default void callbackUpdate(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery,
                                 RequestParams requestParams, EditVideoState currentState) {
 

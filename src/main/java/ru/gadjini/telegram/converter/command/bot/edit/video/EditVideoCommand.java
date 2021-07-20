@@ -136,34 +136,28 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         EditVideoState existsState = commandStateService.getState(message.getChatId(),
                 ConverterCommandNames.EDIT_VIDEO, false, EditVideoState.class);
-        if (message.hasText()) {
-            if (existsState == null) {
-                messageService.sendMessage(
-                        SendMessage.builder()
-                                .chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale))
-                                .build()
-                );
-            } else if (Format.PROBE.getName().equals(text)) {
-                EditVideoState state = commandStateService.getState(message.getChatId(),
-                        ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
-                workQueueJob.cancelCurrentTasks(message.getChatId());
-                convertionService.createConversion(message.getFrom(), state.getState(), Format.PROBE, new Locale(state.getState().getUserLanguage()));
-            } else {
-                messageService.sendMessage(
-                        SendMessage.builder()
-                                .chatId(String.valueOf(message.getChatId()))
-                                .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
-                                .build()
-                );
-            }
+        if (existsState == null) {
+            EditVideoState convertState = createState(message, locale);
+            getState(convertState.getStateName()).enter(this, message, convertState);
         } else {
-            if (existsState == null) {
-                EditVideoState convertState = createState(message, locale);
-                getState(convertState.getStateName()).enter(this, message, convertState);
-            } else {
-                getState(existsState.getStateName()).update(this, message, existsState);
+            MessageMedia messageMedia = messageMediaService.getMedia(message, locale);
+            if (messageMedia != null) {
+                checkMedia(messageMedia, locale);
+                existsState.setMedia(messageMedia);
+                commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
+            } else if (message.hasText()) {
+                if (Format.PROBE.getName().equals(text)) {
+                    workQueueJob.cancelCurrentTasks(message.getChatId());
+                    convertionService.createConversion(message.getFrom(), existsState.getState(), Format.PROBE, locale);
+                } else {
+                    messageService.sendMessage(
+                            SendMessage.builder()
+                                    .chatId(String.valueOf(message.getChatId()))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
+                                    .build()
+                    );
+                }
             }
         }
     }

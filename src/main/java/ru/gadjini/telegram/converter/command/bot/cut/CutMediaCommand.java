@@ -177,7 +177,8 @@ public class CutMediaCommand implements BotCommand, NavigableBotCommand {
 
     private void checkMedia(MessageMedia media, Locale locale) {
         if (media == null || media.getFormat().getCategory() != cutMediaConfigurator.getFormatCategory()) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_WELCOME, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_WELCOME,
+                    new Object[]{cutMediaConfigurator.getMediaTypeName(locale)}, locale));
         }
     }
 

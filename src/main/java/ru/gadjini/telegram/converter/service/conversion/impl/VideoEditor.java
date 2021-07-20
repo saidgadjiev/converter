@@ -134,7 +134,8 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 commandBuilder.fastConversion();
             } else {
                 videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
-                        fileQueueItem.getFirstFileFormat(), false, fileQueueItem.getSize());
+                        fileQueueItem.getFirstFileFormat(), EditVideoCrfState.DONT_CHANGE.equals(settingsState.getCrf()),
+                        fileQueueItem.getSize());
             }
 
             if (fileQueueItem.getFirstFileFormat() == WEBM) {

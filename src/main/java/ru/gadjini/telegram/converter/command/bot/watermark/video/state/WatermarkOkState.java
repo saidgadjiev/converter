@@ -136,7 +136,7 @@ public class WatermarkOkState extends BaseWatermarkState {
             ConvertState convertState = createState(message, locale);
 
             workQueueJob.cancelCurrentTasks(message.getChatId());
-            convertionService.createConversion(message.getFrom(), convertState, Format.WATERMARK, new Locale(convertState.getUserLanguage()));
+            convertionService.createConversion(message.getFrom(), convertState, Format.WATERMARK,locale);
         }
     }
 
