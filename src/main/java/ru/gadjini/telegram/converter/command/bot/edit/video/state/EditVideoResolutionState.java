@@ -24,12 +24,12 @@ import java.util.Objects;
 @Component
 public class EditVideoResolutionState extends BaseEditVideoState {
 
-    public static final String DEFAULT_RESOLUTION = "480p";
+    public static final String DEFAULT_RESOLUTION = "/1.5";
 
     public static final String DONT_CHANGE = "x";
 
-    public static final List<String> AVAILABLE_RESOLUTIONS = List.of("x", "1080p", "720p", DEFAULT_RESOLUTION, "360p", "240p",
-            "144p", "64p", "32p", "/1.5p", "/2p", "/3p", "*1.5p");
+    public static final List<String> AVAILABLE_RESOLUTIONS = List.of("x", "1080p", "720p", "480p", "360p", "240p",
+            "144p", "64p", "32p", DEFAULT_RESOLUTION, "/2", "/3", "*1.5");
 
     private MessageService messageService;
 

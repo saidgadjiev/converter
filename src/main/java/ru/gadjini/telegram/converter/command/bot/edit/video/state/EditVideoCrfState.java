@@ -24,12 +24,12 @@ import java.util.Objects;
 @Component
 public class EditVideoCrfState extends BaseEditVideoState {
 
-    public static final String DEFAULT_CRF = "23";
+    public static final String DEFAULT_CRF = "28";
 
     public static final String DONT_CHANGE = "x";
 
     public static final List<String> AVAILABLE_CRF = List.of("x", "13", "15", "18",
-            "20", DEFAULT_CRF, "26", "28", "30", "32", "34", "36", "40");
+            "20", "23", "26", DEFAULT_CRF, "30", "32", "34", "36", "40");
 
     private MessageService messageService;
 
