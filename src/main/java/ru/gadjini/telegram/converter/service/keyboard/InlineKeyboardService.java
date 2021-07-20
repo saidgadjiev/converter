@@ -36,18 +36,21 @@ public class InlineKeyboardService {
     public InlineKeyboardMarkup getVavMergeSettingsKeyboard(VavMergeState vavMergeState, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
-        inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_ADD_AUDIO_MODE,
-                        VavMergeConverter.ADD_AUDIO_MODE, vavMergeState.getAudioMode(), ConverterArg.VAV_MERGE_AUDIO_MODE.getKey(), locale),
-                        buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_REPLACE_AUDIO_MODE,
-                                VavMergeConverter.REPLACE_AUDIO_MODE, vavMergeState.getAudioMode(), ConverterArg.VAV_MERGE_AUDIO_MODE.getKey(), locale)));
-
-        inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_ADD_SUBTITLES_MODE,
-                        VavMergeConverter.ADD_SUBTITLES_MODE, vavMergeState.getSubtitlesMode(), ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey(), locale),
-                        buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_REPLACE_SUBTITLES_MODE,
-                                VavMergeConverter.REPLACE_SUBTITLES_MODE, vavMergeState.getSubtitlesMode(), ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey(), locale)));
-
+        if (vavMergeState.getAudios().size() > 0) {
+            inlineKeyboardMarkup.getKeyboard()
+                    .add(List.of(buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_ADD_AUDIO_MODE,
+                            VavMergeConverter.ADD_AUDIO_MODE, vavMergeState.getAudioMode(), ConverterArg.VAV_MERGE_AUDIO_MODE.getKey(), locale),
+                            buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_REPLACE_AUDIO_MODE,
+                                    VavMergeConverter.REPLACE_AUDIO_MODE, vavMergeState.getAudioMode(), ConverterArg.VAV_MERGE_AUDIO_MODE.getKey(), locale)));
+        }
+        if (vavMergeState.getSubtitles().size() > 0) {
+            inlineKeyboardMarkup.getKeyboard()
+                    .add(List.of(buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_ADD_SUBTITLES_MODE,
+                            VavMergeConverter.ADD_SUBTITLES_MODE, vavMergeState.getSubtitlesMode(), ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey(), locale),
+                            buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_REPLACE_SUBTITLES_MODE,
+                                    VavMergeConverter.REPLACE_SUBTITLES_MODE, vavMergeState.getSubtitlesMode(), ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey(), locale)));
+        }
+        
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.vavMergeButton(locale)));
 
         return inlineKeyboardMarkup;
