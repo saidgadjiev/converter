@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -43,14 +44,17 @@ public class VideoMutter extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public VideoMutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper,
-                       FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+                       FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -85,13 +89,14 @@ public class VideoMutter extends BaseAny2AnyConverter {
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
+            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem));
+                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
             }
         } catch (CorruptedVideoException e) {
             tempFileService().delete(result);

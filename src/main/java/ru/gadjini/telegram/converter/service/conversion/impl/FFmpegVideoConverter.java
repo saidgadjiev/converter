@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -58,17 +59,21 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
     private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public FFmpegVideoConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
                                 FFmpegSubtitlesStreamConversionHelper fFmpegHelper,
                                 FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
-                                FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper) {
+                                FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+                                CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegHelper = fFmpegHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoAudioConversionHelper = videoAudioConversionHelper;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -126,13 +131,14 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 
+        String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
         if (targetFormat.canBeSentAsVideo()) {
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
             return new VideoResult(fileName, result, targetFormat, downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                    whd.getDuration(), targetFormat.supportsStreaming());
+                    whd.getDuration(), targetFormat.supportsStreaming(), caption);
         } else {
-            return new FileResult(fileName, result, downloadThumb(fileQueueItem));
+            return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
         }
     }
 }

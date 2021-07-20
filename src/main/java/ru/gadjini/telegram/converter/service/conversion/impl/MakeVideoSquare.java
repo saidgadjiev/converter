@@ -1,10 +1,12 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -53,10 +55,13 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
+    private CaptionGenerator captionGenerator;
+
+    @Autowired
     public MakeVideoSquare(FFmpegDevice fFmpegDevice, LocalisationService localisationService,
                            UserService userService, FFprobeDevice fFprobeDevice,
                            FFmpegVideoCommandPreparer videoStreamsChangeHelper,
-                           FFmpegVideoStreamConversionHelper fFmpegVideoHelper) {
+                           FFmpegVideoStreamConversionHelper fFmpegVideoHelper, CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -64,6 +69,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         this.fFprobeDevice = fFprobeDevice;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -95,6 +101,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
             String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SQUARE_CAPTION,
                     new Object[]{size + "x" + size}, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), caption);
             if (TARGET_FORMAT.canBeSentAsVideo()) {
                 return new VideoResult(fileName, result, TARGET_FORMAT, downloadThumb(fileQueueItem),
                         size, size,

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
@@ -38,15 +39,19 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter,
                                     FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
-                                    FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper) {
+                                    FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+                                    CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoFormatsConverter = fFmpegVideoFormatsConverter;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoAudioConversionHelper = videoAudioConversionHelper;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -82,8 +87,9 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+                String generate = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), generate);
             } else {
                 return null;
             }

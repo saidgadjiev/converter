@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -63,13 +64,15 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
                        FFmpegDevice fFmpegDevice, Jackson jackson,
                        FFmpegVideoCommandPreparer videoStreamsChangeHelper,
                        FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
-                       FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper) {
+                       FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper, CaptionGenerator captionGenerator) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
@@ -80,6 +83,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
         this.subtitlesStreamConversionHelper = subtitlesStreamConversionHelper;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -150,12 +154,13 @@ public class VideoEditor extends BaseAny2AnyConverter {
                     result.length(), srcWhd.getHeight(),
                     targetWhd.getHeight(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
 
+            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), resolutionChangedInfo);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem),
                         targetWhd.getWidth(), targetWhd.getHeight(),
-                        targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), resolutionChangedInfo);
+                        targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem), resolutionChangedInfo);
+                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
             }
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -59,10 +60,13 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
     private FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public VavMergeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
                              Jackson jackson, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
-                             FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper) {
+                             FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
+                             FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper, CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
@@ -70,6 +74,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
         this.videoAudioConversionHelper = videoAudioConversionHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -181,13 +186,14 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
             String fileName = Any2AnyFileNameUtils.getFileName(videoFile.getFileName(),
                     targetFormat.getExt());
+            String caption = captionGenerator.generate(conversionQueueItem.getUserId(), videoFile.getSource());
             if (targetFormat.canBeSentAsVideo()) {
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
                 return new VideoResult(fileName, result, targetFormat, downloadThumb(conversionQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), targetFormat.supportsStreaming());
+                        whd.getDuration(), targetFormat.supportsStreaming(), caption);
             } else {
-                return new FileResult(fileName, result, downloadThumb(conversionQueueItem));
+                return new FileResult(fileName, result, downloadThumb(conversionQueueItem), caption);
             }
         } catch (Throwable e) {
             tempFileService().delete(result);

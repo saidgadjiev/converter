@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.property.FontProperties;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -55,12 +56,14 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
     private FontProperties fontProperties;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public FFmpegVideoWatermarkAdder(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                                      VideoWatermarkService videoWatermarkService,
                                      FFprobeDevice fFprobeDevice, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
                                      FFmpegDevice fFmpegDevice, FFmpegSubtitlesStreamConversionHelper subtitlesHelper,
-                                     FontProperties fontProperties) {
+                                     FontProperties fontProperties, CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoWatermarkService = videoWatermarkService;
@@ -69,6 +72,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         this.fFmpegDevice = fFmpegDevice;
         this.subtitlesHelper = subtitlesHelper;
         this.fontProperties = fontProperties;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -138,13 +142,14 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
+            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), wdh.getWidth(), wdh.getHeight(),
-                        wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
+                        wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem));
+                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
             }
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);

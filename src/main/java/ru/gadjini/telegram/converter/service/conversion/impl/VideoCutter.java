@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -73,10 +74,13 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
     private Jackson jackson;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public VideoCutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
                        FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper, FFmpegDevice fFmpegDevice,
-                       FFprobeDevice fFprobeDevice, UserService userService, LocalisationService localisationService, Jackson jackson) {
+                       FFprobeDevice fFprobeDevice, UserService userService, LocalisationService localisationService,
+                       Jackson jackson, CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoAudioConversionHelper = videoAudioConversionHelper;
@@ -86,6 +90,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         this.userService = userService;
         this.localisationService = localisationService;
         this.jackson = jackson;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -129,14 +134,14 @@ public class VideoCutter extends BaseAny2AnyConverter {
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-
+            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), wdh.getWidth(), wdh.getHeight(),
-                        wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
+                        wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem));
+                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
             }
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);

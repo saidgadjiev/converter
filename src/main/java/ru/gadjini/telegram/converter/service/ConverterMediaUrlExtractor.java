@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
+import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -84,6 +85,7 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 MessageMedia messageMedia = new MessageMedia();
                 messageMedia.setFileName(fileName);
                 messageMedia.setFileId(url);
+                messageMedia.setSource(FileSource.URL);
                 messageMedia.setMimeType(mimeType);
                 messageMedia.setFileSize(httpHeaders.getContentLength());
                 messageMedia.setFormat(mediaFormat);

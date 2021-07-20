@@ -8,6 +8,7 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -62,10 +63,13 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
-                                  FFmpegVideoCommandPreparer videoStreamsChangeHelper, FFmpegVideoStreamConversionHelper fFmpegVideoHelper) {
+                                  FFmpegVideoCommandPreparer videoStreamsChangeHelper,
+                                  FFmpegVideoStreamConversionHelper fFmpegVideoHelper, CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -74,6 +78,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.messageBuilder = messageBuilder;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -105,12 +110,13 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
             String compessionInfo = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), result.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), compessionInfo);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), compessionInfo);
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem), compessionInfo);
+                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
             }
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);

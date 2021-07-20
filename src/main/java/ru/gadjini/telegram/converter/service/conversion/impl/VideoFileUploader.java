@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -30,10 +31,13 @@ public class VideoFileUploader extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private CaptionGenerator captionGenerator;
+
     @Autowired
-    public VideoFileUploader(FFprobeDevice fFprobeDevice) {
+    public VideoFileUploader(FFprobeDevice fFprobeDevice, CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
+        this.captionGenerator = captionGenerator;
     }
 
     @Override
@@ -46,13 +50,15 @@ public class VideoFileUploader extends BaseAny2AnyConverter {
         try {
             Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
+            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
-                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
+                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem),
+                        whd.getWidth(), whd.getHeight(),
+                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem));
+                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
             }
         } catch (Throwable e) {
             tempFileService().delete(result);
