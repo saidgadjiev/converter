@@ -218,6 +218,21 @@ public class FFprobeDevice {
         public void setDuration(Double duration) {
             this.duration = duration;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            FFprobeFormat that = (FFprobeFormat) o;
+
+            return duration != null ? duration.equals(that.duration) : that.duration == null;
+        }
+
+        @Override
+        public int hashCode() {
+            return duration != null ? duration.hashCode() : 0;
+        }
     }
 
     public static class Stream {
@@ -309,6 +324,38 @@ public class FFprobeDevice {
 
         public Long getDuration() {
             return format == null ? null : format.getDuration();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Stream stream = (Stream) o;
+
+            if (index != stream.index) return false;
+            if (input != stream.input) return false;
+            if (codecName != null ? !codecName.equals(stream.codecName) : stream.codecName != null) return false;
+            if (tags != null ? !tags.equals(stream.tags) : stream.tags != null) return false;
+            if (codecType != null ? !codecType.equals(stream.codecType) : stream.codecType != null) return false;
+            if (width != null ? !width.equals(stream.width) : stream.width != null) return false;
+            if (height != null ? !height.equals(stream.height) : stream.height != null) return false;
+            if (bitRate != null ? !bitRate.equals(stream.bitRate) : stream.bitRate != null) return false;
+            return format != null ? format.equals(stream.format) : stream.format == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = index;
+            result = 31 * result + (codecName != null ? codecName.hashCode() : 0);
+            result = 31 * result + (tags != null ? tags.hashCode() : 0);
+            result = 31 * result + (codecType != null ? codecType.hashCode() : 0);
+            result = 31 * result + (width != null ? width.hashCode() : 0);
+            result = 31 * result + (height != null ? height.hashCode() : 0);
+            result = 31 * result + (bitRate != null ? bitRate.hashCode() : 0);
+            result = 31 * result + input;
+            result = 31 * result + (format != null ? format.hashCode() : 0);
+            return result;
         }
     }
 }

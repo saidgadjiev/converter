@@ -80,7 +80,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
 
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
-                .input(in.getAbsolutePath()).mapAudio(0);
+                .input(in.getAbsolutePath());
         fFmpegAudioHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
         if (targetFormat.canBeSentAsVoice()) {
             fFmpegAudioHelper.convertAudioCodecsForTelegramVoice(commandBuilder);

@@ -63,9 +63,10 @@ public class AudioMerger extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        List<SmartTempFile> filesToConcatenate = prepareFilesToConcatenate(fileQueueItem);
+        List<SmartTempFile> filesToConcatenate = null;
 
         try {
+            filesToConcatenate = prepareFilesToConcatenate(fileQueueItem);
             SmartTempFile filesList = createFilesListFile(fileQueueItem.getUserId(), filesToConcatenate);
 
             Format targetFormat = fileQueueItem.getFirstFileFormat();
@@ -104,8 +105,12 @@ public class AudioMerger extends BaseAny2AnyConverter {
             } finally {
                 tempFileService().delete(filesList);
             }
+        } catch (InterruptedException e) {
+            throw new ConvertException(e);
         } finally {
-            filesToConcatenate.forEach(f -> tempFileService().delete(f));
+            if (filesToConcatenate != null) {
+                filesToConcatenate.forEach(f -> tempFileService().delete(f));
+            }
         }
     }
 
@@ -123,9 +128,12 @@ public class AudioMerger extends BaseAny2AnyConverter {
         }
     }
 
-    private List<SmartTempFile> prepareFilesToConcatenate(ConversionQueueItem fileQueueItem) {
+    private List<SmartTempFile> prepareFilesToConcatenate(ConversionQueueItem fileQueueItem) throws InterruptedException {
+        if (isTheSameFormatFiles(fileQueueItem) && isTheSameCodecs(fileQueueItem)) {
+            return fileQueueItem.getDownloadedFiles();
+        }
         List<SmartTempFile> files = new ArrayList<>();
-        for (int i = 0; i < fileQueueItem.getDownloadedFiles().size(); i++) {
+        for (int i = 1; i < fileQueueItem.getDownloadedFiles().size(); i++) {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             files.add(result);
@@ -142,5 +150,24 @@ public class AudioMerger extends BaseAny2AnyConverter {
 
     private String filesListFileStr(String filePath) {
         return "file '" + filePath + "'";
+    }
+
+    private boolean isTheSameFormatFiles(ConversionQueueItem queueItem) {
+        return queueItem.getFiles().stream().allMatch(s -> s.getFormat().equals(queueItem.getFirstFile().getFormat()));
+    }
+
+    private boolean isTheSameCodecs(ConversionQueueItem queueItem) throws InterruptedException {
+        SmartTempFile firstFile = queueItem.getDownloadedFiles().get(0);
+        List<FFprobeDevice.Stream> firstAudioStreams = fFprobeDevice.getAudioStreams(firstFile.getAbsolutePath());
+
+        for (int i = 1; i < queueItem.getDownloadedFiles().size(); i++) {
+            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(queueItem.getDownloadedFiles().get(i).getAbsolutePath());
+
+            if (!firstAudioStreams.equals(audioStreams)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
