@@ -100,7 +100,7 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                     throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_MEDIA_SOURCE, locale));
                 } else if (e.getMessage().startsWith("Too big")) {
                     throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TOO_BIG_REMOTE_VIDEO,
-                            new Object[]{MAX_REMOTE_VIDEO_SIZE}, locale));
+                            new Object[]{MemoryUtils.humanReadableByteCount(MAX_REMOTE_VIDEO_SIZE)}, locale));
                 } else {
                     throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_MEDIA_LINK, locale));
                 }
