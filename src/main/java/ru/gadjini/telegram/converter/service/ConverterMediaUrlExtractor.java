@@ -11,7 +11,6 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
-import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
@@ -30,6 +29,8 @@ import java.util.Locale;
 public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterMediaUrlExtractor.class);
+
+    private static final int MAX_REMOTE_VIDEO_SIZE = 2000 * 1024 * 1024;
 
     private RestTemplate restTemplate;
 
@@ -75,7 +76,7 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                     throw new IllegalArgumentException("Not video " + mediaFormat.name());
                 }
                 if (httpHeaders.getContentLength() <= 0
-                        || httpHeaders.getContentLength() > TgConstants.LARGE_FILE_SIZE) {
+                        || httpHeaders.getContentLength() > MAX_REMOTE_VIDEO_SIZE) {
                     throw new IllegalArgumentException("Too big " + MemoryUtils.humanReadableByteCount(httpHeaders.getContentLength()));
                 }
                 if (StringUtils.isBlank(fileName)) {
@@ -97,6 +98,9 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 LOGGER.error("Incorrect url({}, {})", url, e.getMessage());
                 if (e.getMessage().equals("Unsupported media source")) {
                     throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UNSUPPORTED_MEDIA_SOURCE, locale));
+                } else if (e.getMessage().startsWith("Too big")) {
+                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TOO_BIG_REMOTE_VIDEO,
+                            new Object[]{MAX_REMOTE_VIDEO_SIZE}, locale));
                 } else {
                     throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_MEDIA_LINK, locale));
                 }

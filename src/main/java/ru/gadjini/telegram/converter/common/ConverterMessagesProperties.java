@@ -374,4 +374,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_UNSUPPORTED_MEDIA_SOURCE = "message.unsupported.media.source";
 
     public static final String MESSAGE_COPYRIGHT = "message.copyright";
+
+    public static final String MESSAGE_TOO_BIG_REMOTE_VIDEO = "message.too.big.remote.video";
 }
