@@ -30,7 +30,7 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterMediaUrlExtractor.class);
 
-    private static final int MAX_REMOTE_VIDEO_SIZE = 2000 * 1024 * 1024;
+    private static final long MAX_REMOTE_VIDEO_SIZE = 4000 * 1024 * 1024L;
 
     private RestTemplate restTemplate;
 
@@ -75,8 +75,10 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 if (mediaFormat.getCategory() != FormatCategory.VIDEO) {
                     throw new IllegalArgumentException("Not video " + mediaFormat.name());
                 }
-                if (httpHeaders.getContentLength() <= 0
-                        || httpHeaders.getContentLength() > MAX_REMOTE_VIDEO_SIZE) {
+                if (httpHeaders.getContentLength() <= 0) {
+                    throw new IllegalArgumentException("Zero length " + httpHeaders.getContentLength());
+                }
+                if (httpHeaders.getContentLength() > MAX_REMOTE_VIDEO_SIZE) {
                     throw new IllegalArgumentException("Too big " + MemoryUtils.humanReadableByteCount(httpHeaders.getContentLength()));
                 }
                 if (StringUtils.isBlank(fileName)) {
