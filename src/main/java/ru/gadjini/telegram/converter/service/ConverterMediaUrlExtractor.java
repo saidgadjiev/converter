@@ -62,6 +62,7 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 if (containsUnsupportedMediaSource(url)) {
                     throw new IllegalArgumentException("Unsupported media source");
                 }
+                LOGGER.debug("Start extract media from url({}, {})", userId, url);
                 HttpHeaders httpHeaders = restTemplate.headForHeaders(url);
                 if (httpHeaders.getContentType() == null || StringUtils.isBlank(httpHeaders.getContentType().getType())) {
                     throw new IllegalArgumentException("Empty content type");
