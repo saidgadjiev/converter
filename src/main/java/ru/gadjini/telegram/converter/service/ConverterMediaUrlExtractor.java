@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,8 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
         if (applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER)) {
             Locale locale = userService.getLocaleOrDefault(userId);
 
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             try {
                 if (containsUnsupportedMediaSource(url)) {
                     throw new IllegalArgumentException("Unsupported media source");
@@ -107,6 +110,9 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 } else {
                     throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_MEDIA_LINK, locale));
                 }
+            } finally {
+                stopWatch.stop();
+                LOGGER.debug("Handle url latency({}, {}, {})", userId, stopWatch.getTime(), url);
             }
         }
 
