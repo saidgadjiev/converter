@@ -122,6 +122,6 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
     private boolean containsUnsupportedMediaSource(String url) {
         url = url.toLowerCase();
 
-        return url.contains("youtube") || url.contains("tiktok") || url.contains("instagram");
+        return url.contains("youtube") || url.contains("tiktok") || url.contains("instagram") || url.contains("youtu.be");
     }
 }
