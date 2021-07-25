@@ -1,5 +1,7 @@
 package ru.gadjini.telegram.converter.command.bot.edit.video;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -24,6 +26,7 @@ import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
+import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -38,6 +41,8 @@ import java.util.Set;
 
 @Component
 public class EditVideoCommand implements BotCommand, NavigableBotCommand, CallbackBotCommand {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EditVideoCommand.class);
 
     private MessageService messageService;
 
@@ -182,6 +187,8 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         convertState.getSettings().setResolution(EditVideoResolutionState.DEFAULT_RESOLUTION);
         convertState.getSettings().setCrf(EditVideoCrfState.DEFAULT_CRF);
         MessageMedia media = messageMediaService.getMedia(message, locale);
+        LOGGER.debug("Edit video state({}, {}, {}, {})", message.getChatId(), TgMessage.getMetaTypes(message),
+                media.getFileId(), media.getFormat());
 
         checkMedia(media, locale);
         convertState.setMedia(media);
@@ -190,7 +197,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
     }
 
     private void checkMedia(MessageMedia media, Locale locale) {
-        if (media == null || media.getFormat().getCategory() != FormatCategory.VIDEO) {
+        if (media == null || media.getFormat() == null || media.getFormat().getCategory() != FormatCategory.VIDEO) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SEND_VIDEO_TO_EDIT, locale));
         }
     }
