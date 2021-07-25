@@ -153,7 +153,8 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
             VavMergeState existsState = commandStateService.getState(callbackQuery.getFrom().getId(),
                     getCommandIdentifier(), true, VavMergeState.class);
             existsState.setAudioMode(requestParams.getString(ConverterArg.VAV_MERGE_AUDIO_MODE.getKey()));
-            messageService.editKeyboard(EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
+            messageService.editKeyboard(callbackQuery.getMessage().getReplyMarkup(),
+                    EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
                     .messageId(callbackQuery.getMessage().getMessageId())
                     .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
                             new Locale(existsState.getUserLanguage()))).build(), false);
@@ -163,7 +164,8 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
                     getCommandIdentifier(), true, VavMergeState.class);
             existsState.setSubtitlesMode(requestParams.getString(ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey()));
 
-            messageService.editKeyboard(EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
+            messageService.editKeyboard(callbackQuery.getMessage().getReplyMarkup(),
+                    EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
                     .messageId(callbackQuery.getMessage().getMessageId())
                     .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
                             new Locale(existsState.getUserLanguage()))).build(), false);

@@ -109,22 +109,22 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
                                RequestParams requestParams, EditVideoState currentState) {
         if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_RESOLUTION.getKey())) {
             currentState.setStateName(resolutionState.getName());
-            resolutionState.enter(editVideoCommand, callbackQuery.getMessage(), currentState);
+            resolutionState.enter(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_CRF.getKey())) {
             currentState.setStateName(crfState.getName());
-            crfState.enter(editVideoCommand, callbackQuery.getMessage(), currentState);
+            crfState.enter(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
-            EditVideoState editVideoState = commandStateService.getState(callbackQuery.getMessage().getChatId(),
+            EditVideoState editVideoState = commandStateService.getState(callbackQuery.getFrom().getId(),
                     ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
             if (validate(callbackQuery.getId(), editVideoState)) {
-                workQueueJob.cancelCurrentTasks(callbackQuery.getMessage().getChatId());
+                workQueueJob.cancelCurrentTasks(callbackQuery.getFrom().getId());
                 convertionService.createConversion(callbackQuery.getFrom(), editVideoState.getState(), Format.EDIT,
                         new Locale(editVideoState.getState().getUserLanguage()));
-                commandStateService.deleteState(callbackQuery.getMessage().getChatId(), ConverterCommandNames.EDIT_VIDEO);
-                messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
+                commandStateService.deleteState(callbackQuery.getFrom().getId(), ConverterCommandNames.EDIT_VIDEO);
+                messageService.removeInlineKeyboard(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
             }
         }
     }

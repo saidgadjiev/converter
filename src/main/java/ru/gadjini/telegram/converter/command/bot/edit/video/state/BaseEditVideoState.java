@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.command.bot.edit.video.state;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
@@ -53,17 +54,18 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
         return message.toString();
     }
 
-    final void updateSettingsMessage(long chatId, ConvertState convertState) {
-        messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
-                .messageId(convertState.getSettings().getMessageId())
-                .text(buildSettingsMessage(convertState))
-                .parseMode(ParseMode.HTML)
-                .replyMarkup(getName() == EditVideoSettingsStateName.RESOLUTION
-                        ? inlineKeyboardService.getVideoEditResolutionsKeyboard(convertState.getSettings().getResolution(),
-                        EditVideoResolutionState.AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage()))
-                        : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
-                        EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage())))
-                .build());
+    final void updateSettingsMessage(CallbackQuery callbackQuery, long chatId, ConvertState convertState) {
+        messageService.editMessage(callbackQuery.getMessage().getText(),
+                callbackQuery.getMessage().getReplyMarkup(), EditMessageText.builder().chatId(String.valueOf(chatId))
+                        .messageId(convertState.getSettings().getMessageId())
+                        .text(buildSettingsMessage(convertState))
+                        .parseMode(ParseMode.HTML)
+                        .replyMarkup(getName() == EditVideoSettingsStateName.RESOLUTION
+                                ? inlineKeyboardService.getVideoEditResolutionsKeyboard(convertState.getSettings().getResolution(),
+                                EditVideoResolutionState.AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage()))
+                                : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
+                                EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage())))
+                        .build());
     }
 
     private String getResolutionMessage(String resolution, Locale locale) {

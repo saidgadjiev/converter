@@ -7,7 +7,13 @@ import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 public interface EditVideoSettingsState {
 
-    void enter(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState);
+    default void enter(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState) {
+
+    }
+
+    default void enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
+
+    }
 
     default void goBack(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState) {
 

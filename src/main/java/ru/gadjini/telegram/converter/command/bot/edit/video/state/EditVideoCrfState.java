@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
@@ -56,11 +55,12 @@ public class EditVideoCrfState extends BaseEditVideoState {
     }
 
     @Override
-    public void enter(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState) {
+    public void enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
         messageService.editKeyboard(
+                callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageReplyMarkup.builder()
-                        .chatId(String.valueOf(message.getChatId()))
-                        .messageId(message.getMessageId())
+                        .chatId(String.valueOf(callbackQuery.getFrom().getId()))
+                        .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditCrfKeyboard(currentState.getSettings().getCrf(),
                                 AVAILABLE_CRF, new Locale(currentState.getUserLanguage())))
                         .build(),
@@ -80,7 +80,7 @@ public class EditVideoCrfState extends BaseEditVideoState {
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
             if (AVAILABLE_CRF.contains(crf)) {
-                setCrf(callbackQuery.getMessage().getChatId(), crf);
+                setCrf(callbackQuery, crf);
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CRF_SELECTED,
                         locale);
             } else {
@@ -101,14 +101,15 @@ public class EditVideoCrfState extends BaseEditVideoState {
         return EditVideoSettingsStateName.CRF;
     }
 
-    private void setCrf(long chatId, String crf) {
+    private void setCrf(CallbackQuery callbackQuery, String crf) {
+        long chatId = callbackQuery.getFrom().getId();
         EditVideoState convertState = commandStateService.getState(chatId,
                 ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
         String oldCrf = convertState.getSettings().getCrf();
         convertState.getSettings().setCrf(crf);
         if (!Objects.equals(crf, oldCrf)) {
-            updateSettingsMessage(chatId, convertState.getState());
+            updateSettingsMessage(callbackQuery, chatId, convertState.getState());
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }

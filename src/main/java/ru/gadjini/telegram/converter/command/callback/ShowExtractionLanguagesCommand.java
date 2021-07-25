@@ -48,6 +48,7 @@ public class ShowExtractionLanguagesCommand implements CallbackBotCommand {
                 ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE, true, ExtractionByLanguageState.class);
         Locale localeOrDefault = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
         messageService.editKeyboard(
+                callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageReplyMarkup.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                         .messageId(callbackQuery.getMessage().getMessageId())
@@ -61,6 +62,7 @@ public class ShowExtractionLanguagesCommand implements CallbackBotCommand {
     public void processNonCommandCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(ConverterArg.GO_BACK.getKey())) {
             messageService.editKeyboard(
+                    callbackQuery.getMessage().getReplyMarkup(),
                     EditMessageReplyMarkup.builder()
                             .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                             .messageId(callbackQuery.getMessage().getMessageId())

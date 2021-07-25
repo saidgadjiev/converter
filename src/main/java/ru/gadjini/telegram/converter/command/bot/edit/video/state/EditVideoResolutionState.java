@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
@@ -57,11 +56,12 @@ public class EditVideoResolutionState extends BaseEditVideoState {
     }
 
     @Override
-    public void enter(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState) {
+    public void enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
         messageService.editKeyboard(
+                callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageReplyMarkup.builder()
-                        .chatId(String.valueOf(message.getChatId()))
-                        .messageId(message.getMessageId())
+                        .chatId(String.valueOf(callbackQuery.getFrom().getId()))
+                        .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditResolutionsKeyboard(currentState.getSettings().getResolution(),
                                 AVAILABLE_RESOLUTIONS, new Locale(currentState.getUserLanguage())))
                         .build(),
@@ -81,7 +81,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
             if (AVAILABLE_RESOLUTIONS.contains(resolution)) {
-                setResolution(callbackQuery.getMessage().getChatId(), resolution);
+                setResolution(callbackQuery, resolution);
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
                         locale);
             } else {
@@ -102,14 +102,15 @@ public class EditVideoResolutionState extends BaseEditVideoState {
         return EditVideoSettingsStateName.RESOLUTION;
     }
 
-    private void setResolution(long chatId, String resolution) {
+    private void setResolution(CallbackQuery callbackQuery, String resolution) {
+        long chatId = callbackQuery.getFrom().getId();
         EditVideoState convertState = commandStateService.getState(chatId,
                 ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
         String oldResolution = convertState.getSettings().getResolution();
         convertState.getSettings().setResolution(resolution);
         if (!Objects.equals(resolution, oldResolution)) {
-            updateSettingsMessage(chatId, convertState.getState());
+            updateSettingsMessage(callbackQuery, chatId, convertState.getState());
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }

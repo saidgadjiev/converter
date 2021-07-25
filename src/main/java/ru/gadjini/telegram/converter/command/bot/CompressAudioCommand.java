@@ -164,7 +164,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             );
         } else {
             updateState(existsState, message);
-            updateSettingsMessage(message.getChatId(), existsState);
+            updateSettingsMessage(null, message.getChatId(), existsState);
             commandStateService.setState(message.getChatId(), getCommandIdentifier(), existsState);
         }
     }
@@ -183,14 +183,14 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             }
         } else if (requestParams.contains(ConverterArg.BITRATE.getKey())) {
             String bitrate = requestParams.getString(ConverterArg.BITRATE.getKey());
-            setBitrate(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), bitrate);
+            setBitrate(callbackQuery, callbackQuery.getMessage().getChatId(), bitrate);
         } else if (requestParams.contains(ConverterArg.COMPRESSION_FREQUENCY.getKey())) {
             String frequency = requestParams.getString(ConverterArg.COMPRESSION_FREQUENCY.getKey());
-            setFrequency(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), frequency);
+            setFrequency(callbackQuery, callbackQuery.getMessage().getChatId(), frequency);
         } else if (requestParams.contains(ConverterArg.COMPRESSION_FORMAT.getKey())) {
             Format compressionFormat = requestParams.get(ConverterArg.COMPRESSION_FORMAT.getKey(), Format::valueOf);
             if (COMPRESSION_FORMATS.contains(compressionFormat)) {
-                setCompressionFormat(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), compressionFormat);
+                setCompressionFormat(callbackQuery, callbackQuery.getMessage().getChatId(), compressionFormat);
             }
         }
     }
@@ -204,19 +204,33 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         }
     }
 
-    private void updateSettingsMessage(long chatId, ConvertState convertState) {
+    private void updateSettingsMessage(CallbackQuery callbackQuery, long chatId, ConvertState convertState) {
         List<String> bitrates = getBitrates(convertState.getSettings().getFormat(),
                 convertState.getSettings().getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())));
         List<String> frequencies = getFrequencies(convertState.getSettings().getFormat());
-        messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
-                .messageId(convertState.getSettings().getMessageId())
-                .text(buildSettingsMessage(convertState))
-                .parseMode(ParseMode.HTML)
-                .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(),
-                        convertState.getSettings().getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())),
-                        convertState.getSettings().getFormat(), COMPRESSION_FORMATS,
-                        frequencies, bitrates, new Locale(convertState.getUserLanguage())))
-                .build());
+        if (callbackQuery == null) {
+            messageService.editMessage(EditMessageText.builder().chatId(String.valueOf(chatId))
+                    .messageId(convertState.getSettings().getMessageId())
+                    .text(buildSettingsMessage(convertState))
+                    .parseMode(ParseMode.HTML)
+                    .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(),
+                            convertState.getSettings().getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())),
+                            convertState.getSettings().getFormat(), COMPRESSION_FORMATS,
+                            frequencies, bitrates, new Locale(convertState.getUserLanguage())))
+                    .build());
+        } else {
+            messageService.editMessage(callbackQuery.getMessage().getText(),
+                    callbackQuery.getMessage().getReplyMarkup(),
+                    EditMessageText.builder().chatId(String.valueOf(chatId))
+                            .messageId(convertState.getSettings().getMessageId())
+                            .text(buildSettingsMessage(convertState))
+                            .parseMode(ParseMode.HTML)
+                            .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(),
+                                    convertState.getSettings().getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())),
+                                    convertState.getSettings().getFormat(), COMPRESSION_FORMATS,
+                                    frequencies, bitrates, new Locale(convertState.getUserLanguage())))
+                            .build());
+        }
     }
 
     private List<String> getBitrates(Format format, String frequency) {
@@ -252,43 +266,43 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         convertState.setMedia(media);
     }
 
-    private void setBitrate(String queryId, long chatId, String bitrate) {
+    private void setBitrate(CallbackQuery callbackQuery, long chatId, String bitrate) {
         ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
         Locale locale = new Locale(convertState.getUserLanguage());
 
         String oldBitrate = convertState.getSettings().getBitrate();
         convertState.getSettings().setBitrate(bitrate);
         if (!Objects.equals(bitrate, oldBitrate)) {
-            updateSettingsMessage(chatId, convertState);
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
 
         messageService.sendAnswerCallbackQuery(
-                AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_BITRATE_UPDATED, locale))
                         .build()
         );
     }
 
-    private void setFrequency(String queryId, long chatId, String frequency) {
+    private void setFrequency(CallbackQuery callbackQuery, long chatId, String frequency) {
         ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
         Locale locale = new Locale(convertState.getUserLanguage());
 
         String oldFrequency = convertState.getSettings().getFrequency();
         convertState.getSettings().setFrequency(frequency);
         if (!Objects.equals(frequency, oldFrequency)) {
-            updateSettingsMessage(chatId, convertState);
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
 
         messageService.sendAnswerCallbackQuery(
-                AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_FREQUENCY_UPDATED, locale))
                         .build()
         );
     }
 
-    private void setCompressionFormat(String queryId, long chatId, Format format) {
+    private void setCompressionFormat(CallbackQuery callbackQuery, long chatId, Format format) {
         ConvertState convertState = commandStateService.getState(chatId, ConverterCommandNames.COMPRESS_AUDIO, true, ConvertState.class);
         Locale locale = new Locale(convertState.getUserLanguage());
 
@@ -300,12 +314,12 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
         }
         convertState.getSettings().setFormat(format);
         if (!Objects.equals(oldFormat, format)) {
-            updateSettingsMessage(chatId, convertState);
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.COMPRESS_AUDIO, convertState);
 
         messageService.sendAnswerCallbackQuery(
-                AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_AUDIO_FORMAT_UPDATED, locale))
                         .build()
         );
