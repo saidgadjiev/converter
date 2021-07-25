@@ -287,7 +287,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
                     break;
                 }
-                case VOICE:
+                case VOICE: {
                     VoiceResult voiceResult = (VoiceResult) convertResult;
                     SendVoice.SendVoiceBuilder sendVoiceBuilder = SendVoice.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
                             .voice(new InputFile(voiceResult.getFile(), voiceResult.getFileName()))
@@ -302,6 +302,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     fileUploadService.createUpload(fileQueueItem.getUserId(), SendVoice.PATH, sendVoice,
                             progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
                     break;
+                }
                 case MESSAGE: {
                     MessageResult messageResult = (MessageResult) convertResult;
                     messageService.sendMessage(messageResult.getSendMessage());
