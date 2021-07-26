@@ -8,10 +8,12 @@ import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.common.SmartWorkCommandNames;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.CommandMessageBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
+import ru.gadjini.telegram.smart.bot.commons.service.message.SmartWorkMessageProperties;
 
 import java.util.Locale;
 
@@ -51,6 +53,7 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.CUT_VIDEO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.CUT_VIDEO_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.VMARK).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VMARK_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.CONCATENATE_VIDEOS).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VMERGE_COMMAND_DESCRIPTION, locale)).append("\n");
+            info.append(CommandParser.COMMAND_START_CHAR).append(SmartWorkCommandNames.SMART_FILE_FEATURE).append(" - ").append(localisationService.getMessage(SmartWorkMessageProperties.SMARTFILE_COMMAND_DESCRIPTION, locale)).append("\n");
         }
         if (subscriptionProperties.isCheckPaidSubscription()) {
             info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.SUBSCRIPTION).append(" - ").append(localisationService.getMessage(MessagesProperties.SUBSCRIPTION_COMMAND_DESCRIPTION, locale)).append("\n");
