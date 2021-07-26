@@ -187,8 +187,8 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         convertState.getSettings().setResolution(EditVideoResolutionState.DEFAULT_RESOLUTION);
         convertState.getSettings().setCrf(EditVideoCrfState.DEFAULT_CRF);
         MessageMedia media = messageMediaService.getMedia(message, locale);
-        LOGGER.debug("Edit video state({}, {}, {}, {})", message.getChatId(), TgMessage.getMetaTypes(message),
-                media.getFileId(), media.getFormat());
+
+        LOGGER.debug("Edit video state({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
 
         checkMedia(media, locale);
         convertState.setMedia(media);
