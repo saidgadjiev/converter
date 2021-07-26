@@ -32,6 +32,7 @@ vaimake - make video from audio and image
 vcut - cut video
 vmark - add watermark to video
 vmerge - merge videos
+smartfile - smart file feature
 botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription
@@ -61,6 +62,7 @@ acut - cut audio
 vmerge - merge videos
 amerge - merge audios
 vmark - add watermark to video
+smartfile - smart file feature
 acompress - Compress audio
 mergepdfs - merge pdf files
 botlist - list of all our bots
