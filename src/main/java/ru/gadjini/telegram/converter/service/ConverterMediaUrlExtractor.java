@@ -15,6 +15,7 @@ import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
+import ru.gadjini.telegram.smart.bot.commons.property.BotProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UrlMediaExtractor;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -35,6 +36,8 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
 
     private RestTemplate restTemplate;
 
+    private BotProperties botProperties;
+
     private FormatService formatService;
 
     private LocalisationService localisationService;
@@ -44,10 +47,11 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
     private UserService userService;
 
     @Autowired
-    public ConverterMediaUrlExtractor(RestTemplate restTemplate, FormatService formatService,
+    public ConverterMediaUrlExtractor(RestTemplate restTemplate, BotProperties botProperties, FormatService formatService,
                                       LocalisationService localisationService, ApplicationProperties applicationProperties,
                                       UserService userService) {
         this.restTemplate = restTemplate;
+        this.botProperties = botProperties;
         this.formatService = formatService;
         this.localisationService = localisationService;
         this.applicationProperties = applicationProperties;
@@ -56,7 +60,7 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
 
     @Override
     public MessageMedia extractMedia(long userId, String url) {
-        if (applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER)) {
+        if (applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER) && !isLinkToMe(url)) {
             Locale locale = userService.getLocaleOrDefault(userId);
 
             StopWatch stopWatch = new StopWatch();
@@ -123,5 +127,9 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
         url = url.toLowerCase();
 
         return url.contains("youtube") || url.contains("tiktok") || url.contains("instagram") || url.contains("youtu.be");
+    }
+
+    private boolean isLinkToMe(String url) {
+        return url.contains("t.me/" + botProperties.getName());
     }
 }
