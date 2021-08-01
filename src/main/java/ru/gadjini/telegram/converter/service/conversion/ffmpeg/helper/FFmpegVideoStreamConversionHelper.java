@@ -1,6 +1,8 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
@@ -9,6 +11,8 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 
 import java.util.List;
@@ -20,13 +24,18 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 @Component
 public class FFmpegVideoStreamConversionHelper {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideoStreamConversionHelper.class);
+
     private static final Set<String> IMAGE_CODECS = Set.of(FFmpegCommandBuilder.BMP, FFmpegCommandBuilder.PNG, FFmpegCommandBuilder.MJPEG);
 
     private FFmpegDevice fFmpegDevice;
 
+    private FormatService formatService;
+
     @Autowired
-    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice) {
+    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService) {
         this.fFmpegDevice = fFmpegDevice;
+        this.formatService = formatService;
     }
 
     public void validateVideoIntegrity(SmartTempFile in) throws InterruptedException {
@@ -55,7 +64,7 @@ public class FFmpegVideoStreamConversionHelper {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
@@ -80,7 +89,7 @@ public class FFmpegVideoStreamConversionHelper {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
@@ -110,7 +119,7 @@ public class FFmpegVideoStreamConversionHelper {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
@@ -144,7 +153,7 @@ public class FFmpegVideoStreamConversionHelper {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
@@ -214,25 +223,25 @@ public class FFmpegVideoStreamConversionHelper {
         }
     }
 
-    public static boolean isExtraVideoStream(List<FFprobeDevice.Stream> videoStreams, FFprobeDevice.Stream videoStream) {
-        if (videoStreams.size() == 1 && isImageStream(videoStream.getCodecName())) {
+    public boolean isExtraVideoStream(List<FFprobeDevice.Stream> videoStreams, FFprobeDevice.Stream videoStream) {
+        if (videoStreams.size() == 1 && isImageStream(videoStream)) {
             return false;
         }
-        if (videoStreams.stream().allMatch(s -> isImageStream(s.getCodecName()))) {
+        if (videoStreams.stream().allMatch(this::isImageStream)) {
             return false;
         }
 
-        return isImageStream(videoStream.getCodecName());
+        return isImageStream(videoStream);
     }
 
-    public static int getFirstVideoStreamIndex(List<FFprobeDevice.Stream> allStreams) {
+    public int getFirstVideoStreamIndex(List<FFprobeDevice.Stream> allStreams) {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
 
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (!FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (!isExtraVideoStream(videoStreams, videoStream)) {
                 return videoStreamMapIndex;
             }
         }
@@ -265,7 +274,22 @@ public class FFmpegVideoStreamConversionHelper {
         }
     }
 
-    private static boolean isImageStream(String codecName) {
-        return IMAGE_CODECS.contains(codecName);
+    private boolean isImageStream(FFprobeDevice.Stream stream) {
+        if (StringUtils.isNotBlank(stream.getCodecName())) {
+            if (IMAGE_CODECS.contains(stream.getCodecName())) {
+                return true;
+            }
+        }
+        try {
+            Format format = formatService.getFormat(stream.getFileName(), stream.getMimeType());
+
+            if (format != null && format.getCategory() == FormatCategory.IMAGES) {
+                return true;
+            }
+        } catch (Throwable e) {
+            LOGGER.error(e.getMessage());
+        }
+
+        return false;
     }
 }

@@ -139,7 +139,7 @@ public class FFprobeDevice {
 
     private String[] getAllStreamsCommand(String in) {
         return new String[]{
-                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type,width,height,bit_rate:stream_tags=language:format=duration", "-of", "json", in
+                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type,width,height,bit_rate:stream_tags=language,mimetype,filename:format=duration", "-of", "json", in
         };
     }
 
@@ -245,6 +245,10 @@ public class FFprobeDevice {
 
         private static final String LANGUAGE_TAG = "language";
 
+        private static final String MIMETYPE_TAG = "mimetype";
+
+        private static final String FILENAME_TAG = "filename";
+
         private int index;
 
         @JsonProperty("codec_name")
@@ -276,6 +280,14 @@ public class FFprobeDevice {
 
         public String getLanguage() {
             return tags != null ? (String) tags.get(LANGUAGE_TAG) : null;
+        }
+
+        public String getMimeType() {
+            return tags != null ? (String) tags.getOrDefault(MIMETYPE_TAG.toUpperCase(), tags.get(MIMETYPE_TAG)) : null;
+        }
+
+        public String getFileName() {
+            return tags != null ? (String) tags.getOrDefault(FILENAME_TAG.toUpperCase(), tags.get(FILENAME_TAG)) : null;
         }
 
         public String getCodecType() {

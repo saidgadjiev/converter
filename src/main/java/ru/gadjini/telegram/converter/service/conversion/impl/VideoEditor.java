@@ -103,7 +103,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
-                    FFmpegVideoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+                    videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             String height = settingsState.getResolution().replace("p", "");
             String scale = EditVideoResolutionState.DONT_CHANGE.equals(settingsState.getResolution()) ? null

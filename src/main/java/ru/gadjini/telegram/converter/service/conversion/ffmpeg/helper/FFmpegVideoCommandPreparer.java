@@ -37,7 +37,7 @@ public class FFmpegVideoCommandPreparer {
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); videoStreamMapIndex++) {
             FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (FFmpegVideoStreamConversionHelper.isExtraVideoStream(videoStreams, videoStream)) {
+            if (fFmpegVideoHelper.isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
             commandBuilder.mapVideo(videoStreamMapIndex);
