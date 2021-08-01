@@ -98,7 +98,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            videoStreamConversionHelper.validateVideoIntegrity(file);
+            videoStreamConversionHelper.validateVideoIntegrity(file, result);
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());

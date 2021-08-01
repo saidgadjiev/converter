@@ -30,8 +30,8 @@ public class FFmpegDevice {
         processExecutor.execute(command, Set.of(139));
     }
 
-    public boolean isValidFile(String in) throws InterruptedException {
-        String result = processExecutor.tryExecute(getValidationCommand(in), 6);
+    public boolean isValidFile(String in, String out) throws InterruptedException {
+        String result = processExecutor.tryExecute(getValidationCommand(in, out), 6);
 
         return !result.contains("moov atom not found")
                 && !result.contains("Invalid data found when processing input")
@@ -56,9 +56,9 @@ public class FFmpegDevice {
         return isOkay(result);
     }
 
-    private String[] getValidationCommand(String in) {
+    private String[] getValidationCommand(String in, String out) {
         return new String[]{
-                "ffmpeg", "-v", "error", "-hide_banner", "-y", "-i", in
+                "ffmpeg", "-v", "error", "-hide_banner", "-y", "-i", in, out
         };
     }
 

@@ -24,6 +24,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -123,7 +124,14 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            fFmpegVideoHelper.validateVideoIntegrity(file);
+            SmartTempFile result = tempFileService()
+                    .createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+                            "fromvideo", fileQueueItem.getFirstFileFormat().getExt());
+            try {
+                fFmpegVideoHelper.validateVideoIntegrity(file, result);
+            } finally {
+                tempFileService().delete(result);
+            }
 
             String streamSpecifier = getStreamSpecifier();
             List<FFprobeDevice.Stream> streamsToExtract;
@@ -199,7 +207,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
         }
 
         return localisationService.getMessage(
-                ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE, new Object[] {
+                ConverterMessagesProperties.MESSAGE_STREAM_LANGUAGE, new Object[]{
                         StringUtils.defaultIfBlank(getLanguageDisplay(lang, locale), lang)
                 },
                 locale

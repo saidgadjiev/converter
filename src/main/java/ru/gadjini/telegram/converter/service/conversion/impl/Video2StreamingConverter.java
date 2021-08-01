@@ -79,7 +79,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getFirstFileFormat().getExt());
 
         try {
-            fFmpegVideoHelper.validateVideoIntegrity(file);
+            fFmpegVideoHelper.validateVideoIntegrity(file, result);
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             if (fFmpegVideoHelper.isVideoStreamsValidForTelegramVideo(allStreams)
                     && videoAudioConversionHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
@@ -108,7 +108,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, Format.STREAM.getAssociatedFormat().getExt());
 
         try {
-            fFmpegVideoHelper.validateVideoIntegrity(file);
+            fFmpegVideoHelper.validateVideoIntegrity(file, result);
             return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem, Format.STREAM.getAssociatedFormat());
         } catch (CorruptedVideoException e) {
             tempFileService().delete(result);

@@ -38,8 +38,8 @@ public class FFmpegVideoStreamConversionHelper {
         this.formatService = formatService;
     }
 
-    public void validateVideoIntegrity(SmartTempFile in) throws InterruptedException {
-        boolean validFile = fFmpegDevice.isValidFile(in.getAbsolutePath());
+    public void validateVideoIntegrity(SmartTempFile in, SmartTempFile out) throws InterruptedException {
+        boolean validFile = fFmpegDevice.isValidFile(in.getAbsolutePath(), out.getAbsolutePath());
 
         if (!validFile) {
             throw new CorruptedVideoException();

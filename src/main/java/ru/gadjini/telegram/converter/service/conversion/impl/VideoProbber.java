@@ -15,6 +15,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
@@ -54,7 +55,14 @@ public class VideoProbber extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            fFmpegVideoHelper.validateVideoIntegrity(file);
+            SmartTempFile result = tempFileService()
+                    .createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
+                            "videoprobber", fileQueueItem.getFirstFileFormat().getExt());
+            try {
+                fFmpegVideoHelper.validateVideoIntegrity(file, result);
+            } finally {
+                tempFileService().delete(result);
+            }
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0, true);
 
