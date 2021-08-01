@@ -282,10 +282,8 @@ public class FFmpegVideoStreamConversionHelper {
     }
 
     private boolean isImageStream(FFprobeDevice.Stream stream) {
-        if (StringUtils.isNotBlank(stream.getCodecName())) {
-            if (IMAGE_CODECS.contains(stream.getCodecName())) {
-                return true;
-            }
+        if (StringUtils.isNotBlank(stream.getCodecName()) && IMAGE_CODECS.contains(stream.getCodecName())) {
+            return true;
         }
         try {
             Format format = formatService.getFormat(stream.getFileName(), stream.getMimeType());
