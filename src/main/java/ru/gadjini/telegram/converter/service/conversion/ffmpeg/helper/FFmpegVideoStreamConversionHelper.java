@@ -32,15 +32,22 @@ public class FFmpegVideoStreamConversionHelper {
 
     private FormatService formatService;
 
+    private FFprobeDevice fFprobeDevice;
+
     @Autowired
-    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService) {
+    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService, FFprobeDevice fFprobeDevice) {
         this.fFmpegDevice = fFmpegDevice;
         this.formatService = formatService;
+        this.fFprobeDevice = fFprobeDevice;
     }
 
     public void validateVideoIntegrity(SmartTempFile in, SmartTempFile out) throws InterruptedException {
         boolean validFile = fFmpegDevice.isValidFile(in.getAbsolutePath(), out.getAbsolutePath());
 
+        if (!validFile) {
+            throw new CorruptedVideoException();
+        }
+        validFile = fFprobeDevice.isValidFile(in.getAbsolutePath());
         if (!validFile) {
             throw new CorruptedVideoException();
         }
