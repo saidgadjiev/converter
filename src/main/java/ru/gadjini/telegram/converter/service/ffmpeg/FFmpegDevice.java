@@ -84,6 +84,8 @@ public class FFmpegDevice {
                 && !result.contains("Error while opening encoder for output stream")
                 && !result.contains("Error initializing output stream")
                 && !result.contains("Error selecting an encoder for stream")
+                && !result.contains("Invalid data found when processing input")
+                && !result.contains("Invalid UTF-8 in decoded subtitles text")
                 && !DECODER_NOT_FOUND_PATTERN.matcher(result).matches();
     }
 }
