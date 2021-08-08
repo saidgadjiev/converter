@@ -19,6 +19,8 @@ Commands:
 start - restart the bot
 mergepdfs - merge pdf files
 botlist - list of all our bots
+subscription - check subscription
+refreshsub - refresh subscription
 language - change language
 formats - conversion formats
 help - help
@@ -47,6 +49,8 @@ acompress - compress audio
 amerge - merge audios
 acut - cut audio
 botlist - list of all our bots
+subscription - check subscription
+refreshsub - refresh subscription
 language - change language
 formats - conversion formats
 help - help
