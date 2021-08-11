@@ -147,7 +147,8 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private boolean validate(String queryId, EditVideoState editVideoState) {
         if (EditVideoResolutionState.DONT_CHANGE.equals(editVideoState.getSettings().getResolution())
-                && EditVideoCrfState.DONT_CHANGE.equals(editVideoState.getSettings().getCrf())) {
+                && EditVideoCrfState.DONT_CHANGE.equals(editVideoState.getSettings().getCrf())
+                && EditVideoAudioCodecState.AUTO.equals(editVideoState.getSettings().getAudioCodec())) {
             messageService.sendAnswerCallbackQuery(
                     AnswerCallbackQuery.builder()
                             .callbackQueryId(queryId)

@@ -80,7 +80,8 @@ public class FFmpegCommandBuilder {
 
     private List<String> options = new ArrayList<>();
 
-    private static final List<String> DEFAULT_OPTIONS = List.of("-vsync", "2", "-max_muxing_queue_size", "9999", "-pix_fmt", YUV_420_P);
+    private static final List<String> DEFAULT_OPTIONS = List.of("-strict", "-2",
+            "-vsync", "2", "-max_muxing_queue_size", "9999", "-pix_fmt", YUV_420_P);
 
     private List<String> complexFilters = new ArrayList<>();
 
@@ -598,15 +599,6 @@ public class FFmpegCommandBuilder {
             options.add("-bufsize");
             options.add((long) (bitRate * 1.5) + "k");
         }
-
-        return this;
-    }
-
-    public FFmpegCommandBuilder keepAudioBitRate(int index, Long bitRate) {
-        if (bitRate == null) {
-            return this;
-        }
-        ba(index, bitRate / 1000 + "k");
 
         return this;
     }

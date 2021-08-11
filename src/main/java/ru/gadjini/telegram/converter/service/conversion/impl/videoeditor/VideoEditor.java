@@ -1,9 +1,10 @@
-package ru.gadjini.telegram.converter.service.conversion.impl;
+package ru.gadjini.telegram.converter.service.conversion.impl.videoeditor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
@@ -15,10 +16,10 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
+import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.StandardVideoEditorState;
+import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.VideoEditorState;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -33,6 +34,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
@@ -56,34 +58,26 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private Jackson jackson;
 
-    private FFmpegVideoCommandPreparer videoStreamsChangeHelper;
-
-    private FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper;
-
     private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
 
-    private FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper;
-
     private CaptionGenerator captionGenerator;
+
+    private StandardVideoEditorState standardVideoEditorState;
 
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
                        FFmpegDevice fFmpegDevice, Jackson jackson,
-                       FFmpegVideoCommandPreparer videoStreamsChangeHelper,
-                       FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
-                       FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper, CaptionGenerator captionGenerator) {
+                       CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
         this.jackson = jackson;
-        this.videoStreamsChangeHelper = videoStreamsChangeHelper;
-        this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
-        this.subtitlesStreamConversionHelper = subtitlesStreamConversionHelper;
         this.captionGenerator = captionGenerator;
+        this.standardVideoEditorState = standardVideoEditorState;
     }
 
     @Override
@@ -112,31 +106,21 @@ public class VideoEditor extends BaseAny2AnyConverter {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
 
-            if (StringUtils.isBlank(scale)) {
-                if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                    videoStreamConversionHelper.convertVideoCodecsForTelegramVideo(commandBuilder,
-                            allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
-                } else {
-                    videoStreamConversionHelper.convertVideoCodecs(commandBuilder, allStreams,
-                            fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
-                }
-                videoStreamConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+            String preferableAudioCodec = EditVideoAudioCodecState.AUTO.equalsIgnoreCase(settingsState.getAudioCodec())
+                    ? null
+                    : getAudioCodec(settingsState.getAudioCodec());
+            String preferableAudioCodecName = StringUtils.isNotBlank(preferableAudioCodec) ? settingsState.getAudioCodec() : null;
 
-                FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
-                if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                    audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
-                } else {
-                    audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams,
-                            result, fileQueueItem.getFirstFileFormat());
-                }
-                subtitlesStreamConversionHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder,
-                        allStreams, result, fileQueueItem.getFirstFileFormat());
-                commandBuilder.fastConversion();
-            } else {
-                videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
-                        fileQueueItem.getFirstFileFormat(), EditVideoCrfState.DONT_CHANGE.equals(settingsState.getCrf()),
-                        fileQueueItem.getSize());
+            AtomicReference<VideoEditorState> videoEditorStateAtomicReference = new AtomicReference<>(standardVideoEditorState);
+
+            if (StringUtils.isNotBlank(scale)) {
+                videoEditorStateAtomicReference.get().scale(scale, videoEditorStateAtomicReference);
             }
+            if (StringUtils.isNotBlank(preferableAudioCodec)) {
+                videoEditorStateAtomicReference.get().audioCodec(preferableAudioCodec, videoEditorStateAtomicReference);
+            }
+            videoEditorStateAtomicReference.get().prepareCommand(commandBuilder, fileQueueItem, allStreams, settingsState,
+                    scale, preferableAudioCodec, preferableAudioCodecName, result);
 
             if (fileQueueItem.getFirstFileFormat() == WEBM) {
                 commandBuilder.vp8QualityOptions();
@@ -169,6 +153,19 @@ public class VideoEditor extends BaseAny2AnyConverter {
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
+        }
+    }
+
+    private String getAudioCodec(String audioCodec) {
+        switch (audioCodec) {
+            case "aac":
+                return FFmpegCommandBuilder.AAC_CODEC;
+            case "opus":
+                return FFmpegCommandBuilder.OPUS;
+            case "vorbis":
+                return FFmpegCommandBuilder.LIBVORBIS;
+            default:
+                throw new UnsupportedOperationException("Not implemented for " + audioCodec);
         }
     }
 }

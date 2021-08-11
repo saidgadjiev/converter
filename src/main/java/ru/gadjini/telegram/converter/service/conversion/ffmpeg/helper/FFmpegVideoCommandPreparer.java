@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
@@ -27,9 +28,16 @@ public class FFmpegVideoCommandPreparer {
         this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
     }
-
     public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
                                               SmartTempFile result, String scale, Format targetFormat, boolean keepVideoBitRate,
+                                              Long fileSize) throws InterruptedException {
+        prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale, null, null,
+                targetFormat, keepVideoBitRate, fileSize);
+    }
+
+    public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+                                              SmartTempFile result, String scale, String audioCodec, String audioCodecName,
+                                              Format targetFormat, boolean keepVideoBitRate,
                                               Long fileSize) throws InterruptedException {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
 
@@ -59,10 +67,14 @@ public class FFmpegVideoCommandPreparer {
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
         baseCommand = new FFmpegCommandBuilder(commandBuilder);
-        if (targetFormat.supportsStreaming()) {
-            fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+        if (StringUtils.isNotBlank(audioCodec)) {
+            fFmpegAudioHelper.copyOrConvertToTargetAudioCodecs(commandBuilder, allStreams, audioCodec, audioCodecName,true);
         } else {
-            fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
+            if (targetFormat.supportsStreaming()) {
+                fFmpegAudioHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+            } else {
+                fFmpegAudioHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
+            }
         }
         subtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
         commandBuilder.fastConversion();
