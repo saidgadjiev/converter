@@ -21,14 +21,11 @@ import java.util.Locale;
 import java.util.Objects;
 
 @Component
-public class EditVideoResolutionState extends BaseEditVideoState {
+public class EditVideoAudioCodecState extends BaseEditVideoState {
 
-    public static final String DEFAULT_RESOLUTION = "/1.5";
+    public static final String AUTO = "x";
 
-    public static final String DONT_CHANGE = "x";
-
-    public static final List<String> AVAILABLE_RESOLUTIONS = List.of(DONT_CHANGE, "1080p", "720p", "480p", "360p", "240p",
-            "144p", "64p", "32p", DEFAULT_RESOLUTION, "/2", "/3", "*1.5");
+    public static final List<String> AVAILABLE_AUDIO_CODECS = List.of(AUTO, "aac", "opus", "vorbis");
 
     private MessageService messageService;
 
@@ -41,9 +38,8 @@ public class EditVideoResolutionState extends BaseEditVideoState {
     private EditVideoSettingsWelcomeState welcomeState;
 
     @Autowired
-    public EditVideoResolutionState(@TgMessageLimitsControl MessageService messageService,
-                                    InlineKeyboardService inlineKeyboardService, CommandStateService commandStateService,
-                                    LocalisationService localisationService) {
+    public EditVideoAudioCodecState(@TgMessageLimitsControl MessageService messageService, InlineKeyboardService inlineKeyboardService,
+                                    CommandStateService commandStateService, LocalisationService localisationService) {
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.commandStateService = commandStateService;
@@ -62,8 +58,8 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                 EditMessageReplyMarkup.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                         .messageId(callbackQuery.getMessage().getMessageId())
-                        .replyMarkup(inlineKeyboardService.getVideoEditResolutionsKeyboard(currentState.getSettings().getResolution(),
-                                AVAILABLE_RESOLUTIONS, new Locale(currentState.getUserLanguage())))
+                        .replyMarkup(inlineKeyboardService.getVideoEditAudioCodecsKeyboard(currentState.getSettings().getAudioCodec(),
+                                AVAILABLE_AUDIO_CODECS, new Locale(currentState.getUserLanguage())))
                         .build(),
                 false
         );
@@ -76,16 +72,16 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             currentState.setStateName(welcomeState.getName());
             welcomeState.goBack(editVideoCommand, callbackQuery.getMessage(), currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
-        } else if (requestParams.contains(ConverterArg.RESOLUTION.getKey())) {
-            String resolution = requestParams.getString(ConverterArg.RESOLUTION.getKey());
+        } else if (requestParams.contains(ConverterArg.AUDIO_CODEC.getKey())) {
+            String audioCodec = requestParams.getString(ConverterArg.AUDIO_CODEC.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
-            if (AVAILABLE_RESOLUTIONS.contains(resolution)) {
-                setResolution(callbackQuery, resolution);
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+            if (AVAILABLE_AUDIO_CODECS.contains(audioCodec)) {
+                setAudioCodec(callbackQuery, audioCodec);
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_CODEC_SELECTED,
                         locale);
             } else {
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_AUDIO_CODEC,
                         locale);
             }
             messageService.sendAnswerCallbackQuery(
@@ -99,17 +95,17 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
     @Override
     public EditVideoSettingsStateName getName() {
-        return EditVideoSettingsStateName.RESOLUTION;
+        return EditVideoSettingsStateName.AUDIO_CODEC;
     }
 
-    private void setResolution(CallbackQuery callbackQuery, String resolution) {
+    private void setAudioCodec(CallbackQuery callbackQuery, String audioCodec) {
         long chatId = callbackQuery.getFrom().getId();
         EditVideoState convertState = commandStateService.getState(chatId,
                 ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
-        String oldResolution = convertState.getSettings().getResolution();
-        convertState.getSettings().setResolution(resolution);
-        if (!Objects.equals(resolution, oldResolution)) {
+        String oldAudioCodec = convertState.getSettings().getAudioCodec();
+        convertState.getSettings().setAudioCodec(audioCodec);
+        if (!Objects.equals(audioCodec, oldAudioCodec)) {
             updateSettingsMessage(callbackQuery, chatId, convertState.getState());
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);

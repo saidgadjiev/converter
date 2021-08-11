@@ -39,6 +39,8 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private EditVideoCrfState crfState;
 
+    private EditVideoAudioCodecState audioCodecState;
+
     private WorkQueueJob workQueueJob;
 
     private ConvertionService convertionService;
@@ -49,6 +51,11 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
+    }
+
+    @Autowired
+    public void setAudioCodecState(EditVideoAudioCodecState audioCodecState) {
+        this.audioCodecState = audioCodecState;
     }
 
     @Autowired
@@ -114,6 +121,10 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
         } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_CRF.getKey())) {
             currentState.setStateName(crfState.getName());
             crfState.enter(editVideoCommand, callbackQuery, currentState);
+            commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+        } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_AUDIO_CODEC.getKey())) {
+            currentState.setStateName(audioCodecState.getName());
+            audioCodecState.enter(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
             EditVideoState editVideoState = commandStateService.getState(callbackQuery.getFrom().getId(),

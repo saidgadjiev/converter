@@ -157,9 +157,13 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CHOOSE_VIDEO_CRF = "message.choose.video.crf";
 
+    public static final String MESSAGE_CHOOSE_VIDEO_AUDIO_CODEC = "message.choose.video.audio.codec";
+
     public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
 
     public static final String MESSAGE_CRF_SELECTED = "message.crf.selected";
+
+    public static final String MESSAGE_AUDIO_CODEC_SELECTED = "message.audio.codec.selected";
 
     public static final String MESSAGE_SEND_VIDEO_TO_EDIT = "message.send.video.to.edit";
 
@@ -361,7 +365,11 @@ public class ConverterMessagesProperties {
 
     public static final String VEDIT_CRF_COMMAND_NAME = "vedit.crf.command.name";
 
+    public static final String VEDIT_AUDIO_CODEC_COMMAND_NAME = "vedit.audio.codec.command.name";
+
     public static final String MESSAGE_DONT_CHANGE = "message.dont.change";
+
+    public static final String MESSAGE_AUTO = "message.auto";
 
     public static final String MESSAGE_CHOOSE_EDIT_SETTINGS = "message.choose.edit.settings";
 

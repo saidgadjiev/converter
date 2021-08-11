@@ -15,7 +15,9 @@ public enum ConverterArg {
     VAV_MERGE("vm"),
     VEDIT_CHOOSE_RESOLUTION("vt"),
     VEDIT_CHOOSE_CRF("vc"),
-    CRF("cf");
+    VEDIT_CHOOSE_AUDIO_CODEC("vac"),
+    CRF("cf"),
+    AUDIO_CODEC("acdc");
 
     private final String key;
 

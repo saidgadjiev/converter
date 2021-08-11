@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.service.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
@@ -50,6 +51,19 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
                         .add(ConverterArg.VEDIT_CHOOSE_CRF.getKey(), true)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton chooseAudioCodecButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.VEDIT_AUDIO_CODEC_COMMAND_NAME, locale));
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.VEDIT_CHOOSE_AUDIO_CODEC.getKey(), true)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;
@@ -229,6 +243,25 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
                         .add(ConverterArg.CRF.getKey(), crf)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton audioCodecButton(String currentCodec, String codec, Locale locale) {
+        String codecName = codec;
+        if (EditVideoAudioCodecState.AUTO.equals(codec)) {
+            codecName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale);
+        }
+        String btnName = Objects.equals(currentCodec, codec)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + codecName
+                : codecName;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.AUDIO_CODEC.getKey(), codec)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

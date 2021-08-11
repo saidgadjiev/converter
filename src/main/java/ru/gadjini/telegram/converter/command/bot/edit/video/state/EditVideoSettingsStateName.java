@@ -7,4 +7,6 @@ public enum EditVideoSettingsStateName {
     RESOLUTION,
 
     CRF,
+
+    AUDIO_CODEC
 }

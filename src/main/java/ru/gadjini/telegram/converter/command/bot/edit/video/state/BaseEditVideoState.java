@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
@@ -42,7 +43,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
         Locale locale = new Locale(convertState.getUserLanguage());
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
                 new Object[]{getResolutionMessage(convertState.getSettings().getResolution(), locale),
-                        getCrfMessage(convertState.getSettings().getCrf(), locale)}, locale));
+                        getCrfMessage(convertState.getSettings().getCrf(), locale),
+                        getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale)}, locale));
         message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
@@ -60,11 +62,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                         .messageId(convertState.getSettings().getMessageId())
                         .text(buildSettingsMessage(convertState))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(getName() == EditVideoSettingsStateName.RESOLUTION
-                                ? inlineKeyboardService.getVideoEditResolutionsKeyboard(convertState.getSettings().getResolution(),
-                                EditVideoResolutionState.AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage()))
-                                : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
-                                EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage())))
+                        .replyMarkup(getMarkup(convertState))
                         .build());
     }
 
@@ -76,5 +74,21 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     private String getCrfMessage(String crf, Locale locale) {
         return EditVideoResolutionState.DONT_CHANGE.equals(crf) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : crf;
+    }
+
+    private String getAudioCodecMessage(String audioCodec, Locale locale) {
+        return EditVideoAudioCodecState.AUTO.equals(audioCodec) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : audioCodec;
+    }
+
+    private InlineKeyboardMarkup getMarkup(ConvertState convertState) {
+        return getName() == EditVideoSettingsStateName.RESOLUTION
+                ? inlineKeyboardService.getVideoEditResolutionsKeyboard(convertState.getSettings().getResolution(),
+                EditVideoResolutionState.AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage()))
+                : getName() == EditVideoSettingsStateName.AUDIO_CODEC
+                ? inlineKeyboardService.getVideoEditAudioCodecsKeyboard(convertState.getSettings().getAudioCodec(),
+                EditVideoAudioCodecState.AVAILABLE_AUDIO_CODECS, new Locale(convertState.getUserLanguage()))
+                : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
+                EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage()));
     }
 }

@@ -28,6 +28,8 @@ public class SettingsState {
 
     private String vavMergeSubtitlesMode;
 
+    private String audioCodec;
+
     public String getBitrate() {
         return bitrate;
     }
@@ -122,5 +124,13 @@ public class SettingsState {
 
     public void setCrf(String crf) {
         this.crf = crf;
+    }
+
+    public String getAudioCodec() {
+        return audioCodec;
+    }
+
+    public void setAudioCodec(String audioCodec) {
+        this.audioCodec = audioCodec;
     }
 }

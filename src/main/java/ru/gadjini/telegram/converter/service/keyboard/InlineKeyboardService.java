@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.bot.vavmerge.VavMergeState;
@@ -50,7 +51,7 @@ public class InlineKeyboardService {
                             buttonFactory.vavMergeAudioModeButton(ConverterMessagesProperties.MESSAGE_REPLACE_SUBTITLES_MODE,
                                     VavMergeConverter.REPLACE_SUBTITLES_MODE, vavMergeState.getSubtitlesMode(), ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey(), locale)));
         }
-        
+
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.vavMergeButton(locale)));
 
         return inlineKeyboardMarkup;
@@ -93,6 +94,9 @@ public class InlineKeyboardService {
                 buttonFactory.chooseCrfButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.chooseAudioCodecButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.editVideoButton(locale)
         ));
 
@@ -130,6 +134,25 @@ public class InlineKeyboardService {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (String crf : list) {
                 buttons.add(buttonFactory.crfButton(currentCrf, crf, locale));
+            }
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(ConverterCommandNames.EDIT_VIDEO, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getVideoEditAudioCodecsKeyboard(String currentCodec, List<String> codecs, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        codecs = new ArrayList<>(codecs);
+        codecs.remove(EditVideoAudioCodecState.AUTO);
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.audioCodecButton(currentCodec, EditVideoAudioCodecState.AUTO, locale)));
+        List<List<String>> lists = Lists.partition(codecs, 3);
+        for (List<String> list : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (String crf : list) {
+                buttons.add(buttonFactory.audioCodecButton(currentCodec, crf, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }

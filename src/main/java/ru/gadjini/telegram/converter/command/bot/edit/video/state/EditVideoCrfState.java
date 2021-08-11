@@ -27,7 +27,7 @@ public class EditVideoCrfState extends BaseEditVideoState {
 
     public static final String DONT_CHANGE = "x";
 
-    public static final List<String> AVAILABLE_CRF = List.of("x", "13", "15", "18",
+    public static final List<String> AVAILABLE_CRF = List.of(DONT_CHANGE, "13", "15", "18",
             "20", "23", "26", DEFAULT_CRF, "30", "32", "34", "36", "40");
 
     private MessageService messageService;
