@@ -98,7 +98,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             String height = settingsState.getResolution().replace("p", "");
-            String scale = EditVideoResolutionState.DONT_CHANGE.equals(settingsState.getResolution()) ? null
+            String scale = EditVideoResolutionState.AUTO.equals(settingsState.getResolution()) ? null
                     : "scale=-2:" + (NumberUtils.isDigits(height) ? height : "ceil(ih" + height + "/2)*2");
 
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
@@ -110,7 +110,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             String preferableAudioCodecName = StringUtils.isNotBlank(preferableAudioCodec) ? settingsState.getAudioCodec() : null;
             Long preferableAudioBitrate = EditVideoAudioBitrateState.AUTO.equalsIgnoreCase(settingsState.getAudioBitrate())
                     ? null
-                    : Long.parseLong(settingsState.getBitrate());
+                    : Long.parseLong(settingsState.getAudioBitrate());
 
             AtomicReference<VideoEditorState> videoEditorStateAtomicReference = new AtomicReference<>(standardVideoEditorState);
 

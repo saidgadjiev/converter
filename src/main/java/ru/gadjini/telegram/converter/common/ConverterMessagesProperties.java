@@ -371,6 +371,8 @@ public class ConverterMessagesProperties {
 
     public static final String VEDIT_AUDIO_CHANNEL_LAYOUT_COMMAND_NAME = "vedit.audio.channel.layout.command.name";
 
+    public static final String VEDIT_AUDIO_MONO_STEREO_COMMAND_NAME = "vedit.audio.mono.stereo.command.name";
+
     public static final String VEDIT_AUDIO_BOTRATE_COMMAND_NAME = "vedit.audio.botrate.command.name";
 
     public static final String MESSAGE_DONT_CHANGE = "message.dont.change";

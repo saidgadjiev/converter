@@ -70,12 +70,12 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     }
 
     private String getResolutionMessage(String resolution, Locale locale) {
-        return EditVideoResolutionState.DONT_CHANGE.equals(resolution) ?
+        return EditVideoResolutionState.AUTO.equals(resolution) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution;
     }
 
     private String getCrfMessage(String crf, Locale locale) {
-        return EditVideoResolutionState.DONT_CHANGE.equals(crf) ?
+        return EditVideoResolutionState.AUTO.equals(crf) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : crf;
     }
 
@@ -109,6 +109,12 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 : getName() == EditVideoSettingsStateName.AUDIO_BITRATE
                 ? inlineKeyboardService.getVideoEditAudioBitratesKeyboard(convertState.getSettings().getAudioCodec(),
                 EditVideoAudioBitrateState.AVAILABLE_AUDIO_BITRATES, new Locale(convertState.getUserLanguage()))
+                : getName() == EditVideoSettingsStateName.AUDIO_MONO_STEREO
+                ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioMonoStereo(),
+                EditVideoAudioMonoStereoState.AVAILABLE_AUDIO_MONO_STEREO, new Locale(convertState.getUserLanguage()))
+                : getName() == EditVideoSettingsStateName.AUDIO_CHANNEL_LAYOUT
+                ? inlineKeyboardService.getVideoEditAudioChannelLayoutKeyboard(convertState.getSettings().getAudioChannelLayout(),
+                EditVideoAudioChannelLayoutState.AVAILABLE_AUDIO_CHANNEL_LAYOUT, new Locale(convertState.getUserLanguage()))
                 : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
                 EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage()));
     }

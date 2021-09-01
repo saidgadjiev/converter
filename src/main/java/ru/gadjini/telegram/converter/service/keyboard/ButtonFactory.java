@@ -95,6 +95,19 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
+    public InlineKeyboardButton chooseAudioMonoStereoButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.VEDIT_AUDIO_MONO_STEREO_COMMAND_NAME, locale));
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.VEDIT_CHOOSE_MONO_STEREO.getKey(), true)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton report(int queryItemId, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(ConverterMessagesProperties.REPORT_COMMAND_DESCRIPTION, locale));
         inlineKeyboardButton.setCallbackData(ConverterCommandNames.REPORT_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
@@ -238,7 +251,7 @@ public class ButtonFactory {
 
     public InlineKeyboardButton resolutionButton(String currentResolution, String resolution, Locale locale) {
         String resolutionName = resolution;
-        if (EditVideoResolutionState.DONT_CHANGE.equals(resolution)) {
+        if (EditVideoResolutionState.AUTO.equals(resolution)) {
             resolutionName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale);
         }
         String btnName = Objects.equals(currentResolution, resolution)
@@ -257,7 +270,7 @@ public class ButtonFactory {
 
     public InlineKeyboardButton crfButton(String currentCrf, String crf, Locale locale) {
         String crfName = crf;
-        if (EditVideoResolutionState.DONT_CHANGE.equals(crf)) {
+        if (EditVideoResolutionState.AUTO.equals(crf)) {
             crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale);
         }
         String btnName = Objects.equals(currentCrf, crf)

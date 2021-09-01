@@ -25,9 +25,9 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
     public static final String DEFAULT_RESOLUTION = "/1.5";
 
-    public static final String DONT_CHANGE = "x";
+    public static final String AUTO = "x";
 
-    public static final List<String> AVAILABLE_RESOLUTIONS = List.of(DONT_CHANGE, "1080p", "720p", "480p", "360p", "240p",
+    public static final List<String> AVAILABLE_RESOLUTIONS = List.of(AUTO, "1080p", "720p", "480p", "360p", "240p",
             "144p", "64p", "32p", DEFAULT_RESOLUTION, "/2", "/3", "*1.5");
 
     private MessageService messageService;

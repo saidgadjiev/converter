@@ -49,12 +49,20 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private EditVideoAudioMonoStereoState monoStereoState;
 
+    private EditVideoAudioChannelLayoutState channelLayoutState;
+
     @Autowired
-    public EditVideoSettingsWelcomeState(CommandStateService commandStateService, @TgMessageLimitsControl MessageService messageService,
+    public EditVideoSettingsWelcomeState(CommandStateService commandStateService,
+                                         @TgMessageLimitsControl MessageService messageService,
                                          InlineKeyboardService inlineKeyboardService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
+    }
+
+    @Autowired
+    public void setChannelLayoutState(EditVideoAudioChannelLayoutState channelLayoutState) {
+        this.channelLayoutState = channelLayoutState;
     }
 
     @Autowired
@@ -148,6 +156,10 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
             currentState.setStateName(monoStereoState.getName());
             monoStereoState.enter(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+        } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_AUDIO_CHANNEL_LAYOUT.getKey())) {
+            currentState.setStateName(channelLayoutState.getName());
+            channelLayoutState.enter(editVideoCommand, callbackQuery, currentState);
+            commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
             EditVideoState editVideoState = commandStateService.getState(callbackQuery.getFrom().getId(),
                     ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
@@ -168,7 +180,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
     }
 
     private boolean validate(String queryId, EditVideoState editVideoState) {
-        if (EditVideoResolutionState.DONT_CHANGE.equals(editVideoState.getSettings().getResolution())
+        if (EditVideoResolutionState.AUTO.equals(editVideoState.getSettings().getResolution())
                 && EditVideoCrfState.AUTO.equals(editVideoState.getSettings().getCrf())
                 && EditVideoAudioCodecState.AUTO.equals(editVideoState.getSettings().getAudioCodec())
                 && EditVideoAudioBitrateState.AUTO.equals(editVideoState.getSettings().getAudioBitrate())) {

@@ -99,6 +99,9 @@ public class InlineKeyboardService {
                 buttonFactory.chooseAudioBitrateButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.chooseAudioMonoStereoButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.chooseAudioChannelLayoutButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
@@ -114,7 +117,7 @@ public class InlineKeyboardService {
         resolutions = new ArrayList<>(resolutions);
         resolutions.remove(EditVideoCrfState.AUTO);
         inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.resolutionButton(currentResolution, EditVideoResolutionState.DONT_CHANGE, locale)));
+                .add(List.of(buttonFactory.resolutionButton(currentResolution, EditVideoResolutionState.AUTO, locale)));
         List<List<String>> lists = Lists.partition(resolutions, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
