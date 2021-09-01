@@ -23,12 +23,10 @@ import java.util.Objects;
 @Component
 public class EditVideoCrfState extends BaseEditVideoState {
 
-    public static final String DEFAULT_CRF = "28";
+    public static final String AUTO = "x";
 
-    public static final String DONT_CHANGE = "x";
-
-    public static final List<String> AVAILABLE_CRF = List.of(DONT_CHANGE, "13", "15", "18",
-            "20", "23", "26", DEFAULT_CRF, "30", "32", "34", "36", "40");
+    public static final List<String> AVAILABLE_CRF = List.of(AUTO, "13", "15", "18",
+            "20", "23", "26", "28", "30", "32", "34", "36", "40");
 
     private MessageService messageService;
 
@@ -81,7 +79,7 @@ public class EditVideoCrfState extends BaseEditVideoState {
             String answerCallbackQuery;
             if (AVAILABLE_CRF.contains(crf)) {
                 setCrf(callbackQuery, crf);
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CRF_SELECTED,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
             } else {
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_CRF,

@@ -32,6 +32,8 @@ public class SettingsState {
 
     private String audioBitrate;
 
+    private String monoStereo;
+
     public String getBitrate() {
         return bitrate;
     }
@@ -142,5 +144,13 @@ public class SettingsState {
 
     public void setAudioBitrate(String audioBitrate) {
         this.audioBitrate = audioBitrate;
+    }
+
+    public String getMonoStereo() {
+        return monoStereo;
+    }
+
+    public void setMonoStereo(String monoStereo) {
+        this.monoStereo = monoStereo;
     }
 }

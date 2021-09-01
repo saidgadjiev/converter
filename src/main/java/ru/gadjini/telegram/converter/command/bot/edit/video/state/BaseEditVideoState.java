@@ -45,7 +45,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 new Object[]{getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getCrfMessage(convertState.getSettings().getCrf(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
-                        getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale)}, locale));
+                        getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
+                        getAudioMonoStereoMessage(convertState.getSettings().getMonoStereo(), locale)}, locale));
         message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
@@ -80,6 +81,11 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
         return EditVideoAudioCodecState.AUTO.equals(audioBitrate) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : audioBitrate + "k";
+    }
+
+    private String getAudioMonoStereoMessage(String monoStereo, Locale locale) {
+        return EditVideoAudioCodecState.AUTO.equals(monoStereo) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo + "k";
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {

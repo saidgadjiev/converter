@@ -159,11 +159,11 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CHOOSE_VIDEO_AUDIO_CODEC = "message.choose.video.audio.codec";
 
-    public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
+    public static final String MESSAGE_CHOOSE_VIDEO_AUDIO_BITRATE = "message.choose.video.audio.bitrate";
 
-    public static final String MESSAGE_CRF_SELECTED = "message.crf.selected";
+    public static final String MESSAGE_CHOOSE_VIDEO_AUDIO_MONO_STEREO = "message.choose.video.audio.mono.stereo";
 
-    public static final String MESSAGE_AUDIO_CODEC_SELECTED = "message.audio.codec.selected";
+    public static final String MESSAGE_SELECTED = "message.selected";
 
     public static final String MESSAGE_SEND_VIDEO_TO_EDIT = "message.send.video.to.edit";
 

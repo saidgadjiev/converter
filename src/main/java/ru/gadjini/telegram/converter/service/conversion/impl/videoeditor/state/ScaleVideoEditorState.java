@@ -28,7 +28,7 @@ public class ScaleVideoEditorState implements VideoEditorState {
                                String audioCodec, String audioCodecName, Long audioBitrate, SmartTempFile result) throws InterruptedException {
         videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
                 audioCodec, audioCodecName, audioBitrate,
-                fileQueueItem.getFirstFileFormat(), EditVideoCrfState.DONT_CHANGE.equals(settingsState.getCrf()),
+                fileQueueItem.getFirstFileFormat(), EditVideoCrfState.AUTO.equals(settingsState.getCrf()),
                 fileQueueItem.getSize());
     }
 }

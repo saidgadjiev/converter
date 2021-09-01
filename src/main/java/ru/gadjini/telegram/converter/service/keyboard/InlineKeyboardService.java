@@ -108,7 +108,7 @@ public class InlineKeyboardService {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         resolutions = new ArrayList<>(resolutions);
-        resolutions.remove(EditVideoCrfState.DONT_CHANGE);
+        resolutions.remove(EditVideoCrfState.AUTO);
         inlineKeyboardMarkup.getKeyboard()
                 .add(List.of(buttonFactory.resolutionButton(currentResolution, EditVideoResolutionState.DONT_CHANGE, locale)));
         List<List<String>> lists = Lists.partition(resolutions, 3);
@@ -127,14 +127,33 @@ public class InlineKeyboardService {
     public InlineKeyboardMarkup getVideoEditCrfKeyboard(String currentCrf, List<String> crfs, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         crfs = new ArrayList<>(crfs);
-        crfs.remove(EditVideoCrfState.DONT_CHANGE);
+        crfs.remove(EditVideoCrfState.AUTO);
         inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoCrfState.DONT_CHANGE, locale)));
+                .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoCrfState.AUTO, locale)));
         List<List<String>> lists = Lists.partition(crfs, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (String crf : list) {
                 buttons.add(buttonFactory.crfButton(currentCrf, crf, locale));
+            }
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(ConverterCommandNames.EDIT_VIDEO, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getVideoEditAudioMonoStereoKeyboard(String currentMonoStereo, List<String> monoStereos, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        monoStereos = new ArrayList<>(monoStereos);
+        monoStereos.remove(EditVideoAudioCodecState.AUTO);
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.audioBitrateButton(currentMonoStereo, EditVideoAudioCodecState.AUTO, locale)));
+        List<List<String>> lists = Lists.partition(monoStereos, 3);
+        for (List<String> list : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (String bitrate : list) {
+                buttons.add(buttonFactory.audioBitrateButton(currentMonoStereo, bitrate, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }

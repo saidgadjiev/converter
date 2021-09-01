@@ -541,6 +541,10 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public boolean hasAc() {
+        return options.stream().anyMatch(a -> a.equals("-ac"));
+    }
+
     public FFmpegCommandBuilder ac(String ac) {
         options.add("-ac");
         options.add(ac);

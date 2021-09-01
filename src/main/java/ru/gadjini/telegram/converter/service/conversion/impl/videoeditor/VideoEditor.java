@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioMonoStereoState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
@@ -129,8 +130,17 @@ public class VideoEditor extends BaseAny2AnyConverter {
             if (fileQueueItem.getFirstFileFormat() == WEBM) {
                 commandBuilder.vp8QualityOptions();
             }
-            if (!EditVideoCrfState.DONT_CHANGE.equals(settingsState.getCrf())) {
+            if (!EditVideoCrfState.AUTO.equals(settingsState.getCrf())) {
                 commandBuilder.crf(settingsState.getCrf());
+            }
+            String monoStereo = EditVideoAudioMonoStereoState.AUTO.equalsIgnoreCase(settingsState.getMonoStereo())
+                    ? null
+                    : EditVideoAudioMonoStereoState.MONO.equalsIgnoreCase(settingsState.getMonoStereo())
+                    ? "1"
+                    : "2";
+
+            if (StringUtils.isNotBlank(monoStereo) && !commandBuilder.hasAc()) {
+                commandBuilder.ac(monoStereo);
             }
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());

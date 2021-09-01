@@ -299,6 +299,26 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
+
+    public InlineKeyboardButton audioMonoStereoButton(String currentMonoStereo, String monoStereo, Locale locale) {
+        String monoStereoName = monoStereo;
+        if (EditVideoAudioCodecState.AUTO.equals(monoStereo)) {
+            monoStereoName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale);
+        }
+        String btnName = Objects.equals(currentMonoStereo, monoStereo)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + monoStereoName
+                : monoStereoName;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.AUDIO_MONO_STEREO.getKey(), monoStereo)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton editVideoButton(Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(ConverterMessagesProperties.EDIT_VIDEO_COMMAND_DESCRIPTION, locale));
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +

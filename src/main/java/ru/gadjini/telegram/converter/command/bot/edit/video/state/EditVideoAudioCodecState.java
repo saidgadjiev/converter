@@ -78,7 +78,7 @@ public class EditVideoAudioCodecState extends BaseEditVideoState {
             String answerCallbackQuery;
             if (AVAILABLE_AUDIO_CODECS.contains(audioCodec)) {
                 setAudioCodec(callbackQuery, audioCodec);
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_CODEC_SELECTED,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
             } else {
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_AUDIO_CODEC,

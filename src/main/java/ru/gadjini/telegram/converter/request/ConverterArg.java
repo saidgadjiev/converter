@@ -17,9 +17,11 @@ public enum ConverterArg {
     VEDIT_CHOOSE_CRF("vc"),
     VEDIT_CHOOSE_AUDIO_CODEC("vac"),
     VEDIT_CHOOSE_AUDIO_BITRATE("vab"),
+    VEDIT_CHOOSE_MONO_STEREO("vcms"),
     CRF("cf"),
     AUDIO_CODEC("acdc"),
-    AUDIO_BITRATE("acbr");
+    AUDIO_BITRATE("acbr"),
+    AUDIO_MONO_STEREO("ams");
 
     private final String key;
 

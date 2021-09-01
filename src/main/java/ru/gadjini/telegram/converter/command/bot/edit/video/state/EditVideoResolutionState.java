@@ -82,7 +82,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             String answerCallbackQuery;
             if (AVAILABLE_RESOLUTIONS.contains(resolution)) {
                 setResolution(callbackQuery, resolution);
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
             } else {
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION,

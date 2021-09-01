@@ -10,5 +10,7 @@ public enum EditVideoSettingsStateName {
 
     AUDIO_CODEC,
 
-    AUDIO_BITRATE
+    AUDIO_BITRATE,
+
+    AUDIO_MONO_STEREO
 }
