@@ -283,6 +283,13 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder audioBitrate(long bitrate) {
+        options.add("-b:a");
+        options.add(bitrate + "k");
+
+        return this;
+    }
+
     public FFmpegCommandBuilder audioCodec(String codec) {
         options.add("-c:a");
         options.add(codec);

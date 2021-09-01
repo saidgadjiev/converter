@@ -44,7 +44,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
                 new Object[]{getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getCrfMessage(convertState.getSettings().getCrf(), locale),
-                        getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale)}, locale));
+                        getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
+                        getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale)}, locale));
         message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
@@ -76,6 +77,11 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : crf;
     }
 
+    private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
+        return EditVideoAudioCodecState.AUTO.equals(audioBitrate) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : audioBitrate + "k";
+    }
+
     private String getAudioCodecMessage(String audioCodec, Locale locale) {
         return EditVideoAudioCodecState.AUTO.equals(audioCodec) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : audioCodec;
@@ -88,6 +94,9 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 : getName() == EditVideoSettingsStateName.AUDIO_CODEC
                 ? inlineKeyboardService.getVideoEditAudioCodecsKeyboard(convertState.getSettings().getAudioCodec(),
                 EditVideoAudioCodecState.AVAILABLE_AUDIO_CODECS, new Locale(convertState.getUserLanguage()))
+                : getName() == EditVideoSettingsStateName.AUDIO_BITRATE
+                ? inlineKeyboardService.getVideoEditAudioBitratesKeyboard(convertState.getSettings().getAudioCodec(),
+                EditVideoAudioBitrateState.AVAILABLE_AUDIO_BITRATES, new Locale(convertState.getUserLanguage()))
                 : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
                 EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage()));
     }

@@ -45,12 +45,19 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private ConvertionService convertionService;
 
+    private EditVideoAudioBitrateState audioBitrateState;
+
     @Autowired
     public EditVideoSettingsWelcomeState(CommandStateService commandStateService, @TgMessageLimitsControl MessageService messageService,
                                          InlineKeyboardService inlineKeyboardService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
+    }
+
+    @Autowired
+    public void setAudioBitrateState(EditVideoAudioBitrateState audioBitrateState) {
+        this.audioBitrateState = audioBitrateState;
     }
 
     @Autowired
@@ -126,6 +133,10 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
             currentState.setStateName(audioCodecState.getName());
             audioCodecState.enter(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+        } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_AUDIO_BITRATE.getKey())) {
+            currentState.setStateName(audioBitrateState.getName());
+            audioBitrateState.enter(editVideoCommand, callbackQuery, currentState);
+            commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
             EditVideoState editVideoState = commandStateService.getState(callbackQuery.getFrom().getId(),
                     ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
@@ -148,7 +159,8 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
     private boolean validate(String queryId, EditVideoState editVideoState) {
         if (EditVideoResolutionState.DONT_CHANGE.equals(editVideoState.getSettings().getResolution())
                 && EditVideoCrfState.DONT_CHANGE.equals(editVideoState.getSettings().getCrf())
-                && EditVideoAudioCodecState.AUTO.equals(editVideoState.getSettings().getAudioCodec())) {
+                && EditVideoAudioCodecState.AUTO.equals(editVideoState.getSettings().getAudioCodec())
+                && EditVideoAudioBitrateState.AUTO.equals(editVideoState.getSettings().getAudioBitrate())) {
             messageService.sendAnswerCallbackQuery(
                     AnswerCallbackQuery.builder()
                             .callbackQueryId(queryId)

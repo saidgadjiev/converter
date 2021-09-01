@@ -69,6 +69,19 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
+    public InlineKeyboardButton chooseAudioBitrateButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
+                localisationService.getMessage(ConverterMessagesProperties.VEDIT_AUDIO_CODEC_COMMAND_NAME, locale));
+
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.VEDIT_CHOOSE_AUDIO_CODEC.getKey(), true)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton report(int queryItemId, Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(ConverterMessagesProperties.REPORT_COMMAND_DESCRIPTION, locale));
         inlineKeyboardButton.setCallbackData(ConverterCommandNames.REPORT_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
@@ -262,6 +275,25 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
                         .add(ConverterArg.AUDIO_CODEC.getKey(), codec)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
+    public InlineKeyboardButton audioBitrateButton(String currentBitrate, String bitrate, Locale locale) {
+        String bitrateName = bitrate + "k";
+        if (EditVideoAudioCodecState.AUTO.equals(bitrate)) {
+            bitrateName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale);
+        }
+        String btnName = Objects.equals(currentBitrate, bitrate)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + bitrateName
+                : bitrateName;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
+                        .add(ConverterArg.AUDIO_BITRATE.getKey(), bitrate)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

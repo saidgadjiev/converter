@@ -8,5 +8,7 @@ public enum EditVideoSettingsStateName {
 
     CRF,
 
-    AUDIO_CODEC
+    AUDIO_CODEC,
+
+    AUDIO_BITRATE
 }

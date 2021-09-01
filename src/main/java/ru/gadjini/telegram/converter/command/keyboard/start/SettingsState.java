@@ -30,6 +30,8 @@ public class SettingsState {
 
     private String audioCodec;
 
+    private String audioBitrate;
+
     public String getBitrate() {
         return bitrate;
     }
@@ -132,5 +134,13 @@ public class SettingsState {
 
     public void setAudioCodec(String audioCodec) {
         this.audioCodec = audioCodec;
+    }
+
+    public String getAudioBitrate() {
+        return audioBitrate;
+    }
+
+    public void setAudioBitrate(String audioBitrate) {
+        this.audioBitrate = audioBitrate;
     }
 }

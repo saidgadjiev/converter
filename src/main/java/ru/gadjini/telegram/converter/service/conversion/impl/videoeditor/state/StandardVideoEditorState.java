@@ -63,7 +63,7 @@ public class StandardVideoEditorState implements VideoEditorState {
 
     @Override
     public void prepareCommand(FFmpegCommandBuilder commandBuilder, ConversionQueueItem fileQueueItem,
-                               List<FFprobeDevice.Stream> allStreams, SettingsState settingsState, String scale, String audioCodec, String audioCodecName, SmartTempFile result) throws InterruptedException {
+                               List<FFprobeDevice.Stream> allStreams, SettingsState settingsState, String scale, String audioCodec, String audioCodecName, Long audioBitrate, SmartTempFile result) throws InterruptedException {
         if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
             videoStreamConversionHelper.convertVideoCodecsForTelegramVideo(commandBuilder,
                     allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
@@ -75,10 +75,10 @@ public class StandardVideoEditorState implements VideoEditorState {
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-            audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+            audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams, audioBitrate);
         } else {
             audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams,
-                    result, fileQueueItem.getFirstFileFormat());
+                    audioBitrate, result, fileQueueItem.getFirstFileFormat());
         }
         subtitlesStreamConversionHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder,
                 allStreams, result, fileQueueItem.getFirstFileFormat());

@@ -21,5 +21,6 @@ public interface VideoEditorState {
 
     void prepareCommand(FFmpegCommandBuilder commandBuilder, ConversionQueueItem fileQueueItem,
                         List<FFprobeDevice.Stream> allStreams, SettingsState settingsState,
-                        String scale, String audioCodec, String audioCodecName, SmartTempFile result) throws InterruptedException;
+                        String scale, String audioCodec, String audioCodecName, Long audioBitrate,
+                        SmartTempFile result) throws InterruptedException;
 }

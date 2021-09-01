@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
@@ -110,6 +111,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
                     ? null
                     : getAudioCodec(settingsState.getAudioCodec());
             String preferableAudioCodecName = StringUtils.isNotBlank(preferableAudioCodec) ? settingsState.getAudioCodec() : null;
+            Long preferableAudioBitrate = EditVideoAudioBitrateState.AUTO.equalsIgnoreCase(settingsState.getAudioBitrate())
+                    ? null
+                    : Long.parseLong(settingsState.getBitrate());
 
             AtomicReference<VideoEditorState> videoEditorStateAtomicReference = new AtomicReference<>(standardVideoEditorState);
 
@@ -120,7 +124,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 videoEditorStateAtomicReference.get().audioCodec(preferableAudioCodec, videoEditorStateAtomicReference);
             }
             videoEditorStateAtomicReference.get().prepareCommand(commandBuilder, fileQueueItem, allStreams, settingsState,
-                    scale, preferableAudioCodec, preferableAudioCodecName, result);
+                    scale, preferableAudioCodec, preferableAudioCodecName, preferableAudioBitrate, result);
 
             if (fileQueueItem.getFirstFileFormat() == WEBM) {
                 commandBuilder.vp8QualityOptions();

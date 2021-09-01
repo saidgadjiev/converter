@@ -34,7 +34,8 @@ public class StandardAudioCodecVideoEditorState implements VideoEditorState {
     @Override
     public void prepareCommand(FFmpegCommandBuilder commandBuilder, ConversionQueueItem fileQueueItem,
                                List<FFprobeDevice.Stream> allStreams, SettingsState settingsState, String scale,
-                               String audioCodec, String audioCodecName, SmartTempFile result) throws InterruptedException {
+                               String audioCodec, String audioCodecName, Long audioBitrate,
+                               SmartTempFile result) throws InterruptedException {
         if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
             videoStreamConversionHelper.convertVideoCodecsForTelegramVideo(commandBuilder,
                     allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
@@ -46,7 +47,7 @@ public class StandardAudioCodecVideoEditorState implements VideoEditorState {
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         audioStreamInVideoFileConversionHelper.copyOrConvertToTargetAudioCodecs(commandBuilder, allStreams,
-                audioCodec, audioCodecName, true);
+                audioCodec, audioCodecName, audioBitrate, true);
         subtitlesStreamConversionHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder,
                 allStreams, result, fileQueueItem.getFirstFileFormat());
 

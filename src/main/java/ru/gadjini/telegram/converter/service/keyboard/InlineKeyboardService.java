@@ -94,7 +94,8 @@ public class InlineKeyboardService {
                 buttonFactory.chooseCrfButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.chooseAudioCodecButton(locale)
+                buttonFactory.chooseAudioCodecButton(locale),
+                buttonFactory.chooseAudioBitrateButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.editVideoButton(locale)
@@ -134,6 +135,25 @@ public class InlineKeyboardService {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (String crf : list) {
                 buttons.add(buttonFactory.crfButton(currentCrf, crf, locale));
+            }
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(ConverterCommandNames.EDIT_VIDEO, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getVideoEditAudioBitratesKeyboard(String currentBitrate, List<String> bitrates, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        bitrates = new ArrayList<>(bitrates);
+        bitrates.remove(EditVideoAudioCodecState.AUTO);
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.audioBitrateButton(currentBitrate, EditVideoAudioCodecState.AUTO, locale)));
+        List<List<String>> lists = Lists.partition(bitrates, 3);
+        for (List<String> list : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (String bitrate : list) {
+                buttons.add(buttonFactory.audioBitrateButton(currentBitrate, bitrate, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }
