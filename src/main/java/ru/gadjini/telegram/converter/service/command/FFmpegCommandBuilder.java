@@ -542,7 +542,11 @@ public class FFmpegCommandBuilder {
     }
 
     public boolean hasAc() {
-        return options.stream().anyMatch(a -> a.equals("-ac"));
+        return options.stream().anyMatch(a -> a.contains("-ac"));
+    }
+
+    public boolean hasChannelLayoutFilter() {
+        return options.stream().anyMatch(a -> a.contains("channelmap=channel_layout"));
     }
 
     public FFmpegCommandBuilder ac(String ac) {

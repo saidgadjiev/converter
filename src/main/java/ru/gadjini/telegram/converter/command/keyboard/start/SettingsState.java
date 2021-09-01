@@ -32,7 +32,9 @@ public class SettingsState {
 
     private String audioBitrate;
 
-    private String monoStereo;
+    private String audioMonoStereo;
+
+    private String audioChannelLayout;
 
     public String getBitrate() {
         return bitrate;
@@ -146,11 +148,19 @@ public class SettingsState {
         this.audioBitrate = audioBitrate;
     }
 
-    public String getMonoStereo() {
-        return monoStereo;
+    public String getAudioMonoStereo() {
+        return audioMonoStereo;
     }
 
-    public void setMonoStereo(String monoStereo) {
-        this.monoStereo = monoStereo;
+    public void setAudioMonoStereo(String audioMonoStereo) {
+        this.audioMonoStereo = audioMonoStereo;
+    }
+
+    public String getAudioChannelLayout() {
+        return audioChannelLayout;
+    }
+
+    public void setAudioChannelLayout(String audioChannelLayout) {
+        this.audioChannelLayout = audioChannelLayout;
     }
 }

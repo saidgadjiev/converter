@@ -4,11 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioMonoStereoState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.*;//NOPMD
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
@@ -133,14 +129,22 @@ public class VideoEditor extends BaseAny2AnyConverter {
             if (!EditVideoCrfState.AUTO.equals(settingsState.getCrf())) {
                 commandBuilder.crf(settingsState.getCrf());
             }
-            String monoStereo = EditVideoAudioMonoStereoState.AUTO.equalsIgnoreCase(settingsState.getMonoStereo())
+            String monoStereo = EditVideoAudioMonoStereoState.AUTO.equalsIgnoreCase(settingsState.getAudioMonoStereo())
                     ? null
-                    : EditVideoAudioMonoStereoState.MONO.equalsIgnoreCase(settingsState.getMonoStereo())
+                    : EditVideoAudioMonoStereoState.MONO.equalsIgnoreCase(settingsState.getAudioMonoStereo())
                     ? "1"
                     : "2";
 
             if (StringUtils.isNotBlank(monoStereo) && !commandBuilder.hasAc()) {
                 commandBuilder.ac(monoStereo);
+            }
+
+            String channelLayout = EditVideoAudioChannelLayoutState.AUTO.equalsIgnoreCase(settingsState.getAudioChannelLayout())
+                    ? null
+                    : settingsState.getAudioChannelLayout();
+
+            if (StringUtils.isNotBlank(channelLayout) && !commandBuilder.hasChannelLayoutFilter()) {
+                commandBuilder.filterAudio("channelmap=channel_layout=5.1");
             }
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());

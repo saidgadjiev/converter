@@ -189,7 +189,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         convertState.getSettings().setCrf(EditVideoCrfState.AUTO);
         convertState.getSettings().setAudioCodec(EditVideoAudioCodecState.AUTO);
         convertState.getSettings().setBitrate(EditVideoAudioBitrateState.AUTO);
-        convertState.getSettings().setMonoStereo(EditVideoAudioMonoStereoState.AUTO);
+        convertState.getSettings().setAudioMonoStereo(EditVideoAudioMonoStereoState.AUTO);
 
         MessageMedia media = messageMediaService.getMedia(message, locale);
 

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
@@ -98,6 +99,9 @@ public class InlineKeyboardService {
                 buttonFactory.chooseAudioBitrateButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.chooseAudioChannelLayoutButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.editVideoButton(locale)
         ));
 
@@ -146,14 +150,34 @@ public class InlineKeyboardService {
     public InlineKeyboardMarkup getVideoEditAudioMonoStereoKeyboard(String currentMonoStereo, List<String> monoStereos, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         monoStereos = new ArrayList<>(monoStereos);
-        monoStereos.remove(EditVideoAudioCodecState.AUTO);
+        monoStereos.remove(EditVideoAudioBitrateState.AUTO);
         inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.audioBitrateButton(currentMonoStereo, EditVideoAudioCodecState.AUTO, locale)));
+                .add(List.of(buttonFactory.audioMonoStereoButton(currentMonoStereo, EditVideoAudioCodecState.AUTO, locale)));
         List<List<String>> lists = Lists.partition(monoStereos, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            for (String bitrate : list) {
-                buttons.add(buttonFactory.audioBitrateButton(currentMonoStereo, bitrate, locale));
+            for (String monoStereo : list) {
+                buttons.add(buttonFactory.audioMonoStereoButton(currentMonoStereo, monoStereo, locale));
+            }
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(ConverterCommandNames.EDIT_VIDEO, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getVideoEditAudioChannelLayoutKeyboard(String currentChannelLayout,
+                                                                       List<String> channelLayouts, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+        channelLayouts = new ArrayList<>(channelLayouts);
+        channelLayouts.remove(EditVideoAudioCodecState.AUTO);
+        inlineKeyboardMarkup.getKeyboard()
+                .add(List.of(buttonFactory.audioChannelLayoutButton(currentChannelLayout, EditVideoAudioCodecState.AUTO, locale)));
+        List<List<String>> lists = Lists.partition(channelLayouts, 3);
+        for (List<String> list : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (String channelLayout : list) {
+                buttons.add(buttonFactory.audioChannelLayoutButton(currentChannelLayout, channelLayout, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }

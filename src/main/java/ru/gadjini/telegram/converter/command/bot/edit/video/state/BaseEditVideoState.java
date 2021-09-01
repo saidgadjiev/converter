@@ -46,7 +46,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                         getCrfMessage(convertState.getSettings().getCrf(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
-                        getAudioMonoStereoMessage(convertState.getSettings().getMonoStereo(), locale)}, locale));
+                        getAudioMonoStereoMessage(convertState.getSettings().getAudioMonoStereo(), locale),
+                        getAudioChannelLayoutMessage(convertState.getSettings().getAudioChannelLayout(), locale)}, locale));
         message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
@@ -79,13 +80,18 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     }
 
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
-        return EditVideoAudioCodecState.AUTO.equals(audioBitrate) ?
+        return EditVideoAudioBitrateState.AUTO.equals(audioBitrate) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : audioBitrate + "k";
     }
 
     private String getAudioMonoStereoMessage(String monoStereo, Locale locale) {
-        return EditVideoAudioCodecState.AUTO.equals(monoStereo) ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo + "k";
+        return EditVideoAudioMonoStereoState.AUTO.equals(monoStereo) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo;
+    }
+
+    private String getAudioChannelLayoutMessage(String channelLayout, Locale locale) {
+        return EditVideoAudioChannelLayoutState.AUTO.equals(channelLayout) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : channelLayout;
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {
