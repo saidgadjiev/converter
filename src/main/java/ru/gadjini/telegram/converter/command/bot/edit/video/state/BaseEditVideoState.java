@@ -46,8 +46,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                         getCrfMessage(convertState.getSettings().getCrf(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
-                        getAudioMonoStereoMessage(convertState.getSettings().getAudioMonoStereo(), locale),
-                        getAudioChannelLayoutMessage(convertState.getSettings().getAudioChannelLayout(), locale)}, locale));
+                        getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale)}, locale));
         message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
                 new Object[]{convertState.getFirstFormat().getName()}, locale));
 
@@ -85,13 +84,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     }
 
     private String getAudioMonoStereoMessage(String monoStereo, Locale locale) {
-        return EditVideoAudioMonoStereoState.AUTO.equals(monoStereo) ?
+        return EditVideoAudioChannelLayoutState.AUTO.equals(monoStereo) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo;
-    }
-
-    private String getAudioChannelLayoutMessage(String channelLayout, Locale locale) {
-        return EditVideoAudioChannelLayoutState.AUTO.equals(channelLayout) ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : channelLayout;
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {
@@ -109,12 +103,9 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 : getName() == EditVideoSettingsStateName.AUDIO_BITRATE
                 ? inlineKeyboardService.getVideoEditAudioBitratesKeyboard(convertState.getSettings().getAudioCodec(),
                 EditVideoAudioBitrateState.AVAILABLE_AUDIO_BITRATES, new Locale(convertState.getUserLanguage()))
-                : getName() == EditVideoSettingsStateName.AUDIO_MONO_STEREO
-                ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioMonoStereo(),
-                EditVideoAudioMonoStereoState.AVAILABLE_AUDIO_MONO_STEREO, new Locale(convertState.getUserLanguage()))
                 : getName() == EditVideoSettingsStateName.AUDIO_CHANNEL_LAYOUT
-                ? inlineKeyboardService.getVideoEditAudioChannelLayoutKeyboard(convertState.getSettings().getAudioChannelLayout(),
-                EditVideoAudioChannelLayoutState.AVAILABLE_AUDIO_CHANNEL_LAYOUT, new Locale(convertState.getUserLanguage()))
+                ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioChannelLayout(),
+                EditVideoAudioChannelLayoutState.AVAILABLE_AUDIO_MONO_STEREO, new Locale(convertState.getUserLanguage()))
                 : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
                 EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage()));
     }

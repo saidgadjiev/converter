@@ -47,9 +47,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private EditVideoAudioBitrateState audioBitrateState;
 
-    private EditVideoAudioMonoStereoState monoStereoState;
-
-    private EditVideoAudioChannelLayoutState channelLayoutState;
+    private EditVideoAudioChannelLayoutState monoStereoState;
 
     @Autowired
     public EditVideoSettingsWelcomeState(CommandStateService commandStateService,
@@ -61,12 +59,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
     }
 
     @Autowired
-    public void setChannelLayoutState(EditVideoAudioChannelLayoutState channelLayoutState) {
-        this.channelLayoutState = channelLayoutState;
-    }
-
-    @Autowired
-    public void setMonoStereoState(EditVideoAudioMonoStereoState monoStereoState) {
+    public void setMonoStereoState(EditVideoAudioChannelLayoutState monoStereoState) {
         this.monoStereoState = monoStereoState;
     }
 
@@ -155,10 +148,6 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
         } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_MONO_STEREO.getKey())) {
             currentState.setStateName(monoStereoState.getName());
             monoStereoState.enter(editVideoCommand, callbackQuery, currentState);
-            commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
-        } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_AUDIO_CHANNEL_LAYOUT.getKey())) {
-            currentState.setStateName(channelLayoutState.getName());
-            channelLayoutState.enter(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
             EditVideoState editVideoState = commandStateService.getState(callbackQuery.getFrom().getId(),

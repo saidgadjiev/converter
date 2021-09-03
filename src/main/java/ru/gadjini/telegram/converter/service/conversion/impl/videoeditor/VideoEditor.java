@@ -129,22 +129,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
             if (!EditVideoCrfState.AUTO.equals(settingsState.getCrf())) {
                 commandBuilder.crf(settingsState.getCrf());
             }
-            String monoStereo = EditVideoAudioMonoStereoState.AUTO.equalsIgnoreCase(settingsState.getAudioMonoStereo())
+            String monoStereo = EditVideoAudioChannelLayoutState.AUTO.equalsIgnoreCase(settingsState.getAudioChannelLayout())
                     ? null
-                    : EditVideoAudioMonoStereoState.MONO.equalsIgnoreCase(settingsState.getAudioMonoStereo())
+                    : EditVideoAudioChannelLayoutState.MONO.equalsIgnoreCase(settingsState.getAudioChannelLayout())
                     ? "1"
                     : "2";
 
             if (StringUtils.isNotBlank(monoStereo) && !commandBuilder.hasAc()) {
                 commandBuilder.ac(monoStereo);
-            }
-
-            String channelLayout = EditVideoAudioChannelLayoutState.AUTO.equalsIgnoreCase(settingsState.getAudioChannelLayout())
-                    ? null
-                    : settingsState.getAudioChannelLayout();
-
-            if (StringUtils.isNotBlank(channelLayout) && !commandBuilder.hasChannelLayoutFilter()) {
-                commandBuilder.filterAudio("channelmap=channel_layout=5.1");
             }
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());

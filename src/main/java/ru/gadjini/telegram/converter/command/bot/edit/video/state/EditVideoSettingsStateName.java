@@ -12,7 +12,5 @@ public enum EditVideoSettingsStateName {
 
     AUDIO_BITRATE,
 
-    AUDIO_MONO_STEREO,
-
     AUDIO_CHANNEL_LAYOUT
 }

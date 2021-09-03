@@ -163,8 +163,6 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CHOOSE_VIDEO_AUDIO_MONO_STEREO = "message.choose.video.audio.mono.stereo";
 
-    public static final String MESSAGE_CHOOSE_VIDEO_AUDIO_CHANNEL_LAYOUT = "message.choose.video.audio.channel.layout";
-
     public static final String MESSAGE_SELECTED = "message.selected";
 
     public static final String MESSAGE_SEND_VIDEO_TO_EDIT = "message.send.video.to.edit";
@@ -369,11 +367,9 @@ public class ConverterMessagesProperties {
 
     public static final String VEDIT_AUDIO_CODEC_COMMAND_NAME = "vedit.audio.codec.command.name";
 
-    public static final String VEDIT_AUDIO_CHANNEL_LAYOUT_COMMAND_NAME = "vedit.audio.channel.layout.command.name";
-
     public static final String VEDIT_AUDIO_MONO_STEREO_COMMAND_NAME = "vedit.audio.mono.stereo.command.name";
 
-    public static final String VEDIT_AUDIO_BOTRATE_COMMAND_NAME = "vedit.audio.botrate.command.name";
+    public static final String VEDIT_AUDIO_BITRATE_COMMAND_NAME = "vedit.audio.bitrate.command.name";
 
     public static final String MESSAGE_DONT_CHANGE = "message.dont.change";
 

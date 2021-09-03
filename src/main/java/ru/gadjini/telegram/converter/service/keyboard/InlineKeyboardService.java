@@ -102,9 +102,6 @@ public class InlineKeyboardService {
                 buttonFactory.chooseAudioMonoStereoButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.chooseAudioChannelLayoutButton(locale)
-        ));
-        inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.editVideoButton(locale)
         ));
 
@@ -161,26 +158,6 @@ public class InlineKeyboardService {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
             for (String monoStereo : list) {
                 buttons.add(buttonFactory.audioMonoStereoButton(currentMonoStereo, monoStereo, locale));
-            }
-            inlineKeyboardMarkup.getKeyboard().add(buttons);
-        }
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackButton(ConverterCommandNames.EDIT_VIDEO, locale)));
-
-        return inlineKeyboardMarkup;
-    }
-
-    public InlineKeyboardMarkup getVideoEditAudioChannelLayoutKeyboard(String currentChannelLayout,
-                                                                       List<String> channelLayouts, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        channelLayouts = new ArrayList<>(channelLayouts);
-        channelLayouts.remove(EditVideoAudioCodecState.AUTO);
-        inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.audioChannelLayoutButton(currentChannelLayout, EditVideoAudioCodecState.AUTO, locale)));
-        List<List<String>> lists = Lists.partition(channelLayouts, 3);
-        for (List<String> list : lists) {
-            List<InlineKeyboardButton> buttons = new ArrayList<>();
-            for (String channelLayout : list) {
-                buttons.add(buttonFactory.audioChannelLayoutButton(currentChannelLayout, channelLayout, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }

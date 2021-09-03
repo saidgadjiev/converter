@@ -71,25 +71,12 @@ public class ButtonFactory {
 
     public InlineKeyboardButton chooseAudioBitrateButton(Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(ConverterMessagesProperties.VEDIT_AUDIO_BOTRATE_COMMAND_NAME, locale));
+                localisationService.getMessage(ConverterMessagesProperties.VEDIT_AUDIO_BITRATE_COMMAND_NAME, locale));
 
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
                         .add(ConverterArg.VEDIT_CHOOSE_AUDIO_BITRATE.getKey(), true)
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
-    public InlineKeyboardButton chooseAudioChannelLayoutButton(Locale locale) {
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(ConverterMessagesProperties.VEDIT_AUDIO_CHANNEL_LAYOUT_COMMAND_NAME, locale));
-
-        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
-                        .add(ConverterArg.VEDIT_CHOOSE_AUDIO_CHANNEL_LAYOUT.getKey(), true)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;
@@ -320,25 +307,6 @@ public class ButtonFactory {
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
                         .add(ConverterArg.AUDIO_BITRATE.getKey(), bitrate)
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
-    public InlineKeyboardButton audioChannelLayoutButton(String currentChannelLayout, String channelLayout, Locale locale) {
-        String channelLayoutName = channelLayout;
-        if (EditVideoAudioCodecState.AUTO.equals(channelLayout)) {
-            channelLayoutName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale);
-        }
-        String btnName = Objects.equals(currentChannelLayout, channelLayout)
-                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + channelLayoutName
-                : channelLayoutName;
-
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
-        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.EDIT_VIDEO)
-                        .add(ConverterArg.AUDIO_CHANNEL_LAYOUT.getKey(), channelLayout)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

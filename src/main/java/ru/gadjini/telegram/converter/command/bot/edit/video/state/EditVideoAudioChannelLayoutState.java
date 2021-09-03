@@ -25,7 +25,11 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
-    public static final List<String> AVAILABLE_AUDIO_CHANNEL_LAYOUT = List.of(AUTO, "5.1");
+    public static final String MONO = "mono";
+
+    public static final String STEREO = "stereo";
+
+    public static final List<String> AVAILABLE_AUDIO_MONO_STEREO = List.of(AUTO, MONO, STEREO);
 
     private MessageService messageService;
 
@@ -58,9 +62,9 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
                 EditMessageReplyMarkup.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                         .messageId(callbackQuery.getMessage().getMessageId())
-                        .replyMarkup(inlineKeyboardService.getVideoEditAudioChannelLayoutKeyboard(
+                        .replyMarkup(inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(
                                 currentState.getSettings().getAudioChannelLayout(),
-                                AVAILABLE_AUDIO_CHANNEL_LAYOUT, new Locale(currentState.getUserLanguage())))
+                                AVAILABLE_AUDIO_MONO_STEREO, new Locale(currentState.getUserLanguage())))
                         .build(),
                 false
         );
@@ -73,16 +77,16 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
             currentState.setStateName(welcomeState.getName());
             welcomeState.goBack(editVideoCommand, callbackQuery.getMessage(), currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
-        } else if (requestParams.contains(ConverterArg.AUDIO_CHANNEL_LAYOUT.getKey())) {
-            String channelLayout = requestParams.getString(ConverterArg.AUDIO_CHANNEL_LAYOUT.getKey());
+        } else if (requestParams.contains(ConverterArg.AUDIO_MONO_STEREO.getKey())) {
+            String audioBitrate = requestParams.getString(ConverterArg.AUDIO_MONO_STEREO.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
-            if (AVAILABLE_AUDIO_CHANNEL_LAYOUT.contains(channelLayout)) {
-                setChannelLayout(callbackQuery, channelLayout);
+            if (AVAILABLE_AUDIO_MONO_STEREO.contains(audioBitrate)) {
+                setAudioMonoStereo(callbackQuery, audioBitrate);
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
             } else {
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_AUDIO_CHANNEL_LAYOUT,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_AUDIO_MONO_STEREO,
                         locale);
             }
             messageService.sendAnswerCallbackQuery(
@@ -99,14 +103,14 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
         return EditVideoSettingsStateName.AUDIO_CHANNEL_LAYOUT;
     }
 
-    private void setChannelLayout(CallbackQuery callbackQuery, String channelLayout) {
+    private void setAudioMonoStereo(CallbackQuery callbackQuery, String audioMonoStereo) {
         long chatId = callbackQuery.getFrom().getId();
         EditVideoState convertState = commandStateService.getState(chatId,
                 ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
-        String oldAudioChannelLayout = convertState.getSettings().getAudioChannelLayout();
-        convertState.getSettings().setAudioChannelLayout(channelLayout);
-        if (!Objects.equals(channelLayout, oldAudioChannelLayout)) {
+        String oldAudioMonoStereo = convertState.getSettings().getAudioChannelLayout();
+        convertState.getSettings().setAudioChannelLayout(audioMonoStereo);
+        if (!Objects.equals(audioMonoStereo, oldAudioMonoStereo)) {
             updateSettingsMessage(callbackQuery, chatId, convertState.getState());
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);

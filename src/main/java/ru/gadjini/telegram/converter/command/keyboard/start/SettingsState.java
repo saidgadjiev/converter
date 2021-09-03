@@ -32,8 +32,6 @@ public class SettingsState {
 
     private String audioBitrate;
 
-    private String audioMonoStereo;
-
     private String audioChannelLayout;
 
     public String getBitrate() {
@@ -146,14 +144,6 @@ public class SettingsState {
 
     public void setAudioBitrate(String audioBitrate) {
         this.audioBitrate = audioBitrate;
-    }
-
-    public String getAudioMonoStereo() {
-        return audioMonoStereo;
-    }
-
-    public void setAudioMonoStereo(String audioMonoStereo) {
-        this.audioMonoStereo = audioMonoStereo;
     }
 
     public String getAudioChannelLayout() {
