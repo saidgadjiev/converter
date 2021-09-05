@@ -1,12 +1,12 @@
-package ru.gadjini.telegram.converter.command.bot.watermark.video.state;
+package ru.gadjini.telegram.converter.command.bot.watermark.audio.state;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
-import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
+import ru.gadjini.telegram.converter.command.bot.watermark.audio.AMarkCommand;
+import ru.gadjini.telegram.converter.command.bot.watermark.audio.settings.AudioWatermarkSettings;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
@@ -22,11 +22,13 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import java.util.Locale;
 
 @Component
-public class WatermarkImageState extends BaseWatermarkState {
+public class AudioNoWatermarkState implements AudioWatermarkState {
 
     private MessageService messageService;
 
     private LocalisationService localisationService;
+
+    private MessageMediaService messageMediaService;
 
     private UserService userService;
 
@@ -34,26 +36,24 @@ public class WatermarkImageState extends BaseWatermarkState {
 
     private CommandStateService commandStateService;
 
-    private WatermarkImageSizeState watermarkImageSizeState;
-
-    private MessageMediaService messageMediaService;
+    private AudioWatermarkOkState watermarkOkState;
 
     @Autowired
-    public WatermarkImageState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
-                               UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                               CommandStateService commandStateService,
-                               MessageMediaService messageMediaService) {
+    public AudioNoWatermarkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
+                                 MessageMediaService messageMediaService, UserService userService,
+                                 @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
+                                 CommandStateService commandStateService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
+        this.messageMediaService = messageMediaService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
-        this.messageMediaService = messageMediaService;
     }
 
     @Autowired
-    public void setWatermarkImageSizeState(WatermarkImageSizeState watermarkImageSizeState) {
-        this.watermarkImageSizeState = watermarkImageSizeState;
+    public void setWatermarkRootState(AudioWatermarkOkState watermarkOkState) {
+        this.watermarkOkState = watermarkOkState;
     }
 
     @Override
@@ -62,34 +62,33 @@ public class WatermarkImageState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.watermarkImageKeyboard(message.getChatId(), locale))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_NO_WATERMARK_WELCOME, locale))
+                        .replyMarkup(replyKeyboardService.goBackKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
     }
 
     @Override
-    public void doUpdate(VMarkCommand vMarkCommand, Message message, String text) {
-        VideoWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
-                vMarkCommand.getCommandIdentifier(),
-                true, VideoWatermarkSettings.class);
+    public void update(AMarkCommand aMarkCommand, Message message, String text) {
+        AudioWatermarkSettings audioWatermarkSettings = commandStateService.getState(message.getChatId(),
+                aMarkCommand.getCommandIdentifier(), true, AudioWatermarkSettings.class);
+
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        MessageMedia media = messageMediaService.getMedia(message, locale);
 
-        if (media == null) {
+        MessageMedia messageMedia = messageMediaService.getMedia(message, locale);
+        if (messageMedia == null) {
             throw new UserException(localisationService.getMessage(
-                    ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_WELCOME, locale));
+                    ConverterMessagesProperties.MESSAGE_AUDIO_NO_WATERMARK_AWAITING_AUDIO, locale));
         }
-
-        videoWatermarkSettings.setImage(media);
-        videoWatermarkSettings.setStateName(watermarkImageSizeState.getName());
-        commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
-        watermarkImageSizeState.enter(message);
+        audioWatermarkSettings.setAudio(messageMedia);
+        audioWatermarkSettings.setStateName(watermarkOkState.getName());
+        commandStateService.setState(message.getChatId(), aMarkCommand.getCommandIdentifier(), audioWatermarkSettings);
+        watermarkOkState.watermarkCreatedOrChanged(aMarkCommand, message);
     }
 
     @Override
-    public WatermarkStateName getName() {
-        return WatermarkStateName.WATERMARK_IMAGE;
+    public AudioWatermarkStateName getName() {
+        return AudioWatermarkStateName.NO_WATERMARK;
     }
 }

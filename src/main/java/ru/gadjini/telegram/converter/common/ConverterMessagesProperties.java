@@ -299,7 +299,11 @@ public class ConverterMessagesProperties {
 
     public static final String EXTRACT_BY_LANGUAGES_MEDIA_COMMAND_DESCRIPTION = "extract.by.languages.media.command.description";
 
-    public static final String MESSAGE_NO_WATERMARK_WELCOME = "message.no.watermark.welcome";
+    public static final String MESSAGE_NO_WATERMARK_WELCOME = "message.video.no.watermark.welcome";
+
+    public static final String MESSAGE_AUDIO_NO_WATERMARK_WELCOME = "message.audio.no.watermark.welcome";
+
+    public static final String MESSAGE_AUDIO_NO_WATERMARK_AWAITING_AUDIO = "message.audio.no.watermark.awaiting.audio";
 
     public static final String TEXT_WATERMARK_COMMAND_NAME = "text.watermark.command.name";
 
@@ -318,6 +322,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_WATERMARK_CREATED = "message.watermark.created";
 
     public static final String MESSAGE_WATERMARK_OK_WELCOME = "message.watermark.ok.welcome";
+
+    public static final String MESSAGE_AUDIO_WATERMARK_OK_WELCOME = "message.audio.watermark.ok.welcome";
 
     public static final String CHANGE_WATERMARK_COMMAND_NAME = "change.watermark.command.name";
 
@@ -342,6 +348,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_TEXT_WATERMARK = "message.text.watermark";
 
     public static final String MESSAGE_IMAGE_WATERMARK = "message.image.watermark";
+
+    public static final String MESSAGE_AUDIO_WATERMARK = "message.audio.watermark";
 
     public static final String WATERMARK_ADDING_STEP = "watermark.adding.step";
 
