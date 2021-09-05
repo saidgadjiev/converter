@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
 
-//ffmpeg -y -i pp.mp4 -i bb.opus -map 0:v:0 -map 1:a:0  -t 245 -preset veryfast -crf 26 bb.mp4
 @Component
 public class VavMergeConverter extends BaseAny2AnyConverter {
 
@@ -133,8 +132,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
             SettingsState settingsState = jackson.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
             if (!audios.isEmpty()) {
-                List<FFprobeDevice.Stream> audioStreamsForConversion = new ArrayList<>(
-                        ADD_AUDIO_MODE.equals(settingsState.getVavMergeAudioMode()) ? videoStreamsForConversion : List.of());
+                List<FFprobeDevice.Stream> audioStreamsForConversion = new ArrayList<>();
 
                 for (int index = 0; index < audios.size(); index++) {
                     SmartTempFile audio = audios.get(index);
@@ -144,6 +142,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                     }
                     audioStreamsForConversion.addAll(allStreams);
                 }
+                audioStreamsForConversion.addAll(ADD_AUDIO_MODE.equals(settingsState.getVavMergeAudioMode()) ? videoStreamsForConversion : List.of());
                 if (targetFormat.canBeSentAsVideo()) {
                     videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
                 } else {
@@ -161,8 +160,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
             }
             if (!subtitles.isEmpty()) {
                 int subtitlesInput = audios.size() + 1;
-                List<FFprobeDevice.Stream> subtitlesStreams = new ArrayList<>(
-                        ADD_SUBTITLES_MODE.equals(settingsState.getVavMergeAudioMode()) ? videoStreamsForConversion : List.of());
+                List<FFprobeDevice.Stream> subtitlesStreams = new ArrayList<>(videoStreamsForConversion);
                 for (SmartTempFile subtitle : subtitles) {
                     List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(subtitle.getAbsolutePath());
                     for (FFprobeDevice.Stream stream : allStreams) {
@@ -171,6 +169,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                     subtitlesStreams.addAll(allStreams);
                     ++subtitlesInput;
                 }
+                subtitlesStreams.addAll(ADD_SUBTITLES_MODE.equals(settingsState.getVavMergeAudioMode()) ? videoStreamsForConversion : List.of());
                 fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, subtitlesStreams, result, targetFormat);
             }
             if (WEBM.equals(targetFormat)) {

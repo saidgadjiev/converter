@@ -66,8 +66,8 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
-    public ReplyKeyboardMarkup cancelKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.cancelKeyboard(chatId, locale));
+    public ReplyKeyboardMarkup audioWatermarkAudioKeyboard(long chatId, Locale locale, boolean creation) {
+        return setCurrentKeyboard(chatId, keyboardService.audioWatermarkAudioKeyboard(chatId, locale, creation));
     }
 
     @Override

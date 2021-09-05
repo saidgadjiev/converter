@@ -118,10 +118,16 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup cancelKeyboard(long chatId, Locale locale) {
+    public ReplyKeyboardMarkup audioWatermarkAudioKeyboard(long chatId, Locale locale, boolean creation) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
+        if (creation) {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(
+                    MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+        } else {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(
+                    MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
+        }
 
         return replyKeyboardMarkup;
     }
