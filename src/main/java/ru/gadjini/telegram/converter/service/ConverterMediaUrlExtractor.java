@@ -16,6 +16,7 @@ import ru.gadjini.telegram.smart.bot.commons.domain.FileSource;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.property.BotProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.DownloadUploadFileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UrlMediaExtractor;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -46,16 +47,19 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
 
     private UserService userService;
 
+    private DownloadUploadFileLimitProperties mediaLimitProperties;
+
     @Autowired
     public ConverterMediaUrlExtractor(RestTemplate restTemplate, BotProperties botProperties, FormatService formatService,
                                       LocalisationService localisationService, ApplicationProperties applicationProperties,
-                                      UserService userService) {
+                                      UserService userService, DownloadUploadFileLimitProperties mediaLimitProperties) {
         this.restTemplate = restTemplate;
         this.botProperties = botProperties;
         this.formatService = formatService;
         this.localisationService = localisationService;
         this.applicationProperties = applicationProperties;
         this.userService = userService;
+        this.mediaLimitProperties = mediaLimitProperties;
     }
 
     @Override
@@ -83,9 +87,6 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 if (mediaFormat.getCategory() != FormatCategory.VIDEO) {
                     throw new IllegalArgumentException("Not video " + mediaFormat.name());
                 }
-                if (httpHeaders.getContentLength() <= 0) {
-                    throw new IllegalArgumentException("Zero length " + httpHeaders.getContentLength());
-                }
                 if (httpHeaders.getContentLength() > MAX_REMOTE_VIDEO_SIZE) {
                     throw new IllegalArgumentException("Too big " + MemoryUtils.humanReadableByteCount(httpHeaders.getContentLength()));
                 }
@@ -98,7 +99,8 @@ public class ConverterMediaUrlExtractor implements UrlMediaExtractor {
                 messageMedia.setFileId(url);
                 messageMedia.setSource(FileSource.URL);
                 messageMedia.setMimeType(mimeType);
-                messageMedia.setFileSize(httpHeaders.getContentLength());
+                messageMedia.setFileSize(httpHeaders.getContentLength() <= 0 ? mediaLimitProperties.getLightFileMaxWeight() + 1
+                        : httpHeaders.getContentLength());
                 messageMedia.setFormat(mediaFormat);
 
                 return messageMedia;
