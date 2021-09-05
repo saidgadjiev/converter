@@ -28,7 +28,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import java.util.Locale;
 
 @Component
-public class AudioWatermarkOkState implements AudioWatermarkState {
+public class AudioWatermarkOkState extends BaseAudioWatermarkState {
 
     private MessageService messageService;
 
@@ -70,8 +70,8 @@ public class AudioWatermarkOkState implements AudioWatermarkState {
     }
 
     @Autowired
-    public void setStateInitializer(AudioWatermarkStateInitializer videoWatermarkStateInitializer) {
-        this.stateInitializer = videoWatermarkStateInitializer;
+    public void setStateInitializer(AudioWatermarkStateInitializer audioWatermarkStateInitializer) {
+        this.stateInitializer = audioWatermarkStateInitializer;
     }
 
     @Autowired
@@ -108,7 +108,7 @@ public class AudioWatermarkOkState implements AudioWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_CREATED, locale) + "\n\n" +
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_WATERMARK_CREATED, locale) + "\n\n" +
                                 buildWatermarkInfo(locale))
                         .replyMarkup(replyKeyboardService.watermarkOkKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
@@ -117,15 +117,15 @@ public class AudioWatermarkOkState implements AudioWatermarkState {
     }
 
     @Override
-    public void update(AMarkCommand vMarkCommand, Message message, String text) {
+    public void doUpdate(AMarkCommand aMarkCommand, Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (localisationService.getMessage(ConverterMessagesProperties.CHANGE_WATERMARK_COMMAND_NAME, locale).equals(text)) {
-            AudioWatermarkSettings videoWatermarkSettings = commandStateService.getState(message.getChatId(),
-                    vMarkCommand.getCommandIdentifier(), true, AudioWatermarkSettings.class,
-                    () -> stateInitializer.initAndGet(message, vMarkCommand));
+            AudioWatermarkSettings audioWatermarkSettings = commandStateService.getState(message.getChatId(),
+                    aMarkCommand.getCommandIdentifier(), true, AudioWatermarkSettings.class,
+                    () -> stateInitializer.initAndGet(message, aMarkCommand));
 
-            videoWatermarkSettings.setStateName(noWatermarkState.getName());
-            commandStateService.setState(message.getChatId(), vMarkCommand.getCommandIdentifier(), videoWatermarkSettings);
+            audioWatermarkSettings.setStateName(noWatermarkState.getName());
+            commandStateService.setState(message.getChatId(), aMarkCommand.getCommandIdentifier(), audioWatermarkSettings);
             noWatermarkState.enter(message, false);
         } else {
             ConvertState convertState = createState(message, locale);
@@ -147,19 +147,19 @@ public class AudioWatermarkOkState implements AudioWatermarkState {
 
         MessageMedia media = messageMediaService.getMedia(message, locale);
         if (media != null) {
-            checkVideoFormat(media.getFormat(), locale);
+            checkAudioFormat(media.getFormat(), locale);
 
             convertState.addMedia(media);
         } else {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_VIDEO_FILE, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_AUDIO_FILE, locale));
         }
 
         return convertState;
     }
 
-    private void checkVideoFormat(Format format, Locale locale) {
-        if (format == null || format.getCategory() != FormatCategory.VIDEO) {
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_VIDEO_FILE, locale));
+    private void checkAudioFormat(Format format, Locale locale) {
+        if (format == null || format.getCategory() != FormatCategory.AUDIO) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_AUDIO_FILE, locale));
         }
     }
 

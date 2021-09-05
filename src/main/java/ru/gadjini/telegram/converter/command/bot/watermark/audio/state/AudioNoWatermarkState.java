@@ -17,12 +17,14 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
+import java.util.Objects;
 
 @Component
-public class AudioNoWatermarkState implements AudioWatermarkState {
+public class AudioNoWatermarkState extends BaseAudioWatermarkState {
 
     private MessageService messageService;
 
@@ -63,21 +65,22 @@ public class AudioNoWatermarkState implements AudioWatermarkState {
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_NO_WATERMARK_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.goBackKeyboard(message.getChatId(), locale))
+                        .replyMarkup(replyKeyboardService.cancelKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
     }
 
     @Override
-    public void update(AMarkCommand aMarkCommand, Message message, String text) {
+    public void doUpdate(AMarkCommand aMarkCommand, Message message, String text) {
         AudioWatermarkSettings audioWatermarkSettings = commandStateService.getState(message.getChatId(),
                 aMarkCommand.getCommandIdentifier(), true, AudioWatermarkSettings.class);
 
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
         MessageMedia messageMedia = messageMediaService.getMedia(message, locale);
-        if (messageMedia == null) {
+        if (messageMedia == null || !Objects.equals(messageMedia.getFormat() == null ? null : messageMedia.getFormat().getCategory(),
+                FormatCategory.AUDIO)) {
             throw new UserException(localisationService.getMessage(
                     ConverterMessagesProperties.MESSAGE_AUDIO_NO_WATERMARK_AWAITING_AUDIO, locale));
         }

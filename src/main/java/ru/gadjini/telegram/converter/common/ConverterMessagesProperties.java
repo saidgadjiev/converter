@@ -321,6 +321,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_WATERMARK_CREATED = "message.watermark.created";
 
+    public static final String MESSAGE_AUDIO_WATERMARK_CREATED = "message.audio.watermark.created";
+
     public static final String MESSAGE_WATERMARK_OK_WELCOME = "message.watermark.ok.welcome";
 
     public static final String MESSAGE_AUDIO_WATERMARK_OK_WELCOME = "message.audio.watermark.ok.welcome";
@@ -338,6 +340,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_INCORRECT_WATERMARK_TYPE = "message.incorrect.watermark.type";
 
     public static final String MESSAGE_INCORRECT_VIDEO_FILE = "message.incorrect.video.file";
+
+    public static final String MESSAGE_INCORRECT_AUDIO_FILE = "message.incorrect.audio.file";
 
     public static final String MESSAGE_INCORRECT_FONT_SIZE = "message.incorrect.font.size";
 

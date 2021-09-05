@@ -48,5 +48,7 @@ public class ConverterCommandNames {
 
     public static final String AMARK = "amark";
 
-    public static final String VMARK_IMG = "vmark_img";
+    public static final String AMARKAUDIO = "amarkaudio";
+
+    public static final String VMARKIMG = "vmarkimg";
 }

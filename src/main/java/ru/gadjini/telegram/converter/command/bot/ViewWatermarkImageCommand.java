@@ -36,6 +36,6 @@ public class ViewWatermarkImageCommand implements BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return ConverterCommandNames.VMARK_IMG;
+        return ConverterCommandNames.VMARKIMG;
     }
 }

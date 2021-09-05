@@ -135,6 +135,10 @@ RUN apt-get install -y timidity
 RUN apt-get install -y poppler-utils
 RUN apt-get install -y python
 
+RUN apt-get update -y
+RUN apt-get install -y sox
+RUN apt-get install -y libsox-fmt-all
+
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
 USER bot

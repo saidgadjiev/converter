@@ -72,7 +72,7 @@ public class AMarkCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public boolean accept(Message message) {
-        return applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER);
+        return applicationProperties.is(FormatsConfiguration.AUDIO_CONVERTER);
     }
 
     @Override

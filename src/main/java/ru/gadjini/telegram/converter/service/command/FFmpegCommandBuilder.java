@@ -506,13 +506,6 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder ba(int index, String ba) {
-        options.add("-b:a:" + index);
-        options.add(ba);
-
-        return this;
-    }
-
     public FFmpegCommandBuilder r(String r) {
         options.add("-r");
         options.add(r);
@@ -586,6 +579,15 @@ public class FFmpegCommandBuilder {
 
     public FFmpegCommandBuilder an() {
         options.add("-an");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder keepAudioBitRate(Long bitRate) {
+        if (bitRate == null) {
+            return this;
+        }
+        ba(bitRate / 1000 + "k");
 
         return this;
     }

@@ -61,7 +61,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         }
     }
 
-    private void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
+    public void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat, Long bitrate) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                 .input(in.getAbsolutePath());
 
@@ -72,13 +72,22 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         } else {
             fFmpegAudioHelper.copyOrConvertAudioCodecs(commandBuilder, audioStreams, targetFormat, out);
         }
+        commandBuilder.keepAudioBitRate(bitrate);
         fFmpegAudioHelper.addAudioTargetOptions(commandBuilder, targetFormat);
         commandBuilder.out(out.getAbsolutePath());
 
         fFmpegDevice.execute(commandBuilder.buildFullCommand());
     }
 
+    public void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
+        doConvertAudioWithCopy(in, out, targetFormat, null);
+    }
+
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
+        doConvertAudio(in, out, targetFormat, false);
+    }
+
+    public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat, boolean keepBitrate) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                 .input(in.getAbsolutePath());
         fFmpegAudioHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
@@ -86,6 +95,10 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
             fFmpegAudioHelper.convertAudioCodecsForTelegramVoice(commandBuilder);
         } else {
             fFmpegAudioHelper.convertAudioCodecs(commandBuilder, targetFormat);
+        }
+        if (keepBitrate) {
+            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+            commandBuilder.keepAudioBitRate(audioStreams.iterator().next().getBitRate());
         }
         fFmpegAudioHelper.addAudioTargetOptions(commandBuilder, targetFormat);
         commandBuilder.out(out.getAbsolutePath());
