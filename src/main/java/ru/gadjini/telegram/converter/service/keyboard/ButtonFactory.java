@@ -131,6 +131,21 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
+    public InlineKeyboardButton bassBoostButton(String currentBassBoost, String bassBoost, Locale locale) {
+        String btnName = Objects.equals(currentBassBoost, bassBoost)
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + bassBoost
+                : bassBoost;
+
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.BASS_BOOST)
+                        .add(ConverterArg.AUDIO_BASS_BOOST.getKey(), bassBoost)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton frequencyFormat(String frequency, String currentFrequency, Locale locale) {
         String commandName = frequency + "Hz";
         String btnName = Objects.equals(currentFrequency, frequency)

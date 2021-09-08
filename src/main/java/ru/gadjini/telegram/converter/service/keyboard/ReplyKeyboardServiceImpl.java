@@ -69,6 +69,15 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
+    public ReplyKeyboardMarkup audioBassBoostKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
     public ReplyKeyboardMarkup mergeFilesKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 

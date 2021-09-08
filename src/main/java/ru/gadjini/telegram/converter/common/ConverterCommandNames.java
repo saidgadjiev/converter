@@ -50,5 +50,7 @@ public class ConverterCommandNames {
 
     public static final String AMARKAUDIO = "amarkaudio";
 
+    public static final String BASS_BOOST = "abass";
+
     public static final String VMARKIMG = "vmarkimg";
 }

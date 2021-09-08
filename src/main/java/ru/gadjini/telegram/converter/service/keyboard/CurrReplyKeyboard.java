@@ -51,6 +51,11 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
+    public ReplyKeyboardMarkup audioBassBoostKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.audioBassBoostKeyboard(chatId, locale));
+    }
+
+    @Override
     public ReplyKeyboardMarkup mergeFilesKeyboard(long chatId, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.mergeFilesKeyboard(chatId, locale));
     }

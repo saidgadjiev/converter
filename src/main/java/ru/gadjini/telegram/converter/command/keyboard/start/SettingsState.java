@@ -34,6 +34,8 @@ public class SettingsState {
 
     private String audioChannelLayout;
 
+    private String bassBoost;
+
     public String getBitrate() {
         return bitrate;
     }
@@ -152,5 +154,13 @@ public class SettingsState {
 
     public void setAudioChannelLayout(String audioChannelLayout) {
         this.audioChannelLayout = audioChannelLayout;
+    }
+
+    public String getBassBoost() {
+        return bassBoost;
+    }
+
+    public void setBassBoost(String bassBoost) {
+        this.bassBoost = bassBoost;
     }
 }

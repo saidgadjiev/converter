@@ -204,6 +204,21 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup getBassBoostKeyboard(String currentBassBoost, List<String> bassBoosts, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
+
+        List<List<String>> partition = Lists.partition(bassBoosts, 4);
+        for (List<String> list : partition) {
+            List<InlineKeyboardButton> bassBoostButtons = new ArrayList<>();
+            for (String btn : list) {
+                bassBoostButtons.add(buttonFactory.bassBoostButton(currentBassBoost, btn, locale));
+            }
+            inlineKeyboardMarkup.getKeyboard().add(bassBoostButtons);
+        }
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup getAudioCompressionSettingsKeyboard(String currentBitrate, String currentFrequency,
                                                                     Format currentFormat,
                                                                     List<Format> compressionFormats,

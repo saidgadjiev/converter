@@ -127,7 +127,13 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_AUDIO_COMPRESS_WELCOME = "message.audio.compress.welcome";
 
+    public static final String MESSAGE_AUDIO_BASS_BOOST_WELCOME = "message.audio.bass.boost.welcome";
+
     public static final String MESSAGE_AUDIO_COMPRESS_FILE_NOT_FOUND = "message.audio.compress.file.not.found";
+
+    public static final String MESSAGE_AUDIO_BASS_BOOST_FILE_NOT_FOUND = "message.audio.bass.boost.file.not.found";
+
+    public static final String MESSAGE_AUDIO_CHOOSE_BASS_BOOST = "message.audio.choose.bass.boost";
 
     public static final String MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE = "message.audio.compression.choose.bitrate";
 
