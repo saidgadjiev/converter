@@ -204,14 +204,14 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getBassBoostKeyboard(String currentBassBoost, List<String> bassBoosts, Locale locale) {
+    public InlineKeyboardMarkup getBassBoostKeyboard(List<String> bassBoosts) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         List<List<String>> partition = Lists.partition(bassBoosts, 4);
         for (List<String> list : partition) {
             List<InlineKeyboardButton> bassBoostButtons = new ArrayList<>();
             for (String btn : list) {
-                bassBoostButtons.add(buttonFactory.bassBoostButton(currentBassBoost, btn, locale));
+                bassBoostButtons.add(buttonFactory.bassBoostButton(btn));
             }
             inlineKeyboardMarkup.getKeyboard().add(bassBoostButtons);
         }

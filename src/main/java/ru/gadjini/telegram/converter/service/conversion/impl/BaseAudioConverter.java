@@ -124,6 +124,9 @@ public abstract class BaseAudioConverter extends BaseAny2AnyConverter {
         if (fileQueueItem.getTargetFormat() == Format.CUT) {
             return fileQueueItem.getFirstFileFormat();
         }
+        if (fileQueueItem.getTargetFormat() == Format.BASS_BOOST) {
+            return fileQueueItem.getFirstFileFormat();
+        }
         if (fileQueueItem.getTargetFormat() == Format.WATERMARK) {
             return fileQueueItem.getFirstFileFormat();
         }

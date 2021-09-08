@@ -131,12 +131,8 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton bassBoostButton(String currentBassBoost, String bassBoost, Locale locale) {
-        String btnName = Objects.equals(currentBassBoost, bassBoost)
-                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + bassBoost
-                : bassBoost;
-
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
+    public InlineKeyboardButton bassBoostButton(String bassBoost) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(bassBoost);
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.BASS_BOOST)

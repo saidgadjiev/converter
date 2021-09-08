@@ -506,6 +506,13 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder af(String filter) {
+        options.add("-af");
+        options.add(filter);
+
+        return this;
+    }
+
     public FFmpegCommandBuilder r(String r) {
         options.add("-r");
         options.add(r);
