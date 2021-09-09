@@ -14,7 +14,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -61,15 +60,13 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoCommandPreparer videoStreamsChangeHelper;
 
-    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
-
     private CaptionGenerator captionGenerator;
 
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
                                   FFmpegVideoCommandPreparer videoStreamsChangeHelper,
-                                  FFmpegVideoStreamConversionHelper fFmpegVideoHelper, CaptionGenerator captionGenerator) {
+                                  CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -77,7 +74,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.fFprobeDevice = fFprobeDevice;
         this.messageBuilder = messageBuilder;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
-        this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.captionGenerator = captionGenerator;
     }
 
@@ -87,7 +83,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            fFmpegVideoHelper.validateVideoIntegrity(file, result);
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
 

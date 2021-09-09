@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -32,25 +31,10 @@ public class FFmpegVideoStreamConversionHelper {
 
     private FormatService formatService;
 
-    private FFprobeDevice fFprobeDevice;
-
     @Autowired
-    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService, FFprobeDevice fFprobeDevice) {
+    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService) {
         this.fFmpegDevice = fFmpegDevice;
         this.formatService = formatService;
-        this.fFprobeDevice = fFprobeDevice;
-    }
-
-    public void validateVideoIntegrity(SmartTempFile in, SmartTempFile out) throws InterruptedException {
-        boolean validFile = fFmpegDevice.isValidFile(in.getAbsolutePath(), out.getAbsolutePath());
-
-        if (!validFile) {
-            throw new CorruptedVideoException();
-        }
-        validFile = fFprobeDevice.isValidFile(in.getAbsolutePath());
-        if (!validFile) {
-            throw new CorruptedVideoException();
-        }
     }
 
     public boolean isVideoStreamsValidForTelegramVideo(List<FFprobeDevice.Stream> allStreams) {

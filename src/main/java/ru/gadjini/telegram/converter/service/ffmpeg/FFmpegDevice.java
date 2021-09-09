@@ -30,14 +30,6 @@ public class FFmpegDevice {
         processExecutor.execute(command, Set.of(139));
     }
 
-    public boolean isValidFile(String in, String out) throws InterruptedException {
-        String result = processExecutor.tryExecute(getValidationCommand(in, out), 6);
-
-        return !result.contains("moov atom not found")
-                && !result.contains("Invalid data found when processing input")
-                && !result.contains("error reading header");
-    }
-
     public boolean isChannelMapError(String ... command) throws InterruptedException {
         String result = processExecutor.tryExecute(command, 6);
 
@@ -54,12 +46,6 @@ public class FFmpegDevice {
         String result = processExecutor.tryExecute(getConvertCommand(in, out, options), 6);
 
         return isOkay(result);
-    }
-
-    private String[] getValidationCommand(String in, String out) {
-        return new String[]{
-                "ffmpeg", "-v", "error", "-hide_banner", "-y", "-i", in, out
-        };
     }
 
     private String[] getConvertCommand(String in, String out, String... options) {

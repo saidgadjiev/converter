@@ -94,8 +94,6 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD,
                 fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            fFmpegVideoHelper.validateVideoIntegrity(video, result);
-
             VideoWatermark watermark = videoWatermarkService.getWatermark(fileQueueItem.getUserId());
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                     .input(video.getAbsolutePath());

@@ -10,12 +10,10 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.MessageResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
@@ -34,18 +32,14 @@ public class VideoProbber extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
-
     private LocalisationService localisationService;
 
     private UserService userService;
 
     @Autowired
-    public VideoProbber(FFprobeDevice fFprobeDevice, FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
-                        LocalisationService localisationService, UserService userService) {
+    public VideoProbber(FFprobeDevice fFprobeDevice, LocalisationService localisationService, UserService userService) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
-        this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.localisationService = localisationService;
         this.userService = userService;
     }
@@ -55,14 +49,6 @@ public class VideoProbber extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile result = tempFileService()
-                    .createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
-                            "videoprobber", fileQueueItem.getFirstFileFormat().getExt());
-            try {
-                fFmpegVideoHelper.validateVideoIntegrity(file, result);
-            } finally {
-                tempFileService().delete(result);
-            }
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0, true);
 

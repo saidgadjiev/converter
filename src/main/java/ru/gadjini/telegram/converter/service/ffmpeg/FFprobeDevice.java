@@ -105,14 +105,6 @@ public class FFprobeDevice {
         return whd;
     }
 
-    public boolean isValidFile(String in) throws InterruptedException {
-        String result = processExecutor.tryExecute(getValidationCommand(in), 6);
-
-        return !result.contains("moov atom not found")
-                && !result.contains("Invalid data found when processing input")
-                && !result.contains("error reading header");
-    }
-
     public long getDurationInSeconds(String in) throws InterruptedException {
         String duration = processExecutor.executeWithResult(getDurationCommand(in));
 
@@ -130,12 +122,6 @@ public class FFprobeDevice {
     private String[] getAudioStreamsCommand(String in) {
         return new String[]{
                 "ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index,codec_name,codec_type,bit_rate:stream_tags=language", "-of", "json", in
-        };
-    }
-
-    private String[] getValidationCommand(String in) {
-        return new String[]{
-                "ffprobe", "-v", "error", in
         };
     }
 

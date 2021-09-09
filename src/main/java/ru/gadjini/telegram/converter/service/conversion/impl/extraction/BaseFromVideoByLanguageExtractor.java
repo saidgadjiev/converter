@@ -14,7 +14,6 @@ import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConvertResults;
 import ru.gadjini.telegram.converter.service.conversion.api.result.MessageResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
@@ -24,7 +23,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
@@ -37,8 +35,6 @@ import java.util.stream.Collectors;
 public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConverter {
 
     private CommandStateService commandStateService;
-
-    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     private UserService userService;
 
@@ -72,11 +68,6 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
     @Autowired
     public void setInlineKeyboardService(InlineKeyboardService inlineKeyboardService) {
         this.inlineKeyboardService = inlineKeyboardService;
-    }
-
-    @Autowired
-    public void setfFmpegVideoHelper(FFmpegVideoStreamConversionHelper fFmpegVideoHelper) {
-        this.fFmpegVideoHelper = fFmpegVideoHelper;
     }
 
     @Autowired
@@ -124,15 +115,6 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            SmartTempFile result = tempFileService()
-                    .createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
-                            "fromvideo", fileQueueItem.getFirstFileFormat().getExt());
-            try {
-                fFmpegVideoHelper.validateVideoIntegrity(file, result);
-            } finally {
-                tempFileService().delete(result);
-            }
-
             String streamSpecifier = getStreamSpecifier();
             List<FFprobeDevice.Stream> streamsToExtract;
             if (FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(streamSpecifier)) {
