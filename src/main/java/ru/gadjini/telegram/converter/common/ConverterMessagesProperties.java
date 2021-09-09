@@ -291,6 +291,10 @@ public class ConverterMessagesProperties {
 
     public static final String CUT_AUDIO_COMMAND_DESCRIPTION = "cut.audio.command.description";
 
+    public static final String BASS_BOOST_COMMAND_DESCRIPTION = "bass.boost.command.description";
+
+    public static final String AMARK_COMMAND_DESCRIPTION = "amark.command.description";
+
     public static final String VMARK_COMMAND_DESCRIPTION = "vmark.command.description";
 
     public static final String VMERGE_COMMAND_DESCRIPTION = "vmerge.command.description";

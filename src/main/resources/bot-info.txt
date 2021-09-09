@@ -2,9 +2,9 @@ Description:
 #All
 I can convert files, videos, audios, stickers, links, text to other formats, compress videos and audios and merge pdfs.
 #Video
-I'm powerful video compressor, converter and editor. Let's start.
+I'm powerful video compressor, converter and editor. Let's start!
 #Audio
-I can convert and compress audios.
+I'm powerful audio compressor, converter and editor. Let's start!
 
 AboutText:
 #All
@@ -12,7 +12,7 @@ I can convert files, videos, audios, stickers, links, text to other formats, com
 #Video
 I'm powerful video compressor, converter and editor. Let's start
 #Audio
-I can convert and compress audios.
+I'm powerful audio compressor, converter and editor. Let's start
 
 Commands:
 #Document
@@ -48,6 +48,8 @@ start - restart the bot
 acompress - compress audio
 amerge - merge audios
 acut - cut audio
+amark - add watermark to audio
+abass - audio bass boost
 botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription
@@ -63,6 +65,8 @@ vavmerge - replace or add audio and subtitles to video
 vaimake - make video from audio and image
 vcut - cut video
 acut - cut audio
+amark - add watermark to audio
+abass - audio bass boost
 vmerge - merge videos
 amerge - merge audios
 vmark - add watermark to video

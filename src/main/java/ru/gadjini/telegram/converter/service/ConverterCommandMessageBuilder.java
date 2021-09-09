@@ -45,6 +45,8 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.COMPRESS_AUDIO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.COMPRESS_AUDIO_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.CONCATENATE_AUDIOS).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.AMERGE_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.CUT_AUDIO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.CUT_AUDIO_COMMAND_DESCRIPTION, locale)).append("\n");
+            info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.AMARK).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.AMARK_COMMAND_DESCRIPTION, locale)).append("\n");
+            info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.BASS_BOOST).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.BASS_BOOST_COMMAND_DESCRIPTION, locale)).append("\n");
         }
         if (applicationProperties.is(FormatsConfiguration.VIDEO_CONVERTER)) {
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.EDIT_VIDEO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VEDIT_COMMAND_DESCRIPTION, locale)).append("\n");
