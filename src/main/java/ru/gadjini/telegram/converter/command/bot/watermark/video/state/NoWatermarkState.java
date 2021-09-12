@@ -7,6 +7,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
+import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.WatermarkGifState;
+import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.WatermarkImageState;
+import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.WatermarkStickerState;
+import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.WatermarkVideoState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -37,6 +41,12 @@ public class NoWatermarkState extends BaseWatermarkState {
 
     private WatermarkImageState watermarkImageState;
 
+    private WatermarkGifState watermarkGifState;
+
+    private WatermarkStickerState watermarkStickerState;
+
+    private WatermarkVideoState watermarkVideoState;
+
     @Autowired
     public NoWatermarkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
@@ -46,6 +56,21 @@ public class NoWatermarkState extends BaseWatermarkState {
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
+    }
+
+    @Autowired
+    public void setWatermarkVideoState(WatermarkVideoState watermarkVideoState) {
+        this.watermarkVideoState = watermarkVideoState;
+    }
+
+    @Autowired
+    public void setWatermarkGifState(WatermarkGifState watermarkGifState) {
+        this.watermarkGifState = watermarkGifState;
+    }
+
+    @Autowired
+    public void setWatermarkStickerState(WatermarkStickerState watermarkStickerState) {
+        this.watermarkStickerState = watermarkStickerState;
     }
 
     @Autowired
@@ -85,6 +110,18 @@ public class NoWatermarkState extends BaseWatermarkState {
             videoWatermarkSettings.setWatermarkType(VideoWatermarkType.IMAGE);
             videoWatermarkSettings.setStateName(watermarkImageState.getName());
             watermarkImageState.enter(message);
+        } else if (localisationService.getMessage(ConverterMessagesProperties.STICKER_WATERMARK_COMMAND_NAME, locale).equals(text)) {
+            videoWatermarkSettings.setWatermarkType(VideoWatermarkType.STICKER);
+            videoWatermarkSettings.setStateName(watermarkStickerState.getName());
+            watermarkStickerState.enter(message);
+        } else if (localisationService.getMessage(ConverterMessagesProperties.GIF_WATERMARK_COMMAND_NAME, locale).equals(text)) {
+            videoWatermarkSettings.setWatermarkType(VideoWatermarkType.GIF);
+            videoWatermarkSettings.setStateName(watermarkGifState.getName());
+            watermarkGifState.enter(message);
+        } else if (localisationService.getMessage(ConverterMessagesProperties.VIDEO_WATERMARK_COMMAND_NAME, locale).equals(text)) {
+            videoWatermarkSettings.setWatermarkType(VideoWatermarkType.VIDEO);
+            videoWatermarkSettings.setStateName(watermarkVideoState.getName());
+            watermarkVideoState.enter(message);
         } else {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCORRECT_WATERMARK_TYPE, locale));
         }

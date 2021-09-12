@@ -30,7 +30,7 @@ public class VideoWatermarkService {
         videoWatermark.setUserId(userId);
         videoWatermark.setWatermarkType(videoWatermarkSettings.getWatermarkType());
         videoWatermark.setText(videoWatermarkSettings.getText());
-        if (videoWatermarkSettings.getWatermarkType().equals(VideoWatermarkType.IMAGE)) {
+        if (!videoWatermarkSettings.getWatermarkType().equals(VideoWatermarkType.TEXT)) {
             videoWatermark.setImage(videoWatermarkSettings.getImage().toTgFile());
         }
         videoWatermark.setFontSize(videoWatermarkSettings.getFontSize());

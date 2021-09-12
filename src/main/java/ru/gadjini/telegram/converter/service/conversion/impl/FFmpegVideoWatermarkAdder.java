@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermark;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkPosition;
@@ -23,14 +24,20 @@ import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkServi
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileGarbageCollector;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileGarbageCollector.GarbageFileCollection;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.TGS;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
 
 @Component
@@ -58,12 +65,24 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
     private CaptionGenerator captionGenerator;
 
+    private LocalisationService localisationService;
+
+    private Tgs2GifConverter tgs2GifConverter;
+
+    private Video2GifConverter video2GifConverter;
+
+    private UserService userService;
+
+    private TempFileGarbageCollector tempFileGarbageCollector;
+
     @Autowired
     public FFmpegVideoWatermarkAdder(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                                      VideoWatermarkService videoWatermarkService,
                                      FFprobeDevice fFprobeDevice, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
                                      FFmpegDevice fFmpegDevice, FFmpegSubtitlesStreamConversionHelper subtitlesHelper,
-                                     FontProperties fontProperties, CaptionGenerator captionGenerator) {
+                                     FontProperties fontProperties, CaptionGenerator captionGenerator,
+                                     LocalisationService localisationService, Tgs2GifConverter tgs2GifConverter,
+                                     Video2GifConverter video2GifConverter, UserService userService, TempFileGarbageCollector tempFileGarbageCollector) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoWatermarkService = videoWatermarkService;
@@ -73,6 +92,11 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         this.subtitlesHelper = subtitlesHelper;
         this.fontProperties = fontProperties;
         this.captionGenerator = captionGenerator;
+        this.localisationService = localisationService;
+        this.tgs2GifConverter = tgs2GifConverter;
+        this.video2GifConverter = video2GifConverter;
+        this.userService = userService;
+        this.tempFileGarbageCollector = tempFileGarbageCollector;
     }
 
     @Override
@@ -91,6 +115,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile video = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
+        GarbageFileCollection garbageFileCollection = tempFileGarbageCollector.getNewCollection();
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD,
                 fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
@@ -98,9 +123,14 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                     .input(video.getAbsolutePath());
 
-            if (watermark.getWatermarkType() == VideoWatermarkType.IMAGE) {
+            if (Set.of(VideoWatermarkType.GIF, VideoWatermarkType.VIDEO).contains(watermark.getWatermarkType())
+                    || watermark.getImage().getFormat() == TGS) {
+                commandBuilder.ignoreLoop();
+            }
+
+            if (watermark.getWatermarkType() != VideoWatermarkType.TEXT) {
                 commandBuilder.useFilterComplex(true);
-                SmartTempFile watermarkImage = fileQueueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
+                SmartTempFile watermarkImage = prepareAndGetWatermarkFile(garbageFileCollection, fileQueueItem, watermark);
                 commandBuilder.input(watermarkImage.getAbsolutePath());
             }
 
@@ -117,9 +147,9 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                 commandBuilder.filterVideo(0, createTextWatermarkFilter(watermark));
             } else {
                 if (commandBuilder.getComplexFilters().stream().anyMatch(f -> f.contains("[sv]"))) {
-                    commandBuilder.complexFilter(createImageWatermarkFilter("sv", watermark));
+                    commandBuilder.complexFilter(createWatermarkFileFilter("sv", watermark));
                 } else {
-                    commandBuilder.complexFilter(createImageWatermarkFilter("0", watermark));
+                    commandBuilder.complexFilter(createWatermarkFileFilter("0", watermark));
                 }
             }
             commandBuilder.complexFilters();
@@ -157,6 +187,54 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
+        } finally {
+            garbageFileCollection.delete();
+        }
+    }
+
+    private SmartTempFile prepareAndGetWatermarkFile(GarbageFileCollection garbageFileCollection,
+                                                     ConversionQueueItem fileQueueItem, VideoWatermark watermark) {
+        switch (watermark.getWatermarkType()) {
+            case IMAGE: {
+                return fileQueueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
+            }
+            case STICKER: {
+                if (watermark.getImage().getFormat() == TGS) {
+                    SmartTempFile file = tgs2GifConverter.doConvertToGiff(watermark.getImage().getFileId(), fileQueueItem);
+                    garbageFileCollection.addFile(file);
+
+                    return file;
+                } else {
+                    return fileQueueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
+                }
+            }
+            case VIDEO: {
+                return convertVideo2Gif(garbageFileCollection, fileQueueItem, watermark);
+            }
+            case GIF: {
+                if (watermark.getImage().getFormat().getCategory() == FormatCategory.VIDEO) {
+                    return convertVideo2Gif(garbageFileCollection, fileQueueItem, watermark);
+                } else {
+                    return fileQueueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
+                }
+            }
+        }
+
+        throw new UnsupportedOperationException("prepareAndGetWatermarkFile unsupported for " + watermark.getWatermarkType());
+    }
+
+    private SmartTempFile convertVideo2Gif(GarbageFileCollection garbageFileCollection,
+                                           ConversionQueueItem fileQueueItem, VideoWatermark watermark) {
+        try {
+            SmartTempFile file = video2GifConverter.doConvert2Gif(watermark.getImage().getFileId(), fileQueueItem);
+            garbageFileCollection.addFile(file);
+
+            return file;
+        } catch (UserException e) {
+            throw new UserException(
+                    localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_WATERMARK_MAX_LENGTH,
+                            userService.getLocaleOrDefault(fileQueueItem.getUserId()))
+            );
         }
     }
 
@@ -168,6 +246,34 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                 .append("fontfile=").append(getFontPath("tahoma")).append(":")
                 .append("fontsize=").append(videoWatermark.getFontSize() == null ? "(h/30)" : videoWatermark.getFontSize()).append(":")
                 .append("fontcolor=").append(videoWatermark.getColor().name().toLowerCase());
+
+        return filter.toString();
+    }
+
+    private String createWatermarkFileFilter(String videoComplexFilterInLink, VideoWatermark videoWatermark) {
+        switch (videoWatermark.getWatermarkType()) {
+            case IMAGE:
+                return createImageWatermarkFilter(videoComplexFilterInLink, videoWatermark);
+            case STICKER:
+                if (videoWatermark.getImage().getFormat() == TGS) {
+                    return createGifWatermarkFilter(videoComplexFilterInLink, videoWatermark);
+                } else {
+                    return createImageWatermarkFilter(videoComplexFilterInLink, videoWatermark);
+                }
+            case VIDEO:
+            case GIF:
+                return createGifWatermarkFilter(videoComplexFilterInLink, videoWatermark);
+        }
+
+        throw new UnsupportedOperationException("createWatermarkFileFilter unsupported for " + videoWatermark.getWatermarkType());
+    }
+
+    private String createGifWatermarkFilter(String videoComplexFilterInLink, VideoWatermark videoWatermark) {
+        StringBuilder filter = new StringBuilder();
+
+        filter.append("[1]scale=-2:").append(videoWatermark.getImageHeight() == null ? "ih*0.2" : videoWatermark.getImageHeight())
+                .append("[wm];[wm]lut=a=val*").append(videoWatermark.getTransparency()).append("[a];[").append(videoComplexFilterInLink)
+                .append("][a]overlay=").append(getImageXY(videoWatermark.getWatermarkPosition())).append(":shortest=1");
 
         return filter.toString();
     }

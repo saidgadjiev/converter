@@ -34,19 +34,21 @@ public class Tgs2GifConverter extends BaseAny2AnyConverter {
 
     @Override
     public ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
-        return toGiff(fileQueueItem);
+        SmartTempFile result = doConvertToGiff(fileQueueItem.getFirstFileId(), fileQueueItem);
+        String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.GIF.getExt());
+
+        return new FileResult(fileName, result);
     }
 
-    private FileResult toGiff(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
+    public SmartTempFile doConvertToGiff(String fileId, ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileId);
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
-                fileQueueItem.getFirstFileId(), TAG, Format.GIF.getExt());
+                fileId, TAG, Format.GIF.getExt());
         try {
             processExecutor.execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.GIF.getExt());
-            return new FileResult(fileName, result);
+            return result;
         } catch (Exception ex) {
             tempFileService().delete(result);
             throw new ConvertException(ex);

@@ -319,6 +319,12 @@ public class ConverterMessagesProperties {
 
     public static final String IMAGE_WATERMARK_COMMAND_NAME = "image.watermark.command.name";
 
+    public static final String STICKER_WATERMARK_COMMAND_NAME = "sticker.watermark.command.name";
+
+    public static final String GIF_WATERMARK_COMMAND_NAME = "gif.watermark.command.name";
+
+    public static final String VIDEO_WATERMARK_COMMAND_NAME = "video.watermark.command.name";
+
     public static final String MESSAGE_WATERMARK_TEXT_WELCOME = "message.watermark.text.welcome";
 
     public static final String MESSAGE_WATERMARK_TEXT_FONT_SIZE_WELCOME = "message.watermark.text.font.size.welcome";
@@ -340,6 +346,12 @@ public class ConverterMessagesProperties {
     public static final String CHANGE_WATERMARK_COMMAND_NAME = "change.watermark.command.name";
 
     public static final String MESSAGE_WATERMARK_IMAGE_WELCOME = "message.watermark.image.welcome";
+
+    public static final String MESSAGE_WATERMARK_GIF_WELCOME = "message.watermark.gif.welcome";
+
+    public static final String MESSAGE_WATERMARK_VIDEO_WELCOME = "message.watermark.video.welcome";
+
+    public static final String MESSAGE_WATERMARK_STICKER_WELCOME = "message.watermark.sticker.welcome";
 
     public static final String MESSAGE_INCORRECT_WATERMARK_POSITION = "message.incorrect.watermark.position";
 
@@ -410,4 +422,8 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_COPYRIGHT = "message.copyright";
 
     public static final String MESSAGE_TOO_BIG_REMOTE_VIDEO = "message.too.big.remote.video";
+
+    public static final String MESSAGE_VIDEO_WATERMARK_MAX_LENGTH = "message.video.watermark.max.length";
+
+    public static final String MESSAGE_VIDEO_2_GIF_MAX_LENGTH = "message.video.2.gif.max.length";
 }

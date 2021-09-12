@@ -199,6 +199,13 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
                 localisationService.getMessage(ConverterMessagesProperties.IMAGE_WATERMARK_COMMAND_NAME, locale),
                 localisationService.getMessage(ConverterMessagesProperties.TEXT_WATERMARK_COMMAND_NAME, locale)
         ));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.STICKER_WATERMARK_COMMAND_NAME, locale),
+                localisationService.getMessage(ConverterMessagesProperties.GIF_WATERMARK_COMMAND_NAME, locale)
+        ));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.VIDEO_WATERMARK_COMMAND_NAME, locale)
+        ));
         if (creation) {
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
         } else {
@@ -280,7 +287,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup watermarkImageKeyboard(long chatId, Locale locale) {
+    public ReplyKeyboardMarkup watermarkFileKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
 

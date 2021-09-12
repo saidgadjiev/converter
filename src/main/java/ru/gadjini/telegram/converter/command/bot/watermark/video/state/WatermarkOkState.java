@@ -187,6 +187,7 @@ public class WatermarkOkState extends BaseWatermarkState {
             return localisationService.getMessage(
                     ConverterMessagesProperties.MESSAGE_IMAGE_WATERMARK,
                     new Object[] {
+                            videoWatermark.getWatermarkType().name(),
                             videoWatermark.getImageHeight() == null ? WatermarkImageSizeState.AUTO : videoWatermark.getImageHeight(),
                             videoWatermark.getTransparency(),
                             localisationService.getMessage(positionMessageCode, locale)

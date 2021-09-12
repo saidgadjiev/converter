@@ -1,17 +1,16 @@
-package ru.gadjini.telegram.converter.command.bot.watermark.video.state;
+package ru.gadjini.telegram.converter.command.bot.watermark.video.state.file;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
-import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.command.bot.watermark.video.state.BaseWatermarkState;
+import ru.gadjini.telegram.converter.command.bot.watermark.video.state.WatermarkImageSizeState;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
-import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
@@ -21,8 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
 
-@Component
-public class WatermarkImageState extends BaseWatermarkState {
+public abstract class BaseWatermarkFileState extends BaseWatermarkState {
 
     private MessageService messageService;
 
@@ -39,15 +37,33 @@ public class WatermarkImageState extends BaseWatermarkState {
     private MessageMediaService messageMediaService;
 
     @Autowired
-    public WatermarkImageState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
-                               UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                               CommandStateService commandStateService,
-                               MessageMediaService messageMediaService) {
+    public void setMessageService(@TgMessageLimitsControl MessageService messageService) {
         this.messageService = messageService;
+    }
+
+    @Autowired
+    public void setLocalService(LocalisationService localisationService) {
         this.localisationService = localisationService;
+    }
+
+    @Autowired
+    public void setUsService(UserService userService) {
         this.userService = userService;
+    }
+
+
+    @Autowired
+    public void setReplyKeyboardService(@KeyboardHolder ConverterReplyKeyboardService replyKeyboardService) {
         this.replyKeyboardService = replyKeyboardService;
+    }
+
+    @Autowired
+    public void setCommandStService(CommandStateService commandStateService) {
         this.commandStateService = commandStateService;
+    }
+
+    @Autowired
+    public void setMessageMediaService(MessageMediaService messageMediaService) {
         this.messageMediaService = messageMediaService;
     }
 
@@ -62,8 +78,8 @@ public class WatermarkImageState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_WELCOME, locale))
-                        .replyMarkup(replyKeyboardService.watermarkImageKeyboard(message.getChatId(), locale))
+                        .text(localisationService.getMessage(getWelcomeMessageCode(), locale))
+                        .replyMarkup(replyKeyboardService.watermarkFileKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
         );
@@ -77,10 +93,7 @@ public class WatermarkImageState extends BaseWatermarkState {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         MessageMedia media = messageMediaService.getMedia(message, locale);
 
-        if (media == null) {
-            throw new UserException(localisationService.getMessage(
-                    ConverterMessagesProperties.MESSAGE_WATERMARK_IMAGE_WELCOME, locale));
-        }
+        validate(media, locale);
 
         videoWatermarkSettings.setImage(media);
         videoWatermarkSettings.setStateName(watermarkImageSizeState.getName());
@@ -88,8 +101,7 @@ public class WatermarkImageState extends BaseWatermarkState {
         watermarkImageSizeState.enter(message);
     }
 
-    @Override
-    public WatermarkStateName getName() {
-        return WatermarkStateName.WATERMARK_IMAGE;
-    }
+    protected abstract String getWelcomeMessageCode();
+
+    protected abstract void validate(MessageMedia messageMedia, Locale locale);
 }

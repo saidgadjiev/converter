@@ -4,5 +4,11 @@ public enum VideoWatermarkType {
 
     IMAGE,
 
-    TEXT
+    TEXT,
+
+    STICKER,
+
+    VIDEO,
+
+    GIF
 }

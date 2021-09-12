@@ -24,6 +24,8 @@ public class FFmpegCommandBuilder {
 
     public static final String PRESET_VERY_FAST = "veryfast";
 
+    public static final String PAM_CODEC = "pam";
+
     public static final String OPUS = "libopus";
 
     public static final String OPUS_CODEC_NAME = "opus";
@@ -154,6 +156,13 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder input(String filePath) {
         options.add("-i");
         options.add(filePath);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder ignoreLoop() {
+        options.add("-ignore_loop");
+        options.add("0");
 
         return this;
     }
@@ -401,6 +410,13 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder vf(String filter) {
+        options.add("-vf");
+        options.add(filter);
+
+        return this;
+    }
+
     public FFmpegCommandBuilder filterVideo(int index, String filter) {
         options.add("-filter:v:" + index);
         options.add(filter);
@@ -559,6 +575,12 @@ public class FFmpegCommandBuilder {
     public FFmpegCommandBuilder s(String s) {
         options.add("-s");
         options.add(s);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder streamOut() {
+        options.add("-");
 
         return this;
     }
