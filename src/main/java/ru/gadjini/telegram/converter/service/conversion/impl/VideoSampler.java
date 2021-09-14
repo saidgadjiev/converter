@@ -70,9 +70,9 @@ public class VideoSampler extends BaseAny2AnyConverter {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Period sp = getStartPoint(srcWhd, settingsState);
 
-            videoCutter.doCut(file, result, sp, sp.plusSeconds(30), fileQueueItem);
+            videoCutter.doCut(file, result, sp, sp.plusSeconds(30), srcWhd.getDuration(), fileQueueItem);
 
-            return video2StreamingConverter.doConvert(file, fileQueueItem);
+            return video2StreamingConverter.doConvert(result, fileQueueItem);
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;
@@ -90,8 +90,8 @@ public class VideoSampler extends BaseAny2AnyConverter {
             return Period.seconds(0);
         }
 
-        if (whd.getDuration() < 60) {
-            return Period.seconds(whd.getDuration().intValue());
+        if (whd.getDuration() < 30) {
+            return Period.seconds(0);
         }
 
         return Period.seconds(new RandomDataGenerator().nextInt(30, whd.getDuration().intValue() - 30));

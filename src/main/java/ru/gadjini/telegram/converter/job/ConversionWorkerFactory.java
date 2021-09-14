@@ -287,6 +287,20 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
                     break;
                 }
+                case PHOTO: {
+                    PhotoResult photoResult = (PhotoResult) convertResult;
+                    SendPhoto.SendPhotoBuilder photoBuilder = SendPhoto.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .photo(new InputFile(photoResult.getFile(), photoResult.getFileName()))
+                            .caption(photoResult.getCaption())
+                            .parseMode(ParseMode.HTML)
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
+
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendPhoto.PATH, photoBuilder.build(),
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
+
+                    break;
+                }
                 case VOICE: {
                     VoiceResult voiceResult = (VoiceResult) convertResult;
                     SendVoice.SendVoiceBuilder sendVoiceBuilder = SendVoice.builder().chatId(String.valueOf(fileQueueItem.getUserId()))

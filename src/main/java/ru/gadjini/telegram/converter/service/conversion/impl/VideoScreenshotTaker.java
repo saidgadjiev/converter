@@ -68,13 +68,14 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
     @Autowired
     public VideoScreenshotTaker(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                                 FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                UserService userService, LocalisationService localisationService) {
+                                UserService userService, LocalisationService localisationService, Jackson jackson) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.userService = userService;
         this.localisationService = localisationService;
+        this.jackson = jackson;
     }
 
     @Override
@@ -94,7 +95,8 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
             commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath())
-                    .mapVideo(fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams)).vframes("1").qv("2");
+                    .mapVideo(fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams)).vframes("1").qv("2")
+                    .out(result.getAbsolutePath());
 
             fFmpegDevice.execute(commandBuilder.buildFullCommand());
 

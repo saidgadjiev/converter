@@ -109,7 +109,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            doCut(file, result, settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), fileQueueItem);
+            doCut(file, result, settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), fileQueueItem);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
@@ -131,9 +131,14 @@ public class VideoCutter extends BaseAny2AnyConverter {
     }
 
     public void doCut(SmartTempFile file, SmartTempFile result,
-                      Period sp, Period ep, ConversionQueueItem fileQueueItem) throws InterruptedException {
+                      Period sp, Period ep, Long knownDuration,
+                      ConversionQueueItem fileQueueItem) throws InterruptedException {
         List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         String startPoint = PERIOD_FORMATTER.print(sp);
+
+        if (knownDuration != null && ep.toStandardSeconds().getSeconds() > knownDuration.intValue()) {
+            ep = Period.seconds(knownDuration.intValue());
+        }
         String duration = String.valueOf(ep.minus(sp).toStandardDuration().getStandardSeconds());
 
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();

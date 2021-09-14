@@ -170,9 +170,10 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(
                 localisationService.getMessage(ConverterMessagesProperties.START_POINT_COMMAND_NAME, locale),
-                Format.PROBE.getName()
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RANDOM, locale)
         ));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                Format.PROBE.getName(),
                 localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILE_COMMAND_NAME, locale)
         ));
 
@@ -187,9 +188,10 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(
                 localisationService.getMessage(ConverterMessagesProperties.START_POINT_COMMAND_NAME, locale),
-                Format.PROBE.getName()
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RANDOM, locale)
         ));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                Format.PROBE.getName(),
                 localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILE_COMMAND_NAME, locale))
         );
 

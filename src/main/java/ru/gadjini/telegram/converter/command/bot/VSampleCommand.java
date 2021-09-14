@@ -15,6 +15,8 @@ import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.conversion.impl.VideoSampler;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
@@ -55,9 +57,9 @@ public class VSampleCommand implements BotCommand, NavigableBotCommand {
     private ApplicationProperties applicationProperties;
 
     @Autowired
-    public VSampleCommand(MessageService messageService, UserService userService,
+    public VSampleCommand(@TgMessageLimitsControl MessageService messageService, UserService userService,
                           LocalisationService localisationService,
-                          ConverterReplyKeyboardService replyKeyboardService,
+                          @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                           CommandStateService commandStateService,
                           MessageMediaService messageMediaService,
                           ConvertionService convertionService, ApplicationProperties applicationProperties) {
@@ -128,7 +130,7 @@ public class VSampleCommand implements BotCommand, NavigableBotCommand {
             if (localisationService.getMessage(ConverterMessagesProperties.START_POINT_COMMAND_NAME, locale).equals(text)) {
                 existsState.getSettings().setCutStartPoint(VideoSampler.AT_START);
                 workQueueJob.cancelCurrentTasks(message.getChatId());
-                convertionService.createConversion(message.getFrom(), existsState, Format.PROBE, locale);
+                convertionService.createConversion(message.getFrom(), existsState, Format.SAMPLE, locale);
                 commandStateService.deleteState(message.getChatId(), getCommandIdentifier());
             } else if (Format.PROBE.getName().equals(text)) {
                 workQueueJob.cancelCurrentTasks(message.getChatId());

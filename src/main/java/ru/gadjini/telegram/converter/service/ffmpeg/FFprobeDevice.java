@@ -167,6 +167,10 @@ public class FFprobeDevice {
             this.height = height;
         }
 
+        public Long getDuration(long defaultVal) {
+            return duration == null ? defaultVal : duration;
+        }
+
         public Long getDuration() {
             return duration;
         }
