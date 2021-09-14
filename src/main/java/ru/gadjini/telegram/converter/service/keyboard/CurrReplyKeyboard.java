@@ -86,6 +86,16 @@ public class CurrReplyKeyboard implements ConverterReplyKeyboardService, ReplyKe
     }
 
     @Override
+    public ReplyKeyboardMarkup sampleVideoKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.sampleVideoKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup screenshotVideoKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.screenshotVideoKeyboard(chatId, locale));
+    }
+
+    @Override
     public ReplyKeyboardMarkup vaimakeKeyboard(long chatId, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.vaimakeKeyboard(chatId, locale));
     }

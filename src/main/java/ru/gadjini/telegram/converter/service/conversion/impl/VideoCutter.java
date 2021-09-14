@@ -52,6 +52,10 @@ public class VideoCutter extends BaseAny2AnyConverter {
             .appendSeconds()
             .toFormatter();
 
+    public static final String AT_START = "atStart";
+
+    public static final String AT_END = "atEnd";
+
     private static final String TAG = "vcut";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
@@ -105,32 +109,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            String startPoint = PERIOD_FORMATTER.print(settingsState.getCutStartPoint());
-            String duration = String.valueOf(settingsState.getCutEndPoint().minus(settingsState.getCutStartPoint()).toStandardDuration().getStandardSeconds());
-
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
-
-            commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
-            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
-            } else {
-                fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
-            }
-            fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
-            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                videoAudioConversionHelper.convertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
-            } else {
-                videoAudioConversionHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
-            }
-            fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
-            if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
-                commandBuilder.vp8QualityOptions();
-            }
-            commandBuilder.fastConversion();
-
-            commandBuilder.defaultOptions().out(result.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            doCut(file, result, settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), fileQueueItem);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
@@ -149,6 +128,37 @@ public class VideoCutter extends BaseAny2AnyConverter {
             tempFileService().delete(result);
             throw new ConvertException(e);
         }
+    }
+
+    public void doCut(SmartTempFile file, SmartTempFile result,
+                      Period sp, Period ep, ConversionQueueItem fileQueueItem) throws InterruptedException {
+        List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+        String startPoint = PERIOD_FORMATTER.print(sp);
+        String duration = String.valueOf(ep.minus(sp).toStandardDuration().getStandardSeconds());
+
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+
+        commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
+        if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+            fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
+        } else {
+            fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
+        }
+        fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+        if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
+            videoAudioConversionHelper.convertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
+        } else {
+            videoAudioConversionHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
+        }
+        fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
+        if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
+            commandBuilder.vp8QualityOptions();
+        }
+        commandBuilder.fastConversion();
+
+        commandBuilder.defaultOptions().out(result.getAbsolutePath());
+        fFmpegDevice.execute(commandBuilder.buildFullCommand());
     }
 
     private void validateRange(Integer replyMessageId, Period start, Period end, Long totalLength, Locale locale) {

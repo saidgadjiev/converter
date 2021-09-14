@@ -53,4 +53,8 @@ public class ConverterCommandNames {
     public static final String BASS_BOOST = "abass";
 
     public static final String VMARKIMG = "vmarkimg";
+
+    public static final String VSCREENSHOT = "vscreenshot";
+
+    public static final String VSAMPLE = "vsample";
 }

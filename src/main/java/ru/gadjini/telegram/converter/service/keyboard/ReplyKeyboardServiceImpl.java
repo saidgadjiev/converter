@@ -165,6 +165,40 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
     }
 
     @Override
+    public ReplyKeyboardMarkup sampleVideoKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.START_POINT_COMMAND_NAME, locale),
+                Format.PROBE.getName()
+        ));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILE_COMMAND_NAME, locale)
+        ));
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup screenshotVideoKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.START_POINT_COMMAND_NAME, locale),
+                Format.PROBE.getName()
+        ));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(
+                localisationService.getMessage(ConverterMessagesProperties.CANCEL_FILE_COMMAND_NAME, locale))
+        );
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
     public ReplyKeyboardMarkup vaimakeKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 

@@ -153,6 +153,20 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
+    public FFmpegCommandBuilder vframes(String frames) {
+        options.add("-vframes");
+        options.add(frames);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder qv(String qv) {
+        options.add("-q:v");
+        options.add(qv);
+
+        return this;
+    }
+
     public FFmpegCommandBuilder input(String filePath) {
         options.add("-i");
         options.add(filePath);

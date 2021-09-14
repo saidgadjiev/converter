@@ -17,4 +17,6 @@ public enum ResultType {
     CONTAINER,
 
     VIDEO_NOTE,
+
+    PHOTO
 }

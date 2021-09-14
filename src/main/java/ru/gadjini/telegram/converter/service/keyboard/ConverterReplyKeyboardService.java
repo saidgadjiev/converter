@@ -26,6 +26,10 @@ public interface ConverterReplyKeyboardService extends ReplyKeyboardService {
 
     ReplyKeyboardMarkup mediaCutKeyboard(long chatId, Locale locale);
 
+    ReplyKeyboardMarkup sampleVideoKeyboard(long chatId, Locale locale);
+
+    ReplyKeyboardMarkup screenshotVideoKeyboard(long chatId, Locale locale);
+
     ReplyKeyboardMarkup vaimakeKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardMarkup vavmergeKeyboard(long chatId, Locale locale);

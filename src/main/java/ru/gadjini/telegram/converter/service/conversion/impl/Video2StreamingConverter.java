@@ -61,20 +61,25 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
+
+        return doConvert(file, fileQueueItem);
+    }
+
+    public ConversionResult doConvert(SmartTempFile file, ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFirstFileFormat().supportsStreaming()) {
-            ConversionResult conversionResult = doConvertStreamingVideo(fileQueueItem);
+            ConversionResult conversionResult = doConvertStreamingVideo(file, fileQueueItem);
             if (conversionResult == null) {
-                return doConvertNonStreamingVideo(fileQueueItem);
+                return doConvertNonStreamingVideo(file, fileQueueItem);
             } else {
                 return conversionResult;
             }
         } else {
-            return doConvertNonStreamingVideo(fileQueueItem);
+            return doConvertNonStreamingVideo(file, fileQueueItem);
         }
     }
 
-    private ConversionResult doConvertStreamingVideo(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
+    private ConversionResult doConvertStreamingVideo(SmartTempFile file, ConversionQueueItem fileQueueItem) {
         SmartTempFile result = tempFileService().getTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, fileQueueItem.getFirstFileFormat().getExt());
 
@@ -101,8 +106,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private ConversionResult doConvertNonStreamingVideo(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
+    private ConversionResult doConvertNonStreamingVideo(SmartTempFile file, ConversionQueueItem fileQueueItem) {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, Format.STREAM.getAssociatedFormat().getExt());
 

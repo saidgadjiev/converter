@@ -34,6 +34,8 @@ vaimake - make video from audio and image
 vcut - cut video
 vmark - add watermark to video
 vmerge - merge videos
+vsample - create video sample
+vscreenshot - create video screenshot
 smartfile - smart file feature
 botlist - list of all our bots
 subscription - check subscription
@@ -68,6 +70,8 @@ acut - cut audio
 amark - add watermark to audio
 abass - audio bass boost
 vmerge - merge videos
+vsample - create video sample
+vscreenshot - create video screenshot
 amerge - merge audios
 vmark - add watermark to video
 smartfile - smart file feature

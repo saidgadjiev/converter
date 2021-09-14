@@ -425,5 +425,21 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VIDEO_WATERMARK_MAX_LENGTH = "message.video.watermark.max.length";
 
+    public static final String MESSAGE_VSAMPLE_WELCOME = "message.vsample.welcome";
+
+    public static final String MESSAGE_VSCREENSHOT_WELCOME = "message.vscreenshot.welcome";
+
+    public static final String MESSAGE_VSCREENSHOT_AWAITING_POINT = "message.vscreenshot.awaiting.point";
+
+    public static final String MESSAGE_RANDOM = "message.random";
+
+    public static final String MESSAGE_VSCREENSHOT_RESULT = "message.vscreenshot.result";
+
+    public static final String START_POINT_COMMAND_NAME = "start.point.command.name";
+
+    public static final String END_POINT_COMMAND_NAME = "end.point.command.name";
+
+    public static final String MESSAGE_VSAMPLE_AWAITING_START_POINT = "message.vsample.awaiting.start.point";
+
     public static final String MESSAGE_VIDEO_2_GIF_MAX_LENGTH = "message.video.2.gif.max.length";
 }
