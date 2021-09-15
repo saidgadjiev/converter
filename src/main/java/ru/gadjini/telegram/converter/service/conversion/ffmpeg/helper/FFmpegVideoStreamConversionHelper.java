@@ -64,8 +64,8 @@ public class FFmpegVideoStreamConversionHelper {
             } else {
                 commandBuilder.videoCodec(outCodecIndex, FFmpegCommandBuilder.H264_CODEC);
                 addScaleFilterForH264(commandBuilder, videoStream, outCodecIndex, scale);
+                commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
             }
-            commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
             ++outCodecIndex;
         }
     }
@@ -102,9 +102,7 @@ public class FFmpegVideoStreamConversionHelper {
         List<FFprobeDevice.Stream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
-        String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE :
-                targetFormat == AVI_H263_PLUS ? FFmpegCommandBuilder.H263_PLUS_SCALE :
-                        FFmpegCommandBuilder.EVEN_SCALE;
+        String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         int outCodecIndex = 0;
@@ -114,11 +112,13 @@ public class FFmpegVideoStreamConversionHelper {
                 continue;
             }
             commandBuilder.mapVideo(videoStream.getInput(), videoStreamMapIndex);
+            boolean copied = false;
             if (StringUtils.isNotBlank(videoCodec)) {
                 commandBuilder.videoCodec(outCodecIndex, videoCodec).filterVideo(outCodecIndex, scale);
             } else {
                 if (isCopyableVideoCodecs(baseCommand, result, targetFormat, videoStream.getInput(), videoStreamMapIndex)) {
                     commandBuilder.copyVideo(outCodecIndex);
+                    copied = true;
                 } else {
                     boolean convertibleToH264 = isConvertibleToH264(baseCommand, result,
                             videoStream.getInput(), videoStreamMapIndex, scale);
@@ -128,7 +128,9 @@ public class FFmpegVideoStreamConversionHelper {
                     }
                 }
             }
-            commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
+            if (!copied) {
+                commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
+            }
             ++outCodecIndex;
         }
     }
@@ -209,8 +211,6 @@ public class FFmpegVideoStreamConversionHelper {
             commandBuilder.f(FFmpegCommandBuilder.FLV_FORMAT).ar("44100");
         } else if (target == MTS) {
             commandBuilder.r("30000/1001");
-        } else if (target == AVI_H263_PLUS) {
-            commandBuilder.q(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, "5");
         }
     }
 

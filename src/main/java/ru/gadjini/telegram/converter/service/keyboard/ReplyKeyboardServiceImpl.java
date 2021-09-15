@@ -119,11 +119,7 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
 
     @Override
     public ReplyKeyboardMarkup goBackKeyboard(long chatId, Locale locale) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
-
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(ConverterMessagesProperties.GO_BACK_COMMAND_NAME, locale)));
-
-        return replyKeyboardMarkup;
+        return smartReplyKeyboardService.goBackKeyboard(chatId, locale);
     }
 
     @Override

@@ -143,17 +143,26 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                     .filter(s -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
             Map<Integer, Boolean> copyAudiosIndexes = new LinkedHashMap<>();
-            int input = audioStreams.iterator().next().getInput();
-            commandBuilder.mapAudioInput(input);
-            for (int audioStreamIndex = 0; audioStreamIndex < audioStreams.size(); ++audioStreamIndex) {
-                FFprobeDevice.Stream audioStream = allStreams.get(audioStreamIndex);
-                if ((audioBitrate == null || Objects.equals(audioBitrate, audioStream.getBitRate()))
-                        && isCopyableAudioCodecs(baseCommand, out, input, audioStreamIndex)) {
-                    copyAudiosIndexes.put(audioStreamIndex, true);
-                } else {
-                    copyAudiosIndexes.put(audioStreamIndex, false);
+            List<Integer> inputs = audioStreams.stream().map(FFprobeDevice.Stream::getInput).distinct().collect(Collectors.toList());
+            int audioStreamIndex = 0;
+
+            for (Integer input : inputs) {
+                commandBuilder.mapAudioInput(input);
+                List<FFprobeDevice.Stream> byInput = audioStreams.stream()
+                        .filter(s -> input.equals(s.getInput()))
+                        .collect(Collectors.toList());
+
+                for (FFprobeDevice.Stream audioStream : byInput) {
+                    if ((audioBitrate == null || Objects.equals(audioBitrate, audioStream.getBitRate()))
+                            && isCopyableAudioCodecs(baseCommand, out, input, audioStreamIndex)) {
+                        copyAudiosIndexes.put(audioStreamIndex, true);
+                    } else {
+                        copyAudiosIndexes.put(audioStreamIndex, false);
+                    }
+                    ++audioStreamIndex;
                 }
             }
+
             if (copyAudiosIndexes.values().stream().allMatch(a -> a)) {
                 commandBuilder.copyAudio();
             } else if (copyAudiosIndexes.values().stream().noneMatch(a -> a)) {

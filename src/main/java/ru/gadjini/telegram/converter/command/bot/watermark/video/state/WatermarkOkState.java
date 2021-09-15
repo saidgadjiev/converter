@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.VMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.settings.VideoWatermarkSettings;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermark;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
@@ -27,6 +28,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.StaticTextAppender;
 
 import java.util.Locale;
 
@@ -55,13 +57,15 @@ public class WatermarkOkState extends BaseWatermarkState {
 
     private WorkQueueJob workQueueJob;
 
+    private StaticTextAppender staticTextAppender;
+
     @Autowired
     public WatermarkOkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             CommandStateService commandStateService,
                             VideoWatermarkService videoWatermarkService,
                             MessageMediaService messageMediaService,
-                            ConvertionService convertionService) {
+                            ConvertionService convertionService, StaticTextAppender staticTextAppender) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -70,6 +74,7 @@ public class WatermarkOkState extends BaseWatermarkState {
         this.videoWatermarkService = videoWatermarkService;
         this.messageMediaService = messageMediaService;
         this.convertionService = convertionService;
+        this.staticTextAppender = staticTextAppender;
     }
 
     @Autowired
@@ -94,8 +99,9 @@ public class WatermarkOkState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_OK_WELCOME, locale) + "\n\n" +
-                                buildWatermarkInfo(videoWatermark, locale))
+                        .text(staticTextAppender.process(ConverterCommandNames.VMARK,
+                                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_OK_WELCOME, locale) + "\n\n" +
+                                        buildWatermarkInfo(videoWatermark, locale)))
                         .replyMarkup(replyKeyboardService.watermarkOkKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
@@ -136,7 +142,7 @@ public class WatermarkOkState extends BaseWatermarkState {
             ConvertState convertState = createState(message, locale);
 
             workQueueJob.cancelCurrentTasks(message.getChatId());
-            convertionService.createConversion(message.getFrom(), convertState, Format.WATERMARK,locale);
+            convertionService.createConversion(message.getFrom(), convertState, Format.WATERMARK, locale);
         }
     }
 
@@ -174,7 +180,7 @@ public class WatermarkOkState extends BaseWatermarkState {
             String positionMessageCode = videoWatermark.getWatermarkPosition().name().toLowerCase().replace("_", ".");
             return localisationService.getMessage(
                     ConverterMessagesProperties.MESSAGE_TEXT_WATERMARK,
-                    new Object[] {
+                    new Object[]{
                             text + (videoWatermark.getText().length() > 128 ? "..." : ""),
                             videoWatermark.getFontSize() == null ? WatermarkTextFontSizeState.AUTO_SIZE : videoWatermark.getFontSize(),
                             videoWatermark.getColor().name().toLowerCase(),
@@ -186,7 +192,7 @@ public class WatermarkOkState extends BaseWatermarkState {
             String positionMessageCode = videoWatermark.getWatermarkPosition().name().toLowerCase().replace("_", ".");
             return localisationService.getMessage(
                     ConverterMessagesProperties.MESSAGE_IMAGE_WATERMARK,
-                    new Object[] {
+                    new Object[]{
                             videoWatermark.getWatermarkType().name(),
                             videoWatermark.getImageHeight() == null ? WatermarkImageSizeState.AUTO : videoWatermark.getImageHeight(),
                             videoWatermark.getTransparency(),

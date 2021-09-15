@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.Wate
 import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.WatermarkImageState;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.WatermarkStickerState;
 import ru.gadjini.telegram.converter.command.bot.watermark.video.state.file.WatermarkVideoState;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermarkType;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -21,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.StaticTextAppender;
 
 import java.util.Locale;
 
@@ -47,15 +49,18 @@ public class NoWatermarkState extends BaseWatermarkState {
 
     private WatermarkVideoState watermarkVideoState;
 
+    private StaticTextAppender staticTextAppender;
+
     @Autowired
     public NoWatermarkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                            CommandStateService commandStateService) {
+                            CommandStateService commandStateService, StaticTextAppender staticTextAppender) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
+        this.staticTextAppender = staticTextAppender;
     }
 
     @Autowired
@@ -89,7 +94,8 @@ public class NoWatermarkState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NO_WATERMARK_WELCOME, locale))
+                        .text(staticTextAppender.process(ConverterCommandNames.VMARK,
+                                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NO_WATERMARK_WELCOME, locale)))
                         .replyMarkup(replyKeyboardService.watermarkTypeKeyboard(message.getChatId(), locale, (Boolean) args[0]))
                         .parseMode(ParseMode.HTML)
                         .build()

@@ -34,6 +34,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.StaticTextAppender;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
@@ -68,13 +69,15 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
 
     private InlineKeyboardService inlineKeyboardService;
 
+    private StaticTextAppender staticTextAppender;
+
     @Autowired
     public VavMergeCommand(@TgMessageLimitsControl MessageService messageService,
                            LocalisationService localisationService, UserService userService,
                            @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                            CommandStateService commandStateService, MessageMediaService messageMediaService,
                            ConvertionService convertionService, ApplicationProperties applicationProperties,
-                           InlineKeyboardService inlineKeyboardService) {
+                           InlineKeyboardService inlineKeyboardService, StaticTextAppender staticTextAppender) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -84,6 +87,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
         this.convertionService = convertionService;
         this.applicationProperties = applicationProperties;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.staticTextAppender = staticTextAppender;
     }
 
     @Override
@@ -97,8 +101,9 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_WELCOME,
-                                new Object[] {AUDIOS_COUNT, SUBTITLES_COUNT}, locale))
+                        .text(staticTextAppender.process(getCommandIdentifier(),
+                                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_WELCOME,
+                                        new Object[]{AUDIOS_COUNT, SUBTITLES_COUNT}, locale)))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.vavmergeKeyboard(message.getChatId(), locale))
                         .build()
@@ -155,9 +160,9 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
             existsState.setAudioMode(requestParams.getString(ConverterArg.VAV_MERGE_AUDIO_MODE.getKey()));
             messageService.editKeyboard(callbackQuery.getMessage().getReplyMarkup(),
                     EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                    .messageId(callbackQuery.getMessage().getMessageId())
-                    .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
-                            new Locale(existsState.getUserLanguage()))).build(), false);
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
+                                    new Locale(existsState.getUserLanguage()))).build(), false);
             commandStateService.setState(callbackQuery.getFrom().getId(), getCommandIdentifier(), existsState);
         } else if (requestParams.contains(ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey())) {
             VavMergeState existsState = commandStateService.getState(callbackQuery.getFrom().getId(),
@@ -166,9 +171,9 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
 
             messageService.editKeyboard(callbackQuery.getMessage().getReplyMarkup(),
                     EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                    .messageId(callbackQuery.getMessage().getMessageId())
-                    .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
-                            new Locale(existsState.getUserLanguage()))).build(), false);
+                            .messageId(callbackQuery.getMessage().getMessageId())
+                            .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
+                                    new Locale(existsState.getUserLanguage()))).build(), false);
             commandStateService.setState(callbackQuery.getFrom().getId(), getCommandIdentifier(), existsState);
         } else if (requestParams.contains(ConverterArg.VAV_MERGE.getKey())) {
             VavMergeState existsState = commandStateService.getState(callbackQuery.getFrom().getId(),
@@ -253,7 +258,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
     private void checkMedia(MessageMedia media, Locale locale) {
         if (media == null || !ACCEPT_CATEGORIES.contains(media.getFormat().getCategory())) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_WELCOME,
-                    new Object[] {AUDIOS_COUNT, SUBTITLES_COUNT}, locale));
+                    new Object[]{AUDIOS_COUNT, SUBTITLES_COUNT}, locale));
         }
     }
 

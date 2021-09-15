@@ -33,43 +33,60 @@ public class FFmpegSubtitlesStreamConversionHelper {
             List<FFprobeDevice.Stream> subtitleStreams = allStreams.stream()
                     .filter(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
-            Integer input = subtitleStreams.iterator().next().getInput();
+
+            List<Integer> inputs = subtitleStreams.stream().map(FFprobeDevice.Stream::getInput).distinct().collect(Collectors.toList());
+            int subtitleStreamIndex = 0;
             Map<Integer, Boolean> copySubtitlesIndexes = new LinkedHashMap<>();
             Map<Integer, Integer> validSubtitlesIndexes = new LinkedHashMap<>();
             int ffmpegSubtitleStreamIndex = 0;
             int copyable = 0, convertable = 1, ignore = 2;
             Map<String, Integer> streamsCache = new HashMap<>();
-            for (int subtitleStreamIndex = 0; subtitleStreamIndex < subtitleStreams.size(); ++subtitleStreamIndex) {
-                FFprobeDevice.Stream subtitleStream = subtitleStreams.get(subtitleStreamIndex);
-                if (streamsCache.containsKey(subtitleStream.getCodecName())) {
-                    int state = streamsCache.get(subtitleStream.getCodecName());
-                    if (state == convertable) {
-                        int nextIndex = ffmpegSubtitleStreamIndex++;
-                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
-                        copySubtitlesIndexes.put(nextIndex, false);
-                    } else if (state == copyable) {
-                        int nextIndex = ffmpegSubtitleStreamIndex++;
-                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
-                        copySubtitlesIndexes.put(nextIndex, true);
-                    }
-                } else {
-                    if (isSubtitlesCopyable(baseCommand, result, input, subtitleStreamIndex)) {
-                        int nextIndex = ffmpegSubtitleStreamIndex++;
-                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
-                        copySubtitlesIndexes.put(nextIndex, true);
-                        streamsCache.put(subtitleStream.getCodecName(), copyable);
-                    } else if (isSubtitlesConvertable(baseCommand, result, input, subtitleStreamIndex, targetFormat)) {
-                        int nextIndex = ffmpegSubtitleStreamIndex++;
-                        validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
-                        copySubtitlesIndexes.put(nextIndex, false);
-                        streamsCache.put(subtitleStream.getCodecName(), convertable);
+
+            List<Integer> validInputs = new ArrayList<>();
+            for (Integer input : inputs) {
+                List<FFprobeDevice.Stream> byInput = subtitleStreams.stream()
+                        .filter(s -> input.equals(s.getInput()))
+                        .collect(Collectors.toList());
+
+                int prevValidStreamsSize = validSubtitlesIndexes.size();
+                for (FFprobeDevice.Stream subtitleStream : byInput) {
+                    if (streamsCache.containsKey(subtitleStream.getCodecName())) {
+                        int state = streamsCache.get(subtitleStream.getCodecName());
+                        if (state == convertable) {
+                            int nextIndex = ffmpegSubtitleStreamIndex++;
+                            validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                            copySubtitlesIndexes.put(nextIndex, false);
+                        } else if (state == copyable) {
+                            int nextIndex = ffmpegSubtitleStreamIndex++;
+                            validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                            copySubtitlesIndexes.put(nextIndex, true);
+                        }
                     } else {
-                        streamsCache.put(subtitleStream.getCodecName(), ignore);
+                        if (isSubtitlesCopyable(baseCommand, result, input, subtitleStreamIndex)) {
+                            int nextIndex = ffmpegSubtitleStreamIndex++;
+                            validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                            copySubtitlesIndexes.put(nextIndex, true);
+                            streamsCache.put(subtitleStream.getCodecName(), copyable);
+                        } else if (isSubtitlesConvertable(baseCommand, result, input, subtitleStreamIndex, targetFormat)) {
+                            int nextIndex = ffmpegSubtitleStreamIndex++;
+                            validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
+                            copySubtitlesIndexes.put(nextIndex, false);
+                            streamsCache.put(subtitleStream.getCodecName(), convertable);
+                        } else {
+                            streamsCache.put(subtitleStream.getCodecName(), ignore);
+                        }
                     }
+                    ++subtitleStreamIndex;
+                }
+                if (prevValidStreamsSize != validSubtitlesIndexes.size()) {
+                    validInputs.add(input);
                 }
             }
+
+            for (Integer validInput : validInputs) {
+                commandBuilder.mapSubtitlesInput(validInput);
+            }
             if (validSubtitlesIndexes.size() == subtitleStreams.size()) {
-                commandBuilder.mapSubtitlesInput(input);
                 if (copySubtitlesIndexes.values().stream().allMatch(a -> a)) {
                     commandBuilder.copySubtitles();
                 } else if (copySubtitlesIndexes.values().stream().noneMatch(a -> a)) {
@@ -85,7 +102,6 @@ public class FFmpegSubtitlesStreamConversionHelper {
                 }
             } else {
                 validSubtitlesIndexes.forEach((subtitlesIndex, mapIndex) -> {
-                    commandBuilder.mapSubtitles(input, mapIndex);
                     if (copySubtitlesIndexes.get(subtitlesIndex)) {
                         commandBuilder.copySubtitles(subtitlesIndex);
                     } else {

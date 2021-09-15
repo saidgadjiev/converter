@@ -97,7 +97,7 @@ public class VMarkCommand implements BotCommand, NavigableBotCommand {
                     Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
                     if (localisationService.getMessage(ConverterMessagesProperties.CHANGE_WATERMARK_COMMAND_NAME,
                             locale).equals(text)
-                    || localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION,
+                            || localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION,
                             locale).equals(text)) {
                         return videoWatermarkStateInitializer.initAndGet(message, this);
                     }

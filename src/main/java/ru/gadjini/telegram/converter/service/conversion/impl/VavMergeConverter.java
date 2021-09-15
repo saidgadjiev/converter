@@ -169,7 +169,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                     subtitlesStreams.addAll(allStreams);
                     ++subtitlesInput;
                 }
-                subtitlesStreams.addAll(ADD_SUBTITLES_MODE.equals(settingsState.getVavMergeAudioMode()) ? videoStreamsForConversion : List.of());
+                subtitlesStreams.addAll(ADD_SUBTITLES_MODE.equals(settingsState.getVavMergeSubtitlesMode()) ? videoStreamsForConversion : List.of());
                 fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, subtitlesStreams, result, targetFormat);
             }
             if (WEBM.equals(targetFormat)) {
