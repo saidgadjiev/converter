@@ -49,7 +49,8 @@ public class FFmpegSubtitlesStreamConversionHelper {
                         .collect(Collectors.toList());
 
                 int prevValidStreamsSize = validSubtitlesIndexes.size();
-                for (FFprobeDevice.Stream subtitleStream : byInput) {
+                for (int i = 0; i < byInput.size(); ++i) {
+                    FFprobeDevice.Stream subtitleStream = byInput.get(i);
                     if (streamsCache.containsKey(subtitleStream.getCodecName())) {
                         int state = streamsCache.get(subtitleStream.getCodecName());
                         if (state == convertable) {
@@ -62,12 +63,12 @@ public class FFmpegSubtitlesStreamConversionHelper {
                             copySubtitlesIndexes.put(nextIndex, true);
                         }
                     } else {
-                        if (isSubtitlesCopyable(baseCommand, result, input, subtitleStreamIndex)) {
+                        if (isSubtitlesCopyable(baseCommand, result, input, i)) {
                             int nextIndex = ffmpegSubtitleStreamIndex++;
                             validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
                             copySubtitlesIndexes.put(nextIndex, true);
                             streamsCache.put(subtitleStream.getCodecName(), copyable);
-                        } else if (isSubtitlesConvertable(baseCommand, result, input, subtitleStreamIndex, targetFormat)) {
+                        } else if (isSubtitlesConvertable(baseCommand, result, input, i, targetFormat)) {
                             int nextIndex = ffmpegSubtitleStreamIndex++;
                             validSubtitlesIndexes.put(nextIndex, subtitleStreamIndex);
                             copySubtitlesIndexes.put(nextIndex, false);

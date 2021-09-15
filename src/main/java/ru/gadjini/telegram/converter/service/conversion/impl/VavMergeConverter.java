@@ -160,7 +160,8 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
             }
             if (!subtitles.isEmpty()) {
                 int subtitlesInput = audios.size() + 1;
-                List<FFprobeDevice.Stream> subtitlesStreams = new ArrayList<>(videoStreamsForConversion);
+                List<FFprobeDevice.Stream> subtitlesStreams = new ArrayList<>();
+
                 for (SmartTempFile subtitle : subtitles) {
                     List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(subtitle.getAbsolutePath());
                     for (FFprobeDevice.Stream stream : allStreams) {

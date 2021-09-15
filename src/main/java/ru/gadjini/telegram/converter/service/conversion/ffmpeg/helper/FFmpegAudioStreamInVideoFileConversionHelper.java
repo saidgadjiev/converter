@@ -152,9 +152,10 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                         .filter(s -> input.equals(s.getInput()))
                         .collect(Collectors.toList());
 
-                for (FFprobeDevice.Stream audioStream : byInput) {
+                for (int i = 0; i < byInput.size(); ++i) {
+                    FFprobeDevice.Stream audioStream = byInput.get(i);
                     if ((audioBitrate == null || Objects.equals(audioBitrate, audioStream.getBitRate()))
-                            && isCopyableAudioCodecs(baseCommand, out, input, audioStreamIndex)) {
+                            && isCopyableAudioCodecs(baseCommand, out, input, i)) {
                         copyAudiosIndexes.put(audioStreamIndex, true);
                     } else {
                         copyAudiosIndexes.put(audioStreamIndex, false);
@@ -276,7 +277,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
             return false;
         }
 
-        if (!Objects.equals(audioBitrate, stream.getBitRate())) {
+        if (audioBitrate != null && !Objects.equals(audioBitrate, stream.getBitRate())) {
             return false;
         }
 
