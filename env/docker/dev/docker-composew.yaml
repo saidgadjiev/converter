@@ -5,41 +5,40 @@ services:
     restart: always
     build:
       context: ../../../
-      dockerfile: videoaudio/Dockerfile
+      dockerfile: video/Dockerfile
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom
-      - ../../../data/shr:/tmp/shr
+      - ../../../data/media/downloads:/tmp/media/downloads
+      - ../../../data/media/uploads:/tmp/media/uploads
+      - ../../../data/media/temp:/tmp/media/temp
       - ../../../../fonts:/usr/share/fonts/converter
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
     ports:
       - 5005:5005
-    mem_limit: 4g
-    memswap_limit: 8g
     env_file:
       - .env
-    depends_on:
-      - url2api
+    networks:
+      smartnet:
+        ipv4_address: 170.20.0.6
   audioconverter:
     container_name: audioconverter
     restart: always
     build:
       context: ../../../
-      dockerfile: videoaudio/Dockerfile
+      dockerfile: audio/Dockerfile
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom
-      - ../../../data/shr:/tmp/shr
+      - ../../../data/media/downloads:/tmp/media/downloads
+      - ../../../data/media/uploads:/tmp/media/uploads
+      - ../../../data/media/temp:/tmp/media/temp
       - ../../../../fonts:/usr/share/fonts/converter
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
     ports:
       - 5005:5005
-    mem_limit: 4g
-    memswap_limit: 8g
     env_file:
       - .env
-    depends_on:
-      - url2api
   documentconverter:
     container_name: documentconverter
     restart: always
@@ -49,13 +48,13 @@ services:
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/converter/oom:/home/bot/app/oom
-      - ../../../data/shr:/tmp/shr
+      - ../../../data/media/downloads:/tmp/media/downloads
+      - ../../../data/media/uploads:/tmp/media/uploads
+      - ../../../data/media/temp:/tmp/media/temp
       - ../../../../fonts:/usr/share/fonts/converter
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
     ports:
       - 5005:5005
-    mem_limit: 4g
-    memswap_limit: 8g
     env_file:
       - .env
     depends_on:

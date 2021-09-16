@@ -13,7 +13,6 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
-import ru.gadjini.telegram.converter.service.conversion.impl.VideoSampler;
 import ru.gadjini.telegram.converter.service.conversion.impl.VideoScreenshotTaker;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
