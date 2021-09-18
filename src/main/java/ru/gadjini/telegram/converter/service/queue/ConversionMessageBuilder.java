@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -86,13 +87,17 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     public String getWelcomeMessage(Locale locale) {
         if (FormatsConfiguration.ALL_CONVERTER.equals(applicationProperties.getConverter())) {
-            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_FILE, locale);
+            return localisationService.getCommandWelcomeMessage(CommandNames.START_COMMAND_NAME,
+                    ConverterMessagesProperties.MESSAGE_CONVERT_FILE, locale);
         } else if (FormatsConfiguration.DOCUMENT_CONVERTER.equals(applicationProperties.getConverter())) {
-            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_DOCUMENT_FILE, locale);
+            return localisationService.getCommandWelcomeMessage(CommandNames.START_COMMAND_NAME,
+                    ConverterMessagesProperties.MESSAGE_CONVERT_DOCUMENT_FILE, locale);
         } else if (FormatsConfiguration.AUDIO_CONVERTER.equals(applicationProperties.getConverter())) {
-            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_AUDIO_FILE, locale);
+            return localisationService.getCommandWelcomeMessage(CommandNames.START_COMMAND_NAME,
+                    ConverterMessagesProperties.MESSAGE_CONVERT_AUDIO_FILE, locale);
         } else {
-            return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONVERT_VIDEO_FILE, locale);
+            return localisationService.getCommandWelcomeMessage(CommandNames.START_COMMAND_NAME,
+                    ConverterMessagesProperties.MESSAGE_CONVERT_VIDEO_FILE, locale);
         }
     }
 

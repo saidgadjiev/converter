@@ -90,7 +90,8 @@ public class VScreenshotCommand implements BotCommand, NavigableBotCommand {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VSCREENSHOT_WELCOME, locale))
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                ConverterMessagesProperties.MESSAGE_VSCREENSHOT_WELCOME, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.screenshotVideoKeyboard(message.getChatId(), locale))
                         .build()

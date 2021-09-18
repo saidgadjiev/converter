@@ -80,7 +80,8 @@ public class CutMediaCommand implements BotCommand, NavigableBotCommand {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_MEDIA_CUT_WELCOME,
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                ConverterMessagesProperties.MESSAGE_MEDIA_CUT_WELCOME,
                                 new Object[]{cutMediaConfigurator.getMediaTypeName(locale)}, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.mediaCutKeyboard(message.getChatId(), locale))

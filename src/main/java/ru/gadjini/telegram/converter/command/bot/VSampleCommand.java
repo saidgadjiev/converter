@@ -89,7 +89,8 @@ public class VSampleCommand implements BotCommand, NavigableBotCommand {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VSAMPLE_WELCOME, locale))
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                ConverterMessagesProperties.MESSAGE_VSAMPLE_WELCOME, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.sampleVideoKeyboard(message.getChatId(), locale))
                         .build()

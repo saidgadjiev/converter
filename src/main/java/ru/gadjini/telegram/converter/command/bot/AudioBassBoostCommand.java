@@ -122,7 +122,8 @@ public class AudioBassBoostCommand implements BotCommand, NavigableBotCommand, C
 
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_BASS_BOOST_WELCOME, locale))
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                 ConverterMessagesProperties.MESSAGE_AUDIO_BASS_BOOST_WELCOME, locale))
                         .replyMarkup(replyKeyboardService.audioBassBoostKeyboard(message.getChatId(), locale))
                         .build()
         );

@@ -109,7 +109,8 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
 
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_WELCOME, locale))
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_WELCOME, locale))
                         .replyMarkup(replyKeyboardService.audioCompressionKeyboard(message.getChatId(), locale))
                         .build()
         );

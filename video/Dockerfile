@@ -109,6 +109,8 @@ RUN git clone https://github.com/saidgadjiev/tgs-to-gif.git
 RUN cd tgs-to-gif && npm install
 
 USER root
+RUN apt-get update -y
+RUN apt-get install -y libxss1
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
@@ -118,5 +120,5 @@ COPY ./target/app.jar .
 
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-#ENTRYPOINT ["java", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+#ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]

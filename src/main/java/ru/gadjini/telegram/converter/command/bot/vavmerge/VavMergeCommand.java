@@ -34,7 +34,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.message.StaticTextAppender;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
@@ -69,15 +68,13 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private StaticTextAppender staticTextAppender;
-
     @Autowired
     public VavMergeCommand(@TgMessageLimitsControl MessageService messageService,
                            LocalisationService localisationService, UserService userService,
                            @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                            CommandStateService commandStateService, MessageMediaService messageMediaService,
                            ConvertionService convertionService, ApplicationProperties applicationProperties,
-                           InlineKeyboardService inlineKeyboardService, StaticTextAppender staticTextAppender) {
+                           InlineKeyboardService inlineKeyboardService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -87,7 +84,6 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
         this.convertionService = convertionService;
         this.applicationProperties = applicationProperties;
         this.inlineKeyboardService = inlineKeyboardService;
-        this.staticTextAppender = staticTextAppender;
     }
 
     @Override
@@ -101,9 +97,9 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(staticTextAppender.process(getCommandIdentifier(),
-                                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VAVMERGE_WELCOME,
-                                        new Object[]{AUDIOS_COUNT, SUBTITLES_COUNT}, locale)))
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                ConverterMessagesProperties.MESSAGE_VAVMERGE_WELCOME,
+                                new Object[]{AUDIOS_COUNT, SUBTITLES_COUNT}, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.vavmergeKeyboard(message.getChatId(), locale))
                         .build()

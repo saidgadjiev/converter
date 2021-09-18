@@ -60,7 +60,7 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
             commandBuilder.hideBanner().quite().input(in.getAbsolutePath());
 
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(in.getAbsolutePath(), 0);
-            if (whd.getDuration() == null || whd.getDuration() > 60) {
+            if (whd.getDuration() == null || whd.getDuration() > 300) {
                 throw new UserException(localisationService.getMessage(
                         ConverterMessagesProperties.MESSAGE_VIDEO_2_GIF_MAX_LENGTH, userService.getLocaleOrDefault(fileQueueItem.getUserId())
                 ));

@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.audio.AMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.audio.settings.AudioWatermarkSettings;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
@@ -64,7 +65,8 @@ public class AudioNoWatermarkState extends BaseAudioWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_NO_WATERMARK_WELCOME, locale))
+                        .text(localisationService.getCommandWelcomeMessage(ConverterCommandNames.AMARK,
+                                ConverterMessagesProperties.MESSAGE_AUDIO_NO_WATERMARK_WELCOME, locale))
                         .replyMarkup(replyKeyboardService.audioWatermarkAudioKeyboard(message.getChatId(), locale, (Boolean) args[0]))
                         .parseMode(ParseMode.HTML)
                         .build()

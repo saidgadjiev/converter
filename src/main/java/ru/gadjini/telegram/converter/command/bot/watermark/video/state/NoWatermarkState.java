@@ -22,7 +22,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.message.StaticTextAppender;
 
 import java.util.Locale;
 
@@ -49,18 +48,15 @@ public class NoWatermarkState extends BaseWatermarkState {
 
     private WatermarkVideoState watermarkVideoState;
 
-    private StaticTextAppender staticTextAppender;
-
     @Autowired
     public NoWatermarkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
-                            CommandStateService commandStateService, StaticTextAppender staticTextAppender) {
+                            CommandStateService commandStateService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandStateService = commandStateService;
-        this.staticTextAppender = staticTextAppender;
     }
 
     @Autowired
@@ -94,8 +90,8 @@ public class NoWatermarkState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(staticTextAppender.process(ConverterCommandNames.VMARK,
-                                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_NO_WATERMARK_WELCOME, locale)))
+                        .text(localisationService.getCommandWelcomeMessage(ConverterCommandNames.VMARK,
+                                ConverterMessagesProperties.MESSAGE_NO_WATERMARK_WELCOME, locale))
                         .replyMarkup(replyKeyboardService.watermarkTypeKeyboard(message.getChatId(), locale, (Boolean) args[0]))
                         .parseMode(ParseMode.HTML)
                         .build()

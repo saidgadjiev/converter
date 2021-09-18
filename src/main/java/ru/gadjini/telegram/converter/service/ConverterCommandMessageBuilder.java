@@ -54,6 +54,8 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.VAIMAKE).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VAIMAKE_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.CUT_VIDEO).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.CUT_VIDEO_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.VMARK).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VMARK_COMMAND_DESCRIPTION, locale)).append("\n");
+            info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.VSAMPLE).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VSAMPLE_COMMAND_DESCRIPTION, locale)).append("\n");
+            info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.VSCREENSHOT).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VSCREENSHOT_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(ConverterCommandNames.CONCATENATE_VIDEOS).append(" - ").append(localisationService.getMessage(ConverterMessagesProperties.VMERGE_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(SmartWorkCommandNames.SMART_FILE_FEATURE).append(" - ").append(localisationService.getMessage(SmartWorkMessageProperties.SMARTFILE_COMMAND_DESCRIPTION, locale)).append("\n");
         }

@@ -73,7 +73,8 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CONCATENATE_FILES_WELCOME,
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                ConverterMessagesProperties.MESSAGE_CONCATENATE_FILES_WELCOME,
                                 new Object[]{mergeFilesConfigurator.getMediaTypeName(locale), mergeFilesConfigurator.getMaxFiles()}, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.mergeFilesKeyboard(message.getChatId(), locale))

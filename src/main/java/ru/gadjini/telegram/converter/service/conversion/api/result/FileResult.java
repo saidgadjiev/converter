@@ -73,6 +73,10 @@ public class FileResult implements ConversionResult {
         return caption;
     }
 
+    public void setCaption(String caption) {
+        this.caption = caption;
+    }
+
     @Override
     public ResultType resultType() {
         return ResultType.FILE;

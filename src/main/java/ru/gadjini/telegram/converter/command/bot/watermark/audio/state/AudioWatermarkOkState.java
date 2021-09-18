@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.watermark.audio.AMarkCommand;
 import ru.gadjini.telegram.converter.command.bot.watermark.audio.settings.AudioWatermarkSettings;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -164,6 +165,6 @@ public class AudioWatermarkOkState extends BaseAudioWatermarkState {
     }
 
     private String buildWatermarkInfo(Locale locale) {
-        return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_WATERMARK, locale);
+        return localisationService.getCommandWelcomeMessage(ConverterCommandNames.AMARK, ConverterMessagesProperties.MESSAGE_AUDIO_WATERMARK, locale);
     }
 }

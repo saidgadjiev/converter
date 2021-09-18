@@ -28,7 +28,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.message.StaticTextAppender;
 
 import java.util.Locale;
 
@@ -57,15 +56,13 @@ public class WatermarkOkState extends BaseWatermarkState {
 
     private WorkQueueJob workQueueJob;
 
-    private StaticTextAppender staticTextAppender;
-
     @Autowired
     public WatermarkOkState(@TgMessageLimitsControl MessageService messageService, LocalisationService localisationService,
                             UserService userService, @KeyboardHolder ConverterReplyKeyboardService replyKeyboardService,
                             CommandStateService commandStateService,
                             VideoWatermarkService videoWatermarkService,
                             MessageMediaService messageMediaService,
-                            ConvertionService convertionService, StaticTextAppender staticTextAppender) {
+                            ConvertionService convertionService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -74,7 +71,6 @@ public class WatermarkOkState extends BaseWatermarkState {
         this.videoWatermarkService = videoWatermarkService;
         this.messageMediaService = messageMediaService;
         this.convertionService = convertionService;
-        this.staticTextAppender = staticTextAppender;
     }
 
     @Autowired
@@ -99,9 +95,8 @@ public class WatermarkOkState extends BaseWatermarkState {
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(staticTextAppender.process(ConverterCommandNames.VMARK,
-                                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_OK_WELCOME, locale) + "\n\n" +
-                                        buildWatermarkInfo(videoWatermark, locale)))
+                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_OK_WELCOME, locale) + "\n\n" +
+                                buildWatermarkInfo(videoWatermark, locale))
                         .replyMarkup(replyKeyboardService.watermarkOkKeyboard(message.getChatId(), locale))
                         .parseMode(ParseMode.HTML)
                         .build()
@@ -178,7 +173,8 @@ public class WatermarkOkState extends BaseWatermarkState {
         if (videoWatermark.getWatermarkType() == VideoWatermarkType.TEXT) {
             String text = StringUtils.substring(videoWatermark.getText(), 0, 128);
             String positionMessageCode = videoWatermark.getWatermarkPosition().name().toLowerCase().replace("_", ".");
-            return localisationService.getMessage(
+            return localisationService.getCommandWelcomeMessage(
+                    ConverterCommandNames.VMARK,
                     ConverterMessagesProperties.MESSAGE_TEXT_WATERMARK,
                     new Object[]{
                             text + (videoWatermark.getText().length() > 128 ? "..." : ""),
@@ -190,7 +186,8 @@ public class WatermarkOkState extends BaseWatermarkState {
             );
         } else {
             String positionMessageCode = videoWatermark.getWatermarkPosition().name().toLowerCase().replace("_", ".");
-            return localisationService.getMessage(
+            return localisationService.getCommandWelcomeMessage(
+                    ConverterCommandNames.VMARK,
                     ConverterMessagesProperties.MESSAGE_IMAGE_WATERMARK,
                     new Object[]{
                             videoWatermark.getWatermarkType().name(),

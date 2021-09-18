@@ -102,7 +102,8 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         messageService.sendMessage(
                 SendMessage.builder()
                         .chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_WELCOME, locale))
+                        .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
+                                ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_WELCOME, locale))
                         .parseMode(ParseMode.HTML)
                         .replyMarkup(replyKeyboardService.videoEditKeyboard(message.getChatId(), locale))
                         .build()
