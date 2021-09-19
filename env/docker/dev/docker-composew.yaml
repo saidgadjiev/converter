@@ -39,6 +39,9 @@ services:
       - 5005:5005
     env_file:
       - .env
+    networks:
+      smartnet:
+        ipv4_address: 170.20.0.7
   documentconverter:
     container_name: documentconverter
     restart: always

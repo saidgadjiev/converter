@@ -44,7 +44,10 @@ public class AudioBassBoostCommand implements BotCommand, NavigableBotCommand, C
     private static final List<String> BASS_BOOST = new ArrayList<>();
 
     static {
-        for (int i = -20; i < 20; i += 2) {
+        for (int i = -20; i <= 20; i += 2) {
+            if (i == 0) {
+                continue;
+            }
             BASS_BOOST.add(String.valueOf(i));
         }
     }
