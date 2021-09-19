@@ -112,6 +112,21 @@ USER root
 RUN apt-get update -y
 RUN apt-get install -y libxss1
 
+#Image magick
+RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+RUN apt-get update -y && apt-get -y build-dep imagemagick && \
+apt-get install -y libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev libheif-dev
+
+RUN echo 'Imagemagick 7.0.10-19'
+RUN cd /usr/src/ && \
+wget https://www.imagemagick.org/download/ImageMagick.tar.bz2 && \
+tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \
+./configure && make -j 4 && \
+make install && \
+make distclean && ldconfig
+
+RUN rm /usr/src/ImageMagick.tar.bz2
+
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
 USER bot
