@@ -121,7 +121,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
             }
 
             if (targetFormat.canBeSentAsVideo()) {
-                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion,
+                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, result, videoStreamsForConversion,
                         targetFormat, conversionQueueItem.getSize());
             } else {
                 fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, videoStreamsForConversion, targetFormat,

@@ -63,6 +63,8 @@ public class FFmpegDevice {
 
     private boolean isOkay(String result) {
         return !result.contains("Conversion failed!")
+                && !result.contains("Timestamps are unset in a packet for stream")
+                && !result.contains("Non-monotonous DTS in output stream")
                 && !result.contains("Unsupported audio codec")
                 && !result.contains("Could not find tag for codec")
                 && !result.contains("Could not write header for output file")

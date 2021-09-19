@@ -69,7 +69,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
 
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
+                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, result, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
             } else {
                 fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
             }
