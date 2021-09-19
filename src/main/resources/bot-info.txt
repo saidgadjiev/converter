@@ -18,6 +18,7 @@ Commands:
 #Document
 start - restart the bot
 mergepdfs - merge pdf files
+tutorials - get all tutorials
 botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription
@@ -37,6 +38,7 @@ vmerge - merge videos
 vsample - create video sample
 vscreenshot - create video screenshot
 smartfile - smart file feature
+tutorials - get all tutorials
 botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription
@@ -52,6 +54,7 @@ amerge - merge audios
 acut - cut audio
 amark - add watermark to audio
 abass - audio bass boost
+tutorials - get all tutorials
 botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription
@@ -77,6 +80,7 @@ vmark - add watermark to video
 smartfile - smart file feature
 acompress - Compress audio
 mergepdfs - merge pdf files
+tutorials - get all tutorials
 botlist - list of all our bots
 subscription - check subscription
 refreshsub - refresh subscription

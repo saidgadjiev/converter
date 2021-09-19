@@ -63,6 +63,7 @@ public class ConverterCommandMessageBuilder implements CommandMessageBuilder {
             info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.SUBSCRIPTION).append(" - ").append(localisationService.getMessage(MessagesProperties.SUBSCRIPTION_COMMAND_DESCRIPTION, locale)).append("\n");
             info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.REFRESH_SUBSCRIPTION).append(" - ").append(localisationService.getMessage(MessagesProperties.REFRESH_SUBSCRIPTION_COMMAND_DESCRIPTION, locale)).append("\n");
         }
+        info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.TUTORIALS_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.TUTORIALS_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.BOTLIST).append(" - ").append(localisationService.getMessage(MessagesProperties.BOTLIST_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.TIME_COMMAND).append(" - ").append(localisationService.getMessage(MessagesProperties.BOT_TIME_COMMAND_DESCRIPTION, locale)).append("\n");
         info.append(CommandParser.COMMAND_START_CHAR).append(CommandNames.LANGUAGE_COMMAND_NAME).append(" - ").append(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_DESCRIPTION, locale)).append("\n");
