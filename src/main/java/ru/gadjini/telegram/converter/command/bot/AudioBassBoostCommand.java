@@ -22,6 +22,7 @@ import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
@@ -101,7 +102,7 @@ public class AudioBassBoostCommand implements BotCommand, NavigableBotCommand, C
 
     @Override
     public String getParentCommandName(long chatId) {
-        return ConverterCommandNames.BASS_BOOST;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override
