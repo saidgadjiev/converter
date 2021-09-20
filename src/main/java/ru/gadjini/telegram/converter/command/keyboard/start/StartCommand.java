@@ -324,7 +324,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
         }
         if (Objects.equals(format, target)) {
             LOGGER.warn("Same formats({}, {})", userId, format);
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT,
+                    new Object[]{format.getName()}, locale));
         }
         if (target == Format.VIDEO_NOTE) {
             validateVideoNote(format, size, locale);
