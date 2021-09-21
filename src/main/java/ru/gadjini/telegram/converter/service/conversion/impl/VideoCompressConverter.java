@@ -14,6 +14,8 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionRes
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -62,11 +64,13 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private CaptionGenerator captionGenerator;
 
+    private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
                                   FFmpegVideoCommandPreparer videoStreamsChangeHelper,
-                                  CaptionGenerator captionGenerator) {
+                                  CaptionGenerator captionGenerator, FFmpegVideoStreamConversionHelper videoStreamConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -75,6 +79,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.messageBuilder = messageBuilder;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
         this.captionGenerator = captionGenerator;
+        this.videoStreamConversionHelper = videoStreamConversionHelper;
     }
 
     @Override
@@ -87,12 +92,15 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
 
             List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
+                    videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, SCALE,
                     fileQueueItem.getFirstFileFormat(), false, null);
             commandBuilder.crf("30");
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+
+            fFmpegDevice.execute(commandBuilder.buildFullCommand(), new FFmpegProgressCallbackHandler(whd.getDuration()));
 
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                     fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(result.length()));
@@ -107,7 +115,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             String compessionInfo = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), result.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), compessionInfo);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
                         whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {

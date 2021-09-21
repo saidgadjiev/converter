@@ -3,6 +3,8 @@ package ru.gadjini.telegram.converter.service.ffmpeg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.process.FFmpegProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.process.FFmpegProgressCallback;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,9 +19,12 @@ public class FFmpegDevice {
 
     private ProcessExecutor processExecutor;
 
+    private FFmpegProcessExecutor fFmpegProcessExecutor;
+
     @Autowired
-    public FFmpegDevice(ProcessExecutor processExecutor) {
+    public FFmpegDevice(ProcessExecutor processExecutor, FFmpegProcessExecutor fFmpegProcessExecutor) {
         this.processExecutor = processExecutor;
+        this.fFmpegProcessExecutor = fFmpegProcessExecutor;
     }
 
     public void convert(String in, String out, String... options) throws InterruptedException {
@@ -28,6 +33,10 @@ public class FFmpegDevice {
 
     public void execute(String ... command) throws InterruptedException {
         processExecutor.execute(command, Set.of(139));
+    }
+
+    public void execute(String [] command, FFmpegProgressCallback progressCallback) throws InterruptedException {
+        fFmpegProcessExecutor.execute(command, progressCallback);
     }
 
     public boolean isChannelMapError(String ... command) throws InterruptedException {

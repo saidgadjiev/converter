@@ -146,6 +146,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             () -> cancelChecker != null && cancelChecker.get(),
                             () -> canceledByUser);
 
+                    sendConvertingFinishedProgress(fileQueueItem);
                     sendResult(fileQueueItem, convertResult);
                 }
                 LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), size);
@@ -210,8 +211,23 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                                     .replyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale))
                                     .build());
                 } catch (Exception e) {
-                    LOGGER.error("Ignore exception\n" + e.getMessage());
+                    LOGGER.error("Ignore exception\n{}", e.getMessage());
                 }
+            }
+        }
+
+        private void sendConvertingFinishedProgress(ConversionQueueItem conversionQueueItem) {
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            String uploadingProgressMessage = messageBuilder.getConversionProcessingMessage(conversionQueueItem,
+                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING, ConversionStep.CONVERTING), locale);
+            try {
+                messageService.editMessage(
+                        EditMessageText.builder().chatId(String.valueOf(conversionQueueItem.getUserId()))
+                                .messageId(conversionQueueItem.getProgressMessageId()).text(uploadingProgressMessage)
+                                .replyMarkup(smartInlineKeyboardService.getWaitingKeyboard(conversionQueueItem.getId(), locale))
+                                .build());
+            } catch (Exception e) {
+                LOGGER.error("Ignore exception\n{}", e.getMessage());
             }
         }
 
