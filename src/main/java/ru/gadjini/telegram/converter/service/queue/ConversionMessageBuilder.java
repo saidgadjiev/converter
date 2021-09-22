@@ -277,8 +277,8 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         String percentageEscape = conversionStep.equals(ConversionStep.CONVERTING) ? withPercentage || withEtaStart ? "%%" : "%" : "%";
         String progressPart = withPercentage ? " (%s%%)</b>\n" : " ...</b>\n";
         String percentageCompleted = withPercentage ? " <b>(100%)</b>" + iconCheck : iconCheck;
-        String eta = withEtaStart ? localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ETA, locale) + " %s\n" +
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SPEED, locale) + " %s\n" : "";
+        String eta = withEtaStart ? "<pre>" + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ETA, locale) + " %s</pre>\n" +
+                "<pre>" + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SPEED, locale) + " %s</pre>\n" : "";
 
         switch (conversionStep) {
             case WAITING:
