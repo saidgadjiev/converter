@@ -18,6 +18,8 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkService;
@@ -75,6 +77,8 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
     private TempFileGarbageCollector tempFileGarbageCollector;
 
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
     @Autowired
     public FFmpegVideoWatermarkAdder(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                                      VideoWatermarkService videoWatermarkService,
@@ -82,7 +86,9 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                                      FFmpegDevice fFmpegDevice, FFmpegSubtitlesStreamConversionHelper subtitlesHelper,
                                      FontProperties fontProperties, CaptionGenerator captionGenerator,
                                      LocalisationService localisationService, Tgs2GifConverter tgs2GifConverter,
-                                     Video2GifConverter video2GifConverter, UserService userService, TempFileGarbageCollector tempFileGarbageCollector) {
+                                     Video2GifConverter video2GifConverter, UserService userService,
+                                     TempFileGarbageCollector tempFileGarbageCollector,
+                                     FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoWatermarkService = videoWatermarkService;
@@ -97,6 +103,12 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         this.video2GifConverter = video2GifConverter;
         this.userService = userService;
         this.tempFileGarbageCollector = tempFileGarbageCollector;
+        this.callbackHandlerFactory = callbackHandlerFactory;
+    }
+
+    @Override
+    public boolean supportsProgress() {
+        return true;
     }
 
     @Override
@@ -168,14 +180,15 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             commandBuilder.fastConversion().defaultOptions();
             commandBuilder.out(result.getAbsolutePath());
 
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(video.getAbsolutePath(), 0);
+            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, wdh.getDuration(),
+                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
-
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), wdh.getWidth(), wdh.getHeight(),
                         wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
             } else {

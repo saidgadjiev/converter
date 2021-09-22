@@ -13,6 +13,8 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -55,13 +57,17 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
     private CaptionGenerator captionGenerator;
 
     @Autowired
     public MakeVideoSquare(FFmpegDevice fFmpegDevice, LocalisationService localisationService,
                            UserService userService, FFprobeDevice fFprobeDevice,
                            FFmpegVideoCommandPreparer videoStreamsChangeHelper,
-                           FFmpegVideoStreamConversionHelper fFmpegVideoHelper, CaptionGenerator captionGenerator) {
+                           FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
+                           FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
+                           CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -69,7 +75,13 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         this.fFprobeDevice = fFprobeDevice;
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
+        this.callbackHandlerFactory = callbackHandlerFactory;
         this.captionGenerator = captionGenerator;
+    }
+
+    @Override
+    public boolean supportsProgress() {
+        return true;
     }
 
     @Override
@@ -94,7 +106,10 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
                     TARGET_FORMAT, true, fileQueueItem.getSize());
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+
+            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
+                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), TARGET_FORMAT.getExt());
 

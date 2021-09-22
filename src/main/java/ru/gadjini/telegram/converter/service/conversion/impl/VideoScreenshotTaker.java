@@ -90,7 +90,7 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Period sp = getStartPoint(srcWhd, settingsState);
-            String startPoint = PERIOD_FORMATTER.print(sp);
+            String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
 
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 

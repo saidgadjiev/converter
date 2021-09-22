@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.*;
@@ -20,7 +19,8 @@ import ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.queue.ConversionStep;
-import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TelegramMediaLimitsControl;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TelegramMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.exception.ProcessTimedOutException;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
@@ -66,8 +66,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
     @Autowired
     public ConversionWorkerFactory(UserService userService,
                                    SmartInlineKeyboardService smartInlineKeyboardService, InlineKeyboardService inlineKeyboardService,
-                                   @Qualifier("mediaLimits") MediaMessageService mediaMessageService,
-                                   @TgMessageLimitsControl MessageService messageService, ConversionMessageBuilder messageBuilder) {
+                                   @TelegramMediaLimitsControl MediaMessageService mediaMessageService,
+                                   @TelegramMessageLimitsControl MessageService messageService, ConversionMessageBuilder messageBuilder) {
         this.userService = userService;
         this.smartInlineKeyboardService = smartInlineKeyboardService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -146,7 +146,7 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                             () -> cancelChecker != null && cancelChecker.get(),
                             () -> canceledByUser);
 
-                    sendConvertingFinishedProgress(fileQueueItem);
+                    sendConvertingFinishedProgress(fileQueueItem, candidate.supportsProgress());
                     sendResult(fileQueueItem, convertResult);
                 }
                 LOGGER.debug("Finish({}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), size);
@@ -216,10 +216,11 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             }
         }
 
-        private void sendConvertingFinishedProgress(ConversionQueueItem conversionQueueItem) {
+        private void sendConvertingFinishedProgress(ConversionQueueItem conversionQueueItem, boolean supportsProgress) {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             String uploadingProgressMessage = messageBuilder.getConversionProcessingMessage(conversionQueueItem,
-                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING, ConversionStep.CONVERTING), locale);
+                    ConversionStep.WAITING, Set.of(ConversionStep.DOWNLOADING, ConversionStep.CONVERTING), supportsProgress, locale);
+
             try {
                 messageService.editMessage(
                         EditMessageText.builder().chatId(String.valueOf(conversionQueueItem.getUserId()))

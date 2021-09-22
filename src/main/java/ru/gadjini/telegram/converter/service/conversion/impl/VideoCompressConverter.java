@@ -16,6 +16,7 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -66,11 +67,14 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
 
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
                                   FFmpegVideoCommandPreparer videoStreamsChangeHelper,
-                                  CaptionGenerator captionGenerator, FFmpegVideoStreamConversionHelper videoStreamConversionHelper) {
+                                  CaptionGenerator captionGenerator, FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
+                                  FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -80,6 +84,12 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.videoStreamsChangeHelper = videoStreamsChangeHelper;
         this.captionGenerator = captionGenerator;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
+        this.callbackHandlerFactory = callbackHandlerFactory;
+    }
+
+    @Override
+    public boolean supportsProgress() {
+        return true;
     }
 
     @Override
@@ -100,13 +110,14 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
-            fFmpegDevice.execute(commandBuilder.buildFullCommand(), new FFmpegProgressCallbackHandler(whd.getDuration()));
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, whd.getDuration(), locale);
+            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                     fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(result.length()));
 
             if (fileQueueItem.getSize() <= result.length()) {
-                Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, locale))
                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }

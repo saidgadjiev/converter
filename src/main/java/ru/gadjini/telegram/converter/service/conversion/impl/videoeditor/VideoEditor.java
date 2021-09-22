@@ -18,6 +18,8 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.StandardVideoEditorState;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.VideoEditorState;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
@@ -62,11 +64,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private StandardVideoEditorState standardVideoEditorState;
 
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
                        FFmpegDevice fFmpegDevice, Jackson jackson,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
-                       CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState) {
+                       CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState,
+                       FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.userService = userService;
@@ -76,6 +81,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         this.videoStreamConversionHelper = videoStreamConversionHelper;
         this.captionGenerator = captionGenerator;
         this.standardVideoEditorState = standardVideoEditorState;
+        this.callbackHandlerFactory = callbackHandlerFactory;
     }
 
     @Override
@@ -139,7 +145,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
             }
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
+                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 

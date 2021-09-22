@@ -448,4 +448,8 @@ public class ConverterMessagesProperties {
     public static final String VSCREENSHOT_COMMAND_DESCRIPTION = "vscreenshot.command.description";
 
     public static final String VSAMPLE_COMMAND_DESCRIPTION = "vsample.command.description";
+
+    public static final String MESSAGE_ETA = "message.eta";
+
+    public static final String MESSAGE_SPEED = "message.speed";
 }

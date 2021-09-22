@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.job.DownloadExtra;
+import ru.gadjini.telegram.converter.property.ConversionProperties;
 import ru.gadjini.telegram.converter.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.progress.ProgressBuilder;
@@ -34,8 +35,15 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
 
     private ProgressBuilder progressBuilder;
 
+    private ConversionProperties conversionProperties;
+
     protected BaseAny2AnyConverter(Map<List<Format>, List<Format>> map) {
         this.map = map;
+    }
+
+    @Autowired
+    public void setConversionProperties(ConversionProperties conversionProperties) {
+        this.conversionProperties = conversionProperties;
     }
 
     @Autowired
@@ -171,10 +179,16 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
     }
 
     private void doDeleteFiles(ConversionQueueItem fileQueueItem) {
+        if (conversionProperties.isKeepDownloads()) {
+            return;
+        }
         fileQueueItem.getDownloadedFilesWithoutThumb().forEach(file -> tempFileService().delete(file));
     }
 
     private void doDeleteThumb(ConversionQueueItem fileQueueItem) {
+        if (conversionProperties.isKeepDownloads()) {
+            return;
+        }
         if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
             SmartTempFile thumb = fileQueueItem.getDownloadedFileOrNull(fileQueueItem.getFirstFile().getThumb());
 

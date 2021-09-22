@@ -8,10 +8,13 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -39,12 +42,25 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
     private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
+    private UserService userService;
+
     @Autowired
-    public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper) {
+    public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
+                            FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+                            FFmpegProgressCallbackHandlerFactory callbackHandlerFactory, UserService userService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.videoAudioConversionHelper = videoAudioConversionHelper;
+        this.callbackHandlerFactory = callbackHandlerFactory;
+        this.userService = userService;
+    }
+
+    @Override
+    public boolean supportsProgress() {
+        return true;
     }
 
     @Override
@@ -71,7 +87,10 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
             List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
             videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+
+            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(conversionQueueItem, durationInSeconds,
+                    userService.getLocaleOrDefault(conversionQueueItem.getUserId()));
+            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 
             String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFileName(),
                     OUTPUT_FORMAT.getExt());

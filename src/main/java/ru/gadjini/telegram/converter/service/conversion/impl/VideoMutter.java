@@ -12,10 +12,13 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -46,15 +49,27 @@ public class VideoMutter extends BaseAny2AnyConverter {
 
     private CaptionGenerator captionGenerator;
 
+    private UserService userService;
+
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
     @Autowired
     public VideoMutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper,
-                       FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, CaptionGenerator captionGenerator) {
+                       FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, CaptionGenerator captionGenerator,
+                       UserService userService, FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.captionGenerator = captionGenerator;
+        this.userService = userService;
+        this.callbackHandlerFactory = callbackHandlerFactory;
+    }
+
+    @Override
+    public boolean supportsProgress() {
+        return true;
     }
 
     @Override
@@ -84,13 +99,15 @@ public class VideoMutter extends BaseAny2AnyConverter {
                     .fastConversion()
                     .defaultOptions().out(result.getAbsolutePath());
 
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
+            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, whd.getDuration(),
+                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
 
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
                         whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);

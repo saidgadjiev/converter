@@ -55,6 +55,11 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
     }
 
     @Override
+    public boolean supportsProgress() {
+        return true;
+    }
+
+    @Override
     public int createDownloads(ConversionQueueItem conversionQueueItem) {
         return super.createDownloadsWithThumb(conversionQueueItem);
     }
@@ -63,19 +68,19 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
-        return doConvert(file, fileQueueItem);
+        return doConvert(file, fileQueueItem, true);
     }
 
-    public ConversionResult doConvert(SmartTempFile file, ConversionQueueItem fileQueueItem) {
+    public ConversionResult doConvert(SmartTempFile file, ConversionQueueItem fileQueueItem, boolean withProgress) {
         if (fileQueueItem.getFirstFileFormat().supportsStreaming()) {
             ConversionResult conversionResult = doConvertStreamingVideo(file, fileQueueItem);
             if (conversionResult == null) {
-                return doConvertNonStreamingVideo(file, fileQueueItem);
+                return doConvertNonStreamingVideo(file, fileQueueItem, withProgress);
             } else {
                 return conversionResult;
             }
         } else {
-            return doConvertNonStreamingVideo(file, fileQueueItem);
+            return doConvertNonStreamingVideo(file, fileQueueItem, withProgress);
         }
     }
 
@@ -106,12 +111,13 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
         }
     }
 
-    private ConversionResult doConvertNonStreamingVideo(SmartTempFile file, ConversionQueueItem fileQueueItem) {
+    private ConversionResult doConvertNonStreamingVideo(SmartTempFile file, ConversionQueueItem fileQueueItem, boolean withProgress) {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(),
                 TAG, Format.STREAM.getAssociatedFormat().getExt());
 
         try {
-            return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem, Format.STREAM.getAssociatedFormat());
+            return fFmpegVideoFormatsConverter.doConvert(file, result, fileQueueItem,
+                    Format.STREAM.getAssociatedFormat(), withProgress);
         } catch (CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;

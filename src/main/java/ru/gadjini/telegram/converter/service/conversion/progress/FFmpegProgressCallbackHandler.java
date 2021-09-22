@@ -1,31 +1,51 @@
 package ru.gadjini.telegram.converter.service.conversion.progress;
 
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 import ru.gadjini.telegram.smart.bot.commons.service.process.FFmpegProgressCallback;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class FFmpegProgressCallbackHandler implements FFmpegProgressCallback {
+public abstract class FFmpegProgressCallbackHandler implements FFmpegProgressCallback {
+
+    public static final PeriodFormatter PERIOD_FORMATTER = new PeriodFormatterBuilder()
+            .printZeroIfSupported()
+            .minimumPrintedDigits(2)
+            .rejectSignedValues(true)
+            .appendHours()
+            .appendSeparator(":")
+            .appendMinutes()
+            .appendSeparator(":")
+            .appendSeconds()
+            .toFormatter();
 
     private final AtomicLong start = new AtomicLong(0);
 
     private Long duration;
 
+    private long timeToUpdate;
+
     private AtomicInteger lastPercentage = new AtomicInteger(-1);
 
-    public FFmpegProgressCallbackHandler(Long duration) {
+    FFmpegProgressCallbackHandler(Long duration, long timeToUpdate) {
         this.duration = duration;
+        this.timeToUpdate = timeToUpdate;
     }
 
     @Override
-    public void progress(int percentage) {
-        if (isStartPoint() | isTheSameAsPrevPercentage(percentage)) {
+    public void progress(int timeLeft, int percentage, Double speed) {
+        if (isStartPoint() | isBadPercentage(percentage)) {
             return;
         }
         if (isTimeToUpdate()) {
-            //TODO: Implement update progress
-            System.out.println("Progress: " + percentage + "%");
+            int eta = (int) (timeLeft / speed);
+            String etaString = eta > 0 ? PERIOD_FORMATTER.print(Period.seconds((int) (timeLeft / speed)).normalizedStandard()) : "N/A";
+            String speedString = speed == null ? "N/A" : speed + "x";
+
+            updateProgressMessage(etaString, speedString, percentage);
         }
     }
 
@@ -34,18 +54,17 @@ public class FFmpegProgressCallbackHandler implements FFmpegProgressCallback {
         return duration;
     }
 
-    private boolean isTheSameAsPrevPercentage(int percentage) {
+    private boolean isBadPercentage(int percentage) {
         int lastPercent = lastPercentage.get();
         lastPercentage.set(percentage);
 
-        return lastPercent == percentage;
+        return lastPercent >= percentage;
     }
 
     private boolean isTimeToUpdate() {
         long epochSecond = Instant.now().getEpochSecond();
         long diff = epochSecond - start.get();
-        if (diff >= 10) {
-            System.out.println(diff);
+        if (diff >= timeToUpdate) {
             start.set(epochSecond);
 
             return true;
@@ -63,4 +82,6 @@ public class FFmpegProgressCallbackHandler implements FFmpegProgressCallback {
 
         return false;
     }
+
+    abstract void updateProgressMessage(String eta, String speed, int percentage);
 }

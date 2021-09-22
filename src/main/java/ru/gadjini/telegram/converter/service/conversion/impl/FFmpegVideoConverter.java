@@ -13,10 +13,13 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -61,12 +64,17 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
     private CaptionGenerator captionGenerator;
 
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
+    private UserService userService;
+
     @Autowired
     public FFmpegVideoConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
                                 FFmpegSubtitlesStreamConversionHelper fFmpegHelper,
                                 FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                                 FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
-                                CaptionGenerator captionGenerator) {
+                                CaptionGenerator captionGenerator, FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
+                                UserService userService) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
@@ -74,6 +82,13 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoAudioConversionHelper = videoAudioConversionHelper;
         this.captionGenerator = captionGenerator;
+        this.callbackHandlerFactory = callbackHandlerFactory;
+        this.userService = userService;
+    }
+
+    @Override
+    public boolean supportsProgress() {
+        return true;
     }
 
     @Override
@@ -89,7 +104,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            return doConvert(file, result, fileQueueItem, fileQueueItem.getTargetFormat());
+            return doConvert(file, result, fileQueueItem, fileQueueItem.getTargetFormat(), true);
         } catch (CorruptedVideoException e) {
             tempFileService().delete(file);
             throw e;
@@ -99,7 +114,9 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         }
     }
 
-    public ConversionResult doConvert(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem, Format targetFormat) throws InterruptedException {
+    public ConversionResult doConvert(SmartTempFile file, SmartTempFile result,
+                                      ConversionQueueItem fileQueueItem, Format targetFormat,
+                                      boolean withProgress) throws InterruptedException {
         List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
@@ -124,7 +141,11 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
             commandBuilder.vp8QualityOptions();
         }
         commandBuilder.fastConversion().defaultOptions().out(result.getAbsolutePath());
-        fFmpegDevice.execute(commandBuilder.buildFullCommand());
+        FFprobeDevice.WHD sourceWdh = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);
+
+        FFmpegProgressCallbackHandler callback = withProgress ? callbackHandlerFactory.createCallback(fileQueueItem,
+                sourceWdh.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId())) : null;
+        fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 
         String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 

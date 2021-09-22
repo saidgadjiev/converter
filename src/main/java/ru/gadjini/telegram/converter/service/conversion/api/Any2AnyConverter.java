@@ -22,4 +22,8 @@ public interface Any2AnyConverter {
     default boolean needToSendProgressMessage(ConversionQueueItem conversionQueueItem, AtomicInteger progressMessageId) {
         return true;
     }
+
+    default boolean supportsProgress() {
+        return false;
+    }
 }

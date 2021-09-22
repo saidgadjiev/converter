@@ -31,21 +31,25 @@ public class FFmpegDevice {
         processExecutor.execute(getConvertCommand(in, out, options), Set.of(139));
     }
 
-    public void execute(String ... command) throws InterruptedException {
+    public void execute(String... command) throws InterruptedException {
         processExecutor.execute(command, Set.of(139));
     }
 
-    public void execute(String [] command, FFmpegProgressCallback progressCallback) throws InterruptedException {
-        fFmpegProcessExecutor.execute(command, progressCallback);
+    public void execute(String[] command, FFmpegProgressCallback progressCallback) throws InterruptedException {
+        if (progressCallback == null) {
+            execute(command);
+        } else {
+            fFmpegProcessExecutor.execute(command, progressCallback);
+        }
     }
 
-    public boolean isChannelMapError(String ... command) throws InterruptedException {
+    public boolean isChannelMapError(String... command) throws InterruptedException {
         String result = processExecutor.tryExecute(command, 6);
 
         return result.contains("Invalid channel layout 5.1(side)");
     }
 
-    public boolean isExecutable(String ... command) throws InterruptedException {
+    public boolean isExecutable(String... command) throws InterruptedException {
         String result = processExecutor.tryExecute(command, 6);
 
         return isOkay(result);

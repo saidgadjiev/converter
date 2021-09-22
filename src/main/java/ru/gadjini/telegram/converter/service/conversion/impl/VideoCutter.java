@@ -18,6 +18,8 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -80,11 +82,14 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
     private CaptionGenerator captionGenerator;
 
+    private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
+
     @Autowired
-    public VideoCutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+    public VideoCutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
+                       FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
                        FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper, FFmpegDevice fFmpegDevice,
                        FFprobeDevice fFprobeDevice, UserService userService, LocalisationService localisationService,
-                       Jackson jackson, CaptionGenerator captionGenerator) {
+                       Jackson jackson, CaptionGenerator captionGenerator, FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.videoAudioConversionHelper = videoAudioConversionHelper;
@@ -95,6 +100,12 @@ public class VideoCutter extends BaseAny2AnyConverter {
         this.localisationService = localisationService;
         this.jackson = jackson;
         this.captionGenerator = captionGenerator;
+        this.callbackHandlerFactory = callbackHandlerFactory;
+    }
+
+    @Override
+    public boolean supportsProgress() {
+        return true;
     }
 
     @Override
@@ -109,7 +120,8 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            doCut(file, result, settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), fileQueueItem);
+            doCut(file, result, settingsState.getCutStartPoint(), settingsState.getCutEndPoint(),
+                    srcWhd.getDuration(), fileQueueItem, true);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
@@ -132,15 +144,15 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
     public void doCut(SmartTempFile file, SmartTempFile result,
                       Period sp, Period ep, Long knownDuration,
-                      ConversionQueueItem fileQueueItem) throws InterruptedException {
+                      ConversionQueueItem fileQueueItem, boolean withProgress) throws InterruptedException {
         List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-        String startPoint = PERIOD_FORMATTER.print(sp);
+        String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
 
         if (knownDuration != null && ep.toStandardSeconds().getSeconds() > knownDuration.intValue()) {
             ep = Period.seconds(knownDuration.intValue());
         }
-        String duration = String.valueOf(ep.minus(sp).toStandardDuration().getStandardSeconds());
 
+        long duration = ep.minus(sp).toStandardDuration().getStandardSeconds();
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
         commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
@@ -163,7 +175,11 @@ public class VideoCutter extends BaseAny2AnyConverter {
         commandBuilder.fastConversion();
 
         commandBuilder.defaultOptions().out(result.getAbsolutePath());
-        fFmpegDevice.execute(commandBuilder.buildFullCommand());
+        FFmpegProgressCallbackHandler callback = withProgress ? callbackHandlerFactory.createCallback(fileQueueItem,
+                duration,
+                userService.getLocaleOrDefault(fileQueueItem.getUserId())
+        ) : null;
+        fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
     }
 
     private void validateRange(Integer replyMessageId, Period start, Period end, Long totalLength, Locale locale) {
@@ -177,9 +193,9 @@ public class VideoCutter extends BaseAny2AnyConverter {
                 || endSeconds < 0 || endSeconds > totalLength) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CUT_OUT_OF_RANGE,
                     new Object[]{
-                            PERIOD_FORMATTER.print(new Period(totalLength * 1000L)),
-                            PERIOD_FORMATTER.print(start),
-                            PERIOD_FORMATTER.print(end)
+                            PERIOD_FORMATTER.print(new Period(totalLength * 1000L).normalizedStandard()),
+                            PERIOD_FORMATTER.print(start.normalizedStandard()),
+                            PERIOD_FORMATTER.print(end.normalizedStandard())
                     }, locale)).setReplyToMessageId(replyMessageId);
         }
     }

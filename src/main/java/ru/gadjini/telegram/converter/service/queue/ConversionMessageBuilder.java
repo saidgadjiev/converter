@@ -173,7 +173,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             }
         }
 
-        return getConversionProcessingMessage((ConversionQueueItem) queueItem, conversionStep, completedSteps, locale);
+        return getConversionProcessingMessage((ConversionQueueItem) queueItem, conversionStep, completedSteps, true, locale);
     }
 
     public String getConversionProcessingMessage(ConversionQueueItem queueItem,
@@ -181,7 +181,28 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         String progressingMessage = getConversionProgressingMessage(queueItem, locale);
 
         return progressingMessage + "\n\n" +
-                getProgressMessage(conversionStep, completedSteps, queueItem.getFirstFileFormat(), queueItem.getTargetFormat(), locale);
+                getProgressMessage(conversionStep, completedSteps, false, false,
+                        queueItem.getFirstFileFormat(), queueItem.getTargetFormat(), locale);
+    }
+
+    public String getConversionProcessingMessage(ConversionQueueItem queueItem,
+                                                 ConversionStep conversionStep, Set<ConversionStep> completedSteps,
+                                                 boolean withConversionPercentage, Locale locale) {
+        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
+
+        return progressingMessage + "\n\n" +
+                getProgressMessage(conversionStep, completedSteps, withConversionPercentage, false,
+                        queueItem.getFirstFileFormat(), queueItem.getTargetFormat(), locale);
+    }
+
+    public String getConversionProcessingMessage(ConversionQueueItem queueItem,
+                                                 ConversionStep conversionStep, Set<ConversionStep> completedSteps,
+                                                 boolean withPercentage, boolean withEtaSpeedPercentage, Locale locale) {
+        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
+
+        return progressingMessage + "\n\n" +
+                getProgressMessage(conversionStep, completedSteps, withPercentage, withEtaSpeedPercentage,
+                        queueItem.getFirstFileFormat(), queueItem.getTargetFormat(), locale);
     }
 
     private String getConversionProgressingMessage(ConversionQueueItem queueItem, Locale locale) {
@@ -238,7 +259,9 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         return text.toString();
     }
 
-    private String getProgressMessage(ConversionStep conversionStep, Set<ConversionStep> completedSteps, Format srcFormat, Format targetFormat, Locale locale) {
+    private String getProgressMessage(ConversionStep conversionStep, Set<ConversionStep> completedSteps,
+                                      boolean withPercentage, boolean withEtaStart,
+                                      Format srcFormat, Format targetFormat, Locale locale) {
         String iconCheck = localisationService.getMessage(ConverterMessagesProperties.ICON_CHECK, locale);
         String conversionMsgCode = targetFormat == Format.COMPRESS
                 ? ConverterMessagesProperties.COMPRESSING_STEP
@@ -251,14 +274,21 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 : targetFormat == Format.WATERMARK ? ConverterMessagesProperties.WATERMARK_ADDING_STEP
                 : ConverterMessagesProperties.CONVERTING_STEP;
 
+        String percentageEscape = conversionStep.equals(ConversionStep.CONVERTING) ? withPercentage || withEtaStart ? "%%" : "%" : "%";
+        String progressPart = withPercentage ? " (%s%%)</b>\n" : " ...</b>\n";
+        String percentageCompleted = withPercentage ? " <b>(100%)</b>" + iconCheck : iconCheck;
+        String eta = withEtaStart ? localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ETA, locale) + " %s\n" +
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SPEED, locale) + " %s\n" : "";
+
         switch (conversionStep) {
             case WAITING:
                 return "<b>" + localisationService.getMessage(ConverterMessagesProperties.WAITING_STEP, locale) + " ...</b>\n" +
                         (srcFormat.isDownloadable()
                                 ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b>"
-                                + (completedSteps.contains(ConversionStep.DOWNLOADING) ? " " + iconCheck : "") + "\n"
+                                + (completedSteps.contains(ConversionStep.DOWNLOADING) ? " <b>(100%)</b>" + iconCheck : "") + "\n"
                                 : "") +
-                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b>" + (completedSteps.contains(ConversionStep.CONVERTING) ? " " + iconCheck : "") + "\n") +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale)
+                                + "</b>" + (completedSteps.contains(ConversionStep.CONVERTING) ? percentageCompleted : "") + "\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case DOWNLOADING:
                 return (srcFormat.isDownloadable()
@@ -268,22 +298,24 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case CONVERTING:
                 return (srcFormat.isDownloadable()
-                        ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
+                        ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale)
+                        + " (100" + percentageEscape + ")</b>" + iconCheck + "\n"
                         : "") +
-                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + " ...</b>\n") +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + progressPart) +
+                        eta +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b>" : "");
             case UPLOADING:
                 return (srcFormat.isDownloadable()
-                        ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
+                        ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + " (100%)</b>" + iconCheck + "\n"
                         : "") +
-                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n") +
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + percentageCompleted + "\n") +
                         (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + " ...</b>" : "");
             default:
                 return (srcFormat.isDownloadable()
-                        ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n"
+                        ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.DOWNLOADING_STEP, locale) + " (100%)</b>" + iconCheck + "\n"
                         : "") +
-                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + iconCheck + "\n") +
-                        (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + "</b> " + iconCheck : "");
+                        (targetFormat == Format.UPLOAD ? "" : "<b>" + localisationService.getMessage(conversionMsgCode, locale) + "</b> " + percentageCompleted + "\n") +
+                        (targetFormat.isUploadable() ? "<b>" + localisationService.getMessage(ConverterMessagesProperties.UPLOADING_STEP, locale) + " (100%)</b>" + iconCheck : "");
         }
     }
 

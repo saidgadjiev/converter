@@ -94,13 +94,13 @@ public class VideoSampler extends BaseAny2AnyConverter {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Period sp = getStartPoint(srcWhd, settingsState);
 
-            videoCutter.doCut(file, result, sp, sp.plusSeconds(30), srcWhd.getDuration(), fileQueueItem);
+            videoCutter.doCut(file, result, sp, sp.plusSeconds(30), srcWhd.getDuration(), fileQueueItem, false);
 
-            FileResult fileResult = (FileResult) video2StreamingConverter.doConvert(result, fileQueueItem);
+            FileResult fileResult = (FileResult) video2StreamingConverter.doConvert(result, fileQueueItem, false);
 
             String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VSAMPLE_RESULT_CAPTION,
                     new Object[] {
-                            PERIOD_FORMATTER.print(sp)
+                            PERIOD_FORMATTER.print(sp.normalizedStandard())
                     },
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
 
