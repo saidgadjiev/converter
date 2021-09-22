@@ -85,6 +85,11 @@ public class VideoEditor extends BaseAny2AnyConverter {
     }
 
     @Override
+    public boolean supportsProgress() {
+        return true;
+    }
+
+    @Override
     public int createDownloads(ConversionQueueItem conversionQueueItem) {
         return super.createDownloadsWithThumb(conversionQueueItem);
     }
