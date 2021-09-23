@@ -18,8 +18,8 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkService;
@@ -135,8 +135,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                     .input(video.getAbsolutePath());
 
-            if (Set.of(VideoWatermarkType.GIF, VideoWatermarkType.VIDEO).contains(watermark.getWatermarkType())
-                    || watermark.getImage().getFormat() == TGS) {
+            if (isNeedLoop(watermark)) {
                 commandBuilder.ignoreLoop();
             }
 
@@ -349,6 +348,11 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         }
 
         throw new IllegalArgumentException("Unknown position " + position.name());
+    }
+
+    private boolean isNeedLoop(VideoWatermark watermark) {
+        return Set.of(VideoWatermarkType.GIF, VideoWatermarkType.VIDEO).contains(watermark.getWatermarkType())
+                || watermark.getWatermarkType() == VideoWatermarkType.STICKER && watermark.getImage().getFormat() == TGS;
     }
 
     private String getFontPath(String fontName) {

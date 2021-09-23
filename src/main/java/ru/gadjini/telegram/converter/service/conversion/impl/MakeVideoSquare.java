@@ -13,7 +13,6 @@ import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -107,7 +106,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
                     TARGET_FORMAT, true, fileQueueItem.getSize());
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
-            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
+            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 

@@ -18,7 +18,6 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.StandardVideoEditorState;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.VideoEditorState;
-import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandler;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -150,7 +149,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             }
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
-            FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
+            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
 

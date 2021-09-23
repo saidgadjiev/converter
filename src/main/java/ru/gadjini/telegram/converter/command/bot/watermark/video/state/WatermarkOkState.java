@@ -179,7 +179,7 @@ public class WatermarkOkState extends BaseWatermarkState {
                     new Object[]{
                             text + (videoWatermark.getText().length() > 128 ? "..." : ""),
                             videoWatermark.getFontSize() == null ? WatermarkTextFontSizeState.AUTO_SIZE : videoWatermark.getFontSize(),
-                            videoWatermark.getColor().name().toLowerCase(),
+                            localisationService.getMessage(videoWatermark.getColor().name().toLowerCase() + ".color", locale),
                             localisationService.getMessage(positionMessageCode, locale)
                     },
                     locale
