@@ -185,11 +185,13 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
             Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
 
             progress.setProgressMessageId(queueItem.getProgressMessageId());
-            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, ConversionStep.UPLOADING, Collections.emptySet(), locale);
+            String progressMessage = messageBuilder.getConversionProcessingMessage(queueItem, ConversionStep.UPLOADING,
+                    Collections.emptySet(), true, locale);
             progress.setProgressMessage(progressMessage);
             progress.setProgressReplyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
-            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, ConversionStep.COMPLETED, Collections.emptySet(), locale);
+            String completionMessage = messageBuilder.getConversionProcessingMessage(queueItem, ConversionStep.COMPLETED,
+                    Collections.emptySet(), true, locale);
             progress.setAfterProgressCompletionMessage(completionMessage);
 
             return progress;
