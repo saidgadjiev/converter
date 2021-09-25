@@ -64,8 +64,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditResolutionsKeyboard(currentState.getSettings().getResolution(),
                                 AVAILABLE_RESOLUTIONS, new Locale(currentState.getUserLanguage())))
-                        .build(),
-                false
+                        .build()
         );
     }
 

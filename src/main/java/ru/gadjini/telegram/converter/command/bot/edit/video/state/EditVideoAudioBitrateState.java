@@ -60,8 +60,7 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioBitratesKeyboard(currentState.getSettings().getAudioBitrate(),
                                 AVAILABLE_AUDIO_BITRATES, new Locale(currentState.getUserLanguage())))
-                        .build(),
-                false
+                        .build()
         );
     }
 

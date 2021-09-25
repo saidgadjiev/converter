@@ -141,8 +141,7 @@ public class FFmpegProgressCallbackHandlerFactory {
                             .text(String.format(conversionProcessingMessage, percentage, eta, speed))
                             .replyMarkup(smartInlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale))
                             .parseMode(ParseMode.HTML)
-                            .build(),
-                    true
+                            .build()
             );
         }
     }

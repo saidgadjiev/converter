@@ -105,8 +105,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
                         .chatId(String.valueOf(message.getChatId()))
                         .messageId(message.getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(new Locale(currentState.getUserLanguage())))
-                        .build(),
-                false
+                        .build()
         );
     }
 

@@ -60,8 +60,7 @@ public class EditVideoAudioCodecState extends BaseEditVideoState {
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioCodecsKeyboard(currentState.getSettings().getAudioCodec(),
                                 AVAILABLE_AUDIO_CODECS, new Locale(currentState.getUserLanguage())))
-                        .build(),
-                false
+                        .build()
         );
     }
 

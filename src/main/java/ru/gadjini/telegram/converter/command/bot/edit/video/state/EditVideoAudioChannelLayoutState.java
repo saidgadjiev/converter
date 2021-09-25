@@ -65,8 +65,7 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(
                                 currentState.getSettings().getAudioChannelLayout(),
                                 AVAILABLE_AUDIO_MONO_STEREO, new Locale(currentState.getUserLanguage())))
-                        .build(),
-                false
+                        .build()
         );
     }
 

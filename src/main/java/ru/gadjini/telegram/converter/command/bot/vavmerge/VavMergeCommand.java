@@ -158,7 +158,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
                     EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
                             .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
-                                    new Locale(existsState.getUserLanguage()))).build(), false);
+                                    new Locale(existsState.getUserLanguage()))).build());
             commandStateService.setState(callbackQuery.getFrom().getId(), getCommandIdentifier(), existsState);
         } else if (requestParams.contains(ConverterArg.VAV_MERGE_SUBTITLES_MODE.getKey())) {
             VavMergeState existsState = commandStateService.getState(callbackQuery.getFrom().getId(),
@@ -169,7 +169,7 @@ public class VavMergeCommand implements NavigableBotCommand, BotCommand, Callbac
                     EditMessageReplyMarkup.builder().chatId(String.valueOf(callbackQuery.getFrom().getId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
                             .replyMarkup(inlineKeyboardService.getVavMergeSettingsKeyboard(existsState,
-                                    new Locale(existsState.getUserLanguage()))).build(), false);
+                                    new Locale(existsState.getUserLanguage()))).build());
             commandStateService.setState(callbackQuery.getFrom().getId(), getCommandIdentifier(), existsState);
         } else if (requestParams.contains(ConverterArg.VAV_MERGE.getKey())) {
             VavMergeState existsState = commandStateService.getState(callbackQuery.getFrom().getId(),

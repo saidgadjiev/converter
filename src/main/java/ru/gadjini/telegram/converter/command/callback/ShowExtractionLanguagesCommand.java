@@ -53,8 +53,7 @@ public class ShowExtractionLanguagesCommand implements CallbackBotCommand {
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getLanguagesKeyboard(extractionByLanguageState.getLanguages(), localeOrDefault))
-                        .build(),
-                true
+                        .build()
         );
     }
 
@@ -67,8 +66,7 @@ public class ShowExtractionLanguagesCommand implements CallbackBotCommand {
                             .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
                             .replyMarkup(inlineKeyboardService.getLanguagesRootKeyboard(userService.getLocaleOrDefault(callbackQuery.getFrom().getId())))
-                            .build(),
-                    true
+                            .build()
             );
         }
     }
