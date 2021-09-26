@@ -14,6 +14,7 @@ import ru.gadjini.telegram.converter.command.bot.merge.MergeAudioFilesConfigurat
 import ru.gadjini.telegram.converter.command.bot.merge.MergeFilesCommand;
 import ru.gadjini.telegram.converter.command.bot.merge.MergePdfFilesConfigurator;
 import ru.gadjini.telegram.converter.command.bot.merge.MergeVideoFilesConfigurator;
+import ru.gadjini.telegram.converter.filter.TrialSubscriptionConversionLimitsFilter;
 import ru.gadjini.telegram.converter.property.Url2PdfServerProperties;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardService;
@@ -43,11 +44,13 @@ public class BotConfiguration {
                                StartCommandFilter startCommandFilter, TechWorkFilter techWorkFilter,
                                LastActivityFilter activityFilter,
                                ChannelSubscriptionFilter subscriptionFilter, UpdatesHandlerFilter updatesHandlerFilter,
-                               PaidSubscriptionFilter paidSubscriptionFilter, DistributionFilter distributionFilter) {
+                               PaidSubscriptionFilter paidSubscriptionFilter, DistributionFilter distributionFilter,
+                               TrialSubscriptionConversionLimitsFilter trialSubscriptionConversionLimitsFilter) {
         updateFilter.setNext(userSynchronizedFilter)
                 .setNext(startCommandFilter).setNext(subscriptionFilter).setNext(activityFilter)
                 .setNext(distributionFilter)
-                .setNext(techWorkFilter).setNext(paidSubscriptionFilter).setNext(updatesHandlerFilter);
+                .setNext(techWorkFilter).setNext(paidSubscriptionFilter)
+                .setNext(trialSubscriptionConversionLimitsFilter).setNext(updatesHandlerFilter);
 
         return updateFilter;
     }

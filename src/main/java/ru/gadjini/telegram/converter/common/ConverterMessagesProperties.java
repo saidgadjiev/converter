@@ -452,4 +452,10 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_ETA = "message.eta";
 
     public static final String MESSAGE_SPEED = "message.speed";
+
+    public static final String MESSAGE_TRIAL_USER_SIZE_LIMIT = "message.trial.user.size.limit";
+
+    public static final String MESSAGE_TRIAL_USER_COUNT_LIMIT = "message.trial.user.count.limit";
+
+    public static final String MESSAGE_TRIAL_USER_ZERO_SIZE_LIMIT = "message.trial.user.zero.size.limit";
 }

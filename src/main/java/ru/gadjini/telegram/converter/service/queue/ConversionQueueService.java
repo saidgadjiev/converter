@@ -68,6 +68,10 @@ public class ConversionQueueService {
         return fileQueueItem;
     }
 
+    public int countByUser(long userId) {
+        return conversionQueueDao.countByUser(userId);
+    }
+
     public long count(ConversionQueueItem.Status status) {
         return conversionQueueDao.count(status);
     }

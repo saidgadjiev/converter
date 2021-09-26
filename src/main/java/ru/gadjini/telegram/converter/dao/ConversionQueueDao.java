@@ -123,6 +123,14 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         );
     }
 
+    public Integer countByUser(long userId) {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM conversion_queue WHERE user_id = ? AND converter IN(" + inConverters() + ")",
+                ps -> ps.setLong(1, userId),
+                rs -> rs.next() ? rs.getInt("cnt") : 0
+        );
+    }
+
     public Long count(ConversionQueueItem.Status status) {
         return jdbcTemplate.query(
                 "SELECT COUNT(*) as cnt FROM conversion_queue WHERE status = ? AND converter IN(" + inConverters() + ")",
