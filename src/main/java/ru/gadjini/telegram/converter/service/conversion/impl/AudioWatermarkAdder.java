@@ -1,13 +1,17 @@
 package ru.gadjini.telegram.converter.service.conversion.impl;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.domain.watermark.audio.AudioWatermark;
 import ru.gadjini.telegram.converter.exception.ConvertException;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.sox.SoxService;
 import ru.gadjini.telegram.converter.service.watermark.audio.AudioWatermarkService;
+import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileGarbageCollector;
@@ -15,10 +19,10 @@ import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileGarbageCo
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.*;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.MP3;
 
@@ -43,16 +47,19 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private FFmpegDevice fFmpegDevice;
+
     @Autowired
     public AudioWatermarkAdder(AudioWatermarkService audioWatermarkService, SoxService soxService,
                                FFmpegAudioFormatsConverter audioFormatsConverter,
-                               TempFileGarbageCollector tempFileGarbageCollector, FFprobeDevice fFprobeDevice) {
+                               TempFileGarbageCollector tempFileGarbageCollector, FFprobeDevice fFprobeDevice, FFmpegDevice fFmpegDevice) {
         super(MAP);
         this.audioWatermarkService = audioWatermarkService;
         this.soxService = soxService;
         this.audioFormatsConverter = audioFormatsConverter;
         this.tempFileGarbageCollector = tempFileGarbageCollector;
         this.fFprobeDevice = fFprobeDevice;
+        this.fFmpegDevice = fFmpegDevice;
     }
 
     @Override
@@ -69,43 +76,41 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out,
                                   ConversionQueueItem fileQueueItem) throws InterruptedException {
         AudioWatermark watermark = audioWatermarkService.getWatermark(fileQueueItem.getUserId());
-        GarbageFileCollection garbageFileCollection = tempFileGarbageCollector.getNewCollection();
+        GarbageFileCollection finallyGarbageFileCollection = tempFileGarbageCollector.getNewCollection();
 
         try {
-            List<SmartTempFile> files = convertToFormatSuitableForSox(watermark, fileQueueItem);
-            files = makeChannelsAndSampleRatesTheSame(files);
-
-            garbageFileCollection.addFile(files.get(1));
-
             Long bitrate = null;
             if (fileQueueItem.getFirstFileFormat() == NATIVE_FORMAT) {
                 List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
                 bitrate = audioStreams.iterator().next().getBitRate();
             }
-            SmartTempFile mixResult = mixWithSox(bitrate, files);
-            garbageFileCollection.addFile(mixResult);
+
+            SmartTempFile audio = makeWatermarkPartVolumeLower(watermark, fileQueueItem, bitrate, finallyGarbageFileCollection);
+            List<SmartTempFile> files = convertToFormatSuitableForSox(watermark, audio, fileQueueItem, finallyGarbageFileCollection);
+
+            files = makeChannelsAndSampleRatesTheSame(files, finallyGarbageFileCollection);
+            SmartTempFile mixResult = mixWithSox(bitrate, files, finallyGarbageFileCollection);
 
             audioFormatsConverter.doConvertAudioWithCopy(mixResult, out,
                     fileQueueItem.getFirstFileFormat(), bitrate);
         } finally {
-            garbageFileCollection.delete();
+            finallyGarbageFileCollection.delete();
         }
     }
 
-    private SmartTempFile mixWithSox(Long bitrate, List<SmartTempFile> files) {
+    private SmartTempFile mixWithSox(Long bitrate, List<SmartTempFile> files,
+                                     GarbageFileCollection garbageFileCollection) throws InterruptedException {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, TAG, MP3.getExt());
-        try {
-            soxService.mix(files.get(0).getAbsolutePath(), files.get(1).getAbsolutePath(),
-                    3, bitrate, result.getAbsolutePath());
-        } catch (Throwable e) {
-            tempFileService().delete(result);
-            throw new ConvertException(e);
-        }
+        garbageFileCollection.addFile(result);
+
+        soxService.mix(files.get(0).getAbsolutePath(), files.get(1).getAbsolutePath(),
+                3, bitrate, result.getAbsolutePath());
 
         return result;
     }
 
-    private List<SmartTempFile> makeChannelsAndSampleRatesTheSame(List<SmartTempFile> files) throws InterruptedException {
+    private List<SmartTempFile> makeChannelsAndSampleRatesTheSame(List<SmartTempFile> files,
+                                                                  GarbageFileCollection garbageFileCollection) throws InterruptedException {
         List<SmartTempFile> result = new ArrayList<>();
         SmartTempFile audio = files.get(0);
         result.add(audio);
@@ -126,6 +131,8 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         }
         if (!options.isEmpty()) {
             SmartTempFile r = tempFileService().createTempFile(FileTarget.TEMP, TAG, MP3.getExt());
+            garbageFileCollection.addFile(r);
+
             try {
                 soxService.convert(watermarkFile.getAbsolutePath(), r.getAbsolutePath(), options.toArray(String[]::new));
                 result.add(r);
@@ -140,25 +147,20 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         return result;
     }
 
-    private List<SmartTempFile> convertToFormatSuitableForSox(AudioWatermark watermark, ConversionQueueItem queueItem) {
-        SmartTempFile audio = queueItem.getDownloadedFileOrThrow(queueItem.getFirstFileId());
-        List<SmartTempFile> deleteOnError = new ArrayList<>();
-        try {
-            if (queueItem.getFirstFile().getFormat() != MP3) {
-                audio = convertToMp3(audio);
-                deleteOnError.add(audio);
-            }
-            SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getAudio().getFileId());
-            if (watermark.getAudio().getFormat() != MP3) {
-                watermarkFile = convertToMp3(watermarkFile);
-                deleteOnError.add(watermarkFile);
-            }
+    private List<SmartTempFile> convertToFormatSuitableForSox(AudioWatermark watermark, SmartTempFile audio,
+                                                              ConversionQueueItem queueItem, GarbageFileCollection garbageFileCollection) {
 
-            return List.of(audio, watermarkFile);
-        } catch (Throwable e) {
-            deleteOnError.forEach(f -> tempFileService().delete(f));
-            throw new ConvertException(e);
+        if (queueItem.getFirstFile().getFormat() != MP3) {
+            audio = convertToMp3(audio);
+            garbageFileCollection.addFile(audio);
         }
+        SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getAudio().getFileId());
+        if (watermark.getAudio().getFormat() != MP3) {
+            watermarkFile = convertToMp3(watermarkFile);
+            garbageFileCollection.addFile(watermarkFile);
+        }
+
+        return List.of(audio, watermarkFile);
     }
 
     private SmartTempFile convertToMp3(SmartTempFile in) {
@@ -171,5 +173,93 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         }
 
         return result;
+    }
+
+    private SmartTempFile makeWatermarkPartVolumeLower(AudioWatermark watermark, ConversionQueueItem queueItem,
+                                                       Long bitrate, GarbageFileCollection garbageFileCollection) throws InterruptedException {
+        SmartTempFile in = queueItem.getDownloadedFileOrThrow(queueItem.getFirstFileId());
+
+        SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getAudio().getFileId());
+        long watermarkDuration = fFprobeDevice.getDurationInSeconds(watermarkFile.getAbsolutePath());
+
+        List<File> files = split(in, queueItem, watermarkDuration, garbageFileCollection);
+        SmartTempFile volumeDecreased = decreaseVolume(files.get(1), queueItem, bitrate, garbageFileCollection);
+        files.set(1, volumeDecreased.getFile());
+
+        SmartTempFile filesList = createFilesListFile(queueItem.getUserId(), files);
+        garbageFileCollection.addFile(filesList);
+
+        return mergeAudioFiles(filesList, queueItem, garbageFileCollection);
+    }
+
+    private String filesListFileStr(String filePath) {
+        return "file '" + filePath + "'";
+    }
+
+    private SmartTempFile mergeAudioFiles(SmartTempFile filesList, ConversionQueueItem fileQueueItem,
+                                          GarbageFileCollection garbageFileCollection) {
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        garbageFileCollection.addFile(result);
+
+        FFmpegCommandBuilder mergeCommandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+                .f(FFmpegCommandBuilder.CONCAT).safe("0").input(filesList.getAbsolutePath())
+                .mapAudio(0).copyAudio();
+
+        mergeCommandBuilder.out(result.getAbsolutePath());
+
+        return result;
+    }
+
+    private SmartTempFile decreaseVolume(File in, ConversionQueueItem fileQueueItem, Long bitrate,
+                                         GarbageFileCollection garbageFileCollection) throws InterruptedException {
+        SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+        garbageFileCollection.addFile(result);
+
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
+
+        commandBuilder.filterAudioV2("volume=0.2");
+        commandBuilder.keepAudioBitRate(bitrate);
+        commandBuilder.out(result.getAbsolutePath());
+
+        fFmpegDevice.execute(commandBuilder.buildFullCommand());
+
+        return result;
+    }
+
+    private List<File> split(SmartTempFile in, ConversionQueueItem queueItem, long watermarkDuration,
+                             GarbageFileCollection garbageFileCollection) {
+        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
+
+        SmartTempFile tempDir = tempFileService().createTempDir(FileTarget.TEMP, queueItem.getUserId(), TAG);
+        garbageFileCollection.addFile(tempDir);
+
+        try {
+            commandBuilder.segmentTimes(Set.of("3", 3 + "" + watermarkDuration)).copyCodecs();
+
+            String filePath = Any2AnyFileNameUtils.getFileName(tempDir.getAbsolutePath(), "%01d", queueItem.getFirstFileFormat().getExt());
+            commandBuilder.out(filePath);
+
+            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+        } catch (InterruptedException e) {
+            throw new ConvertException(e);
+        }
+
+        return new ArrayList<>(FileUtils.listFiles(tempDir.getFile(), null, false));
+    }
+
+    private SmartTempFile createFilesListFile(long userId, Collection<File> files) {
+        SmartTempFile filesList = tempFileService().createTempFile(FileTarget.TEMP, userId, TAG, Format.TXT.getExt());
+        try (PrintWriter printWriter = new PrintWriter(filesList.getAbsolutePath())) {
+            for (File downloadedFile : files) {
+                printWriter.println(filesListFileStr(downloadedFile.getAbsolutePath()));
+            }
+
+            return filesList;
+        } catch (FileNotFoundException e) {
+            tempFileService().delete(filesList);
+            throw new ConvertException(e);
+        }
     }
 }

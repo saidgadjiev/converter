@@ -4,6 +4,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FFmpegCommandBuilder {
@@ -124,6 +125,15 @@ public class FFmpegCommandBuilder {
 
     public FFmpegCommandBuilder quite() {
         options.add("-y");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder segmentTimes(Set<String> segmentTimes) {
+        options.add("-f");
+        options.add("segment");
+        options.add("-segment_times");
+        options.addAll(segmentTimes);
 
         return this;
     }
@@ -446,6 +456,13 @@ public class FFmpegCommandBuilder {
 
     public FFmpegCommandBuilder filterAudio(String filter) {
         options.add("-af");
+        options.add(filter);
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder filterAudioV2(String filter) {
+        options.add("-filter:a");
         options.add(filter);
 
         return this;
