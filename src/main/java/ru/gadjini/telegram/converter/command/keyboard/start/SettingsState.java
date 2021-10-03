@@ -163,4 +163,8 @@ public class SettingsState {
     public void setBassBoost(String bassBoost) {
         this.bassBoost = bassBoost;
     }
+
+    public int getQuality() {
+        return Integer.parseInt(crf);
+    }
 }

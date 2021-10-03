@@ -114,7 +114,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
@@ -144,7 +144,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
     public void doCut(SmartTempFile file, SmartTempFile result,
                       Period sp, Period ep, Long knownDuration,
                       ConversionQueueItem fileQueueItem, boolean withProgress) throws InterruptedException {
-        List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
 
         if (knownDuration != null && ep.toStandardSeconds().getSeconds() > knownDuration.intValue()) {
@@ -158,7 +158,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
             fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
         } else {
-            fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result, fileQueueItem.getSize());
+            fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
@@ -169,7 +169,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         }
         fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
         if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
-            commandBuilder.vp8QualityOptions();
+            commandBuilder.vp8QMinQMax();
         }
         commandBuilder.fastConversion();
 

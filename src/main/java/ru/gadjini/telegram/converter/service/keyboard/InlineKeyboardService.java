@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.bot.vavmerge.VavMergeState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
@@ -112,7 +112,7 @@ public class InlineKeyboardService {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         resolutions = new ArrayList<>(resolutions);
-        resolutions.remove(EditVideoCrfState.AUTO);
+        resolutions.remove(EditVideoResolutionState.AUTO);
         inlineKeyboardMarkup.getKeyboard()
                 .add(List.of(buttonFactory.resolutionButton(currentResolution, EditVideoResolutionState.AUTO, locale)));
         List<List<String>> lists = Lists.partition(resolutions, 3);
@@ -131,9 +131,9 @@ public class InlineKeyboardService {
     public InlineKeyboardMarkup getVideoEditCrfKeyboard(String currentCrf, List<String> crfs, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         crfs = new ArrayList<>(crfs);
-        crfs.remove(EditVideoCrfState.AUTO);
+        crfs.remove(EditVideoQualityState.QUALITY_100);
         inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoCrfState.AUTO, locale)));
+                .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoQualityState.QUALITY_100, locale)));
         List<List<String>> lists = Lists.partition(crfs, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();

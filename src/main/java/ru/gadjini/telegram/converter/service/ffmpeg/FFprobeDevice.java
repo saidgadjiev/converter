@@ -3,15 +3,20 @@ package ru.gadjini.telegram.converter.service.ffmpeg;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.mediainfo.MediaInfoService;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class FFprobeDevice {
@@ -24,52 +29,60 @@ public class FFprobeDevice {
 
     private Jackson jsonMapper;
 
+    private MediaInfoService mediaInfoService;
+
     @Autowired
-    public FFprobeDevice(ProcessExecutor processExecutor, Jackson jsonMapper) {
+    public FFprobeDevice(ProcessExecutor processExecutor, Jackson jsonMapper,
+                         MediaInfoService mediaInfoService) {
         this.processExecutor = processExecutor;
         this.jsonMapper = jsonMapper;
+        this.mediaInfoService = mediaInfoService;
     }
 
-    public List<Stream> getAudioStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getAudioStreamsCommand(in));
+    public List<FFProbeStream> getAudioStreams(String in) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER));
+        JsonNode json = jsonMapper.readValue(result, JsonNode.class);
+
+        List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        });
+
+        setBitrateAndSizesForStreams(in, streams);
+
+        return streams;
+    }
+
+    public List<FFProbeStream> getSubtitleStreams(String in) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.SUBTITLES_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
         });
     }
 
-    public List<Stream> getSubtitleStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getSubtitleStreamsCommand(in));
+    public List<FFProbeStream> getVideoStreams(String in) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
         });
+
+        setBitrateAndSizesForStreams(in, streams);
+
+        return streams;
     }
 
-    public List<Stream> getVideoStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getVideoStreamsCommand(in));
-        JsonNode json = jsonMapper.readValue(result, JsonNode.class);
-
-        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
-        });
-    }
-
-    public List<Stream> getAllStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getAllStreamsCommand(in));
+    public List<FFProbeStream> getAllStreams(String in) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         FFprobeResult fFprobeResult = jsonMapper.convertValue(json, FFprobeResult.class);
 
-        for (Stream stream : fFprobeResult.getStreams()) {
+        for (FFProbeStream stream : fFprobeResult.getStreams()) {
             stream.setFormat(fFprobeResult.getFormat());
         }
+        setBitrateAndSizesForStreams(in, fFprobeResult.getStreams());
 
         return fFprobeResult.getStreams();
-    }
-
-    public FFprobeResult probeVideoStream(String in, int index) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getVideoStreamCommand(in, index));
-        return jsonMapper.readValue(result, FFprobeResult.class);
     }
 
     public WHD getWHD(String in, int index) throws InterruptedException {
@@ -81,7 +94,7 @@ public class FFprobeDevice {
         try {
             FFprobeDevice.FFprobeResult probeVideoStream = probeVideoStream(in, index);
             if (probeVideoStream != null) {
-                FFprobeDevice.Stream videoStream = probeVideoStream.getFirstStream();
+                FFProbeStream videoStream = probeVideoStream.getFirstStream();
                 if (videoStream != null) {
                     whd.setWidth(videoStream.getWidth());
                     whd.setHeight(videoStream.getHeight());
@@ -115,32 +128,76 @@ public class FFprobeDevice {
         return new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", in};
     }
 
-    private String[] getVideoStreamCommand(String in, int index) {
-        return new String[]{"ffprobe", "-v", "error", "-select_streams", "v:" + index, "-show_entries", "stream=width,height:format=duration", "-of", "json", in};
+    private FFprobeResult probeVideoStream(String in, int index) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, index));
+        return jsonMapper.readValue(result, FFprobeResult.class);
     }
 
-    private String[] getAudioStreamsCommand(String in) {
-        return new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index,codec_name,codec_type,bit_rate:stream_tags=language", "-of", "json", in
-        };
+    private String[] getProbeStreamsCommand(String in) {
+        return getProbeStreamsCommand(in, null);
     }
 
-    private String[] getSubtitleStreamsCommand(String in) {
-        return new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "s", "-show_entries", "stream=index,codec_name,codec_type:stream_tags=language", "-of", "json", in
-        };
+    private String[] getProbeStreamsCommand(String in, String selectStreamsTag) {
+        return getProbeStreamsCommand(in, selectStreamsTag, null);
     }
 
-    private String[] getVideoStreamsCommand(String in) {
-        return new String[]{
-                "ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=index,codec_name,codec_type,width,height", "-of", "json", in
-        };
+    private String[] getProbeStreamsCommand(String in, String selectStreamsTag, Integer streamIndex) {
+        List<String> command = new ArrayList<>();
+        command.add("ffprobe");
+        command.add("-v");
+        command.add("error");
+        if (StringUtils.isNotBlank(selectStreamsTag)) {
+            command.add("-select_streams");
+            if (streamIndex == null) {
+                command.add(selectStreamsTag);
+            } else {
+                command.add(selectStreamsTag + ":" + streamIndex);
+            }
+        }
+        command.add("-show_entries");
+        command.add("stream=index,codec_name,codec_type,width,height,bit_rate:stream_tags=language,mimetype,filename:format=duration");
+        command.add("-of");
+        command.add("json");
+        command.add(in);
+
+        return command.toArray(String[]::new);
     }
 
-    private String[] getAllStreamsCommand(String in) {
-        return new String[]{
-                "ffprobe", "-v", "error", "-show_entries", "stream=index,codec_name,codec_type,width,height,bit_rate:stream_tags=language,mimetype,filename:format=duration", "-of", "json", in
-        };
+    private void setBitrateAndSizesForStreams(String in, List<FFProbeStream> streams) throws InterruptedException {
+        List<MediaInfoService.MediaInfoTrack> tracks = mediaInfoService.getTracks(in);
+
+        streams.forEach(ffProbeStream -> tracks.stream().filter(t -> Objects.equals(ffProbeStream.index, t.getStreamOrder()) &&
+                Objects.equals(t.getType(), getMediaInfoStreamTypeByFFmpegCodecType(ffProbeStream.getCodecType())))
+                .findFirst()
+                .ifPresent(mediaInfoTrack -> {
+                    if (mediaInfoTrack.getBitRate() != null) {
+                        ffProbeStream.setBitRate(mediaInfoTrack.getBitRate());
+                    }
+                    ffProbeStream.streamSize = mediaInfoTrack.getStreamSize();
+                    if (FFProbeStream.VIDEO_CODEC_TYPE.equals(ffProbeStream.getCodecType())
+                            && ffProbeStream.getBitRate() == null
+                            && ffProbeStream.getStreamSize() != null
+                    ) {
+                        ffProbeStream.setBitRate(calculateBitRate(ffProbeStream.getStreamSize(), ffProbeStream.getDuration()));
+                    }
+                }));
+    }
+
+    private long calculateBitRate(long fileSize, long duration) {
+        return (fileSize / 1024 * 8) / duration;
+    }
+
+    private String getMediaInfoStreamTypeByFFmpegCodecType(String ffmpegCodecType) {
+        switch (ffmpegCodecType) {
+            case FFProbeStream.AUDIO_CODEC_TYPE:
+                return MediaInfoService.AUDIO_TYPE;
+            case FFProbeStream.VIDEO_CODEC_TYPE:
+                return MediaInfoService.VIDEO_TYPE;
+            case FFProbeStream.SUBTITLE_CODEC_TYPE:
+                return MediaInfoService.SUBTITLE_TYPE;
+            default:
+                return "unknown";
+        }
     }
 
     public static class WHD {
@@ -182,7 +239,7 @@ public class FFprobeDevice {
 
     public static class FFprobeResult {
 
-        private List<Stream> streams;
+        private List<FFProbeStream> streams;
 
         private FFprobeFormat format;
 
@@ -194,20 +251,28 @@ public class FFprobeDevice {
             this.format = format;
         }
 
-        public List<Stream> getStreams() {
+        public List<FFProbeStream> getStreams() {
             return streams;
         }
 
-        public void setStreams(List<Stream> streams) {
+        public void setStreams(List<FFProbeStream> streams) {
             this.streams = streams;
         }
 
-        public Stream getFirstStream() {
+        public FFProbeStream getFirstStream() {
             if (streams == null || streams.isEmpty()) {
                 return null;
             }
 
             return streams.iterator().next();
+        }
+
+        @Override
+        public String toString() {
+            return "FFprobeResult{" +
+                    "streams=" + streams +
+                    ", format=" + format +
+                    '}';
         }
     }
 
@@ -237,9 +302,16 @@ public class FFprobeDevice {
         public int hashCode() {
             return duration != null ? duration.hashCode() : 0;
         }
+
+        @Override
+        public String toString() {
+            return "FFprobeFormat{" +
+                    "duration=" + duration +
+                    '}';
+        }
     }
 
-    public static class Stream {
+    public static class FFProbeStream {
 
         public static final String VIDEO_CODEC_TYPE = "video";
 
@@ -272,14 +344,44 @@ public class FFprobeDevice {
 
         private int input = 0;
 
-        private FFprobeFormat format;
+        private Long streamSize;
 
-        public String getCodecName() {
-            return codecName;
-        }
+        private FFprobeFormat format;
 
         public int getIndex() {
             return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
+        public void setCodecName(String codecName) {
+            this.codecName = codecName;
+        }
+
+        public Map<String, Object> getTags() {
+            return tags;
+        }
+
+        public void setTags(Map<String, Object> tags) {
+            this.tags = tags;
+        }
+
+        public void setCodecType(String codecType) {
+            this.codecType = codecType;
+        }
+
+        public void setStreamSize(Long streamSize) {
+            this.streamSize = streamSize;
+        }
+
+        public Long getStreamSize() {
+            return streamSize;
+        }
+
+        public String getCodecName() {
+            return codecName;
         }
 
         public String getLanguage() {
@@ -343,11 +445,27 @@ public class FFprobeDevice {
         }
 
         @Override
+        public String toString() {
+            return "FFProbeStream{" +
+                    "index=" + index +
+                    ", codecName='" + codecName + '\'' +
+                    ", tags=" + tags +
+                    ", codecType='" + codecType + '\'' +
+                    ", width=" + width +
+                    ", height=" + height +
+                    ", bitRate=" + bitRate +
+                    ", input=" + input +
+                    ", streamSize=" + streamSize +
+                    ", format=" + format +
+                    '}';
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Stream stream = (Stream) o;
+            FFProbeStream stream = (FFProbeStream) o;
 
             if (index != stream.index) return false;
             if (input != stream.input) return false;

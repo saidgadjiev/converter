@@ -14,8 +14,6 @@ services:
       - ../../../data/media/temp:/tmp/media/temp
       - ../../../../fonts:/usr/share/fonts/converter
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
-    ports:
-      - 5005:5005
     env_file:
       - .env
     networks:

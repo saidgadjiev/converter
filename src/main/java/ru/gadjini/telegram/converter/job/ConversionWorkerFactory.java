@@ -293,6 +293,25 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
                     }
                     break;
                 }
+                case ANIMATION: {
+                    AnimationResult animationResult = (AnimationResult) convertResult;
+                    SendAnimation.SendAnimationBuilder sendAnimationBuilder = SendAnimation.builder().chatId(String.valueOf(fileQueueItem.getUserId()))
+                            .animation(new InputFile(animationResult.getFile(), animationResult.getFileName()))
+                            .caption(animationResult.getCaption())
+                            .parseMode(ParseMode.HTML)
+                            .replyToMessageId(fileQueueItem.getReplyToMessageId())
+                            .replyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale))
+                            .width(animationResult.getWidth())
+                            .height(animationResult.getHeight())
+                            .duration(animationResult.getDuration() == null ? null : animationResult.getDuration().intValue());
+                    if (animationResult.getThumb() != null) {
+                        sendAnimationBuilder.thumb(new InputFile(animationResult.getThumb(), animationResult.getThumb().getName()));
+                    }
+                    fileUploadService.createUpload(fileQueueItem.getUserId(), SendAnimation.PATH, sendAnimationBuilder.build(), animationResult.getFormat(),
+                            progress(fileQueueItem.getUserId(), fileQueueItem), fileQueueItem.getId());
+
+                    break;
+                }
                 case VIDEO_NOTE: {
                     VideoNoteResult videoNoteResult = (VideoNoteResult) convertResult;
                     SendVideoNote.SendVideoNoteBuilder sendVideoNoteBuilder = SendVideoNote.builder().chatId(String.valueOf(fileQueueItem.getUserId()))

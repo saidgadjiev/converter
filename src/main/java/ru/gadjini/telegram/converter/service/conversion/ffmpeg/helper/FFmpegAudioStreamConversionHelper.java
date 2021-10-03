@@ -30,7 +30,7 @@ public class FFmpegAudioStreamConversionHelper {
         this.fFmpegDevice = fFmpegDevice;
     }
 
-    public void copyOrConvertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, FFprobeDevice.Stream audioStream) {
+    public void copyOrConvertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, FFprobeDevice.FFProbeStream audioStream) {
         commandBuilder.mapAudio(audioStream.getInput(), 0);
         if (FFmpegCommandBuilder.OPUS_CODEC_NAME.equals(audioStream.getCodecName())) {
             commandBuilder.copyAudio();
@@ -50,7 +50,7 @@ public class FFmpegAudioStreamConversionHelper {
     }
 
     private boolean hasCopyableCoverArt(SmartTempFile in, SmartTempFile out, FFmpegCommandBuilder commandBuilder) throws InterruptedException {
-        List<FFprobeDevice.Stream> videoStreams = fFprobeDevice.getVideoStreams(in.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(in.getAbsolutePath());
         if (!CollectionUtils.isEmpty(videoStreams)) {
             commandBuilder = new FFmpegCommandBuilder(commandBuilder)
                     .mapVideo(COVER_INDEX)
@@ -62,12 +62,12 @@ public class FFmpegAudioStreamConversionHelper {
         return false;
     }
 
-    public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> audioStreams,
+    public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> audioStreams,
                                          Format targetFormat, SmartTempFile result) throws InterruptedException {
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         int outCodecIndex = 0;
         for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
-            FFprobeDevice.Stream audioStream = audioStreams.get(audioStreamMapIndex);
+            FFprobeDevice.FFProbeStream audioStream = audioStreams.get(audioStreamMapIndex);
 
             commandBuilder.mapAudio(audioStream.getInput(), audioStreamMapIndex);
             if (isCopyableAudioCodecs(baseCommand, result, targetFormat, audioStream.getInput(), audioStreamMapIndex)) {

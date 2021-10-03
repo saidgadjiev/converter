@@ -59,14 +59,14 @@ public class VideoMerger extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG,
                     targetFormat.getExt());
             try {
-                List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(filesToConcatenate.get(0).getAbsolutePath());
+                List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(filesToConcatenate.get(0).getAbsolutePath());
                 FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                         .f(FFmpegCommandBuilder.CONCAT).safe("0").input(filesList.getAbsolutePath())
                         .mapVideo().copyVideo();
-                if (allStreams.stream().anyMatch(a -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(a.getCodecType()))) {
+                if (allStreams.stream().anyMatch(a -> FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE.equals(a.getCodecType()))) {
                     commandBuilder.mapAudio().copyAudio();
                 }
-                if (allStreams.stream().anyMatch(a -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(a.getCodecType()))) {
+                if (allStreams.stream().anyMatch(a -> FFprobeDevice.FFProbeStream.SUBTITLE_CODEC_TYPE.equals(a.getCodecType()))) {
                     commandBuilder.mapSubtitles().copySubtitles();
                 }
                 commandBuilder.out(result.getAbsolutePath());

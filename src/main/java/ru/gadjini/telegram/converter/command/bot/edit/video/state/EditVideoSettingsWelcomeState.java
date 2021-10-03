@@ -37,7 +37,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private LocalisationService localisationService;
 
-    private EditVideoCrfState crfState;
+    private EditVideoQualityState crfState;
 
     private EditVideoAudioCodecState audioCodecState;
 
@@ -89,7 +89,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
     }
 
     @Autowired
-    public void setCrfState(EditVideoCrfState crfState) {
+    public void setCrfState(EditVideoQualityState crfState) {
         this.crfState = crfState;
     }
 
@@ -169,9 +169,10 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private boolean validate(String queryId, EditVideoState editVideoState) {
         if (EditVideoResolutionState.AUTO.equals(editVideoState.getSettings().getResolution())
-                && EditVideoCrfState.AUTO.equals(editVideoState.getSettings().getCrf())
+                && "110".equals(editVideoState.getSettings().getCrf())
                 && EditVideoAudioCodecState.AUTO.equals(editVideoState.getSettings().getAudioCodec())
-                && EditVideoAudioBitrateState.AUTO.equals(editVideoState.getSettings().getAudioBitrate())) {
+                && EditVideoAudioBitrateState.AUTO.equals(editVideoState.getSettings().getAudioBitrate())
+                && EditVideoAudioChannelLayoutState.AUTO.equals(editVideoState.getSettings().getAudioChannelLayout())) {
             messageService.sendAnswerCallbackQuery(
                     AnswerCallbackQuery.builder()
                             .callbackQueryId(queryId)

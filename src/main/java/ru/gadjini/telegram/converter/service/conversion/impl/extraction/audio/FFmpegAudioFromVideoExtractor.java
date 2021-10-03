@@ -69,8 +69,8 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
 
     @Override
     public ConversionResult doExtract(ConversionQueueItem fileQueueItem, SmartTempFile file,
-                                      List<FFprobeDevice.Stream> audioStreams, int streamIndex) throws InterruptedException {
-        FFprobeDevice.Stream audioStream = audioStreams.get(streamIndex);
+                                      List<FFprobeDevice.FFProbeStream> audioStreams, int streamIndex) throws InterruptedException {
+        FFprobeDevice.FFProbeStream audioStream = audioStreams.get(streamIndex);
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
@@ -120,7 +120,7 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
 
     @Override
     protected String getStreamSpecifier() {
-        return FFprobeDevice.Stream.AUDIO_CODEC_TYPE;
+        return FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE;
     }
 
     @Override

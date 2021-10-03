@@ -158,10 +158,10 @@ public class AudioMerger extends BaseAny2AnyConverter {
 
     private boolean isTheSameCodecs(ConversionQueueItem queueItem) throws InterruptedException {
         SmartTempFile firstFile = queueItem.getDownloadedFiles().get(0);
-        List<FFprobeDevice.Stream> firstAudioStreams = fFprobeDevice.getAudioStreams(firstFile.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> firstAudioStreams = fFprobeDevice.getAudioStreams(firstFile.getAbsolutePath());
 
         for (int i = 1; i < queueItem.getDownloadedFiles().size(); i++) {
-            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(queueItem.getDownloadedFiles().get(i).getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(queueItem.getDownloadedFiles().get(i).getAbsolutePath());
 
             if (!firstAudioStreams.equals(audioStreams)) {
                 return false;

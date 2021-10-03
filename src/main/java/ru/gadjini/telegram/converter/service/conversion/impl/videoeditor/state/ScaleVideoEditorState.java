@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoCrfState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
@@ -24,11 +23,12 @@ public class ScaleVideoEditorState implements VideoEditorState {
 
     @Override
     public void prepareCommand(FFmpegCommandBuilder commandBuilder, ConversionQueueItem fileQueueItem,
-                               List<FFprobeDevice.Stream> allStreams, SettingsState settingsState, String scale,
+                               List<FFprobeDevice.FFProbeStream> allStreams, SettingsState settingsState, String scale,
                                String audioCodec, String audioCodecName, Long audioBitrate, SmartTempFile result) throws InterruptedException {
         videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
                 audioCodec, audioCodecName, audioBitrate,
-                fileQueueItem.getFirstFileFormat(), EditVideoCrfState.AUTO.equals(settingsState.getCrf()),
+                fileQueueItem.getFirstFileFormat(),
+                Integer.parseInt(settingsState.getCrf()),
                 fileQueueItem.getSize());
     }
 }

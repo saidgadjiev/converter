@@ -81,7 +81,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         try {
             Long bitrate = null;
             if (fileQueueItem.getFirstFileFormat() == NATIVE_FORMAT) {
-                List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+                List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
                 bitrate = audioStreams.iterator().next().getBitRate();
             }
 

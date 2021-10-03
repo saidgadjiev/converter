@@ -4,7 +4,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.*;//NOPMD
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioChannelLayoutState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
@@ -102,7 +105,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         try {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
 
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
@@ -133,11 +136,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
                     scale, preferableAudioCodec, preferableAudioCodecName, preferableAudioBitrate, result);
 
             if (fileQueueItem.getFirstFileFormat() == WEBM) {
-                commandBuilder.vp8QualityOptions();
+                commandBuilder.vp8QMinQMax();
             }
-            if (!EditVideoCrfState.AUTO.equals(settingsState.getCrf())) {
-                commandBuilder.crf(settingsState.getCrf());
-            }
+
             String monoStereo = EditVideoAudioChannelLayoutState.AUTO.equalsIgnoreCase(settingsState.getAudioChannelLayout())
                     ? null
                     : EditVideoAudioChannelLayoutState.MONO.equalsIgnoreCase(settingsState.getAudioChannelLayout())

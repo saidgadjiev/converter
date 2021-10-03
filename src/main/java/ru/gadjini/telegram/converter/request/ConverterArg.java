@@ -22,7 +22,8 @@ public enum ConverterArg {
     AUDIO_CODEC("acdc"),
     AUDIO_BITRATE("acbr"),
     AUDIO_MONO_STEREO("ams"),
-    AUDIO_BASS_BOOST("abb");
+    AUDIO_BASS_BOOST("abb"),
+    CRF_MODE("cmm");
 
     private final String key;
 

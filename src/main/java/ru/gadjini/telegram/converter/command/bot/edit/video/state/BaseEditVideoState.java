@@ -43,7 +43,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
         Locale locale = new Locale(convertState.getUserLanguage());
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
                 new Object[]{getResolutionMessage(convertState.getSettings().getResolution(), locale),
-                        getCrfMessage(convertState.getSettings().getCrf(), locale),
+                        getCrfMessage(convertState.getSettings().getCrf()),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
                         getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale)}, locale));
@@ -73,9 +73,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution;
     }
 
-    private String getCrfMessage(String crf, Locale locale) {
-        return EditVideoResolutionState.AUTO.equals(crf) ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : crf;
+    private String getCrfMessage(String crf) {
+        return crf + "%";
     }
 
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
@@ -107,6 +106,6 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioChannelLayout(),
                 EditVideoAudioChannelLayoutState.AVAILABLE_AUDIO_MONO_STEREO, new Locale(convertState.getUserLanguage()))
                 : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
-                EditVideoCrfState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage()));
+                EditVideoQualityState.AVAILABLE_QUALITIES, new Locale(convertState.getUserLanguage()));
     }
 }

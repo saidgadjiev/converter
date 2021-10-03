@@ -79,7 +79,7 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(in.getAbsolutePath());
 
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(in.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             whdAtomicReference.set(whd);
             if (whd.getDuration() == null || whd.getDuration() > 300) {

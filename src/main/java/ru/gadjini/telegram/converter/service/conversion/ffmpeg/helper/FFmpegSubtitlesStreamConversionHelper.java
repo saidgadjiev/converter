@@ -24,17 +24,17 @@ public class FFmpegSubtitlesStreamConversionHelper {
     }
 
     public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommandBuilder baseCommand,
-                                                     FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+                                                     FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
                                                      SmartTempFile result, Format targetFormat) throws InterruptedException {
         if (!isSubtitlesSupported(targetFormat)) {
             return;
         }
-        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(stream.getCodecType()))) {
-            List<FFprobeDevice.Stream> subtitleStreams = allStreams.stream()
-                    .filter(s -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))
+        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.FFProbeStream.SUBTITLE_CODEC_TYPE.equals(stream.getCodecType()))) {
+            List<FFprobeDevice.FFProbeStream> subtitleStreams = allStreams.stream()
+                    .filter(s -> FFprobeDevice.FFProbeStream.SUBTITLE_CODEC_TYPE.equals(s.getCodecType()))
                     .collect(Collectors.toList());
 
-            List<Integer> inputs = subtitleStreams.stream().map(FFprobeDevice.Stream::getInput).distinct().collect(Collectors.toList());
+            List<Integer> inputs = subtitleStreams.stream().map(FFprobeDevice.FFProbeStream::getInput).distinct().collect(Collectors.toList());
             int subtitleStreamIndex = 0;
             Map<Integer, Boolean> copySubtitlesIndexes = new LinkedHashMap<>();
             Map<Integer, Integer> validSubtitlesIndexes = new LinkedHashMap<>();
@@ -44,13 +44,13 @@ public class FFmpegSubtitlesStreamConversionHelper {
 
             List<Integer> validInputs = new ArrayList<>();
             for (Integer input : inputs) {
-                List<FFprobeDevice.Stream> byInput = subtitleStreams.stream()
+                List<FFprobeDevice.FFProbeStream> byInput = subtitleStreams.stream()
                         .filter(s -> input.equals(s.getInput()))
                         .collect(Collectors.toList());
 
                 int prevValidStreamsSize = validSubtitlesIndexes.size();
                 for (int i = 0; i < byInput.size(); ++i) {
-                    FFprobeDevice.Stream subtitleStream = byInput.get(i);
+                    FFprobeDevice.FFProbeStream subtitleStream = byInput.get(i);
                     if (streamsCache.containsKey(subtitleStream.getCodecName())) {
                         int state = streamsCache.get(subtitleStream.getCodecName());
                         if (state == convertable) {

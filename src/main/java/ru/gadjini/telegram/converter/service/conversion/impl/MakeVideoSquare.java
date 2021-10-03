@@ -90,7 +90,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, TARGET_FORMAT.getExt());
         try {
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
 
             if (Objects.equals(srcWhd.getHeight(), srcWhd.getWidth())) {
@@ -103,7 +103,8 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
             String scale = "scale='iw:ih':force_original_aspect_ratio=decrease,pad=" + size + ":" + size + ":(ow-iw)/2:(oh-ih)/2";
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
-                    TARGET_FORMAT, true, fileQueueItem.getSize());
+                    null, null, null,
+                    TARGET_FORMAT, 100, fileQueueItem.getSize());
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
             FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),

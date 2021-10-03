@@ -267,13 +267,9 @@ public class ButtonFactory {
     }
 
     public InlineKeyboardButton crfButton(String currentCrf, String crf, Locale locale) {
-        String crfName = crf;
-        if (EditVideoResolutionState.AUTO.equals(crf)) {
-            crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale);
-        }
         String btnName = Objects.equals(currentCrf, crf)
-                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crfName
-                : crfName;
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crf + "%"
+                : crf + "%";
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +

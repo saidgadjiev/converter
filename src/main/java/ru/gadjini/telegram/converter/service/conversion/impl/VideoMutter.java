@@ -78,7 +78,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
@@ -92,7 +92,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
             fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams,
                     result, fileQueueItem.getFirstFileFormat());
             if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
-                commandBuilder.vp8QualityOptions();
+                commandBuilder.vp8QMinQMax();
             }
             commandBuilder.an()
                     .fastConversion()

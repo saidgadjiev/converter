@@ -76,7 +76,7 @@ public class AudioBassBooster extends BaseAudioConverter {
             } else {
                 fFmpegAudioHelper.convertAudioCodecs(commandBuilder, conversionQueueItem.getFirstFileFormat());
             }
-            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
             commandBuilder.keepAudioBitRate(audioStreams.iterator().next().getBitRate());
             fFmpegAudioHelper.addAudioTargetOptions(commandBuilder, conversionQueueItem.getFirstFileFormat(), false);
             commandBuilder.af("bass=g=" + bassBoost);

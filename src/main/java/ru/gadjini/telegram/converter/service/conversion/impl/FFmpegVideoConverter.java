@@ -116,7 +116,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(SmartTempFile file, SmartTempFile result,
                                       ConversionQueueItem fileQueueItem, Format targetFormat,
                                       boolean withProgress) throws InterruptedException {
-        List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
 
         commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
@@ -137,7 +137,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         fFmpegHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, targetFormat);
 
         if (WEBM.equals(targetFormat)) {
-            commandBuilder.vp8QualityOptions();
+            commandBuilder.vp8QMinQMax();
         }
         commandBuilder.fastConversion().defaultOptions().out(result.getAbsolutePath());
         FFprobeDevice.WHD sourceWdh = fFprobeDevice.getWHD(file.getAbsolutePath(), 0);

@@ -101,12 +101,12 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
 
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, SCALE,
-                    fileQueueItem.getFirstFileFormat(), false, null);
-            commandBuilder.crf("30");
+                    null, null, null,
+                    fileQueueItem.getFirstFileFormat(), 70, null);
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 

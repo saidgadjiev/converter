@@ -116,8 +116,8 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
 
         try {
             String streamSpecifier = getStreamSpecifier();
-            List<FFprobeDevice.Stream> streamsToExtract;
-            if (FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(streamSpecifier)) {
+            List<FFprobeDevice.FFProbeStream> streamsToExtract;
+            if (FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE.equals(streamSpecifier)) {
                 streamsToExtract = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
             } else {
                 streamsToExtract = fFprobeDevice.getSubtitleStreams(file.getAbsolutePath());
@@ -132,7 +132,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
                 SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
                 ConvertResults convertResults = new ConvertResults();
                 for (int streamIndex = 0; streamIndex < streamsToExtract.size(); streamIndex++) {
-                    FFprobeDevice.Stream audioStream = streamsToExtract.get(streamIndex);
+                    FFprobeDevice.FFProbeStream audioStream = streamsToExtract.get(streamIndex);
                     if (StringUtils.isBlank(settingsState.getLanguageToExtract())
                             || settingsState.getLanguageToExtract().equals(audioStream.getLanguage())) {
                         convertResults.addResult(doExtract(fileQueueItem, file, streamsToExtract, streamIndex));
@@ -145,7 +145,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
             if (streamsToExtract.size() == 1) {
                 return doExtract(fileQueueItem, file, streamsToExtract, 0);
             } else if (streamsToExtract.stream().anyMatch(a -> StringUtils.isNotBlank(a.getLanguage()))) {
-                List<String> languages = streamsToExtract.stream().map(FFprobeDevice.Stream::getLanguage)
+                List<String> languages = streamsToExtract.stream().map(FFprobeDevice.FFProbeStream::getLanguage)
                         .filter(Objects::nonNull).distinct().collect(Collectors.toList());
                 commandStateService.setState(fileQueueItem.getUserId(), ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE, createState(fileQueueItem, languages));
 
@@ -177,7 +177,7 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
     protected abstract String getChooseLanguageMessageCode();
 
     protected abstract ConversionResult doExtract(ConversionQueueItem conversionQueueItem, SmartTempFile file,
-                                                  List<FFprobeDevice.Stream> streams, int streamIndex) throws InterruptedException;
+                                                  List<FFprobeDevice.FFProbeStream> streams, int streamIndex) throws InterruptedException;
 
     protected abstract String getStreamSpecifier();
 

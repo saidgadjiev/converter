@@ -83,7 +83,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                     .filterVideo(FFmpegCommandBuilder.EVEN_SCALE)
                     .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).t(durationInSeconds);
 
-            List<FFprobeDevice.Stream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
             videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 

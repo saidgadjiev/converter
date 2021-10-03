@@ -49,7 +49,7 @@ public class VideoProbber extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0, true);
 
             String text = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_PROBE_RESULT,
@@ -58,8 +58,8 @@ public class VideoProbber extends BaseAny2AnyConverter {
                             whd.getHeight() != null ? whd.getWidth() + "x" + whd.getHeight() : "unknown",
                             length(whd.getDuration()),
                             MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()),
-                            allStreams.stream().filter(f -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(f.getCodecType())).count(),
-                            allStreams.stream().filter(f -> FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE.equals(f.getCodecType())).count(),
+                            allStreams.stream().filter(f -> FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE.equals(f.getCodecType())).count(),
+                            allStreams.stream().filter(f -> FFprobeDevice.FFProbeStream.SUBTITLE_CODEC_TYPE.equals(f.getCodecType())).count(),
                     },
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
 

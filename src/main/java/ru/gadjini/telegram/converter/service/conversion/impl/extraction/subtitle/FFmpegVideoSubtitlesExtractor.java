@@ -50,9 +50,9 @@ public class FFmpegVideoSubtitlesExtractor extends BaseFromVideoByLanguageExtrac
 
     @Override
     public ConversionResult doExtract(ConversionQueueItem fileQueueItem, SmartTempFile file,
-                                      List<FFprobeDevice.Stream> subtitleStreams,
+                                      List<FFprobeDevice.FFProbeStream> subtitleStreams,
                                       int streamIndex) throws InterruptedException {
-        FFprobeDevice.Stream subtitleStream = subtitleStreams.get(streamIndex);
+        FFprobeDevice.FFProbeStream subtitleStream = subtitleStreams.get(streamIndex);
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
@@ -71,7 +71,7 @@ public class FFmpegVideoSubtitlesExtractor extends BaseFromVideoByLanguageExtrac
 
     @Override
     protected String getStreamSpecifier() {
-        return FFprobeDevice.Stream.SUBTITLE_CODEC_TYPE;
+        return FFprobeDevice.FFProbeStream.SUBTITLE_CODEC_TYPE;
     }
 
     @Override

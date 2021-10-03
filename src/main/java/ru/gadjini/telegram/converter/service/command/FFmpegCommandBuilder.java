@@ -1,15 +1,10 @@
 package ru.gadjini.telegram.converter.service.command;
 
-import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class FFmpegCommandBuilder {
-
-    private static final int DEFAULT_AUDIO_BIT_RATE = 128;
 
     public static final String CRF = "-crf";
 
@@ -38,6 +33,8 @@ public class FFmpegCommandBuilder {
     public static final String YUV_420_P = "yuv420p";
 
     public static final String VIDEO_STREAM_SPECIFIER = "v";
+
+    public static final String SUBTITLES_STREAM_SPECIFIER = "s";
 
     public static final String AUDIO_STREAM_SPECIFIER = "a";
 
@@ -496,38 +493,6 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder vp8QualityOptions() {
-        qmin("0").qmax("40");
-
-        if (!options.contains(CRF)) {
-            crf("5");
-        }
-
-        if (options.stream().noneMatch(o -> o.contains("-b:v"))) {
-            bv("1M");
-            options.add("-maxrate");
-            options.add("1M");
-            options.add("-bufsize");
-            options.add("1.5M");
-        }
-
-        return this;
-    }
-
-    public FFmpegCommandBuilder fastConversion() {
-        preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
-        speed("16");
-
-        return this;
-    }
-
-    public FFmpegCommandBuilder deadline(String deadline) {
-        options.add("-deadline");
-        options.add(deadline);
-
-        return this;
-    }
-
     public FFmpegCommandBuilder speed(String speed) {
         options.add("-speed");
         options.add(speed);
@@ -643,35 +608,50 @@ public class FFmpegCommandBuilder {
         if (bitRate == null) {
             return this;
         }
+
         ba(bitRate / 1000 + "k");
 
         return this;
     }
 
-    public FFmpegCommandBuilder keepVideoBitRate(int index, long fileSize, Long duration, List<FFprobeDevice.Stream> allStreams) {
-        if (fileSize == 0 || fileSize < 0) {
+    public FFmpegCommandBuilder keepVideoBitRate(Long videoBitRate, int index) {
+        return keepVideoBitRate(videoBitRate, index, 100);
+    }
+
+    public FFmpegCommandBuilder keepVideoBitRate(Long videoBitRate, int index, int quality) {
+        if (videoBitRate == null) {
             return this;
         }
-        if (duration == null) {
-            return this;
-        }
-        List<FFprobeDevice.Stream> audioStreams = allStreams.stream()
-                .filter(f -> FFprobeDevice.Stream.AUDIO_CODEC_TYPE.equals(f.getCodecType()))
-                .collect(Collectors.toList());
-        FFprobeDevice.Stream firstAudioStream = audioStreams.stream().findFirst().orElse(null);
-        long bitRate;
-        if (firstAudioStream == null) {
-            bitRate = calculateBitRate(fileSize, duration);
-        } else {
-            bitRate = calculateBitRate(fileSize, duration, firstAudioStream.getBitRate() == null ? DEFAULT_AUDIO_BIT_RATE : firstAudioStream.getBitRate() / 1000);
-        }
-        bv(index, bitRate + "k");
-        if (!options.contains("-maxrate")) {
-            options.add("-maxrate");
-            options.add(bitRate + "k");
-            options.add("-bufsize");
-            options.add((long) (bitRate * 1.5) + "k");
-        }
+
+        videoBitRate = videoBitRate / 1024;
+        videoBitRate = videoBitRate * quality / 100;
+
+        bv(index, videoBitRate + "k");
+        options.add("-maxrate");
+        options.add(videoBitRate + "k");
+        options.add("-bufsize");
+        options.add((long) (videoBitRate * 1.5) + "k");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder vp8QMinQMax() {
+        qmin("0").qmax("40");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder fastConversion() {
+        preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
+
+        speed("16");
+
+        return this;
+    }
+
+    public FFmpegCommandBuilder deadline(String deadline) {
+        options.add("-deadline");
+        options.add(deadline);
 
         return this;
     }
@@ -709,15 +689,5 @@ public class FFmpegCommandBuilder {
         }
 
         return options;
-    }
-
-    private long calculateBitRate(long fileSize, long duration) {
-        return (fileSize / 1024 * 8) / duration;
-    }
-
-    private long calculateBitRate(long fileSize, long duration, long audioBitRate) {
-        long videoBitRate = (fileSize / 1024 * 8) / duration;
-
-        return audioBitRate >= videoBitRate ? videoBitRate : videoBitRate - audioBitRate;
     }
 }

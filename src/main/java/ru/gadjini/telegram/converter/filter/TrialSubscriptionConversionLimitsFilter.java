@@ -18,6 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.FatherPaidSubscriptionService;
 import ru.gadjini.telegram.smart.bot.commons.service.subscription.PaidSubscriptionPlanService;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 
 import java.util.Locale;
@@ -86,7 +87,9 @@ public class TrialSubscriptionConversionLimitsFilter extends BaseBotFilter {
         }
         if (media.getFileSize() > subscriptionProperties.getTrialMaxFileSize()) {
             double minPrice = paidSubscriptionPlanService.getMinPrice();
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TRIAL_USER_SIZE_LIMIT, locale) + "\n\n" +
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TRIAL_USER_SIZE_LIMIT,
+                    new Object[]{MemoryUtils.humanReadableByteCount(subscriptionProperties.getTrialMaxFileSize()),
+                            MemoryUtils.humanReadableByteCount(media.getFileSize())}, locale) + "\n\n" +
                     localisationService.getMessage(MessagesProperties.MESSAGE_BUY_SUBSCRIPTION_RIGHT_NOW, new Object[]{
                             NumberUtils.toString(minPrice, 2)
                     }, locale) + "\n" +
@@ -94,7 +97,8 @@ public class TrialSubscriptionConversionLimitsFilter extends BaseBotFilter {
         }
         if (conversionQueueService.countByUser(message.getFrom().getId()) >= subscriptionProperties.getTrialMaxActionsCount()) {
             double minPrice = paidSubscriptionPlanService.getMinPrice();
-            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TRIAL_USER_COUNT_LIMIT, locale) + "\n\n" +
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_TRIAL_USER_COUNT_LIMIT,
+                    new Object[] {subscriptionProperties.getTrialMaxActionsCount()}, locale) + "\n\n" +
                     localisationService.getMessage(MessagesProperties.MESSAGE_BUY_SUBSCRIPTION_RIGHT_NOW, new Object[]{
                             NumberUtils.toString(minPrice, 2)
                     }, locale) + "\n" +

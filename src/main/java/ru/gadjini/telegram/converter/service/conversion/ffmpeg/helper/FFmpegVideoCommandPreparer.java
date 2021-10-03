@@ -29,25 +29,17 @@ public class FFmpegVideoCommandPreparer {
         this.fFmpegVideoHelper = fFmpegVideoHelper;
     }
 
-    public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
-                                              SmartTempFile result, String scale, Format targetFormat, boolean keepVideoBitRate,
-                                              Long fileSize) throws InterruptedException {
-        prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale, null, null,
-                null,
-                targetFormat, keepVideoBitRate, fileSize);
-    }
-
-    public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.Stream> allStreams,
+    public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
                                               SmartTempFile result, String scale, String audioCodec, String audioCodecName,
                                               Long audioBitrate,
-                                              Format targetFormat, boolean keepVideoBitRate,
+                                              Format targetFormat, int quality,
                                               Long fileSize) throws InterruptedException {
-        List<FFprobeDevice.Stream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.Stream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
+        List<FFprobeDevice.FFProbeStream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); videoStreamMapIndex++) {
-            FFprobeDevice.Stream videoStream = videoStreams.get(videoStreamMapIndex);
+            FFprobeDevice.FFProbeStream videoStream = videoStreams.get(videoStreamMapIndex);
             if (fFmpegVideoHelper.isExtraVideoStream(videoStreams, videoStream)) {
                 continue;
             }
@@ -62,9 +54,7 @@ public class FFmpegVideoCommandPreparer {
             if (!convertibleToH264) {
                 commandBuilder.filterVideo(outCodecIndex, scale);
             }
-            if (keepVideoBitRate) {
-                commandBuilder.keepVideoBitRate(outCodecIndex, fileSize, videoStream.getDuration(), allStreams);
-            }
+            commandBuilder.keepVideoBitRate(videoStream.getBitRate(), outCodecIndex, quality);
 
             ++outCodecIndex;
         }

@@ -145,13 +145,13 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                 commandBuilder.input(watermarkImage.getAbsolutePath());
             }
 
-            List<FFprobeDevice.Stream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams,
                         fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
             } else {
                 fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(),
-                        result, fileQueueItem.getSize());
+                        result);
             }
 
             if (watermark.getWatermarkType() == VideoWatermarkType.TEXT) {
@@ -174,7 +174,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             }
             subtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
             if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
-                commandBuilder.vp8QualityOptions();
+                commandBuilder.vp8QMinQMax();
             }
             commandBuilder.fastConversion().defaultOptions();
             commandBuilder.out(result.getAbsolutePath());
