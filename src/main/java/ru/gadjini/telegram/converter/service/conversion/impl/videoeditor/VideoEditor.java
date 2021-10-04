@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioChannelLayoutState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -104,6 +105,13 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
+
+            if (EditVideoQualityState.AUTO.equals(settingsState.getCrf())) {
+                settingsState.setCrf("100");
+            } else {
+                int quality = settingsState.getQuality();
+                settingsState.setCrf(String.valueOf(100 - quality));
+            }
 
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),

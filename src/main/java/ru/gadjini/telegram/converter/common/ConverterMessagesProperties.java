@@ -147,6 +147,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_AUDIO_COMPRESS_ORIGINAL_SIZE = "message.audio.compress.original.size";
 
+    public static final String MESSAGE_VIDEO_COMPRESSION_CAPTION = "message.video.compression.caption";
+
     public static final String MESSAGE_COMPRESSED_SIZE = "message.compressed.size";
 
     public static final String MESSAGE_VIDEO_EDIT_WELCOME = "message.video.edit.welcome";
@@ -159,7 +161,7 @@ public class ConverterMessagesProperties {
 
     public static final String VAVMERGE_COMMAND_DESCRIPTION = "vavmerge.command.description";
 
-    public static final String MESSAGE_CHOOSE_VIDEO_RESOLUTION = "message.choose.video.resolution";
+    public static final String MESSAGE_CHOOSE_VIDEO_EDIT_SETTINGS = "message.choose.video.edit.settings";
 
     public static final String MESSAGE_CHOOSE_VIDEO_CRF = "message.choose.video.crf";
 
@@ -397,7 +399,7 @@ public class ConverterMessagesProperties {
 
     public static final String VEDIT_RESOLUTION_COMMAND_NAME = "vedit.resolution.command.name";
 
-    public static final String VEDIT_CRF_COMMAND_NAME = "vedit.crf.command.name";
+    public static final String VEDIT_QUALITY_COMMAND_NAME = "vedit.quality.command.name";
 
     public static final String VEDIT_AUDIO_CODEC_COMMAND_NAME = "vedit.audio.codec.command.name";
 
@@ -406,6 +408,8 @@ public class ConverterMessagesProperties {
     public static final String VEDIT_AUDIO_BITRATE_COMMAND_NAME = "vedit.audio.bitrate.command.name";
 
     public static final String MESSAGE_DONT_CHANGE = "message.dont.change";
+
+    public static final String MESSAGE_DONT_COMPRESS = "message.dont.compress";
 
     public static final String MESSAGE_AUTO = "message.auto";
 
@@ -458,4 +462,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_TRIAL_USER_COUNT_LIMIT = "message.trial.user.count.limit";
 
     public static final String MESSAGE_TRIAL_USER_ZERO_SIZE_LIMIT = "message.trial.user.zero.size.limit";
+
+    public static final String MESSAGE_BY_PERCENTAGE = "by.percentage.command.name";
 }

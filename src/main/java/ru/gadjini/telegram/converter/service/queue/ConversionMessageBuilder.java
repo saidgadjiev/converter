@@ -60,6 +60,12 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
     }
 
+    public String getVideoCompressionInfoMessage(long sourceSize, long resultSize, Locale locale) {
+        return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_COMPRESSION_CAPTION, locale) + "\n\n"
+                + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSED_SIZE,
+                new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
+    }
+
     public String getVideoEditedInfoMessage(long sourceFileSize, long resultSize,
                                             Integer sourceHeight, Integer targetHeight, Locale locale) {
         if (sourceHeight == null || targetHeight == null) {

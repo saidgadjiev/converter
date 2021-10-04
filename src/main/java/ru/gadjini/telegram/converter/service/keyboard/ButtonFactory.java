@@ -45,7 +45,7 @@ public class ButtonFactory {
 
     public InlineKeyboardButton chooseCrfButton(Locale locale) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(
-                localisationService.getMessage(ConverterMessagesProperties.VEDIT_CRF_COMMAND_NAME, locale));
+                localisationService.getMessage(ConverterMessagesProperties.VEDIT_QUALITY_COMMAND_NAME, locale));
 
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
@@ -267,9 +267,16 @@ public class ButtonFactory {
     }
 
     public InlineKeyboardButton crfButton(String currentCrf, String crf, Locale locale) {
+        String crfName;
+        if (EditVideoResolutionState.AUTO.equals(crf)) {
+            crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale);
+        } else {
+            crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_BY_PERCENTAGE,
+                    new Object[]{crf}, locale);
+        }
         String btnName = Objects.equals(currentCrf, crf)
-                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crf + "%"
-                : crf + "%";
+                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crfName
+                : crfName;
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +

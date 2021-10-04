@@ -131,9 +131,9 @@ public class InlineKeyboardService {
     public InlineKeyboardMarkup getVideoEditCrfKeyboard(String currentCrf, List<String> crfs, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         crfs = new ArrayList<>(crfs);
-        crfs.remove(EditVideoQualityState.QUALITY_100);
+        crfs.remove(EditVideoQualityState.AUTO);
         inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoQualityState.QUALITY_100, locale)));
+                .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoQualityState.AUTO, locale)));
         List<List<String>> lists = Lists.partition(crfs, 3);
         for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();

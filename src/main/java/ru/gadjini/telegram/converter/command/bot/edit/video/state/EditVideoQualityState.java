@@ -25,12 +25,12 @@ import java.util.Objects;
 @Component
 public class EditVideoQualityState extends BaseEditVideoState {
 
-    public static final String QUALITY_100 = "100";
+    public static final String AUTO = "x";
 
     public static final String DEFAULT_QUALITY = "70";
 
     static final List<String> AVAILABLE_QUALITIES = List.of(
-            QUALITY_100,
+            AUTO,
             "90",
             "80",
             "75",

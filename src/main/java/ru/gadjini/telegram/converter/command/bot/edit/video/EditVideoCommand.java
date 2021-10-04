@@ -160,7 +160,7 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
                     messageService.sendMessage(
                             SendMessage.builder()
                                     .chatId(String.valueOf(message.getChatId()))
-                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_RESOLUTION, locale))
+                                    .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_EDIT_SETTINGS, locale))
                                     .build()
                     );
                 }

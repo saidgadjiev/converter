@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.Locale;
 
@@ -42,13 +43,15 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
 
         Locale locale = new Locale(convertState.getUserLanguage());
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
-                new Object[]{getResolutionMessage(convertState.getSettings().getResolution(), locale),
-                        getCrfMessage(convertState.getSettings().getCrf()),
+                new Object[]{convertState.getFirstFormat().getName(),
+                        MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
+                        getResolutionMessage(convertState.getSettings().getResolution(), locale),
+                        getCrfMessage(convertState.getSettings().getCrf(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
-                        getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale)}, locale));
-        message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILE_FORMAT,
-                new Object[]{convertState.getFirstFormat().getName()}, locale));
+                        getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale),
+                        getEstimatedSize(convertState.getFirstFile().getFileSize(), convertState.getSettings().getQuality())},
+                locale));
 
         message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
         message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
@@ -73,8 +76,9 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution;
     }
 
-    private String getCrfMessage(String crf) {
-        return crf + "%";
+    private String getCrfMessage(String crf, Locale locale) {
+        return EditVideoResolutionState.AUTO.equals(crf) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale) : crf;
     }
 
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
@@ -85,6 +89,10 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     private String getAudioMonoStereoMessage(String monoStereo, Locale locale) {
         return EditVideoAudioChannelLayoutState.AUTO.equals(monoStereo) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo;
+    }
+
+    private String getEstimatedSize(long fileSize, int quality) {
+        return MemoryUtils.humanReadableByteCount(fileSize * quality / 100);
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {

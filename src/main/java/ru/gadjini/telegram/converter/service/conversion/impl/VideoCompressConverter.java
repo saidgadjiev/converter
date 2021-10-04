@@ -123,7 +123,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             }
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
-            String compessionInfo = messageBuilder.getCompressionInfoMessage(fileQueueItem.getSize(), result.length(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            String compessionInfo = messageBuilder.getVideoCompressionInfoMessage(fileQueueItem.getSize(), result.length(),
+                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), compessionInfo);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
