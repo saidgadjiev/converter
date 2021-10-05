@@ -158,7 +158,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     }
 
     public String getFilesDownloadingProgressMessage(ConversionQueueItem queueItem, int current, int total, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, "%", locale);
 
         return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(current, total, queueItem.getTargetFormat(), locale);
     }
@@ -185,7 +185,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     public String getConversionProcessingMessage(ConversionQueueItem queueItem,
                                                  ConversionStep conversionStep, Set<ConversionStep> completedSteps, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, "%", locale);
 
         return progressingMessage + "\n\n" +
                 getProgressMessage(conversionStep, completedSteps, false, false,
@@ -195,7 +195,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     public String getConversionProcessingMessage(ConversionQueueItem queueItem,
                                                  ConversionStep conversionStep, Set<ConversionStep> completedSteps,
                                                  boolean withConversionPercentage, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, percentageEscape(conversionStep, withConversionPercentage, false), locale);
 
         return progressingMessage + "\n\n" +
                 getProgressMessage(conversionStep, completedSteps, withConversionPercentage, false,
@@ -205,14 +205,15 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     public String getConversionProcessingMessage(ConversionQueueItem queueItem,
                                                  ConversionStep conversionStep, Set<ConversionStep> completedSteps,
                                                  boolean withPercentage, boolean withEtaSpeedPercentage, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem,
+                percentageEscape(conversionStep, withPercentage, withEtaSpeedPercentage), locale);
 
         return progressingMessage + "\n\n" +
                 getProgressMessage(conversionStep, completedSteps, withPercentage, withEtaSpeedPercentage,
                         queueItem.getFirstFileFormat(), queueItem.getTargetFormat(), locale);
     }
 
-    private String getConversionProgressingMessage(ConversionQueueItem queueItem, Locale locale) {
+    private String getConversionProgressingMessage(ConversionQueueItem queueItem, String percentageEscape, Locale locale) {
         StringBuilder text = new StringBuilder();
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
@@ -258,9 +259,13 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         }
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
             text.append("\n\n")
+                    .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_BY, new Object[]{
+                            100 - VideoCompressConverter.DEFAULT_QUALITY + percentageEscape
+                    }, locale))
+                    .append("\n")
                     .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION,
                             new Object[]{MemoryUtils.humanReadableByteCount(
-                                    queueItem.getSize() * (100 - VideoCompressConverter.DEFAULT_QUALITY))}, locale));
+                                    queueItem.getSize() * VideoCompressConverter.DEFAULT_QUALITY / 100)}, locale));
         }
 
         String w = warns(Set.of(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale)), locale);
@@ -270,6 +275,10 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         }
 
         return text.toString();
+    }
+
+    private String percentageEscape(ConversionStep conversionStep, boolean withPercentage, boolean withEtaStart) {
+        return conversionStep.equals(ConversionStep.CONVERTING) ? withPercentage || withEtaStart ? "%%" : "%" : "%";
     }
 
     private String getProgressMessage(ConversionStep conversionStep, Set<ConversionStep> completedSteps,
@@ -287,7 +296,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 : targetFormat == Format.WATERMARK ? ConverterMessagesProperties.WATERMARK_ADDING_STEP
                 : ConverterMessagesProperties.CONVERTING_STEP;
 
-        String percentageEscape = conversionStep.equals(ConversionStep.CONVERTING) ? withPercentage || withEtaStart ? "%%" : "%" : "%";
+        String percentageEscape = percentageEscape(conversionStep, withPercentage, withEtaStart);
         String progressPart = withPercentage ? " (%s%%)</b>\n" : " ...</b>\n";
         String percentageCompleted = withPercentage ? " <b>(100%)</b>" + iconCheck : iconCheck;
         String eta = withEtaStart ? "<pre>" + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ETA, locale) + " %s</pre>\n" +
