@@ -23,6 +23,7 @@ import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.filter.*;
 import ru.gadjini.telegram.smart.bot.commons.filter.subscription.ChannelSubscriptionFilter;
 import ru.gadjini.telegram.smart.bot.commons.filter.subscription.PaidSubscriptionFilter;
+import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -45,12 +46,18 @@ public class BotConfiguration {
                                LastActivityFilter activityFilter,
                                ChannelSubscriptionFilter subscriptionFilter, UpdatesHandlerFilter updatesHandlerFilter,
                                PaidSubscriptionFilter paidSubscriptionFilter, DistributionFilter distributionFilter,
-                               TrialSubscriptionConversionLimitsFilter trialSubscriptionConversionLimitsFilter) {
-        updateFilter.setNext(userSynchronizedFilter)
+                               TrialSubscriptionConversionLimitsFilter trialSubscriptionConversionLimitsFilter,
+                               SubscriptionProperties subscriptionProperties) {
+        BotFilter botFilter = updateFilter.setNext(userSynchronizedFilter)
                 .setNext(startCommandFilter).setNext(subscriptionFilter).setNext(activityFilter)
                 .setNext(distributionFilter)
-                .setNext(techWorkFilter).setNext(paidSubscriptionFilter)
-                .setNext(trialSubscriptionConversionLimitsFilter).setNext(updatesHandlerFilter);
+                .setNext(techWorkFilter).setNext(paidSubscriptionFilter);
+
+        if (subscriptionProperties.isActivateTrialLimits()) {
+            LOGGER.debug("Active trial user limits");
+            botFilter = botFilter.setNext(trialSubscriptionConversionLimitsFilter);
+        }
+        botFilter.setNext(updatesHandlerFilter);
 
         return updateFilter;
     }
