@@ -144,8 +144,16 @@ public class VideoCutter extends BaseAny2AnyConverter {
     public void doCut(SmartTempFile file, SmartTempFile result,
                       Period sp, Period ep, Long knownDuration,
                       ConversionQueueItem fileQueueItem, boolean withProgress) throws InterruptedException {
-        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
         String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
+        if (knownDuration != null && sp.toStandardSeconds().getSeconds() > knownDuration) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_START_POINT,
+                    new Object[] {
+                            startPoint, PERIOD_FORMATTER.print(Period.seconds(knownDuration.intValue()).normalizedStandard())
+                    },
+                    userService.getLocaleOrDefault(fileQueueItem.getUserId())));
+        }
+
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
         if (knownDuration != null && ep.toStandardSeconds().getSeconds() > knownDuration.intValue()) {
             ep = Period.seconds(knownDuration.intValue());

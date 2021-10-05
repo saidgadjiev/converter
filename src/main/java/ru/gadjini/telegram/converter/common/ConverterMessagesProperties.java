@@ -476,4 +476,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_VEDIT_CHOOSE_AUDIO_CHANNEL_LAYOUT = "message.vedit.choose.audio.channel.layout";
 
     public static final String MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION = "message.estimated.size.after.compression";
+
+    public static final String MESSAGE_INVALID_START_POINT = "message.invalid.start.point";
 }
