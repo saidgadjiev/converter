@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
@@ -99,11 +99,14 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
     }
 
     @Override
-    public void goBack(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState) {
-        messageService.editKeyboard(
-                EditMessageReplyMarkup.builder()
-                        .chatId(String.valueOf(message.getChatId()))
-                        .messageId(message.getMessageId())
+    public void goBack(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
+        messageService.editMessage(
+                callbackQuery.getMessage().getText(),
+                callbackQuery.getMessage().getReplyMarkup(),
+                EditMessageText.builder()
+                        .chatId(String.valueOf(callbackQuery.getFrom().getId()))
+                        .text(buildSettingsMessage(currentState.getState()))
+                        .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(new Locale(currentState.getUserLanguage())))
                         .build()
         );

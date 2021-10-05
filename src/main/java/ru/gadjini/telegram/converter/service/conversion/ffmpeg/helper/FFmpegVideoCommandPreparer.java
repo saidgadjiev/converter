@@ -32,8 +32,7 @@ public class FFmpegVideoCommandPreparer {
     public void prepareCommandForVideoScaling(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
                                               SmartTempFile result, String scale, String audioCodec, String audioCodecName,
                                               Long audioBitrate,
-                                              Format targetFormat, int quality,
-                                              Long fileSize) throws InterruptedException {
+                                              Format targetFormat, int quality) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> videoStreams = allStreams.stream().filter(s -> FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE.equals(s.getCodecType())).collect(Collectors.toList());
 
         FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);

@@ -28,7 +28,7 @@ public class ScaleVideoEditorState implements VideoEditorState {
         videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
                 audioCodec, audioCodecName, audioBitrate,
                 fileQueueItem.getFirstFileFormat(),
-                Integer.parseInt(settingsState.getCrf()),
-                fileQueueItem.getSize());
+                Integer.parseInt(settingsState.getCrf())
+        );
     }
 }

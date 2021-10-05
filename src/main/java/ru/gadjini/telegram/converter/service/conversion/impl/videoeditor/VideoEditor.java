@@ -18,6 +18,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.StandardVideoEditorState;
@@ -53,6 +54,8 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
+    private FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper;
+
     private UserService userService;
 
     private FFprobeDevice fFprobeDevice;
@@ -70,13 +73,16 @@ public class VideoEditor extends BaseAny2AnyConverter {
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
     @Autowired
-    public VideoEditor(ConversionMessageBuilder messageBuilder, UserService userService, FFprobeDevice fFprobeDevice,
+    public VideoEditor(ConversionMessageBuilder messageBuilder,
+                       FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
+                       UserService userService, FFprobeDevice fFprobeDevice,
                        FFmpegDevice fFmpegDevice, Jackson jackson,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
                        CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState,
                        FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
         super(MAP);
         this.messageBuilder = messageBuilder;
+        this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
@@ -157,6 +163,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 commandBuilder.ac(monoStereo);
             }
 
+            audioStreamInVideoFileConversionHelper.addChannelMapFilter(commandBuilder, result);
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
             FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));

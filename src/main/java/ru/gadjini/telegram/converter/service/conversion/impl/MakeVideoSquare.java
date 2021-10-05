@@ -104,7 +104,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             String scale = "scale='iw:ih':force_original_aspect_ratio=decrease,pad=" + size + ":" + size + ":(ow-iw)/2:(oh-ih)/2";
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
                     null, null, null,
-                    TARGET_FORMAT, 100, fileQueueItem.getSize());
+                    TARGET_FORMAT, 100);
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
             FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),

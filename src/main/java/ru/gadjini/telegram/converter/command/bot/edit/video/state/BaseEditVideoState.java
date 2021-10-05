@@ -53,10 +53,31 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                         getEstimatedSize(convertState.getFirstFile().getFileSize(), convertState.getSettings().getQuality())},
                 locale));
 
-        message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
-        message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
-
-        message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_CHOOSE_SETTINGS, locale));
+        switch (getName()) {
+            case WELCOME:
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
+                message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_CHOOSE_SETTINGS, locale));
+                break;
+            case RESOLUTION:
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
+                message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_RESOLUTION, locale));
+                break;
+            case CRF:
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_COMPRESSION_RATE, locale));
+                break;
+            case AUDIO_CODEC:
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_AUDIO_CODEC, locale));
+                break;
+            case AUDIO_BITRATE:
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_AUDIO_BITRATE, locale));
+                break;
+            case AUDIO_CHANNEL_LAYOUT:
+                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_AUDIO_CHANNEL_LAYOUT, locale));
+                break;
+        }
 
         return message.toString();
     }
@@ -78,7 +99,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
 
     private String getCrfMessage(String crf, Locale locale) {
         return EditVideoResolutionState.AUTO.equals(crf) ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale) : crf;
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale) : crf + "%";
     }
 
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {

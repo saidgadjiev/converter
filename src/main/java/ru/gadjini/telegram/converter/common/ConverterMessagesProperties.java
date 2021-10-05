@@ -464,4 +464,16 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_TRIAL_USER_ZERO_SIZE_LIMIT = "message.trial.user.zero.size.limit";
 
     public static final String MESSAGE_BY_PERCENTAGE = "by.percentage.command.name";
+
+    public static final String MESSAGE_VEDIT_CHOOSE_COMPRESSION_RATE = "message.vedit.choose.compression.rate";
+
+    public static final String MESSAGE_VEDIT_CHOOSE_RESOLUTION = "message.vedit.choose.resolution";
+
+    public static final String MESSAGE_VEDIT_CHOOSE_AUDIO_CODEC = "message.vedit.choose.audio.codec";
+
+    public static final String MESSAGE_VEDIT_CHOOSE_AUDIO_BITRATE = "message.vedit.choose.audio.bitrate";
+
+    public static final String MESSAGE_VEDIT_CHOOSE_AUDIO_CHANNEL_LAYOUT = "message.vedit.choose.audio.channel.layout";
+
+    public static final String MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION = "message.estimated.size.after.compression";
 }

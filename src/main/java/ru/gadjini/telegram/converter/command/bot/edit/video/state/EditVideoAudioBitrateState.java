@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
@@ -53,10 +54,12 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
 
     @Override
     public void enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
-        messageService.editKeyboard(
+        messageService.editMessage(
+                callbackQuery.getMessage().getText(),
                 callbackQuery.getMessage().getReplyMarkup(),
-                EditMessageReplyMarkup.builder()
+                EditMessageText.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
+                        .text(buildSettingsMessage(currentState.getState()))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioBitratesKeyboard(currentState.getSettings().getAudioBitrate(),
                                 AVAILABLE_AUDIO_BITRATES, new Locale(currentState.getUserLanguage())))
@@ -69,7 +72,7 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
                                RequestParams requestParams, EditVideoState currentState) {
         if (requestParams.contains(ConverterArg.GO_BACK.getKey())) {
             currentState.setStateName(welcomeState.getName());
-            welcomeState.goBack(editVideoCommand, callbackQuery.getMessage(), currentState);
+            welcomeState.goBack(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.AUDIO_BITRATE.getKey())) {
             String audioBitrate = requestParams.getString(ConverterArg.AUDIO_BITRATE.getKey());

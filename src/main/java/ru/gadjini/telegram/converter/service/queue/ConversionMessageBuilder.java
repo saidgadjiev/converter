@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter;
+import ru.gadjini.telegram.converter.service.conversion.impl.VideoCompressConverter;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
@@ -254,6 +255,12 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         if (queueItem.getFiles().size() > 1) {
             text.append("\n")
                     .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILES_COUNT, new Object[]{queueItem.getFiles().size()}, locale));
+        }
+        if (queueItem.getTargetFormat() == Format.COMPRESS) {
+            text.append("\n\n")
+                    .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION,
+                            new Object[]{MemoryUtils.humanReadableByteCount(
+                                    queueItem.getSize() * (100 - VideoCompressConverter.DEFAULT_QUALITY))}, locale));
         }
 
         String w = warns(Set.of(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale)), locale);

@@ -15,7 +15,7 @@ public interface EditVideoSettingsState {
 
     }
 
-    default void goBack(EditVideoCommand editVideoCommand, Message message, EditVideoState currentState) {
+    default void goBack(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
 
     }
 

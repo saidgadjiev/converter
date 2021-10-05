@@ -51,6 +51,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private static final String SCALE = "scale=-2:ceil(ih/3)*2";
 
+    public static final int DEFAULT_QUALITY = 70;
+
     private FFmpegDevice fFmpegDevice;
 
     private LocalisationService localisationService;
@@ -106,7 +108,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, SCALE,
                     null, null, null,
-                    fileQueueItem.getFirstFileFormat(), 70, null);
+                    fileQueueItem.getFirstFileFormat(), DEFAULT_QUALITY);
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
