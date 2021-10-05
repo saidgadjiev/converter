@@ -172,7 +172,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
 
     private boolean validate(String queryId, EditVideoState editVideoState) {
         if (EditVideoResolutionState.AUTO.equals(editVideoState.getSettings().getResolution())
-                && "110".equals(editVideoState.getSettings().getCrf())
+                && EditVideoQualityState.AUTO.equals(editVideoState.getSettings().getCrf())
                 && EditVideoAudioCodecState.AUTO.equals(editVideoState.getSettings().getAudioCodec())
                 && EditVideoAudioBitrateState.AUTO.equals(editVideoState.getSettings().getAudioBitrate())
                 && EditVideoAudioChannelLayoutState.AUTO.equals(editVideoState.getSettings().getAudioChannelLayout())) {

@@ -480,4 +480,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION = "message.estimated.size.after.compression";
 
     public static final String MESSAGE_INVALID_START_POINT = "message.invalid.start.point";
+
+    public static final String MESSAGE_USE_VEDIT_FOR_COMPRESSION = "message.use.vedit.for.compression";
 }

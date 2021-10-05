@@ -28,19 +28,21 @@ public class EditVideoQualityState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
-    public static final String DEFAULT_QUALITY = "70";
+    public static final String DEFAULT_QUALITY = "30";
+
+    public static final int MAX_COMPRESSION_RATE = 90;
 
     static final List<String> AVAILABLE_QUALITIES = List.of(
             AUTO,
-            "90",
-            "80",
-            "70",
-            "60",
-            "50",
-            "40",
-            "30",
+            "10",
             "20",
-            "10"
+            "30",
+            "40",
+            "50",
+            "60",
+            "70",
+            "80",
+            "90"
     );
 
     private MessageService messageService;

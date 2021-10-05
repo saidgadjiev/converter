@@ -113,7 +113,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     }
 
     private String getEstimatedSize(long fileSize, int quality) {
-        return MemoryUtils.humanReadableByteCount(fileSize * quality / 100);
+        return MemoryUtils.humanReadableByteCount(fileSize * (100 - quality) / 100);
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {

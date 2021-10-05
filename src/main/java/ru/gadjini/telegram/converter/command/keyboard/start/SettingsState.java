@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.command.keyboard.start;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Period;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 public class SettingsState {
@@ -165,6 +166,6 @@ public class SettingsState {
     }
 
     public int getQuality() {
-        return Integer.parseInt(crf);
+        return EditVideoQualityState.AUTO.equals(crf) ? 0 : Integer.parseInt(crf);
     }
 }

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
@@ -24,6 +25,7 @@ import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
 
@@ -265,10 +267,19 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                     .append("\n")
                     .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION,
                             new Object[]{MemoryUtils.humanReadableByteCount(
-                                    queueItem.getSize() * VideoCompressConverter.DEFAULT_QUALITY / 100)}, locale));
+                                    queueItem.getSize() * VideoCompressConverter.DEFAULT_QUALITY / 100)}, locale))
+            .append("\n\n")
+            .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_USE_VEDIT_FOR_COMPRESSION,
+                    new Object[]{
+                            EditVideoQualityState.MAX_COMPRESSION_RATE + percentageEscape,
+                            MemoryUtils.humanReadableByteCount(
+                                    queueItem.getSize() * (100 - EditVideoQualityState.MAX_COMPRESSION_RATE) / 100)
+                    }, locale));
         }
 
-        String w = warns(Set.of(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale)), locale);
+        Set<String> warns = new LinkedHashSet<>();
+        warns.add(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
+        String w = warns(warns, locale);
 
         if (StringUtils.isNotBlank(w)) {
             text.append("\n\n").append(w);
