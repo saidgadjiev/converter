@@ -32,6 +32,8 @@ public class EditVideoQualityState extends BaseEditVideoState {
 
     public static final int MAX_COMPRESSION_RATE = 90;
 
+    public static final String MAX_QUALITY = "100";
+
     static final List<String> AVAILABLE_QUALITIES = List.of(
             AUTO,
             "10",

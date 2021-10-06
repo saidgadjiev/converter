@@ -23,4 +23,4 @@ USER bot
 RUN mkdir -p /home/bot/workdir
 RUN mkdir -p /home/bot/logs
 ENTRYPOINT ["telegram-bot-api", "--http-stat-port=8082", "--dir=/home/bot/workdir", "--local"]
-#ENTRYPOINT ["telegram-bot-api", "--http-stat-port=8082", "--log=/home/bot/logs/api.log", "--verbosity=4", "--dir=/home/bot/workdir", "--local"]
+#ENTRYPOINT ["telegram-bot-api", "--http-stat-port=8082", "--log=/home/bot/logs/api.log", "--verbosity=100", "--dir=/home/bot/workdir", "--local"]

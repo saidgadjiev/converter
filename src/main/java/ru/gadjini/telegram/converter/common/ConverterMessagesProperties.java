@@ -449,6 +449,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VIDEO_2_GIF_MAX_LENGTH = "message.video.2.gif.max.length";
 
+    public static final String MESSAGE_VIDEO_2_GIF_MAX_SIZE = "message.video.2.gif.max.size";
+
     public static final String VSCREENSHOT_COMMAND_DESCRIPTION = "vscreenshot.command.description";
 
     public static final String VSAMPLE_COMMAND_DESCRIPTION = "vsample.command.description";

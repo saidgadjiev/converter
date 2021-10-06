@@ -25,6 +25,8 @@ public class WatermarkImageSizeState extends BaseWatermarkState {
 
     public static final String AUTO = "Auto";
 
+    public static final int MAX_HEIGHT = 512;
+
     private static final List<String> HEIGHTS = List.of("Auto", "8", "16", "32", "64", "128", "256", "512");
 
     private MessageService messageService;

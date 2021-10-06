@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.command.bot.watermark.video.state.WatermarkImageSizeState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.domain.watermark.video.VideoWatermark;
@@ -132,6 +133,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                 fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             VideoWatermark watermark = videoWatermarkService.getWatermark(fileQueueItem.getUserId());
+            validateWatermarkFile(fileQueueItem, watermark);
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                     .input(video.getAbsolutePath());
 
@@ -238,7 +240,8 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
     private SmartTempFile convertVideo2Gif(GarbageFileCollection garbageFileCollection,
                                            ConversionQueueItem fileQueueItem, VideoWatermark watermark) {
         try {
-            SmartTempFile file = video2GifConverter.doConvert2Gif(watermark.getImage().getFileId(), fileQueueItem);
+            SmartTempFile file = video2GifConverter.doConvert2Gif(watermark.getImage().getFileId(), fileQueueItem,
+                    watermark.getImageHeight() == null ? WatermarkImageSizeState.MAX_HEIGHT : watermark.getImageHeight());
             garbageFileCollection.addFile(file);
 
             return file;
@@ -298,6 +301,22 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                 .append("][a]overlay=").append(getImageXY(videoWatermark.getWatermarkPosition()));
 
         return filter.toString();
+    }
+
+    private void validateWatermarkFile(ConversionQueueItem queueItem, VideoWatermark watermark) throws InterruptedException {
+        if (watermark.getWatermarkType() == VideoWatermarkType.VIDEO) {
+            SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
+
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(watermarkFile.getAbsolutePath());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(watermarkFile.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
+            if (whd.getDuration() == null || whd.getDuration() > 300) {
+                throw new UserException(localisationService.getMessage(
+                        ConverterMessagesProperties.MESSAGE_VIDEO_2_GIF_MAX_LENGTH, new Object[]{
+                                whd.getDuration()
+                        }, userService.getLocaleOrDefault(queueItem.getUserId())
+                ));
+            }
+        }
     }
 
     private String getTextXY(VideoWatermarkPosition position) {
