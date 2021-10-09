@@ -79,7 +79,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         GarbageFileCollection finallyGarbageFileCollection = tempFileGarbageCollector.getNewCollection();
 
         try {
-            Long bitrate = null;
+            Integer bitrate = null;
             if (fileQueueItem.getFirstFileFormat() == NATIVE_FORMAT) {
                 List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
                 bitrate = audioStreams.iterator().next().getBitRate();
@@ -98,7 +98,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         }
     }
 
-    private SmartTempFile mixWithSox(Long bitrate, List<SmartTempFile> files,
+    private SmartTempFile mixWithSox(Integer bitrate, List<SmartTempFile> files,
                                      GarbageFileCollection garbageFileCollection) throws InterruptedException {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, TAG, MP3.getExt());
         garbageFileCollection.addFile(result);
@@ -176,7 +176,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
     }
 
     private SmartTempFile makeWatermarkPartVolumeLower(AudioWatermark watermark, ConversionQueueItem queueItem,
-                                                       Long bitrate, GarbageFileCollection garbageFileCollection) throws InterruptedException {
+                                                       Integer bitrate, GarbageFileCollection garbageFileCollection) throws InterruptedException {
         SmartTempFile in = queueItem.getDownloadedFileOrThrow(queueItem.getFirstFileId());
 
         SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getAudio().getFileId());
@@ -211,7 +211,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         return result;
     }
 
-    private SmartTempFile decreaseVolume(File in, ConversionQueueItem fileQueueItem, Long bitrate,
+    private SmartTempFile decreaseVolume(File in, ConversionQueueItem fileQueueItem, Integer bitrate,
                                          GarbageFileCollection garbageFileCollection) throws InterruptedException {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());

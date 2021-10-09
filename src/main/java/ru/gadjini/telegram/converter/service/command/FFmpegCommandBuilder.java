@@ -604,21 +604,21 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder keepAudioBitRate(Long bitRate) {
+    public FFmpegCommandBuilder keepAudioBitRate(Integer bitRate) {
         if (bitRate == null) {
             return this;
         }
 
-        ba(bitRate / 1000 + "k");
+        ba(bitRate / 1024 + "k");
 
         return this;
     }
 
-    public FFmpegCommandBuilder keepVideoBitRate(Long videoBitRate, int index) {
+    public FFmpegCommandBuilder keepVideoBitRate(Integer videoBitRate, int index) {
         return keepVideoBitRate(videoBitRate, index, 100);
     }
 
-    public FFmpegCommandBuilder keepVideoBitRate(Long videoBitRate, int index, int quality) {
+    public FFmpegCommandBuilder keepVideoBitRate(Integer videoBitRate, int index, int quality) {
         if (videoBitRate == null) {
             return this;
         }

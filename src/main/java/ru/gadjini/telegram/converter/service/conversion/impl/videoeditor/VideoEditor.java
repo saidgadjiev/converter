@@ -4,11 +4,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioChannelLayoutState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.*;
+import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
+import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
@@ -16,10 +15,12 @@ import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.MessageResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
+import ru.gadjini.telegram.converter.service.conversion.impl.extraction.ExtractionByLanguageState;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.StandardVideoEditorState;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.VideoEditorState;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
@@ -29,18 +30,21 @@ import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.EDIT;
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
+import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
 public class VideoEditor extends BaseAny2AnyConverter {
@@ -48,7 +52,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
     private static final String TAG = "vedit";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            Format.filter(FormatCategory.VIDEO), List.of(EDIT)
+            Format.filter(FormatCategory.VIDEO), List.of(EDIT, PREPARE_VIDEO_EDITING)
     );
 
     private ConversionMessageBuilder messageBuilder;
@@ -71,6 +75,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
+    private Set<EditVideoSettingsState> editVideoSettingsStateSet;
+
+    private CommandStateService commandStateService;
+
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder,
                        FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
@@ -78,7 +86,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                        FFmpegDevice fFmpegDevice, Jackson jackson,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
                        CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState,
-                       FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
+                       FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,CommandStateService commandStateService) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
@@ -90,6 +98,12 @@ public class VideoEditor extends BaseAny2AnyConverter {
         this.captionGenerator = captionGenerator;
         this.standardVideoEditorState = standardVideoEditorState;
         this.callbackHandlerFactory = callbackHandlerFactory;
+        this.commandStateService = commandStateService;
+    }
+
+    @Autowired
+    public void setEditVideoSettingsStateSet(Set<EditVideoSettingsState> editVideoSettingsStateSet) {
+        this.editVideoSettingsStateSet = editVideoSettingsStateSet;
     }
 
     @Override
@@ -99,11 +113,50 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     @Override
     public int createDownloads(ConversionQueueItem conversionQueueItem) {
-        return super.createDownloadsWithThumb(conversionQueueItem);
+        if (conversionQueueItem.getTargetFormat() == PREPARE_VIDEO_EDITING) {
+            return super.createDownloads(conversionQueueItem);
+        } else {
+            ExtractionByLanguageState audioExtractionState = commandStateService.getState(conversionQueueItem.getUserId(),
+                    ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE, true, ExtractionByLanguageState.class);
+
+            conversionQueueItem.getFirstFile().setFilePath(audioExtractionState.getFilePath());
+            getFileDownloadService().createCompletedDownloads(
+                    conversionQueueItem.getFiles(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), null
+            );
+
+            return conversionQueueItem.getFiles().size() + createThumbDownload(conversionQueueItem);
+        }
     }
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
+        if (fileQueueItem.getTargetFormat() == PREPARE_VIDEO_EDITING) {
+            return prepareVideoEditing(fileQueueItem);
+        } else {
+            return doEdit(fileQueueItem);
+        }
+    }
+
+    private ConversionResult prepareVideoEditing(ConversionQueueItem fileQueueItem) {
+        EditVideoState state = createState(fileQueueItem, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+        SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
+        state.setDownloadedFilePath(file.getAbsolutePath());
+
+        try {
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            state.setCurrentVideoResolution(whd.getHeight());
+            FFprobeDevice.FFProbeStream firstVideoStream = allStreams.get(videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            state.setCurrentVideoBitrate(firstVideoStream.getBitRate());
+        } catch (InterruptedException e) {
+            throw new ConvertException(e);
+        }
+
+        commandStateService.setState(fileQueueItem.getUserId(), ConverterCommandNames.EDIT_VIDEO, state);
+        return new MessageResult(getState(state.getStateName()).enter(fileQueueItem.getUserId(), state), false);
+    }
+
+    private ConversionResult doEdit(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
@@ -199,5 +252,31 @@ public class VideoEditor extends BaseAny2AnyConverter {
             default:
                 throw new UnsupportedOperationException("Not implemented for " + audioCodec);
         }
+    }
+
+    private EditVideoState createState(ConversionQueueItem conversionQueueItem, Locale locale) {
+        EditVideoState editVideoState = new EditVideoState();
+        editVideoState.setState(new ConvertState());
+        editVideoState.setStateName(EditVideoSettingsStateName.WELCOME);
+        ConvertState convertState = editVideoState.getState();
+        convertState.setUserLanguage(locale.getLanguage());
+        convertState.setSettings(new SettingsState());
+
+        MessageMedia messageMedia = new MessageMedia();
+        messageMedia.setFormat(conversionQueueItem.getFirstFileFormat());
+        messageMedia.setFileSize(conversionQueueItem.getSize());
+        convertState.setMedia(messageMedia);
+
+        convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
+        convertState.getSettings().setCrf(EditVideoQualityState.DEFAULT_QUALITY);
+        convertState.getSettings().setAudioCodec(EditVideoAudioCodecState.AUTO);
+        convertState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
+        convertState.getSettings().setAudioChannelLayout(EditVideoAudioChannelLayoutState.AUTO);
+
+        return editVideoState;
+    }
+
+    private EditVideoSettingsState getState(EditVideoSettingsStateName settingsStateName) {
+        return editVideoSettingsStateSet.stream().filter(s -> settingsStateName.equals(s.getName())).findFirst().orElseThrow();
     }
 }

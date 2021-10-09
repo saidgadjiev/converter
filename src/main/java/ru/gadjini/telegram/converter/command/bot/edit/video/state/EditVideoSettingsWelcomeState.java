@@ -7,7 +7,6 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
@@ -105,7 +104,7 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
                 callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageText.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                        .text(buildSettingsMessage(currentState.getState()))
+                        .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(new Locale(currentState.getUserLanguage())))
                         .build()
@@ -113,19 +112,13 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
     }
 
     @Override
-    public void enter(EditVideoCommand editVideoCommand, Message message, EditVideoState editVideoState) {
-        messageService.sendMessage(
-                SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(buildSettingsMessage(editVideoState.getState()))
-                        .parseMode(ParseMode.HTML)
-                        .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(
-                                new Locale(editVideoState.getUserLanguage())))
-                        .build(),
-                sent -> {
-                    editVideoState.getSettings().setMessageId(sent.getMessageId());
-                    commandStateService.setState(sent.getChatId(), editVideoCommand.getCommandIdentifier(), editVideoState);
-                }
-        );
+    public SendMessage enter(long userId, EditVideoState editVideoState) {
+        return SendMessage.builder().chatId(String.valueOf(userId))
+                .text(buildSettingsMessage(editVideoState))
+                .parseMode(ParseMode.HTML)
+                .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(
+                        new Locale(editVideoState.getUserLanguage())))
+                .build();
     }
 
     @Override

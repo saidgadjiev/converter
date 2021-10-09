@@ -183,8 +183,8 @@ public class FFprobeDevice {
                 }));
     }
 
-    private long calculateBitRate(long fileSize, long duration) {
-        return (fileSize / 1024 * 8) / duration;
+    private int calculateBitRate(long fileSize, long duration) {
+        return (int) ((fileSize / 1024 * 8) / duration);
     }
 
     private String getMediaInfoStreamTypeByFFmpegCodecType(String ffmpegCodecType) {
@@ -340,7 +340,7 @@ public class FFprobeDevice {
         private Integer height;
 
         @JsonProperty("bit_rate")
-        private Long bitRate;
+        private Integer bitRate;
 
         private int input = 0;
 
@@ -424,11 +424,11 @@ public class FFprobeDevice {
             return input;
         }
 
-        public Long getBitRate() {
+        public Integer getBitRate() {
             return bitRate;
         }
 
-        public void setBitRate(Long bitRate) {
+        public void setBitRate(Integer bitRate) {
             this.bitRate = bitRate;
         }
 

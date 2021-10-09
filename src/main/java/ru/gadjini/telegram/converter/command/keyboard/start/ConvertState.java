@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ConvertState {
 
-    private int messageId;
+    private Integer messageId;
 
     private List<MessageMedia> files = new ArrayList<>();
 
@@ -28,11 +28,11 @@ public class ConvertState {
         files = Arrays.asList(new MessageMedia[filesSize]);
     }
 
-    public int getMessageId() {
+    public Integer getMessageId() {
         return messageId;
     }
 
-    public void setMessageId(int messageId) {
+    public void setMessageId(Integer messageId) {
         this.messageId = messageId;
     }
 

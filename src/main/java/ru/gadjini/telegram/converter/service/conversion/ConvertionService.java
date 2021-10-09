@@ -41,12 +41,15 @@ public class ConvertionService {
     public ConvertionService(SmartInlineKeyboardService inlineKeyboardService,
                              @TgMessageLimitsControl MessageService messageService,
                              ConversionQueueService conversionQueueService,
-                             ConversionMessageBuilder messageBuilder,
-                             ConversionWorkerFactory conversionWorkerFactory) {
+                             ConversionMessageBuilder messageBuilder) {
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;
         this.conversionQueueService = conversionQueueService;
         this.messageBuilder = messageBuilder;
+    }
+
+    @Autowired
+    public void setConversionWorkerFactory(ConversionWorkerFactory conversionWorkerFactory) {
         this.conversionWorkerFactory = conversionWorkerFactory;
     }
 

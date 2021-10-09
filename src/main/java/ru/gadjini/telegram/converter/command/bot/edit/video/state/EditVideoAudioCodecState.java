@@ -58,7 +58,7 @@ public class EditVideoAudioCodecState extends BaseEditVideoState {
                 callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageText.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                        .text(buildSettingsMessage(currentState.getState()))
+                        .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioCodecsKeyboard(currentState.getSettings().getAudioCodec(),
                                 AVAILABLE_AUDIO_CODECS, new Locale(currentState.getUserLanguage())))
@@ -107,7 +107,7 @@ public class EditVideoAudioCodecState extends BaseEditVideoState {
         String oldAudioCodec = convertState.getSettings().getAudioCodec();
         convertState.getSettings().setAudioCodec(audioCodec);
         if (!Objects.equals(audioCodec, oldAudioCodec)) {
-            updateSettingsMessage(callbackQuery, chatId, convertState.getState());
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }

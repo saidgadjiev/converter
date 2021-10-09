@@ -12,8 +12,6 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
-import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
-import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -32,20 +30,9 @@ public class EditVideoQualityState extends BaseEditVideoState {
 
     public static final int MAX_COMPRESSION_RATE = 90;
 
-    public static final String MAX_QUALITY = "100";
+    static final Integer MAX_QUALITY = 100;
 
-    static final List<String> AVAILABLE_QUALITIES = List.of(
-            AUTO,
-            "10",
-            "20",
-            "30",
-            "40",
-            "50",
-            "60",
-            "70",
-            "80",
-            "90"
-    );
+    static final List<Integer> AVAILABLE_QUALITIES = List.of(10, 20, 30, 40, 50, 60, 70, 80, 90);
 
     private MessageService messageService;
 
@@ -78,7 +65,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
                 callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageText.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                        .text(buildSettingsMessage(currentState.getState()))
+                        .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditCrfKeyboard(currentState.getSettings().getCrf(),
                                 AVAILABLE_QUALITIES, new Locale(currentState.getUserLanguage())))
@@ -107,7 +94,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
             String crf = requestParams.getString(ConverterArg.CRF.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
-            if (AVAILABLE_QUALITIES.contains(crf)) {
+            if (isValid(crf)) {
                 setCrf(callbackQuery, crf);
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
@@ -121,9 +108,6 @@ public class EditVideoQualityState extends BaseEditVideoState {
                             .text(answerCallbackQuery)
                             .build()
             );
-        } else {
-            Locale locale = new Locale(currentState.getUserLanguage());
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, locale));
         }
     }
 
@@ -140,8 +124,19 @@ public class EditVideoQualityState extends BaseEditVideoState {
         String oldCrf = convertState.getSettings().getCrf();
         convertState.getSettings().setCrf(crf);
         if (!Objects.equals(crf, oldCrf)) {
-            updateSettingsMessage(callbackQuery, chatId, convertState.getState());
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
+    }
+
+    private boolean isValid(String crf) {
+        if (crf.equals(AUTO)) {
+            return true;
+        }
+        try {
+            return AVAILABLE_QUALITIES.contains(Integer.parseInt(crf));
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

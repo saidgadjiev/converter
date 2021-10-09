@@ -18,6 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -25,8 +26,16 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
-    public static final List<String> AVAILABLE_RESOLUTIONS = List.of(AUTO, "1080p", "720p", "480p", "360p", "240p",
-            "144p", "64p", "32p", "/1.5", "/2", "/3");
+    static final List<Integer> AVAILABLE_RESOLUTIONS = List.of(1080, 720, 480, 360, 240, 144);
+
+    private static final Map<Integer, Integer> BITRATE_BY_RESOLUTION = Map.of(
+            1080, 3000 * 1024,
+            720, 1500 * 1024,
+            480, 500 * 1024,
+            360, 400 * 1024,
+            240, 300 * 1024,
+            144, 200 * 1024
+    );
 
     private MessageService messageService;
 
@@ -60,10 +69,10 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                 callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageText.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                        .text(buildSettingsMessage(currentState.getState()))
+                        .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditResolutionsKeyboard(currentState.getSettings().getResolution(),
-                                AVAILABLE_RESOLUTIONS, new Locale(currentState.getUserLanguage())))
+                                AVAILABLE_RESOLUTIONS, currentState.getCurrentVideoResolution(), new Locale(currentState.getUserLanguage())))
                         .build()
         );
     }
@@ -79,7 +88,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             String resolution = requestParams.getString(ConverterArg.RESOLUTION.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
-            if (AVAILABLE_RESOLUTIONS.contains(resolution)) {
+            if (isValid(resolution)) {
                 setResolution(callbackQuery, resolution);
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
@@ -108,9 +117,47 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
         String oldResolution = convertState.getSettings().getResolution();
         convertState.getSettings().setResolution(resolution);
+        String qualityByResolution = getQualityByResolution(convertState, resolution);
+        convertState.getSettings().setCrf(qualityByResolution);
+
         if (!Objects.equals(resolution, oldResolution)) {
-            updateSettingsMessage(callbackQuery, chatId, convertState.getState());
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
+    }
+
+    private String getQualityByResolution(EditVideoState editVideoState, String resolution) {
+        Integer res = Integer.parseInt(resolution);
+        Integer bitrate = BITRATE_BY_RESOLUTION.get(res);
+        double factor = editVideoState.getCurrentVideoBitrate().doubleValue() / bitrate;
+
+        int quality = (int) (EditVideoQualityState.MAX_QUALITY / factor);
+
+        return String.valueOf(EditVideoQualityState.MAX_QUALITY - getNearestQuality(quality));
+    }
+
+    private Integer getNearestQuality(int quality) {
+        int nearestDistance = Math.abs(EditVideoQualityState.AVAILABLE_QUALITIES.get(0) - quality);
+        int idx = 0;
+        for (int c = 1; c < EditVideoQualityState.AVAILABLE_QUALITIES.size(); c++) {
+            int distance = Math.abs(EditVideoQualityState.AVAILABLE_QUALITIES.get(c) - quality);
+            if (distance < nearestDistance) {
+                idx = c;
+                nearestDistance = distance;
+            }
+        }
+
+        return EditVideoQualityState.AVAILABLE_QUALITIES.get(idx);
+    }
+
+    private boolean isValid(String resolution) {
+        if (resolution.equals(AUTO)) {
+            return true;
+        }
+        try {
+            return AVAILABLE_RESOLUTIONS.contains(Integer.parseInt(resolution));
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

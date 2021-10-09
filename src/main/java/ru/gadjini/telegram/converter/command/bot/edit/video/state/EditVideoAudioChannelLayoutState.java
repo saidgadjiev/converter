@@ -27,7 +27,7 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
 
     public static final String MONO = "mono";
 
-    public static final String STEREO = "stereo";
+    private static final String STEREO = "stereo";
 
     public static final List<String> AVAILABLE_AUDIO_MONO_STEREO = List.of(AUTO, MONO, STEREO);
 
@@ -62,7 +62,7 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
                 callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageText.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                        .text(buildSettingsMessage(currentState.getState()))
+                        .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(
                                 currentState.getSettings().getAudioChannelLayout(),
@@ -112,7 +112,7 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
         String oldAudioMonoStereo = convertState.getSettings().getAudioChannelLayout();
         convertState.getSettings().setAudioChannelLayout(audioMonoStereo);
         if (!Objects.equals(audioMonoStereo, oldAudioMonoStereo)) {
-            updateSettingsMessage(callbackQuery, chatId, convertState.getState());
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }

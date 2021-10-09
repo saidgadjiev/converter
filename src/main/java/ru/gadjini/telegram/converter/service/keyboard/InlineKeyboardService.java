@@ -108,18 +108,19 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getVideoEditResolutionsKeyboard(String currentResolution, List<String> resolutions, Locale locale) {
+    public InlineKeyboardMarkup getVideoEditResolutionsKeyboard(String currentResolution, List<Integer> resolutions,
+                                                                Integer currentVideoResolution,
+                                                                Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
-        resolutions = new ArrayList<>(resolutions);
-        resolutions.remove(EditVideoResolutionState.AUTO);
         inlineKeyboardMarkup.getKeyboard()
-                .add(List.of(buttonFactory.resolutionButton(currentResolution, EditVideoResolutionState.AUTO, locale)));
-        List<List<String>> lists = Lists.partition(resolutions, 3);
-        for (List<String> list : lists) {
+                .add(List.of(buttonFactory.resolutionButton(currentResolution, EditVideoResolutionState.AUTO, false, locale)));
+        List<List<Integer>> lists = Lists.partition(resolutions, 3);
+        for (List<Integer> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            for (String resolution : list) {
-                buttons.add(buttonFactory.resolutionButton(currentResolution, resolution, locale));
+            for (Integer resolution : list) {
+                boolean showLock = resolution >= currentVideoResolution;
+                buttons.add(buttonFactory.resolutionButton(currentResolution, String.valueOf(resolution), showLock, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }
@@ -128,17 +129,15 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getVideoEditCrfKeyboard(String currentCrf, List<String> crfs, Locale locale) {
+    public InlineKeyboardMarkup getVideoEditCrfKeyboard(String currentCrf, List<Integer> crfs, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
-        crfs = new ArrayList<>(crfs);
-        crfs.remove(EditVideoQualityState.AUTO);
-        inlineKeyboardMarkup.getKeyboard()
+       inlineKeyboardMarkup.getKeyboard()
                 .add(List.of(buttonFactory.crfButton(currentCrf, EditVideoQualityState.AUTO, locale)));
-        List<List<String>> lists = Lists.partition(crfs, 3);
-        for (List<String> list : lists) {
+        List<List<Integer>> lists = Lists.partition(crfs, 3);
+        for (List<Integer> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            for (String crf : list) {
-                buttons.add(buttonFactory.crfButton(currentCrf, crf, locale));
+            for (Integer crf : list) {
+                buttons.add(buttonFactory.crfButton(currentCrf, String.valueOf(crf), locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }

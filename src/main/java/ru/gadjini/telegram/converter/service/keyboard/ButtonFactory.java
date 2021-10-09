@@ -247,14 +247,18 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton resolutionButton(String currentResolution, String resolution, Locale locale) {
+    public InlineKeyboardButton resolutionButton(String currentResolution, String resolution, boolean showLock, Locale locale) {
         String resolutionName = resolution;
         if (EditVideoResolutionState.AUTO.equals(resolution)) {
             resolutionName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale);
+        } else {
+            resolutionName += "p";
         }
         String btnName = Objects.equals(currentResolution, resolution)
                 ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + resolutionName
                 : resolutionName;
+
+        btnName = showLock ? localisationService.getMessage(MessagesProperties.LOCK_ICON, locale) + btnName : btnName;
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
         inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +

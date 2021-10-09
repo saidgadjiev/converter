@@ -40,7 +40,7 @@ public class SoxService {
         processExecutor.executeWithResult(cmd.toArray(String[]::new));
     }
 
-    public void mix(String in1, String in2, int startAtSeconds, Long bitRate, String out) throws InterruptedException {
+    public void mix(String in1, String in2, int startAtSeconds, Integer bitRate, String out) throws InterruptedException {
         processExecutor.executeWithResult(new String[]{
                "bash", "-c", bitRate == null ? "sox -m " + in1 + " '|sox " + in2 + " -p pad " + startAtSeconds + "'"  + out
                 : "sox -m " + in1 + " '|sox " + in2 + " -p pad " + startAtSeconds + "' -C " + bitRate / 1000 + " "  + out

@@ -38,15 +38,17 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
         this.localisationService = localisationService;
     }
 
-    final String buildSettingsMessage(ConvertState convertState) {
+    final String buildSettingsMessage(EditVideoState editVideoState) {
         StringBuilder message = new StringBuilder();
+        ConvertState convertState = editVideoState.getState();
 
         Locale locale = new Locale(convertState.getUserLanguage());
         message.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_SETTINGS,
                 new Object[]{convertState.getFirstFormat().getName(),
                         MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
-                        getResolutionMessage(convertState.getSettings().getResolution(), locale),
+                        editVideoState.getCurrentVideoResolution() + "p",
                         getCrfMessage(convertState.getSettings().getCrf(), locale),
+                        getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
                         getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale),
@@ -82,19 +84,19 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
         return message.toString();
     }
 
-    final void updateSettingsMessage(CallbackQuery callbackQuery, long chatId, ConvertState convertState) {
+    final void updateSettingsMessage(CallbackQuery callbackQuery, long chatId, EditVideoState editVideoState) {
         messageService.editMessage(callbackQuery.getMessage().getText(),
                 callbackQuery.getMessage().getReplyMarkup(), EditMessageText.builder().chatId(String.valueOf(chatId))
-                        .messageId(convertState.getSettings().getMessageId())
-                        .text(buildSettingsMessage(convertState))
+                        .messageId(callbackQuery.getMessage().getMessageId())
+                        .text(buildSettingsMessage(editVideoState))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(getMarkup(convertState))
+                        .replyMarkup(getMarkup(editVideoState))
                         .build());
     }
 
     private String getResolutionMessage(String resolution, Locale locale) {
         return EditVideoResolutionState.AUTO.equals(resolution) ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution;
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution + "p";
     }
 
     private String getCrfMessage(String crf, Locale locale) {
@@ -112,8 +114,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo;
     }
 
-    private String getEstimatedSize(long fileSize, int quality) {
-        return MemoryUtils.humanReadableByteCount(fileSize * (100 - quality) / 100);
+    private String getEstimatedSize(long fileSize, int compressionRate) {
+        return MemoryUtils.humanReadableByteCount(fileSize * (100 - compressionRate) / 100);
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {
@@ -121,10 +123,11 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : audioCodec;
     }
 
-    private InlineKeyboardMarkup getMarkup(ConvertState convertState) {
+    private InlineKeyboardMarkup getMarkup(EditVideoState editVideoState) {
+        ConvertState convertState = editVideoState.getState();
         return getName() == EditVideoSettingsStateName.RESOLUTION
                 ? inlineKeyboardService.getVideoEditResolutionsKeyboard(convertState.getSettings().getResolution(),
-                EditVideoResolutionState.AVAILABLE_RESOLUTIONS, new Locale(convertState.getUserLanguage()))
+                EditVideoResolutionState.AVAILABLE_RESOLUTIONS, editVideoState.getCurrentVideoResolution(), new Locale(convertState.getUserLanguage()))
                 : getName() == EditVideoSettingsStateName.AUDIO_CODEC
                 ? inlineKeyboardService.getVideoEditAudioCodecsKeyboard(convertState.getSettings().getAudioCodec(),
                 EditVideoAudioCodecState.AVAILABLE_AUDIO_CODECS, new Locale(convertState.getUserLanguage()))

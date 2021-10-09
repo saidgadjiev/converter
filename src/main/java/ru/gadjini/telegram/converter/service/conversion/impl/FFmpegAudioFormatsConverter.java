@@ -61,7 +61,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         }
     }
 
-    public void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat, Long bitrate) throws InterruptedException {
+    public void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat, Integer bitrate) throws InterruptedException {
         FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
                 .input(in.getAbsolutePath());
 
@@ -79,7 +79,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         fFmpegDevice.execute(commandBuilder.buildFullCommand());
     }
 
-    public void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
+    private void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
         doConvertAudioWithCopy(in, out, targetFormat, null);
     }
 

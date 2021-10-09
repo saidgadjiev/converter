@@ -11,6 +11,14 @@ public class EditVideoState {
 
     private EditVideoSettingsStateName stateName;
 
+    private Integer currentVideoResolution;
+
+    private Integer currentVideoBitrate;
+
+    private String downloadedFilePath;
+
+    private String downloadedThumbPath;
+
     private ConvertState state;
 
     public ConvertState getState() {
@@ -99,5 +107,37 @@ public class EditVideoState {
 
     public SettingsState getSettings() {
         return state.getSettings();
+    }
+
+    public Integer getCurrentVideoResolution() {
+        return currentVideoResolution;
+    }
+
+    public void setCurrentVideoResolution(Integer currentVideoResolution) {
+        this.currentVideoResolution = currentVideoResolution;
+    }
+
+    public Integer getCurrentVideoBitrate() {
+        return currentVideoBitrate;
+    }
+
+    public void setCurrentVideoBitrate(Integer currentVideoBitrate) {
+        this.currentVideoBitrate = currentVideoBitrate;
+    }
+
+    public String getDownloadedFilePath() {
+        return downloadedFilePath;
+    }
+
+    public void setDownloadedFilePath(String downloadedFilePath) {
+        this.downloadedFilePath = downloadedFilePath;
+    }
+
+    public String getDownloadedThumbPath() {
+        return downloadedThumbPath;
+    }
+
+    public void setDownloadedThumbPath(String downloadedThumbPath) {
+        this.downloadedThumbPath = downloadedThumbPath;
     }
 }

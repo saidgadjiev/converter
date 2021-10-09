@@ -58,7 +58,7 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
                 callbackQuery.getMessage().getReplyMarkup(),
                 EditMessageText.builder()
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                        .text(buildSettingsMessage(currentState.getState()))
+                        .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioBitratesKeyboard(currentState.getSettings().getAudioBitrate(),
                                 AVAILABLE_AUDIO_BITRATES, new Locale(currentState.getUserLanguage())))
@@ -107,7 +107,7 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
         String oldAudioBitrate = convertState.getSettings().getAudioBitrate();
         convertState.getSettings().setAudioBitrate(audioBitrate);
         if (!Objects.equals(audioBitrate, oldAudioBitrate)) {
-            updateSettingsMessage(callbackQuery, chatId, convertState.getState());
+            updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }
