@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
@@ -86,7 +87,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                        FFmpegDevice fFmpegDevice, Jackson jackson,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
                        CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState,
-                       FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,CommandStateService commandStateService) {
+                       FFmpegProgressCallbackHandlerFactory callbackHandlerFactory, CommandStateService commandStateService) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
@@ -262,10 +263,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
         convertState.setUserLanguage(locale.getLanguage());
         convertState.setSettings(new SettingsState());
 
-        MessageMedia messageMedia = new MessageMedia();
-        messageMedia.setFormat(conversionQueueItem.getFirstFileFormat());
-        messageMedia.setFileSize(conversionQueueItem.getSize());
-        convertState.setMedia(messageMedia);
+        List<MessageMedia> files = conversionQueueItem.getFiles().stream().map(MessageMedia::fromTgFile).collect(Collectors.toList());
+
+        files.forEach(convertState::addMedia);
 
         convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
         convertState.getSettings().setCrf(EditVideoQualityState.DEFAULT_QUALITY);

@@ -133,21 +133,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
         int quality = (int) (EditVideoQualityState.MAX_QUALITY / factor);
 
-        return String.valueOf(EditVideoQualityState.MAX_QUALITY - getNearestQuality(quality));
-    }
-
-    private Integer getNearestQuality(int quality) {
-        int nearestDistance = Math.abs(EditVideoQualityState.AVAILABLE_QUALITIES.get(0) - quality);
-        int idx = 0;
-        for (int c = 1; c < EditVideoQualityState.AVAILABLE_QUALITIES.size(); c++) {
-            int distance = Math.abs(EditVideoQualityState.AVAILABLE_QUALITIES.get(c) - quality);
-            if (distance < nearestDistance) {
-                idx = c;
-                nearestDistance = distance;
-            }
-        }
-
-        return EditVideoQualityState.AVAILABLE_QUALITIES.get(idx);
+        return String.valueOf(EditVideoQualityState.MAX_QUALITY - quality);
     }
 
     private boolean isValid(String resolution) {
