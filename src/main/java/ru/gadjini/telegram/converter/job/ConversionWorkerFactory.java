@@ -325,6 +325,8 @@ public class ConversionWorkerFactory implements QueueWorkerFactory<ConversionQue
 
                     break;
                 }
+                case EMPTY:
+                    break;
                 case PHOTO: {
                     PhotoResult photoResult = (PhotoResult) convertResult;
                     SendPhoto.SendPhotoBuilder photoBuilder = SendPhoto.builder().chatId(String.valueOf(fileQueueItem.getUserId()))

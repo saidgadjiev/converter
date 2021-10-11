@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
+import ru.gadjini.telegram.converter.event.EditVideoSettingsSentEvent;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
@@ -112,13 +113,15 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
     }
 
     @Override
-    public SendMessage enter(long userId, EditVideoState editVideoState) {
-        return SendMessage.builder().chatId(String.valueOf(userId))
+    public void enter(long userId, EditVideoState editVideoState) {
+        commandStateService.setState(userId, ConverterCommandNames.EDIT_VIDEO, editVideoState);
+
+        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(userId))
                 .text(buildSettingsMessage(editVideoState))
                 .parseMode(ParseMode.HTML)
                 .replyMarkup(inlineKeyboardService.getVideoEditSettingsKeyboard(
                         new Locale(editVideoState.getUserLanguage())))
-                .build();
+                .build(), new EditVideoSettingsSentEvent());
     }
 
     @Override

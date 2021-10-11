@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.converter.job;
+package ru.gadjini.telegram.converter.event;
 
 import com.aspose.words.License;
 import org.slf4j.Logger;
@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.job.ConversionWorkerFactory;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.event.QueueJobInitialization;
 

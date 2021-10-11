@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.converter.job;
+package ru.gadjini.telegram.converter.event;
 
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 

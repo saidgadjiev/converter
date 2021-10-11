@@ -14,13 +14,12 @@ import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
+import ru.gadjini.telegram.converter.service.conversion.api.result.EmptyConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.MessageResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
-import ru.gadjini.telegram.converter.service.conversion.impl.extraction.ExtractionByLanguageState;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.StandardVideoEditorState;
 import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.VideoEditorState;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
@@ -53,7 +52,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
     private static final String TAG = "vedit";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
-            Format.filter(FormatCategory.VIDEO), List.of(EDIT, PREPARE_VIDEO_EDITING)
+            filter(FormatCategory.VIDEO), List.of(EDIT, PREPARE_VIDEO_EDITING)
     );
 
     private ConversionMessageBuilder messageBuilder;
@@ -117,10 +116,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
         if (conversionQueueItem.getTargetFormat() == PREPARE_VIDEO_EDITING) {
             return super.createDownloads(conversionQueueItem);
         } else {
-            ExtractionByLanguageState audioExtractionState = commandStateService.getState(conversionQueueItem.getUserId(),
-                    ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE, true, ExtractionByLanguageState.class);
+            EditVideoState editVideoState = commandStateService.getState(conversionQueueItem.getUserId(),
+                    ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
-            conversionQueueItem.getFirstFile().setFilePath(audioExtractionState.getFilePath());
+            conversionQueueItem.getFirstFile().setFilePath(editVideoState.getDownloadedFilePath());
             getFileDownloadService().createCompletedDownloads(
                     conversionQueueItem.getFiles(), conversionQueueItem.getId(), conversionQueueItem.getUserId(), null
             );
@@ -153,8 +152,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
             throw new ConvertException(e);
         }
 
-        commandStateService.setState(fileQueueItem.getUserId(), ConverterCommandNames.EDIT_VIDEO, state);
-        return new MessageResult(getState(state.getStateName()).enter(fileQueueItem.getUserId(), state), false);
+        getState(state.getStateName()).enter(fileQueueItem.getUserId(), state);
+
+        return new EmptyConversionResult(false);
     }
 
     private ConversionResult doEdit(ConversionQueueItem fileQueueItem) {
@@ -267,6 +267,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
         files.forEach(convertState::addMedia);
 
+        convertState.setMessageId(conversionQueueItem.getReplyToMessageId());
         convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
         convertState.getSettings().setCrf(EditVideoQualityState.DEFAULT_QUALITY);
         convertState.getSettings().setAudioCodec(EditVideoAudioCodecState.AUTO);

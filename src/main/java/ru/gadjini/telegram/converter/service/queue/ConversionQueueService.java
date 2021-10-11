@@ -100,7 +100,11 @@ public class ConversionQueueService {
         return conversionQueueDao.getTodayDailyActiveUsersCount();
     }
 
-    public void setProgressMessageIdAndTotalFilesToDownload(int id, int messageId, int totalFilesToDownload) {
-        conversionQueueDao.setProgressMessageIdAndTotalFilesToDownload(id, messageId, totalFilesToDownload);
+    public void setProgressMessageId(int id, int messageId) {
+        conversionQueueDao.setProgressMessageId(id, messageId);
+    }
+
+    public void setTotalFilesToDownload(int id, int totalFilesToDownload) {
+        conversionQueueDao.setTotalFilesToDownload(id, totalFilesToDownload);
     }
 }

@@ -64,8 +64,8 @@ public class ExtractionByLanguageCommand implements CallbackBotCommand {
         workQueueJob.cancelCurrentTasks(callbackQuery.getFrom().getId());
 
         convertionService.createConversion(callbackQuery.getFrom(), state, extractionByLanguageState.getTargetFormat(), locale);
-        messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
         commandStateService.deleteState(callbackQuery.getFrom().getId(), getName());
+        messageService.deleteMessage(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId());
     }
 
     private ConvertState createState(String languageToExtract, ExtractionByLanguageState audioExtractionState, Locale locale) {

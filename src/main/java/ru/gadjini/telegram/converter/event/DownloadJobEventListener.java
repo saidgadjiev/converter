@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.converter.job;
+package ru.gadjini.telegram.converter.event;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;

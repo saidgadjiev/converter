@@ -146,6 +146,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             List<String> bitrates = getBitrates(convertState.getSettings().getFormat(), convertState.getSettings()
                     .getFrequencyOrDefault(getDefaultFrequency(convertState.getSettings().getFormat())));
             List<String> frequencies = getFrequencies(convertState.getSettings().getFormat());
+            commandStateService.setState(message.getChatId(), getCommandIdentifier(), convertState);
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                             .text(buildSettingsMessage(convertState))
@@ -157,11 +158,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                                     COMPRESSION_FORMATS,
                                     frequencies,
                                     bitrates, locale
-                            )).build(),
-                    sent -> {
-                        convertState.getSettings().setMessageId(sent.getMessageId());
-                        commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
-                    }
+                            )).build()
             );
         } else {
             updateState(existsState, message);

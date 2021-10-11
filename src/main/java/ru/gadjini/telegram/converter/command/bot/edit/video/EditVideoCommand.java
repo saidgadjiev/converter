@@ -143,16 +143,20 @@ public class EditVideoCommand implements BotCommand, NavigableBotCommand, Callba
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
         ConvertState convertState = createState(message, locale);
-
         workQueueJob.cancelCurrentTasks(message.getFrom().getId());
         convertionService.createConversion(message.getFrom(), convertState, Format.PREPARE_VIDEO_EDITING,
                 new Locale(convertState.getUserLanguage()));
         commandStateService.deleteState(message.getFrom().getId(), ConverterCommandNames.EDIT_VIDEO);
     }
 
+
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId, ConverterCommandNames.EDIT_VIDEO);
+        EditVideoState state = commandStateService.getState(chatId, ConverterCommandNames.EDIT_VIDEO, false, EditVideoState.class);
+        if (state != null) {
+            commandStateService.deleteState(chatId, ConverterCommandNames.EDIT_VIDEO);
+            messageService.removeInlineKeyboard(chatId, state.getSettings().getMessageId());
+        }
     }
 
     private ConvertState createState(Message message, Locale locale) {

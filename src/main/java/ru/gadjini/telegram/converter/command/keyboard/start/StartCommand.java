@@ -167,11 +167,10 @@ public class StartCommand implements NavigableBotCommand, BotCommand, PaidChanne
                     srcFormatToCheck, associatedFormat, text, convertState.getFirstFile().getFileSize(), locale);
             conversionJob.cancelCurrentTasks(message.getFrom().getId());
 
-            conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale, (Void) -> {
-                messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                        .text(localisationService.getMessage(ConverterMessagesProperties.EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST, locale))
-                        .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())).build());
-            });
+            conversionService.createConversion(message.getFrom(), convertState, associatedFormat, locale);
+            messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                    .text(localisationService.getMessage(ConverterMessagesProperties.EXTRA_MESSAGE_DONT_SEND_NEW_REQUEST, locale))
+                    .replyMarkup(replyKeyboardService.removeKeyboard(message.getChatId())).build());
             commandStateService.deleteState(message.getChatId(), CommandNames.START_COMMAND_NAME);
         } else {
             messageService.sendMessage(

@@ -1,13 +1,12 @@
 package ru.gadjini.telegram.converter.command.bot.edit.video.state;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 public interface EditVideoSettingsState {
 
-    default SendMessage enter(long userId, EditVideoState currentState) {
+    default void enter(long userId, EditVideoState currentState) {
         throw new UnsupportedOperationException();
     }
 

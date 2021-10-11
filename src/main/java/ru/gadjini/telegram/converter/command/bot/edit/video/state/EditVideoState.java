@@ -17,8 +17,6 @@ public class EditVideoState {
 
     private String downloadedFilePath;
 
-    private String downloadedThumbPath;
-
     private ConvertState state;
 
     public ConvertState getState() {
@@ -133,11 +131,4 @@ public class EditVideoState {
         this.downloadedFilePath = downloadedFilePath;
     }
 
-    public String getDownloadedThumbPath() {
-        return downloadedThumbPath;
-    }
-
-    public void setDownloadedThumbPath(String downloadedThumbPath) {
-        this.downloadedThumbPath = downloadedThumbPath;
-    }
 }

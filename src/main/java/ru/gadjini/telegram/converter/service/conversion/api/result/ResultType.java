@@ -20,5 +20,7 @@ public enum ResultType {
 
     VIDEO_NOTE,
 
-    PHOTO
+    PHOTO,
+
+    EMPTY
 }

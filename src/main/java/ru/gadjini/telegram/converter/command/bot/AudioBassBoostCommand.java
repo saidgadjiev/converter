@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
+import ru.gadjini.telegram.converter.event.AudioBassBoostSettingsSentEvent;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
@@ -127,7 +128,7 @@ public class AudioBassBoostCommand implements BotCommand, NavigableBotCommand, C
         messageService.sendMessage(
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getCommandWelcomeMessage(getCommandIdentifier(),
-                                 ConverterMessagesProperties.MESSAGE_AUDIO_BASS_BOOST_WELCOME, locale))
+                                ConverterMessagesProperties.MESSAGE_AUDIO_BASS_BOOST_WELCOME, locale))
                         .replyMarkup(replyKeyboardService.audioBassBoostKeyboard(message.getChatId(), locale))
                         .build()
         );
@@ -156,15 +157,13 @@ public class AudioBassBoostCommand implements BotCommand, NavigableBotCommand, C
         if (existsState == null) {
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
             ConvertState convertState = createState(message, locale);
+            commandStateService.setState(message.getChatId(), getCommandIdentifier(), convertState);
             messageService.sendMessage(
                     SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                             .text(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_CHOOSE_BASS_BOOST, locale))
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(inlineKeyboardService.getBassBoostKeyboard(BASS_BOOST)).build(),
-                    sent -> {
-                        convertState.getSettings().setMessageId(sent.getMessageId());
-                        commandStateService.setState(sent.getChatId(), getCommandIdentifier(), convertState);
-                    }
+                    new AudioBassBoostSettingsSentEvent()
             );
         } else {
             updateState(existsState, message);

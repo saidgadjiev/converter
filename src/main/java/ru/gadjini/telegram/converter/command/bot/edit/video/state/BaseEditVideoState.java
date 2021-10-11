@@ -57,17 +57,12 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
 
         switch (getName()) {
             case WELCOME:
-                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
-                message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
                 message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_CHOOSE_SETTINGS, locale));
                 break;
             case RESOLUTION:
-                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_RESOLUTION_WARN, locale));
-                message.append("\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
                 message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_RESOLUTION, locale));
                 break;
             case CRF:
-                message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CRF_WARN, locale));
                 message.append("\n\n").append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_COMPRESSION_RATE, locale));
                 break;
             case AUDIO_CODEC:

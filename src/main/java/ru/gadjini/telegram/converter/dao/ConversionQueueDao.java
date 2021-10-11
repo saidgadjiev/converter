@@ -325,13 +325,22 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         );
     }
 
-    public void setProgressMessageIdAndTotalFilesToDownload(int id, int progressMessageId, int totalFilesToDownload) {
+    public void setProgressMessageId(int id, int progressMessageId) {
         jdbcTemplate.update(
-                "UPDATE conversion_queue SET progress_message_id = ?, total_files_to_download = ? where id = ?",
+                "UPDATE conversion_queue SET progress_message_id = ? where id = ?",
                 ps -> {
                     ps.setInt(1, progressMessageId);
-                    ps.setInt(2, totalFilesToDownload);
-                    ps.setInt(3, id);
+                    ps.setInt(2, id);
+                }
+        );
+    }
+
+    public void setTotalFilesToDownload(int id, int totalFilesToDownload) {
+        jdbcTemplate.update(
+                "UPDATE conversion_queue SET total_files_to_download = ? where id = ?",
+                ps -> {
+                    ps.setInt(1, totalFilesToDownload);
+                    ps.setInt(2, id);
                 }
         );
     }
