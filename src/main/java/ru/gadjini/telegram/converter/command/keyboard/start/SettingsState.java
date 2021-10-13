@@ -2,7 +2,8 @@ package ru.gadjini.telegram.converter.command.keyboard.start;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Period;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 public class SettingsState {
@@ -12,8 +13,6 @@ public class SettingsState {
     private String bitrate;
 
     private String resolution;
-
-    private String crf;
 
     private String frequency;
 
@@ -32,6 +31,10 @@ public class SettingsState {
     private String audioCodec;
 
     private String audioBitrate;
+
+    private int videoBitrate;
+
+    private String quality;
 
     private String audioChannelLayout;
 
@@ -55,6 +58,10 @@ public class SettingsState {
 
     public String getResolution() {
         return resolution;
+    }
+
+    public int getResolutionOrDefault(int defaultResolution) {
+        return EditVideoResolutionState.AUTO.equals(resolution) ? defaultResolution : Integer.parseInt(resolution);
     }
 
     public void setResolution(String resolution) {
@@ -125,14 +132,6 @@ public class SettingsState {
         this.vavMergeAudioMode = vavMergeAudioMode;
     }
 
-    public String getCrf() {
-        return crf;
-    }
-
-    public void setCrf(String crf) {
-        this.crf = crf;
-    }
-
     public String getAudioCodec() {
         return audioCodec;
     }
@@ -145,8 +144,14 @@ public class SettingsState {
         return audioBitrate;
     }
 
-    public void setAudioBitrate(String audioBitrate) {
-        this.audioBitrate = audioBitrate;
+    public int getParsedAudioBitrate() {
+        return EditVideoAudioBitrateState.AUTO.equals(audioBitrate) ? 0 : Integer.parseInt(audioBitrate);
+    }
+
+    public void setAudioBitrateIfNotSetYet(String audioBitrate) {
+        if (StringUtils.isBlank(audioBitrate) || EditVideoAudioBitrateState.AUTO.equals(this.audioBitrate)) {
+            this.audioBitrate = audioBitrate;
+        }
     }
 
     public String getAudioChannelLayout() {
@@ -165,7 +170,19 @@ public class SettingsState {
         this.bassBoost = bassBoost;
     }
 
-    public int getQuality() {
-        return EditVideoQualityState.AUTO.equals(crf) ? 0 : Integer.parseInt(crf);
+    public int getVideoBitrate() {
+        return videoBitrate;
+    }
+
+    public void setVideoBitrate(int videoBitrate) {
+        this.videoBitrate = videoBitrate;
+    }
+
+    public String getQuality() {
+        return quality;
+    }
+
+    public void setQuality(String quality) {
+        this.quality = quality;
     }
 }

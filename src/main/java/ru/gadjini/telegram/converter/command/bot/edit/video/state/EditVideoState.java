@@ -11,9 +11,13 @@ public class EditVideoState {
 
     private EditVideoSettingsStateName stateName;
 
-    private Integer currentVideoResolution;
+    private int currentVideoResolution;
 
-    private Integer currentVideoBitrate;
+    private int currentOverallBitrate;
+
+    private int currentVideoBitrate;
+
+    private List<Integer> currentAudioBitrate;
 
     private String downloadedFilePath;
 
@@ -107,20 +111,20 @@ public class EditVideoState {
         return state.getSettings();
     }
 
-    public Integer getCurrentVideoResolution() {
+    public int getCurrentVideoResolution() {
         return currentVideoResolution;
     }
 
-    public void setCurrentVideoResolution(Integer currentVideoResolution) {
+    public void setCurrentVideoResolution(int currentVideoResolution) {
         this.currentVideoResolution = currentVideoResolution;
     }
 
-    public Integer getCurrentVideoBitrate() {
-        return currentVideoBitrate;
+    public int getCurrentOverallBitrate() {
+        return currentOverallBitrate;
     }
 
-    public void setCurrentVideoBitrate(Integer currentVideoBitrate) {
-        this.currentVideoBitrate = currentVideoBitrate;
+    public void setCurrentOverallBitrate(int currentOverallBitrate) {
+        this.currentOverallBitrate = currentOverallBitrate;
     }
 
     public String getDownloadedFilePath() {
@@ -131,4 +135,27 @@ public class EditVideoState {
         this.downloadedFilePath = downloadedFilePath;
     }
 
+    public int getAudioStreamsCount() {
+        return currentAudioBitrate.size();
+    }
+
+    public int getCurrentAudioOverallBitrate() {
+        return currentAudioBitrate.stream().reduce(0, Integer::sum);
+    }
+
+    public List<Integer> getCurrentAudioBitrate() {
+        return currentAudioBitrate;
+    }
+
+    public void setCurrentAudioBitrate(List<Integer> currentAudioBitrate) {
+        this.currentAudioBitrate = currentAudioBitrate;
+    }
+
+    public int getCurrentVideoBitrate() {
+        return currentVideoBitrate;
+    }
+
+    public void setCurrentVideoBitrate(int currentVideoBitrate) {
+        this.currentVideoBitrate = currentVideoBitrate;
+    }
 }

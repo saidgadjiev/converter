@@ -60,8 +60,6 @@ public class ConvertionService {
         AtomicInteger progressMessageId = new AtomicInteger();
         if (candidate.needToSendProgressMessage(queueItem, progressMessageId)) {
             sendConversionQueuedMessage(queueItem, convertState, locale);
-            int totalFilesToDownload = candidate.createDownloads(queueItem);
-            conversionQueueService.setTotalFilesToDownload(queueItem.getId(), totalFilesToDownload);
         } else {
             queueItem.setProgressMessageId(progressMessageId.get());
             int totalFilesToDownload = candidate.createDownloads(queueItem);

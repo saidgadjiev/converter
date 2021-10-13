@@ -66,6 +66,17 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                 TELEGRAM_VIDEO_AUDIO_CODEC, audioBitrate, appendMapAudio);
     }
 
+    public int getAudioOverallBitrate(List<FFprobeDevice.FFProbeStream> streams) {
+        int overallBitrate = 0;
+        for (FFprobeDevice.FFProbeStream stream : streams) {
+            if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {
+                overallBitrate += stream.getBitRate();
+            }
+        }
+
+        return overallBitrate;
+    }
+
     public void copyOrConvertToTargetAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
                                                  String targetAudioCodec, String targetAudioCodecName,
                                                  Long targetAudioBitrate,

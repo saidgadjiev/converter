@@ -12,6 +12,7 @@ import ru.gadjini.telegram.converter.dao.ConversionQueueDao;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.smart.bot.commons.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
@@ -39,6 +40,10 @@ public class ConversionQueueService {
         this.localisationService = localisationService;
         this.fileLimitProperties = fileLimitProperties;
         this.applicationProperties = applicationProperties;
+    }
+
+    public ConversionQueueItem getById(int id) {
+        return conversionQueueDao.getById(id);
     }
 
     public ConversionQueueItem create(User user, ConvertState convertState, Format targetFormat) {
@@ -106,5 +111,9 @@ public class ConversionQueueService {
 
     public void setTotalFilesToDownload(int id, int totalFilesToDownload) {
         conversionQueueDao.setTotalFilesToDownload(id, totalFilesToDownload);
+    }
+
+    public void setProgressMessageIdAndTotalFilesToDownload(int id, int messageId, int totalFilesToDownload) {
+        conversionQueueDao.setProgressMessageIdAndTotalFilesToDownload(id, messageId, totalFilesToDownload);
     }
 }

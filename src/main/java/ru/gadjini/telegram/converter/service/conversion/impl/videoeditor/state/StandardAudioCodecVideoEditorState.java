@@ -38,10 +38,10 @@ public class StandardAudioCodecVideoEditorState implements VideoEditorState {
                                SmartTempFile result) throws InterruptedException {
         if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
             videoStreamConversionHelper.convertVideoCodecsForTelegramVideo(commandBuilder,
-                    allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize(), settingsState.getQuality());
+                    allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize(), 0);
         } else {
             videoStreamConversionHelper.convertVideoCodecs(commandBuilder, allStreams,
-                    fileQueueItem.getFirstFileFormat(), result, settingsState.getQuality());
+                    fileQueueItem.getFirstFileFormat(), result, 0);
         }
         videoStreamConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
 

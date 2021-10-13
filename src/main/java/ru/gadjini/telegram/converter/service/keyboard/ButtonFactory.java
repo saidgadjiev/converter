@@ -270,7 +270,7 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton crfButton(String currentCrf, String crf, Locale locale) {
+    public InlineKeyboardButton compressionRateButton(int currentCompressionRate, String crf, Locale locale) {
         String crfName;
         if (EditVideoResolutionState.AUTO.equals(crf)) {
             crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale);
@@ -278,7 +278,7 @@ public class ButtonFactory {
             crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_BY_PERCENTAGE,
                     new Object[]{crf}, locale);
         }
-        String btnName = Objects.equals(currentCrf, crf)
+        String btnName = Objects.equals(currentCompressionRate, Integer.parseInt(crf))
                 ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crfName
                 : crfName;
 

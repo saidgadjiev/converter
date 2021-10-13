@@ -16,10 +16,8 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class EditVideoResolutionState extends BaseEditVideoState {
@@ -28,13 +26,22 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
     static final List<Integer> AVAILABLE_RESOLUTIONS = List.of(1080, 720, 480, 360, 240, 144);
 
-    private static final Map<Integer, Integer> BITRATE_BY_RESOLUTION = Map.of(
-            1080, 3000 * 1024,
-            720, 1500 * 1024,
-            480, 500 * 1024,
-            360, 400 * 1024,
-            240, 300 * 1024,
-            144, 200 * 1024
+    public static final Map<Integer, Integer> VIDEO_BITRATE_BY_RESOLUTION = Map.of(
+            1080, 3872 * 1024,
+            720, 2436 * 1024,
+            480, 1136 * 1024,
+            360, 636 * 1024,
+            240, 368 * 1024,
+            144, 218 * 1024
+    );
+
+    public static final Map<Integer, Integer> AUDIO_BITRATE_BY_RESOLUTION = Map.of(
+            1080, 128 * 1024,
+            720, 64 * 1024,
+            480, 64 * 1024,
+            360, 64 * 1024,
+            240, 32 * 1024,
+            144, 32 * 1024
     );
 
     private MessageService messageService;
@@ -89,17 +96,30 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
             if (isValid(resolution)) {
-                setResolution(callbackQuery, resolution);
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
-                        locale);
+                if (isGteThanSource(resolution, currentState.getCurrentVideoResolution())) {
+                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_CANT_BE_INCREASED,
+                            new Object[]{
+                                    String.valueOf(currentState.getCurrentVideoResolution())
+                            },
+                            locale);
+                } else {
+                    setResolution(currentState, callbackQuery, resolution);
+                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+                            new Object[]{
+                                    QualityCalculator.getCompressionRate(currentState),
+                                    getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getCompressionRate(currentState))
+                            },
+                            locale);
+                }
             } else {
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_EDIT_SETTINGS,
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_RESOLUTION,
                         locale);
             }
             messageService.sendAnswerCallbackQuery(
                     AnswerCallbackQuery.builder()
                             .callbackQueryId(callbackQuery.getId())
                             .text(answerCallbackQuery)
+                            .showAlert(true)
                             .build()
             );
         }
@@ -110,15 +130,12 @@ public class EditVideoResolutionState extends BaseEditVideoState {
         return EditVideoSettingsStateName.RESOLUTION;
     }
 
-    private void setResolution(CallbackQuery callbackQuery, String resolution) {
+    private void setResolution(EditVideoState convertState, CallbackQuery callbackQuery, String resolution) {
         long chatId = callbackQuery.getFrom().getId();
-        EditVideoState convertState = commandStateService.getState(chatId,
-                ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
         String oldResolution = convertState.getSettings().getResolution();
         convertState.getSettings().setResolution(resolution);
-        String qualityByResolution = getQualityByResolution(convertState, resolution);
-        convertState.getSettings().setCrf(qualityByResolution);
+        setQualityByResolution(convertState, resolution);
 
         if (!Objects.equals(resolution, oldResolution)) {
             updateSettingsMessage(callbackQuery, chatId, convertState);
@@ -126,14 +143,49 @@ public class EditVideoResolutionState extends BaseEditVideoState {
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
     }
 
-    private String getQualityByResolution(EditVideoState editVideoState, String resolution) {
-        Integer res = Integer.parseInt(resolution);
-        Integer bitrate = BITRATE_BY_RESOLUTION.get(res);
-        double factor = editVideoState.getCurrentVideoBitrate().doubleValue() / bitrate;
+    private void setQualityByResolution(EditVideoState editVideoState, String resolution) {
+        int res = Integer.parseInt(resolution);
+        int videoBitrate = VIDEO_BITRATE_BY_RESOLUTION.get(res);
+        int audioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+        int quality = QualityCalculator.getQuality(editVideoState, videoBitrate, audioBitrate);
 
-        int quality = (int) (EditVideoQualityState.MAX_QUALITY / factor);
+        if (quality >= EditVideoQualityState.MAX_QUALITY) {
+            int minimumQuality = findMinimumQuality(editVideoState);
+            int targetOverallBitrate = editVideoState.getCurrentOverallBitrate() * (EditVideoQualityState.MAX_QUALITY - minimumQuality)
+                    / EditVideoQualityState.MAX_QUALITY;
+            int targetAudioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+            AtomicInteger resultVideoBitrate = new AtomicInteger();
+            AtomicInteger resultAudioBitrate = new AtomicInteger();
+            VideoAudioBitrateCalculator.calculateVideoAudioBitrate(editVideoState.getCurrentOverallBitrate(),
+                    editVideoState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate,
+                    editVideoState.getCurrentAudioBitrate(),
+                    resultVideoBitrate, resultAudioBitrate);
+            editVideoState.getSettings().setVideoBitrate(resultVideoBitrate.get());
+            editVideoState.getSettings().setAudioBitrateIfNotSetYet(String.valueOf(resultAudioBitrate.get()));
+            editVideoState.getSettings().setQuality(String.valueOf(minimumQuality));
+        } else {
+            editVideoState.getSettings().setVideoBitrate(videoBitrate);
+            editVideoState.getSettings().setAudioBitrateIfNotSetYet(String.valueOf(audioBitrate));
+            editVideoState.getSettings().setQuality(String.valueOf(QualityCalculator.getQuality(editVideoState)));
+        }
+    }
 
-        return String.valueOf(EditVideoQualityState.MAX_QUALITY - quality);
+    private int findMinimumQuality(EditVideoState editVideoState) {
+        int min = 70;
+        for (Map.Entry<Integer, Integer> entry : VIDEO_BITRATE_BY_RESOLUTION.entrySet()) {
+            if (entry.getKey() < editVideoState.getCurrentVideoResolution()) {
+                int res = entry.getKey();
+                int videoBitrate = VIDEO_BITRATE_BY_RESOLUTION.get(res);
+                int audioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+                int quality = QualityCalculator.getQuality(editVideoState, videoBitrate, audioBitrate);
+
+                if (quality < min) {
+                    min = quality;
+                }
+            }
+        }
+
+        return min;
     }
 
     private boolean isValid(String resolution) {
@@ -145,5 +197,16 @@ public class EditVideoResolutionState extends BaseEditVideoState {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    private boolean isGteThanSource(String resolution, Integer currentResolution) {
+        if (resolution.equals(AUTO)) {
+            return false;
+        }
+        if (currentResolution == null) {
+            return false;
+        }
+
+        return Integer.parseInt(resolution) >= currentResolution;
     }
 }

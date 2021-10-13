@@ -629,8 +629,10 @@ public class FFmpegCommandBuilder {
         bv(index, videoBitRate + "k");
         options.add("-maxrate");
         options.add(videoBitRate + "k");
+        options.add("-minrate");
+        options.add(videoBitRate + "k");
         options.add("-bufsize");
-        options.add((long) (videoBitRate * 1.5) + "k");
+        options.add(videoBitRate / 2 + "k");
 
         return this;
     }

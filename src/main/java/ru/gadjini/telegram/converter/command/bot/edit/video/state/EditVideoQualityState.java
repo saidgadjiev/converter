@@ -17,9 +17,11 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class EditVideoQualityState extends BaseEditVideoState {
@@ -31,6 +33,8 @@ public class EditVideoQualityState extends BaseEditVideoState {
     public static final int MAX_COMPRESSION_RATE = 90;
 
     static final Integer MAX_QUALITY = 100;
+
+    static final int MIN_QUALITY = 0;
 
     static final List<Integer> AVAILABLE_QUALITIES = List.of(10, 20, 30, 40, 50, 60, 70, 80, 90);
 
@@ -67,7 +71,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                         .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
-                        .replyMarkup(inlineKeyboardService.getVideoEditCrfKeyboard(currentState.getSettings().getCrf(),
+                        .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(QualityCalculator.getCompressionRate(currentState),
                                 AVAILABLE_QUALITIES, new Locale(currentState.getUserLanguage())))
                         .build()
         );
@@ -82,7 +86,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
                     EditMessageReplyMarkup.builder()
                             .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
-                            .replyMarkup(inlineKeyboardService.getVideoEditCrfKeyboard(currentState.getSettings().getCrf(),
+                            .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(QualityCalculator.getCompressionRate(currentState),
                                     AVAILABLE_QUALITIES, new Locale(currentState.getUserLanguage())))
                             .build()
             );
@@ -95,7 +99,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
             if (isValid(crf)) {
-                setCrf(callbackQuery, crf);
+                setQuality(callbackQuery, crf, currentState);
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
             } else {
@@ -116,17 +120,48 @@ public class EditVideoQualityState extends BaseEditVideoState {
         return EditVideoSettingsStateName.CRF;
     }
 
-    private void setCrf(CallbackQuery callbackQuery, String crf) {
+    private void setQuality(CallbackQuery callbackQuery, String compressionRate, EditVideoState convertState) {
         long chatId = callbackQuery.getFrom().getId();
-        EditVideoState convertState = commandStateService.getState(chatId,
-                ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
-        String oldCrf = convertState.getSettings().getCrf();
-        convertState.getSettings().setCrf(crf);
-        if (!Objects.equals(crf, oldCrf)) {
+        if (compressionRate.equals(AUTO)) {
+            convertState.getSettings().setVideoBitrate(convertState.getCurrentVideoBitrate());
+        } else {
+            int targetOverallBitrate = convertState.getCurrentOverallBitrate() * Integer.parseInt(compressionRate)
+                    / EditVideoQualityState.MAX_QUALITY;
+            int targetAudioBitrate = findTargetAudioBitrate(convertState.getSettings().getResolutionOrDefault(convertState.getCurrentVideoResolution()));
+            AtomicInteger videoBitrate = new AtomicInteger();
+            AtomicInteger audioBitrate = new AtomicInteger();
+            VideoAudioBitrateCalculator.calculateVideoAudioBitrate(convertState.getCurrentOverallBitrate(),
+                    convertState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate, convertState.getCurrentAudioBitrate(),
+                    videoBitrate, audioBitrate);
+            convertState.getSettings().setAudioBitrateIfNotSetYet(String.valueOf(audioBitrate.get()));
+            convertState.getSettings().setVideoBitrate(videoBitrate.get());
+        }
+
+        String oldQuality = convertState.getSettings().getQuality();
+        convertState.getSettings().setQuality(String.valueOf(QualityCalculator.getQuality(convertState)));
+        if (!Objects.equals(oldQuality, convertState.getSettings().getQuality())) {
             updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
+    }
+
+    private int findTargetAudioBitrate(int resolution) {
+        if (EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.containsKey(resolution)) {
+            return EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.get(resolution);
+        }
+        List<Integer> resolutions = new ArrayList<>(EditVideoResolutionState.VIDEO_BITRATE_BY_RESOLUTION.keySet());
+        int distance = Math.abs(resolutions.get(0) - resolution);
+        int idx = 0;
+        for (int c = 1; c < resolutions.size(); c++) {
+            int cdistance = Math.abs(resolutions.get(c) - resolution);
+            if (cdistance < distance) {
+                idx = c;
+                distance = cdistance;
+            }
+        }
+
+        return EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.get(resolutions.get(idx));
     }
 
     private boolean isValid(String crf) {

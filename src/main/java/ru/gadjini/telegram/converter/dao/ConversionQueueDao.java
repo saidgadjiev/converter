@@ -345,6 +345,17 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
         );
     }
 
+    public void setProgressMessageIdAndTotalFilesToDownload(int id, int progressMessageId, int totalFilesToDownload) {
+        jdbcTemplate.update(
+                "UPDATE conversion_queue SET progress_message_id = ?, total_files_to_download = ? where id = ?",
+                ps -> {
+                    ps.setInt(1, progressMessageId);
+                    ps.setInt(2, totalFilesToDownload);
+                    ps.setInt(3, id);
+                }
+        );
+    }
+
     @Override
     public boolean isDeleteCompletedShouldBeDelegated() {
         return true;

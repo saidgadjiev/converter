@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.converter.utils.BitrateUtils;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -47,12 +48,12 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 new Object[]{convertState.getFirstFormat().getName(),
                         MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
                         editVideoState.getCurrentVideoResolution() + "p",
-                        getCrfMessage(convertState.getSettings().getCrf(), locale),
+                        getQualityMessage(editVideoState.getSettings().getQuality(), locale),
                         getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
                         getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale),
-                        getEstimatedSize(convertState.getFirstFile().getFileSize(), convertState.getSettings().getQuality())},
+                        getEstimatedSize(convertState.getFirstFile().getFileSize(), QualityCalculator.getQuality(editVideoState))},
                 locale));
 
         switch (getName()) {
@@ -94,14 +95,16 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution + "p";
     }
 
-    private String getCrfMessage(String crf, Locale locale) {
-        return EditVideoResolutionState.AUTO.equals(crf) ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale) : crf + "%";
+    private String getQualityMessage(String quality, Locale locale) {
+        return EditVideoResolutionState.AUTO.equals(quality) || Integer.parseInt(quality) >= EditVideoQualityState.MAX_QUALITY ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale)
+                : EditVideoQualityState.MAX_QUALITY - Integer.parseInt(quality) + "%";
     }
 
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
         return EditVideoAudioBitrateState.AUTO.equals(audioBitrate) ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : audioBitrate + "k";
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale)
+                : BitrateUtils.toKBytes(Integer.parseInt(audioBitrate)) + "k";
     }
 
     private String getAudioMonoStereoMessage(String monoStereo, Locale locale) {
@@ -109,8 +112,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo;
     }
 
-    private String getEstimatedSize(long fileSize, int compressionRate) {
-        return MemoryUtils.humanReadableByteCount(fileSize * (100 - compressionRate) / 100);
+    final String getEstimatedSize(long fileSize, int quality) {
+        return MemoryUtils.humanReadableByteCount(fileSize * quality / EditVideoQualityState.MAX_QUALITY);
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {
@@ -132,7 +135,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 : getName() == EditVideoSettingsStateName.AUDIO_CHANNEL_LAYOUT
                 ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioChannelLayout(),
                 EditVideoAudioChannelLayoutState.AVAILABLE_AUDIO_MONO_STEREO, new Locale(convertState.getUserLanguage()))
-                : inlineKeyboardService.getVideoEditCrfKeyboard(convertState.getSettings().getCrf(),
+                : inlineKeyboardService.getVideoEditQualityKeyboard(QualityCalculator.getCompressionRate(editVideoState),
                 EditVideoQualityState.AVAILABLE_QUALITIES, new Locale(convertState.getUserLanguage()));
     }
 }

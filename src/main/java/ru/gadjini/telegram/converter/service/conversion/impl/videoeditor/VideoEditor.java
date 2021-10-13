@@ -86,7 +86,8 @@ public class VideoEditor extends BaseAny2AnyConverter {
                        FFmpegDevice fFmpegDevice, Jackson jackson,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
                        CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState,
-                       FFmpegProgressCallbackHandlerFactory callbackHandlerFactory, CommandStateService commandStateService) {
+                       FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
+                       CommandStateService commandStateService) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
@@ -146,8 +147,13 @@ public class VideoEditor extends BaseAny2AnyConverter {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             state.setCurrentVideoResolution(whd.getHeight());
+            state.setCurrentOverallBitrate(videoStreamConversionHelper.getOverallBitrate(allStreams));
+            state.setCurrentAudioBitrate(allStreams.stream().filter(s -> s.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE))
+                    .map(FFprobeDevice.FFProbeStream::getBitRate).collect(Collectors.toList()));
+
             FFprobeDevice.FFProbeStream firstVideoStream = allStreams.get(videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             state.setCurrentVideoBitrate(firstVideoStream.getBitRate());
+            state.getSettings().setVideoBitrate(state.getCurrentVideoBitrate());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }
@@ -164,9 +170,6 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
-
-            int quality = settingsState.getQuality();
-            settingsState.setCrf(String.valueOf(100 - quality));
 
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
@@ -268,10 +271,8 @@ public class VideoEditor extends BaseAny2AnyConverter {
         files.forEach(convertState::addMedia);
 
         convertState.setMessageId(conversionQueueItem.getReplyToMessageId());
-        convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
-        convertState.getSettings().setCrf(EditVideoQualityState.DEFAULT_QUALITY);
         convertState.getSettings().setAudioCodec(EditVideoAudioCodecState.AUTO);
-        convertState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
+        convertState.getSettings().setAudioBitrateIfNotSetYet(EditVideoAudioBitrateState.AUTO);
         convertState.getSettings().setAudioChannelLayout(EditVideoAudioChannelLayoutState.AUTO);
 
         return editVideoState;

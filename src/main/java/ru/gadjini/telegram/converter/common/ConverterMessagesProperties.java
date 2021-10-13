@@ -137,10 +137,6 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_AUDIO_COMPRESSION_CHOOSE_BITRATE = "message.audio.compression.choose.bitrate";
 
-    public static final String MESSAGE_AUDIO_COMPRESSION_BITRATE_OUT_OF_RANGE = "message.audio.compression.bitrate.out.of.range";
-
-    public static final String MESSAGE_AUDIO_COMPRESSION_INVALID_BITRATE = "message.audio.compression.choose.bitrate";
-
     public static final String MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE = "message.audio.compress.prompt.bitrate";
 
     public static final String MESSAGE_AUDIO_COMPRESS_OPUS_ESTIMATED_SIZE = "message.audio.compress.opus.estimated.size";
@@ -189,10 +185,6 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_SQUARE_CAPTION = "message.square.caption";
 
-    public static final String MESSAGE_VIDEO_RESOLUTION_WARN = "message.video.resolution.warn";
-
-    public static final String MESSAGE_VIDEO_CRF_WARN = "message.video.crf.warn";
-
     public static final String MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT = "message.compress.audio.output.format";
 
     public static final String MESSAGE_COMPRESS_AUDIO_OUTPUT_FREQUENCY = "message.compress.audio.output.frequency";
@@ -204,10 +196,6 @@ public class ConverterMessagesProperties {
     public static final String MESSAGE_COMPRESS_AUDIO_FREQUENCY_UPDATED = "message.compress.audio.frequency.updated";
 
     public static final String CONVERSION_TIMED_OUT = "conversion.timed.out";
-
-    public static final String OPUS_COMPRESSION_COMMAND_DESCRIPTION = "opus.compression.command.description";
-
-    public static final String MP3_COMPRESSION_COMMAND_DESCRIPTION = "mp3.compression.command.description";
 
     public static final String MESSAGE_CORRUPTED_VIDEO = "message.corrupted.video";
 
@@ -400,6 +388,10 @@ public class ConverterMessagesProperties {
     public static final String VEDIT_RESOLUTION_COMMAND_NAME = "vedit.resolution.command.name";
 
     public static final String VEDIT_QUALITY_COMMAND_NAME = "vedit.quality.command.name";
+
+    public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
+    
+    public static final String MESSAGE_RESOLUTION_CANT_BE_INCREASED = "message.resolution.cant.be.increased";
 
     public static final String VEDIT_AUDIO_CODEC_COMMAND_NAME = "vedit.audio.codec.command.name";
 

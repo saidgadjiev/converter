@@ -29,7 +29,7 @@ public class ScaleVideoEditorState implements VideoEditorState {
                 audioCodec, audioCodecName, audioBitrate,
                 fileQueueItem.getFirstFileFormat(),
                 //Because changing resolution can't be done with 70%+ quality
-                Math.min(settingsState.getQuality(), 70)
+                0
         );
     }
 }

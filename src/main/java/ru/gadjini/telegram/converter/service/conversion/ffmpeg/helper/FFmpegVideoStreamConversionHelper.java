@@ -229,6 +229,18 @@ public class FFmpegVideoStreamConversionHelper {
         }
     }
 
+    public Integer getOverallBitrate(List<FFprobeDevice.FFProbeStream> streams) {
+        Integer overallBitrate = 0;
+        for (FFprobeDevice.FFProbeStream stream : streams) {
+            if (isImageStream(stream)) {
+                continue;
+            }
+            overallBitrate += stream.getBitRate();
+        }
+
+        return overallBitrate;
+    }
+
     public boolean isExtraVideoStream(List<FFprobeDevice.FFProbeStream> videoStreams, FFprobeDevice.FFProbeStream videoStream) {
         if (videoStreams.size() == 1 && isImageStream(videoStream)) {
             return false;
