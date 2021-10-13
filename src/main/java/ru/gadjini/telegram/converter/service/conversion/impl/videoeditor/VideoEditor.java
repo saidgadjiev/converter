@@ -271,8 +271,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
         files.forEach(convertState::addMedia);
 
         convertState.setMessageId(conversionQueueItem.getReplyToMessageId());
+        convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
+        convertState.getSettings().setQuality(EditVideoQualityState.AUTO);
         convertState.getSettings().setAudioCodec(EditVideoAudioCodecState.AUTO);
-        convertState.getSettings().setAudioBitrateIfNotSetYet(EditVideoAudioBitrateState.AUTO);
+        convertState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
         convertState.getSettings().setAudioChannelLayout(EditVideoAudioChannelLayoutState.AUTO);
 
         return editVideoState;

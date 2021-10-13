@@ -134,7 +134,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
             VideoAudioBitrateCalculator.calculateVideoAudioBitrate(convertState.getCurrentOverallBitrate(),
                     convertState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate, convertState.getCurrentAudioBitrate(),
                     videoBitrate, audioBitrate);
-            convertState.getSettings().setAudioBitrateIfNotSetYet(String.valueOf(audioBitrate.get()));
+            convertState.getSettings().setAudioBitrate(String.valueOf(audioBitrate.get()));
             convertState.getSettings().setVideoBitrate(videoBitrate.get());
         }
 

@@ -48,7 +48,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 new Object[]{convertState.getFirstFormat().getName(),
                         MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
                         editVideoState.getCurrentVideoResolution() + "p",
-                        getQualityMessage(editVideoState.getSettings().getQuality(), locale),
+                        getCompressionRateMessage(editVideoState.getSettings().getQuality(), locale),
                         getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
@@ -95,7 +95,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution + "p";
     }
 
-    private String getQualityMessage(String quality, Locale locale) {
+    private String getCompressionRateMessage(String quality, Locale locale) {
         return EditVideoResolutionState.AUTO.equals(quality) || Integer.parseInt(quality) >= EditVideoQualityState.MAX_QUALITY ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale)
                 : EditVideoQualityState.MAX_QUALITY - Integer.parseInt(quality) + "%";

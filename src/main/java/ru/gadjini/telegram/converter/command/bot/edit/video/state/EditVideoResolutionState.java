@@ -106,8 +106,8 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                     setResolution(currentState, callbackQuery, resolution);
                     answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
                             new Object[]{
-                                    QualityCalculator.getCompressionRate(currentState),
-                                    getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getCompressionRate(currentState))
+                                    EditVideoQualityState.MAX_QUALITY - currentState.getSettings().getParsedQuality(),
+                                    getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
                             },
                             locale);
                 }
@@ -144,48 +144,54 @@ public class EditVideoResolutionState extends BaseEditVideoState {
     }
 
     private void setQualityByResolution(EditVideoState editVideoState, String resolution) {
-        int res = Integer.parseInt(resolution);
-        int videoBitrate = VIDEO_BITRATE_BY_RESOLUTION.get(res);
-        int audioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
-        int quality = QualityCalculator.getQuality(editVideoState, videoBitrate, audioBitrate);
-
-        if (quality >= EditVideoQualityState.MAX_QUALITY) {
-            int minimumQuality = findMinimumQuality(editVideoState);
-            int targetOverallBitrate = editVideoState.getCurrentOverallBitrate() * (EditVideoQualityState.MAX_QUALITY - minimumQuality)
-                    / EditVideoQualityState.MAX_QUALITY;
-            int targetAudioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
-            AtomicInteger resultVideoBitrate = new AtomicInteger();
-            AtomicInteger resultAudioBitrate = new AtomicInteger();
-            VideoAudioBitrateCalculator.calculateVideoAudioBitrate(editVideoState.getCurrentOverallBitrate(),
-                    editVideoState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate,
-                    editVideoState.getCurrentAudioBitrate(),
-                    resultVideoBitrate, resultAudioBitrate);
-            editVideoState.getSettings().setVideoBitrate(resultVideoBitrate.get());
-            editVideoState.getSettings().setAudioBitrateIfNotSetYet(String.valueOf(resultAudioBitrate.get()));
-            editVideoState.getSettings().setQuality(String.valueOf(minimumQuality));
+        if (resolution.equals(AUTO)) {
+            editVideoState.getSettings().setVideoBitrate(editVideoState.getCurrentVideoBitrate());
+            editVideoState.getSettings().setQuality(EditVideoQualityState.AUTO);
+            editVideoState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
         } else {
-            editVideoState.getSettings().setVideoBitrate(videoBitrate);
-            editVideoState.getSettings().setAudioBitrateIfNotSetYet(String.valueOf(audioBitrate));
-            editVideoState.getSettings().setQuality(String.valueOf(QualityCalculator.getQuality(editVideoState)));
+            int res = Integer.parseInt(resolution);
+            int videoBitrate = VIDEO_BITRATE_BY_RESOLUTION.get(res);
+            int audioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+            int quality = QualityCalculator.getQuality(editVideoState, videoBitrate, audioBitrate);
+
+            if (quality >= EditVideoQualityState.MAX_QUALITY) {
+                int minimumQuality = findMinimumQuality(editVideoState, res);
+                int targetOverallBitrate = editVideoState.getCurrentOverallBitrate() * minimumQuality
+                        / EditVideoQualityState.MAX_QUALITY;
+                int targetAudioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+                AtomicInteger resultVideoBitrate = new AtomicInteger();
+                AtomicInteger resultAudioBitrate = new AtomicInteger();
+                VideoAudioBitrateCalculator.calculateVideoAudioBitrate(editVideoState.getCurrentOverallBitrate(),
+                        editVideoState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate,
+                        editVideoState.getCurrentAudioBitrate(),
+                        resultVideoBitrate, resultAudioBitrate);
+                editVideoState.getSettings().setVideoBitrate(resultVideoBitrate.get());
+                editVideoState.getSettings().setAudioBitrate(String.valueOf(resultAudioBitrate.get()));
+                editVideoState.getSettings().setQuality(String.valueOf(minimumQuality));
+            } else {
+                editVideoState.getSettings().setVideoBitrate(videoBitrate);
+                editVideoState.getSettings().setAudioBitrate(String.valueOf(audioBitrate));
+                editVideoState.getSettings().setQuality(String.valueOf(QualityCalculator.getQuality(editVideoState)));
+            }
         }
     }
 
-    private int findMinimumQuality(EditVideoState editVideoState) {
-        int min = 70;
+    private int findMinimumQuality(EditVideoState editVideoState, int res) {
+        int max = 70;
         for (Map.Entry<Integer, Integer> entry : VIDEO_BITRATE_BY_RESOLUTION.entrySet()) {
-            if (entry.getKey() < editVideoState.getCurrentVideoResolution()) {
-                int res = entry.getKey();
-                int videoBitrate = VIDEO_BITRATE_BY_RESOLUTION.get(res);
-                int audioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+            if (entry.getKey() < res) {
+                int r = entry.getKey();
+                int videoBitrate = VIDEO_BITRATE_BY_RESOLUTION.get(r);
+                int audioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(r);
                 int quality = QualityCalculator.getQuality(editVideoState, videoBitrate, audioBitrate);
 
-                if (quality < min) {
-                    min = quality;
+                if (quality > max) {
+                    max = quality;
                 }
             }
         }
 
-        return min;
+        return max;
     }
 
     private boolean isValid(String resolution) {

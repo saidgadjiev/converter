@@ -3,6 +3,7 @@ package ru.gadjini.telegram.converter.command.keyboard.start;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Period;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -148,10 +149,8 @@ public class SettingsState {
         return EditVideoAudioBitrateState.AUTO.equals(audioBitrate) ? 0 : Integer.parseInt(audioBitrate);
     }
 
-    public void setAudioBitrateIfNotSetYet(String audioBitrate) {
-        if (StringUtils.isBlank(audioBitrate) || EditVideoAudioBitrateState.AUTO.equals(this.audioBitrate)) {
-            this.audioBitrate = audioBitrate;
-        }
+    public void setAudioBitrate(String audioBitrate) {
+        this.audioBitrate = audioBitrate;
     }
 
     public String getAudioChannelLayout() {
@@ -180,6 +179,10 @@ public class SettingsState {
 
     public String getQuality() {
         return quality;
+    }
+
+    public int getParsedQuality() {
+        return EditVideoQualityState.AUTO.equals(quality) ? 0 : Integer.parseInt(quality);
     }
 
     public void setQuality(String quality) {
