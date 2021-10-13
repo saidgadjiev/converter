@@ -141,7 +141,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                         targetFormat, conversionQueueItem.getSize());
             } else {
                 fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, videoStreamsForConversion, targetFormat,
-                        result, conversionQueueItem.getSize());
+                        result);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
             FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);

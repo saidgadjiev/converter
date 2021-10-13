@@ -13,7 +13,6 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler;
@@ -106,9 +105,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, SCALE,
-                    null, null, null,
-                    fileQueueItem.getFirstFileFormat(), DEFAULT_QUALITY);
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result,
+                    fileQueueItem.getFirstFileFormat());
 
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 

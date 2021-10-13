@@ -11,7 +11,6 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoCommandPreparer;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -102,9 +101,8 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
             int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
             String scale = "scale='iw:ih':force_original_aspect_ratio=decrease,pad=" + size + ":" + size + ":(ow-iw)/2:(oh-ih)/2";
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result, scale,
-                    null, null, null,
-                    TARGET_FORMAT, 100);
+            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result,
+                    TARGET_FORMAT);
             commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
             FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),

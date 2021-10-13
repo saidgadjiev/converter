@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.ffmpeg;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -348,6 +349,15 @@ public class FFprobeDevice {
 
         private FFprobeFormat format;
 
+        @JsonIgnore
+        private Integer targetBitrate;
+
+        @JsonIgnore
+        private String targetCodecType;
+
+        @JsonIgnore
+        private String targetScale;
+
         public int getIndex() {
             return index;
         }
@@ -442,6 +452,30 @@ public class FFprobeDevice {
 
         public Long getDuration() {
             return format == null ? null : format.getDuration();
+        }
+
+        public void setTargetBitrate(Integer targetBitrate) {
+            this.targetBitrate = targetBitrate;
+        }
+
+        public Integer getTargetBitrate() {
+            return targetBitrate;
+        }
+
+        public void setTargetCodecType(String targetCodecType) {
+            this.targetCodecType = targetCodecType;
+        }
+
+        public String getTargetCodecType() {
+            return targetCodecType;
+        }
+
+        public String getTargetScale() {
+            return targetScale;
+        }
+
+        public void setTargetScale(String targetScale) {
+            this.targetScale = targetScale;
         }
 
         @Override

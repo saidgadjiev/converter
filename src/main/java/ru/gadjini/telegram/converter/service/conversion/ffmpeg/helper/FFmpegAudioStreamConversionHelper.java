@@ -35,12 +35,12 @@ public class FFmpegAudioStreamConversionHelper {
         if (FFmpegCommandBuilder.OPUS_CODEC_NAME.equals(audioStream.getCodecName())) {
             commandBuilder.copyAudio();
         } else {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS);
+            commandBuilder.audioCodec(FFmpegCommandBuilder.LIBOPUS);
         }
     }
 
     public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder) {
-        commandBuilder.mapAudio(0).audioCodec(FFmpegCommandBuilder.OPUS);
+        commandBuilder.mapAudio(0).audioCodec(FFmpegCommandBuilder.LIBOPUS);
     }
 
     public void addCopyableCoverArtOptions(SmartTempFile in, SmartTempFile out, FFmpegCommandBuilder commandBuilder) throws InterruptedException {
@@ -112,13 +112,13 @@ public class FFmpegAudioStreamConversionHelper {
 
     private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, int streamIndex, Format target) {
         if (target.getAssociatedFormat() == OGG) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.OPUS);
+            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.LIBOPUS);
         }
     }
 
     private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target) {
         if (target.getAssociatedFormat().canBeSentAsVoice()) {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.OPUS);
+            commandBuilder.audioCodec(FFmpegCommandBuilder.LIBOPUS);
         }
     }
 }

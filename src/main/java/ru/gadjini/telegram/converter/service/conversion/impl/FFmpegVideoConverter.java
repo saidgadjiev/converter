@@ -123,8 +123,8 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         if (targetFormat.canBeSentAsVideo()) {
             fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, result, allStreams, targetFormat, fileQueueItem.getSize());
         } else {
-            fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, targetFormat, result,
-                    null, fileQueueItem.getSize());
+            fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, targetFormat, result
+            );
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
 

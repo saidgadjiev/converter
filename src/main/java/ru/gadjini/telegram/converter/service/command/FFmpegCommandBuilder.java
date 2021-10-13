@@ -18,7 +18,7 @@ public class FFmpegCommandBuilder {
 
     public static final String PAM_CODEC = "pam";
 
-    public static final String OPUS = "libopus";
+    public static final String LIBOPUS = "libopus";
 
     public static final String OPUS_CODEC_NAME = "opus";
 

@@ -1,7 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.impl.videoeditor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.*;
@@ -26,6 +25,8 @@ import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressC
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
+import ru.gadjini.telegram.converter.service.stream.StreamProcessor;
+import ru.gadjini.telegram.converter.service.stream.StreamProcessorFactory;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -79,6 +80,8 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private CommandStateService commandStateService;
 
+    private StreamProcessor streamProcessor;
+
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder,
                        FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
@@ -87,7 +90,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
                        CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState,
                        FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
-                       CommandStateService commandStateService) {
+                       CommandStateService commandStateService, StreamProcessorFactory streamProcessorFactory) {
         super(MAP);
         this.messageBuilder = messageBuilder;
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
@@ -100,6 +103,9 @@ public class VideoEditor extends BaseAny2AnyConverter {
         this.standardVideoEditorState = standardVideoEditorState;
         this.callbackHandlerFactory = callbackHandlerFactory;
         this.commandStateService = commandStateService;
+        this.streamProcessor = streamProcessorFactory.telegramVideoProcessor();
+
+        streamProcessor.setNext(streamProcessorFactory.videoEditorProcessor());
     }
 
     @Autowired
@@ -175,31 +181,24 @@ public class VideoEditor extends BaseAny2AnyConverter {
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
-            String height = settingsState.getResolution().replace("p", "");
-            String scale = EditVideoResolutionState.AUTO.equals(settingsState.getResolution()) ? null
-                    : "scale=-2:" + (NumberUtils.isDigits(height) ? height : "ceil(ih" + height + "/2)*2");
-
             FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
 
-            String preferableAudioCodec = EditVideoAudioCodecState.AUTO.equalsIgnoreCase(settingsState.getAudioCodec())
-                    ? null
-                    : getAudioCodec(settingsState.getAudioCodec());
-            String preferableAudioCodecName = StringUtils.isNotBlank(preferableAudioCodec) ? settingsState.getAudioCodec() : null;
-            Long preferableAudioBitrate = EditVideoAudioBitrateState.AUTO.equalsIgnoreCase(settingsState.getAudioBitrate())
-                    ? null
-                    : Long.parseLong(settingsState.getAudioBitrate());
+            streamProcessor.process(fileQueueItem.getFirstFileFormat(), allStreams, settingsState);
 
-            AtomicReference<VideoEditorState> videoEditorStateAtomicReference = new AtomicReference<>(standardVideoEditorState);
+            videoStreamConversionHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams,
+                    fileQueueItem.getFirstFileFormat(), result);
 
-            if (StringUtils.isNotBlank(scale)) {
-                videoEditorStateAtomicReference.get().scale(scale, videoEditorStateAtomicReference);
-            }
-            if (StringUtils.isNotBlank(preferableAudioCodec)) {
-                videoEditorStateAtomicReference.get().audioCodec(preferableAudioCodec, videoEditorStateAtomicReference);
-            }
-            videoEditorStateAtomicReference.get().prepareCommand(commandBuilder, fileQueueItem, allStreams, settingsState,
-                    scale, preferableAudioCodec, preferableAudioCodecName, preferableAudioBitrate, result);
+            videoStreamConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
+
+            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+            audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams,
+                    audioBitrate);
+
+            subtitlesStreamConversionHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder,
+                    allStreams, result, fileQueueItem.getFirstFileFormat());
+
+            commandBuilder.fastConversion();
 
             if (fileQueueItem.getFirstFileFormat() == WEBM) {
                 commandBuilder.vp8QMinQMax();
@@ -242,19 +241,6 @@ public class VideoEditor extends BaseAny2AnyConverter {
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
-        }
-    }
-
-    private String getAudioCodec(String audioCodec) {
-        switch (audioCodec) {
-            case "aac":
-                return FFmpegCommandBuilder.AAC_CODEC;
-            case "opus":
-                return FFmpegCommandBuilder.OPUS;
-            case "vorbis":
-                return FFmpegCommandBuilder.LIBVORBIS;
-            default:
-                throw new UnsupportedOperationException("Not implemented for " + audioCodec);
         }
     }
 
