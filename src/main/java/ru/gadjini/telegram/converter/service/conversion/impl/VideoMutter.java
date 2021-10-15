@@ -6,7 +6,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -79,7 +79,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+            FFmpegCommand commandBuilder = new FFmpegCommand();
 
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
@@ -88,7 +88,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
                 fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+            FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
             fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams,
                     result, fileQueueItem.getFirstFileFormat());
             if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {

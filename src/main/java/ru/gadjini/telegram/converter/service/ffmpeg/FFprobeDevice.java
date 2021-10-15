@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.mediainfo.MediaInfoService;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
@@ -41,7 +41,7 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getAudioStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.AUDIO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
@@ -53,7 +53,7 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getSubtitleStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.SUBTITLES_STREAM_SPECIFIER));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.SUBTITLES_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
@@ -61,7 +61,7 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getVideoStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.VIDEO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
@@ -130,7 +130,7 @@ public class FFprobeDevice {
     }
 
     private FFprobeResult probeVideoStream(String in, int index) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER, index));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.VIDEO_STREAM_SPECIFIER, index));
         return jsonMapper.readValue(result, FFprobeResult.class);
     }
 

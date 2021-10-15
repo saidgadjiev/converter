@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -25,7 +25,7 @@ public class FFmpegVideoStreamConversionHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideoStreamConversionHelper.class);
 
-    private static final Set<String> IMAGE_CODECS = Set.of(FFmpegCommandBuilder.BMP, FFmpegCommandBuilder.PNG, FFmpegCommandBuilder.MJPEG);
+    private static final Set<String> IMAGE_CODECS = Set.of(FFmpegCommand.BMP, FFmpegCommand.PNG, FFmpegCommand.MJPEG);
 
     private FFmpegDevice fFmpegDevice;
 
@@ -42,17 +42,17 @@ public class FFmpegVideoStreamConversionHelper {
                 .filter(s -> FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
 
-        return videoStreams.stream().allMatch(v -> FFmpegCommandBuilder.H264_CODEC.equals(v.getCodecName()));
+        return videoStreams.stream().allMatch(v -> FFmpegCommand.H264_CODEC.equals(v.getCodecName()));
     }
 
-    public void copyOrConvertVideoCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
+    public void copyOrConvertVideoCodecs(FFmpegCommand commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
                                          Format targetFormat, SmartTempFile result) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
-        String scale = targetFormat == _3GP ? FFmpegCommandBuilder._3GP_SCALE : FFmpegCommandBuilder.EVEN_SCALE;
+        String scale = targetFormat == _3GP ? FFmpegCommand._3GP_SCALE : FFmpegCommand.EVEN_SCALE;
 
-        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+        FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
         int outCodecIndex = 0;
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.FFProbeStream videoStream = videoStreams.get(videoStreamMapIndex);
@@ -83,53 +83,53 @@ public class FFmpegVideoStreamConversionHelper {
         }
     }
 
-    private boolean isCopyableVideoCodecs(FFmpegCommandBuilder baseCommand, SmartTempFile out,
+    private boolean isCopyableVideoCodecs(FFmpegCommand baseCommand, SmartTempFile out,
                                           Format targetFormat, Integer input, int videoStreamMapIndex) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
+        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
 
-        commandBuilder.mapVideo(input, videoStreamMapIndex).copy(FFmpegCommandBuilder.VIDEO_STREAM_SPECIFIER);
+        commandBuilder.mapVideo(input, videoStreamMapIndex).copy(FFmpegCommand.VIDEO_STREAM_SPECIFIER);
         addVideoTargetFormatOptions(commandBuilder, targetFormat);
         commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
-    public boolean isConvertibleToH264(FFmpegCommandBuilder baseCommand, SmartTempFile out,
+    public boolean isConvertibleToH264(FFmpegCommand baseCommand, SmartTempFile out,
                                        Integer input, int videoStreamMapIndex, String scale) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
-        commandBuilder.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommandBuilder.H264_CODEC).filterVideo(scale);
+        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
+        commandBuilder.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommand.H264_CODEC).filterVideo(scale);
         commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
-    public boolean addFastestVideoCodec(FFmpegCommandBuilder commandBuilder, FFprobeDevice.FFProbeStream videoStream,
+    public boolean addFastestVideoCodec(FFmpegCommand commandBuilder, FFprobeDevice.FFProbeStream videoStream,
                                         int videoStreamIndex, boolean convertibleToH264, String h264Scale) {
         if (StringUtils.isBlank(videoStream.getCodecName())) {
             return false;
         }
         if (convertibleToH264) {
-            commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.H264_CODEC);
+            commandBuilder.videoCodec(videoStreamIndex, FFmpegCommand.H264_CODEC);
             addScaleFilterForH264(commandBuilder, videoStream, videoStreamIndex, h264Scale);
             return true;
-        } else if (FFmpegCommandBuilder.VP9_CODEC.equals(videoStream.getCodecName())) {
-            commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.VP8_CODEC);
+        } else if (FFmpegCommand.VP9_CODEC.equals(videoStream.getCodecName())) {
+            commandBuilder.videoCodec(videoStreamIndex, FFmpegCommand.VP8_CODEC);
             return true;
-        } else if (FFmpegCommandBuilder.AV1_CODEC.equals(videoStream.getCodecName())) {
-            commandBuilder.videoCodec(videoStreamIndex, FFmpegCommandBuilder.VP8_CODEC);
+        } else if (FFmpegCommand.AV1_CODEC.equals(videoStream.getCodecName())) {
+            commandBuilder.videoCodec(videoStreamIndex, FFmpegCommand.VP8_CODEC);
             return true;
         } else {
             return false;
         }
     }
 
-    public void addVideoTargetFormatOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+    public void addVideoTargetFormatOptions(FFmpegCommand commandBuilder, Format target) {
         if (target == MPEG || target == MPG) {
-            commandBuilder.f(FFmpegCommandBuilder.MPEGTS_FORMAT);
+            commandBuilder.f(FFmpegCommand.MPEGTS_FORMAT);
         } else if (target == _3GP) {
             commandBuilder.ar("8000").ba("12.20k").ac("1");
         } else if (target == FLV) {
-            commandBuilder.f(FFmpegCommandBuilder.FLV_FORMAT).ar("44100");
+            commandBuilder.f(FFmpegCommand.FLV_FORMAT).ar("44100");
         } else if (target == MTS) {
             commandBuilder.r("30000/1001");
         }
@@ -173,22 +173,22 @@ public class FFmpegVideoStreamConversionHelper {
         return 0;
     }
 
-    private void addVideoCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
+    private void addVideoCodecByTargetFormat(FFmpegCommand commandBuilder, Format target, int streamIndex) {
         if (target == WEBM) {
-            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.VP8_CODEC);
+            commandBuilder.videoCodec(streamIndex, FFmpegCommand.VP8_CODEC);
         } else if (target == _3GP) {
-            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H263_CODEC).filterVideo(streamIndex, FFmpegCommandBuilder._3GP_SCALE);
+            commandBuilder.videoCodec(streamIndex, FFmpegCommand.H263_CODEC).filterVideo(streamIndex, FFmpegCommand._3GP_SCALE);
         } else if (target == MTS) {
-            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.H264_CODEC);
+            commandBuilder.videoCodec(streamIndex, FFmpegCommand.H264_CODEC);
         } else if (target == WMV) {
-            commandBuilder.videoCodec(streamIndex, FFmpegCommandBuilder.WMV2);
+            commandBuilder.videoCodec(streamIndex, FFmpegCommand.WMV2);
         }
     }
 
-    private void addScaleFilterForH264(FFmpegCommandBuilder commandBuilder, FFprobeDevice.FFProbeStream stream,
+    private void addScaleFilterForH264(FFmpegCommand commandBuilder, FFprobeDevice.FFProbeStream stream,
                                        int codecIndex, String scale) {
         if (StringUtils.isNotBlank(scale)
-                && (!FFmpegCommandBuilder.EVEN_SCALE.equals(scale)
+                && (!FFmpegCommand.EVEN_SCALE.equals(scale)
                 || !NumberUtils.isEvent(stream.getWidth()) || !NumberUtils.isEvent(stream.getHeight()))) {
             if (commandBuilder.useFilterComplex()) {
                 commandBuilder.complexFilter("[v:" + codecIndex + "]" + scale + "[sv] ");

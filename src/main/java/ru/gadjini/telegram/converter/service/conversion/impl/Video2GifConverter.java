@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AnimationResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
@@ -75,7 +75,7 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileId, TAG, Format.GIF.getExt());
         try {
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+            FFmpegCommand commandBuilder = new FFmpegCommand();
             commandBuilder.hideBanner().quite().input(in.getAbsolutePath());
 
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath());
@@ -110,7 +110,7 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, Format.MP4.getExt());
         try {
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+            FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
                     .input(in.getAbsolutePath());
 
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath());

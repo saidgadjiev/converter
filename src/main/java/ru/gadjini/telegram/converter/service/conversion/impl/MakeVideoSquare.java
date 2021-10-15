@@ -7,7 +7,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -97,7 +97,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
                         new Object[]{srcWhd.getWidth() + "x" + srcWhd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())))
                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+            FFmpegCommand commandBuilder = new FFmpegCommand();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
             int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
             String scale = "scale='iw:ih':force_original_aspect_ratio=decrease,pad=" + size + ":" + size + ":(ow-iw)/2:(oh-ih)/2";

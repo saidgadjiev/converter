@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -75,7 +75,7 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+            FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
                     .input(file.getAbsolutePath());
 
             if (fileQueueItem.getTargetFormat().canBeSentAsVoice()) {

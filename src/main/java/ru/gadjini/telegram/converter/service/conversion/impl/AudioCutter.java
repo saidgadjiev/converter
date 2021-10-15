@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -67,7 +67,7 @@ public class AudioCutter extends BaseAudioConverter {
         String startPoint = PERIOD_FORMATTER.print(settingsState.getCutStartPoint());
         String duration = String.valueOf(settingsState.getCutEndPoint().minus(settingsState.getCutStartPoint()).toStandardDuration().getStandardSeconds());
 
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        FFmpegCommand commandBuilder = new FFmpegCommand();
 
         commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
         audioHelper.addCopyableCoverArtOptions(file, result, commandBuilder);

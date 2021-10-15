@@ -3,7 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -21,7 +21,7 @@ import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 @SuppressWarnings("CPD-START")
 public class FFmpegAudioStreamInVideoFileConversionHelper {
 
-    public static final String TELEGRAM_VIDEO_AUDIO_CODEC = FFmpegCommandBuilder.AAC_CODEC;
+    public static final String TELEGRAM_VIDEO_AUDIO_CODEC = FFmpegCommand.AAC_CODEC;
 
     private FFmpegDevice fFmpegDevice;
 
@@ -38,7 +38,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
         return audioStreams.stream().allMatch(a -> TELEGRAM_VIDEO_AUDIO_CODEC.equals(a.getCodecName()));
     }
 
-    public void copyOrConvertToTargetAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
+    public void copyOrConvertToTargetAudioCodecs(FFmpegCommand commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
                                                  boolean appendMapAudio) {
         if (allStreams.stream().anyMatch(stream -> FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
             List<FFprobeDevice.FFProbeStream> audioStreams = allStreams.stream()
@@ -85,8 +85,8 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
         }
     }
 
-    public void addChannelMapFilter(FFmpegCommandBuilder commandBuilder, SmartTempFile out) throws InterruptedException {
-        FFmpegCommandBuilder command = new FFmpegCommandBuilder(commandBuilder);
+    public void addChannelMapFilter(FFmpegCommand commandBuilder, SmartTempFile out) throws InterruptedException {
+        FFmpegCommand command = new FFmpegCommand(commandBuilder);
         command.out(out.getAbsolutePath());
 
         if (fFmpegDevice.isChannelMapError(command.buildFullCommand())) {
@@ -94,7 +94,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
         }
     }
 
-    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+    public void addAudioTargetOptions(FFmpegCommand commandBuilder, Format target) {
         if (target.getAssociatedFormat() == AMR) {
             commandBuilder.ar("8000").ac("1");
         } else if (target.getAssociatedFormat().canBeSentAsVoice()) {
@@ -102,43 +102,43 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
         }
     }
 
-    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, int streamIndex, Format target) {
+    private void addAudioCodecOptions(FFmpegCommand commandBuilder, int streamIndex, Format target) {
         if (target.getAssociatedFormat().canBeSentAsVoice()) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.LIBOPUS);
+            commandBuilder.audioCodec(streamIndex, FFmpegCommand.LIBOPUS);
         }
     }
 
-    private boolean isCopyableAudioCodecs(FFmpegCommandBuilder baseCommand, SmartTempFile out,
+    private boolean isCopyableAudioCodecs(FFmpegCommand baseCommand, SmartTempFile out,
                                           Format targetFormat, Integer input, int streamMapIndex) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
+        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
 
-        commandBuilder.mapAudio(input, streamMapIndex).copy(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER);
+        commandBuilder.mapAudio(input, streamMapIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
         addAudioTargetOptions(commandBuilder, targetFormat);
         commandBuilder.out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
-    private void addAudioCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target) {
+    private void addAudioCodecByTargetFormat(FFmpegCommand commandBuilder, Format target) {
         if (target == MTS) {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.AC3_CODEC);
+            commandBuilder.audioCodec(FFmpegCommand.AC3_CODEC);
         } else if (target == WEBM) {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.LIBVORBIS);
+            commandBuilder.audioCodec(FFmpegCommand.LIBVORBIS);
         }
     }
 
-    private void addAudioCodecByTargetFormat(FFmpegCommandBuilder commandBuilder, Format target, int streamIndex) {
+    private void addAudioCodecByTargetFormat(FFmpegCommand commandBuilder, Format target, int streamIndex) {
         if (target == MTS) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.AC3_CODEC);
+            commandBuilder.audioCodec(streamIndex, FFmpegCommand.AC3_CODEC);
         } else if (target == WEBM) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.LIBVORBIS);
+            commandBuilder.audioCodec(streamIndex, FFmpegCommand.LIBVORBIS);
         }
     }
 
-    private boolean isCopyableAudioCodecs(FFmpegCommandBuilder baseCommandBuilder, SmartTempFile out, Integer input, int streamIndex) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
+    private boolean isCopyableAudioCodecs(FFmpegCommand baseCommandBuilder, SmartTempFile out, Integer input, int streamIndex) throws InterruptedException {
+        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
 
-        commandBuilder.mapAudio(input, streamIndex).copy(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER);
+        commandBuilder.mapAudio(input, streamIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
         commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());

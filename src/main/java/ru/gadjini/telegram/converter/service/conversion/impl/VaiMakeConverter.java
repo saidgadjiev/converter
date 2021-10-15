@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
@@ -77,11 +77,11 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
         try {
             long durationInSeconds = fFprobeDevice.getDurationInSeconds(downloadedAudio.getAbsolutePath());
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder()
+            FFmpegCommand commandBuilder = new FFmpegCommand()
                     .loop(1).hideBanner().quite().framerate("1").input(downloadedImage.getAbsolutePath())
-                    .input(downloadedAudio.getAbsolutePath()).videoCodec(FFmpegCommandBuilder.H264_CODEC)
-                    .filterVideo(FFmpegCommandBuilder.EVEN_SCALE)
-                    .tune(FFmpegCommandBuilder.TUNE_STILLIMAGE).t(durationInSeconds);
+                    .input(downloadedAudio.getAbsolutePath()).videoCodec(FFmpegCommand.H264_CODEC)
+                    .filterVideo(FFmpegCommand.EVEN_SCALE)
+                    .tune(FFmpegCommand.TUNE_STILLIMAGE).t(durationInSeconds);
 
             List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
             videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);

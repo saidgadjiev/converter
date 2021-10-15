@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -60,8 +60,8 @@ public class VideoMerger extends BaseAny2AnyConverter {
                     targetFormat.getExt());
             try {
                 List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(filesToConcatenate.get(0).getAbsolutePath());
-                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
-                        .f(FFmpegCommandBuilder.CONCAT).safe("0").input(filesList.getAbsolutePath())
+                FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
+                        .f(FFmpegCommand.CONCAT).safe("0").input(filesList.getAbsolutePath())
                         .mapVideo().copyVideo();
                 if (allStreams.stream().anyMatch(a -> FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE.equals(a.getCodecType()))) {
                     commandBuilder.mapAudio().copyAudio();

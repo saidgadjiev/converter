@@ -6,7 +6,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -81,7 +81,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(compressionFormat));
         }
 
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
+        FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(in.getAbsolutePath());
 
         try {
             fFmpegAudioHelper.addCopyableCoverArtOptions(in, out, commandBuilder);

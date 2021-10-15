@@ -12,7 +12,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.property.FontProperties;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -134,7 +134,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         try {
             VideoWatermark watermark = videoWatermarkService.getWatermark(fileQueueItem.getUserId());
             validateWatermarkFile(fileQueueItem, watermark);
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+            FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
                     .input(video.getAbsolutePath());
 
             if (isNeedLoop(watermark)) {
@@ -168,7 +168,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             commandBuilder.complexFilters();
 
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+            FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
             } else {

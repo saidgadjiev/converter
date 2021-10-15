@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.domain.watermark.audio.AudioWatermark;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.sox.SoxService;
@@ -202,8 +202,8 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         garbageFileCollection.addFile(result);
 
-        FFmpegCommandBuilder mergeCommandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
-                .f(FFmpegCommandBuilder.CONCAT).safe("0").input(filesList.getAbsolutePath())
+        FFmpegCommand mergeCommandBuilder = new FFmpegCommand().hideBanner().quite()
+                .f(FFmpegCommand.CONCAT).safe("0").input(filesList.getAbsolutePath())
                 .mapAudio(0).copyAudio();
 
         mergeCommandBuilder.out(result.getAbsolutePath());
@@ -217,7 +217,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         garbageFileCollection.addFile(result);
 
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
+        FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(in.getAbsolutePath());
 
         commandBuilder.filterAudioV2("volume=0.2");
         commandBuilder.keepAudioBitRate(bitrate);
@@ -230,7 +230,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
 
     private List<File> split(SmartTempFile in, ConversionQueueItem queueItem, long watermarkDuration,
                              GarbageFileCollection garbageFileCollection) {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(in.getAbsolutePath());
+        FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(in.getAbsolutePath());
 
         SmartTempFile tempDir = tempFileService().createTempDir(FileTarget.TEMP, queueItem.getUserId(), TAG);
         garbageFileCollection.addFile(tempDir);

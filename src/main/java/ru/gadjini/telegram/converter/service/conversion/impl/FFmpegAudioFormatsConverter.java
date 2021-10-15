@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -62,7 +62,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     }
 
     public void doConvertAudioWithCopy(SmartTempFile in, SmartTempFile out, Format targetFormat, Integer bitrate) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+        FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
                 .input(in.getAbsolutePath());
 
         List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
@@ -88,7 +88,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     }
 
     public void doConvertAudio(SmartTempFile in, SmartTempFile out, Format targetFormat, boolean keepBitrate) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
+        FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
                 .input(in.getAbsolutePath());
         fFmpegAudioHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
         if (targetFormat.canBeSentAsVoice()) {

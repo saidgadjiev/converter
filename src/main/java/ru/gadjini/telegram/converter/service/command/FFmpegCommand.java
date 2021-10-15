@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class FFmpegCommandBuilder {
+public class FFmpegCommand {
 
     public static final String CRF = "-crf";
 
@@ -83,14 +83,14 @@ public class FFmpegCommandBuilder {
 
     private boolean useFilterComplex;
 
-    public FFmpegCommandBuilder(FFmpegCommandBuilder commandBuilder) {
+    public FFmpegCommand(FFmpegCommand commandBuilder) {
         this.options.addAll(commandBuilder.options);
     }
 
-    public FFmpegCommandBuilder() {
+    public FFmpegCommand() {
     }
 
-    public FFmpegCommandBuilder useFilterComplex(boolean useFilterComplex) {
+    public FFmpegCommand useFilterComplex(boolean useFilterComplex) {
         this.useFilterComplex = useFilterComplex;
 
         return this;
@@ -100,33 +100,33 @@ public class FFmpegCommandBuilder {
         return useFilterComplex;
     }
 
-    public FFmpegCommandBuilder safe(String s) {
+    public FFmpegCommand safe(String s) {
         options.add("-safe");
         options.add(s);
 
         return this;
     }
 
-    public FFmpegCommandBuilder hideBanner() {
+    public FFmpegCommand hideBanner() {
         options.add("-hide_banner");
 
         return this;
     }
 
-    public FFmpegCommandBuilder loop(int loop) {
+    public FFmpegCommand loop(int loop) {
         options.add("-loop");
         options.add(String.valueOf(loop));
 
         return this;
     }
 
-    public FFmpegCommandBuilder quite() {
+    public FFmpegCommand quite() {
         options.add("-y");
 
         return this;
     }
 
-    public FFmpegCommandBuilder segmentTimes(Set<String> segmentTimes) {
+    public FFmpegCommand segmentTimes(Set<String> segmentTimes) {
         options.add("-f");
         options.add("segment");
         options.add("-segment_times");
@@ -135,131 +135,131 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder ss(String startPoint) {
+    public FFmpegCommand ss(String startPoint) {
         options.add("-ss");
         options.add(startPoint);
 
         return this;
     }
 
-    public FFmpegCommandBuilder to(String to) {
+    public FFmpegCommand to(String to) {
         options.add("-to");
         options.add(to);
 
         return this;
     }
 
-    public FFmpegCommandBuilder t(String duration) {
+    public FFmpegCommand t(String duration) {
         options.add("-t");
         options.add(duration);
 
         return this;
     }
 
-    public FFmpegCommandBuilder vframes(String frames) {
+    public FFmpegCommand vframes(String frames) {
         options.add("-vframes");
         options.add(frames);
 
         return this;
     }
 
-    public FFmpegCommandBuilder qv(String qv) {
+    public FFmpegCommand qv(String qv) {
         options.add("-q:v");
         options.add(qv);
 
         return this;
     }
 
-    public FFmpegCommandBuilder input(String filePath) {
+    public FFmpegCommand input(String filePath) {
         options.add("-i");
         options.add(filePath);
 
         return this;
     }
 
-    public FFmpegCommandBuilder ignoreLoop() {
+    public FFmpegCommand ignoreLoop() {
         options.add("-ignore_loop");
         options.add("0");
 
         return this;
     }
 
-    public FFmpegCommandBuilder tune(String tune) {
+    public FFmpegCommand tune(String tune) {
         options.add("-tune");
         options.add(tune);
 
         return this;
     }
 
-    public FFmpegCommandBuilder shortest() {
+    public FFmpegCommand shortest() {
         options.add("-shortest");
 
         return this;
     }
 
-    public FFmpegCommandBuilder t(long seconds) {
+    public FFmpegCommand t(long seconds) {
         options.add("-t");
         options.add(String.valueOf(seconds));
 
         return this;
     }
 
-    public FFmpegCommandBuilder out(String filePath) {
+    public FFmpegCommand out(String filePath) {
         options.add(filePath);
 
         return this;
     }
 
-    public FFmpegCommandBuilder map(String streamSpecifier, int index) {
+    public FFmpegCommand map(String streamSpecifier, int index) {
         options.add("-map");
         options.add(streamSpecifier + ":" + index);
 
         return this;
     }
 
-    public FFmpegCommandBuilder copy(String streamSpecifier) {
+    public FFmpegCommand copy(String streamSpecifier) {
         options.add("-c:" + streamSpecifier);
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder copySubtitles() {
+    public FFmpegCommand copySubtitles() {
         options.add("-c:s");
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder copySubtitles(int index) {
+    public FFmpegCommand copySubtitles(int index) {
         options.add("-c:s:" + index);
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder subtitlesCodec(String codec) {
+    public FFmpegCommand subtitlesCodec(String codec) {
         options.add("-c:s");
         options.add(codec);
 
         return this;
     }
 
-    public FFmpegCommandBuilder subtitlesCodec(String codec, int index) {
+    public FFmpegCommand subtitlesCodec(String codec, int index) {
         options.add("-c:s:" + index);
         options.add(codec);
 
         return this;
     }
 
-    public FFmpegCommandBuilder mapSubtitles() {
+    public FFmpegCommand mapSubtitles() {
         options.add("-map");
         options.add("s");
 
         return this;
     }
 
-    public FFmpegCommandBuilder mapSubtitlesInput(Integer input) {
+    public FFmpegCommand mapSubtitlesInput(Integer input) {
         options.add("-map");
         if (input == null) {
             options.add("s");
@@ -270,14 +270,14 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder mapSubtitles(int index) {
+    public FFmpegCommand mapSubtitles(int index) {
         options.add("-map");
         options.add("s:" + index);
 
         return this;
     }
 
-    public FFmpegCommandBuilder mapSubtitles(Integer input, int index) {
+    public FFmpegCommand mapSubtitles(Integer input, int index) {
         options.add("-map");
         if (input == null) {
             options.add("s:" + index);
@@ -288,63 +288,63 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder copyAudio() {
+    public FFmpegCommand copyAudio() {
         options.add("-c:a");
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder copyAudio(int index) {
+    public FFmpegCommand copyAudio(int index) {
         options.add("-c:a:" + index);
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder audioCodec(int index, String codec) {
+    public FFmpegCommand audioCodec(int index, String codec) {
         options.add("-c:a:" + index);
         options.add(codec);
 
         return this;
     }
 
-    public FFmpegCommandBuilder audioBitrate(long bitrate) {
+    public FFmpegCommand audioBitrate(long bitrate) {
         options.add("-b:a");
         options.add(bitrate + "k");
 
         return this;
     }
 
-    public FFmpegCommandBuilder audioCodec(String codec) {
+    public FFmpegCommand audioCodec(String codec) {
         options.add("-c:a");
         options.add(codec);
 
         return this;
     }
 
-    public FFmpegCommandBuilder copyCodecs() {
+    public FFmpegCommand copyCodecs() {
         options.add("-c");
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder qa(String qa) {
+    public FFmpegCommand qa(String qa) {
         options.add("-q:a");
         options.add(qa);
 
         return this;
     }
 
-    public FFmpegCommandBuilder mapAudio() {
+    public FFmpegCommand mapAudio() {
         options.add("-map");
         options.add("a");
 
         return this;
     }
 
-    public FFmpegCommandBuilder mapAudioInput(Integer input) {
+    public FFmpegCommand mapAudioInput(Integer input) {
         options.add("-map");
         if (input == null) {
             options.add("a");
@@ -355,14 +355,14 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder mapAudio(int index) {
+    public FFmpegCommand mapAudio(int index) {
         options.add("-map");
         options.add("a:" + index);
 
         return this;
     }
 
-    public FFmpegCommandBuilder mapAudio(Integer input, int index) {
+    public FFmpegCommand mapAudio(Integer input, int index) {
         options.add("-map");
         if (input == null) {
             options.add("a:" + index);
@@ -373,14 +373,14 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder mapVideo(int index) {
+    public FFmpegCommand mapVideo(int index) {
         options.add("-map");
         options.add("v:" + index);
 
         return this;
     }
 
-    public FFmpegCommandBuilder mapVideo(Integer input, int index) {
+    public FFmpegCommand mapVideo(Integer input, int index) {
         options.add("-map");
         if (input == null) {
             options.add("v:" + index);
@@ -391,14 +391,14 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder mapVideo() {
+    public FFmpegCommand mapVideo() {
         options.add("-map");
         options.add("v");
 
         return this;
     }
 
-    public FFmpegCommandBuilder videoCodec(int index, String codec) {
+    public FFmpegCommand videoCodec(int index, String codec) {
         options.add("-c:v:" + index);
         options.add(codec);
 
@@ -406,42 +406,42 @@ public class FFmpegCommandBuilder {
     }
 
 
-    public FFmpegCommandBuilder videoCodec(String codec) {
+    public FFmpegCommand videoCodec(String codec) {
         options.add("-c:v");
         options.add(codec);
 
         return this;
     }
 
-    public FFmpegCommandBuilder copyVideo(int index) {
+    public FFmpegCommand copyVideo(int index) {
         options.add("-c:v:" + index);
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder copyVideo() {
+    public FFmpegCommand copyVideo() {
         options.add("-c:v");
         options.add("copy");
 
         return this;
     }
 
-    public FFmpegCommandBuilder vf(String filter) {
+    public FFmpegCommand vf(String filter) {
         options.add("-vf");
         options.add(filter);
 
         return this;
     }
 
-    public FFmpegCommandBuilder filterVideo(int index, String filter) {
+    public FFmpegCommand filterVideo(int index, String filter) {
         options.add("-filter:v:" + index);
         options.add(filter);
 
         return this;
     }
 
-    public FFmpegCommandBuilder complexFilter(String filter) {
+    public FFmpegCommand complexFilter(String filter) {
         complexFilters.add(filter);
 
         return this;
@@ -451,98 +451,98 @@ public class FFmpegCommandBuilder {
         return complexFilters;
     }
 
-    public FFmpegCommandBuilder filterAudio(String filter) {
+    public FFmpegCommand filterAudio(String filter) {
         options.add("-af");
         options.add(filter);
 
         return this;
     }
 
-    public FFmpegCommandBuilder filterAudioV2(String filter) {
+    public FFmpegCommand filterAudioV2(String filter) {
         options.add("-filter:a");
         options.add(filter);
 
         return this;
     }
 
-    public FFmpegCommandBuilder filterVideo(String filter) {
+    public FFmpegCommand filterVideo(String filter) {
         options.add("-vf");
         options.add(filter);
 
         return this;
     }
 
-    public FFmpegCommandBuilder preset(String preset) {
+    public FFmpegCommand preset(String preset) {
         options.add("-preset");
         options.add(preset);
 
         return this;
     }
 
-    public FFmpegCommandBuilder qmin(String qmin) {
+    public FFmpegCommand qmin(String qmin) {
         options.add("-qmin");
         options.add(qmin);
 
         return this;
     }
 
-    public FFmpegCommandBuilder qmax(String qmax) {
+    public FFmpegCommand qmax(String qmax) {
         options.add("-qmax");
         options.add(qmax);
 
         return this;
     }
 
-    public FFmpegCommandBuilder speed(String speed) {
+    public FFmpegCommand speed(String speed) {
         options.add("-speed");
         options.add(speed);
 
         return this;
     }
 
-    public FFmpegCommandBuilder crf(String crf) {
+    public FFmpegCommand crf(String crf) {
         options.add(CRF);
         options.add(crf);
 
         return this;
     }
 
-    public FFmpegCommandBuilder ba(String ba) {
+    public FFmpegCommand ba(String ba) {
         options.add("-b:a");
         options.add(ba);
 
         return this;
     }
 
-    public FFmpegCommandBuilder af(String filter) {
+    public FFmpegCommand af(String filter) {
         options.add("-af");
         options.add(filter);
 
         return this;
     }
 
-    public FFmpegCommandBuilder r(String r) {
+    public FFmpegCommand r(String r) {
         options.add("-r");
         options.add(r);
 
         return this;
     }
 
-    public FFmpegCommandBuilder framerate(String framerate) {
+    public FFmpegCommand framerate(String framerate) {
         options.add("-framerate");
         options.add(framerate);
 
         return this;
     }
 
-    public FFmpegCommandBuilder bv(int index, String bv) {
+    public FFmpegCommand bv(int index, String bv) {
         options.add("-b:v:" + index);
         options.add(bv);
 
         return this;
     }
 
-    public FFmpegCommandBuilder bv(String bv) {
+    public FFmpegCommand bv(String bv) {
         options.add("-b:v");
         options.add(bv);
 
@@ -557,54 +557,54 @@ public class FFmpegCommandBuilder {
         return options.stream().anyMatch(a -> a.contains("channelmap=channel_layout"));
     }
 
-    public FFmpegCommandBuilder ac(String ac) {
+    public FFmpegCommand ac(String ac) {
         options.add("-ac");
         options.add(ac);
 
         return this;
     }
 
-    public FFmpegCommandBuilder s(String s) {
+    public FFmpegCommand s(String s) {
         options.add("-s");
         options.add(s);
 
         return this;
     }
 
-    public FFmpegCommandBuilder streamOut() {
+    public FFmpegCommand streamOut() {
         options.add("-");
 
         return this;
     }
 
-    public FFmpegCommandBuilder f(String format) {
+    public FFmpegCommand f(String format) {
         options.add("-f");
         options.add(format);
 
         return this;
     }
 
-    public FFmpegCommandBuilder q(String streamSpecifier, String q) {
+    public FFmpegCommand q(String streamSpecifier, String q) {
         options.add("-q:" + streamSpecifier);
         options.add(q);
 
         return this;
     }
 
-    public FFmpegCommandBuilder ar(String ar) {
+    public FFmpegCommand ar(String ar) {
         options.add("-ar");
         options.add(ar);
 
         return this;
     }
 
-    public FFmpegCommandBuilder an() {
+    public FFmpegCommand an() {
         options.add("-an");
 
         return this;
     }
 
-    public FFmpegCommandBuilder keepAudioBitRate(Integer bitRate) {
+    public FFmpegCommand keepAudioBitRate(Integer bitRate) {
         if (bitRate == null) {
             return this;
         }
@@ -614,11 +614,11 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder keepVideoBitRate(Integer videoBitRate, int index) {
+    public FFmpegCommand keepVideoBitRate(Integer videoBitRate, int index) {
         return keepVideoBitRate(videoBitRate, index, 100);
     }
 
-    public FFmpegCommandBuilder keepVideoBitRate(Integer videoBitRate, int index, int quality) {
+    public FFmpegCommand keepVideoBitRate(Integer videoBitRate, int index, int quality) {
         if (videoBitRate == null) {
             return this;
         }
@@ -637,34 +637,34 @@ public class FFmpegCommandBuilder {
         return this;
     }
 
-    public FFmpegCommandBuilder vp8QMinQMax() {
+    public FFmpegCommand vp8QMinQMax() {
         qmin("0").qmax("40");
 
         return this;
     }
 
-    public FFmpegCommandBuilder fastConversion() {
-        preset(FFmpegCommandBuilder.PRESET_VERY_FAST);
+    public FFmpegCommand fastConversion() {
+        preset(FFmpegCommand.PRESET_VERY_FAST);
 
         speed("16");
 
         return this;
     }
 
-    public FFmpegCommandBuilder deadline(String deadline) {
+    public FFmpegCommand deadline(String deadline) {
         options.add("-deadline");
         options.add(deadline);
 
         return this;
     }
 
-    public FFmpegCommandBuilder defaultOptions() {
+    public FFmpegCommand defaultOptions() {
         options.addAll(DEFAULT_OPTIONS);
 
         return this;
     }
 
-    public FFmpegCommandBuilder complexFilters() {
+    public FFmpegCommand complexFilters() {
         options.addAll(getComplexFilterOptions());
 
         return this;

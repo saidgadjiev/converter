@@ -11,7 +11,7 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.PhotoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
@@ -92,7 +92,7 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
             Period sp = getStartPoint(srcWhd, settingsState);
             String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
 
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+            FFmpegCommand commandBuilder = new FFmpegCommand();
 
             commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath())
                     .mapVideo(fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams)).vframes("1").qv("2")

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -73,8 +73,8 @@ public class AudioMerger extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG,
                     targetFormat.getExt());
             try {
-                FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite()
-                        .f(FFmpegCommandBuilder.CONCAT).safe("0").input(filesList.getAbsolutePath())
+                FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
+                        .f(FFmpegCommand.CONCAT).safe("0").input(filesList.getAbsolutePath())
                         .mapAudio(0).copyAudio();
 
                 audioHelper.addAudioTargetOptions(commandBuilder, targetFormat);

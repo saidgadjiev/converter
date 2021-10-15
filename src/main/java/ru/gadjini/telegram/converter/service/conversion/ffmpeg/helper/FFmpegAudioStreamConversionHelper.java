@@ -3,7 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -30,29 +30,29 @@ public class FFmpegAudioStreamConversionHelper {
         this.fFmpegDevice = fFmpegDevice;
     }
 
-    public void copyOrConvertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder, FFprobeDevice.FFProbeStream audioStream) {
+    public void copyOrConvertAudioCodecsForTelegramVoice(FFmpegCommand commandBuilder, FFprobeDevice.FFProbeStream audioStream) {
         commandBuilder.mapAudio(audioStream.getInput(), 0);
-        if (FFmpegCommandBuilder.OPUS_CODEC_NAME.equals(audioStream.getCodecName())) {
+        if (FFmpegCommand.OPUS_CODEC_NAME.equals(audioStream.getCodecName())) {
             commandBuilder.copyAudio();
         } else {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.LIBOPUS);
+            commandBuilder.audioCodec(FFmpegCommand.LIBOPUS);
         }
     }
 
-    public void convertAudioCodecsForTelegramVoice(FFmpegCommandBuilder commandBuilder) {
-        commandBuilder.mapAudio(0).audioCodec(FFmpegCommandBuilder.LIBOPUS);
+    public void convertAudioCodecsForTelegramVoice(FFmpegCommand commandBuilder) {
+        commandBuilder.mapAudio(0).audioCodec(FFmpegCommand.LIBOPUS);
     }
 
-    public void addCopyableCoverArtOptions(SmartTempFile in, SmartTempFile out, FFmpegCommandBuilder commandBuilder) throws InterruptedException {
+    public void addCopyableCoverArtOptions(SmartTempFile in, SmartTempFile out, FFmpegCommand commandBuilder) throws InterruptedException {
         if (hasCopyableCoverArt(in, out, commandBuilder)) {
             commandBuilder.mapVideo(COVER_INDEX).copyVideo(COVER_INDEX);
         }
     }
 
-    private boolean hasCopyableCoverArt(SmartTempFile in, SmartTempFile out, FFmpegCommandBuilder commandBuilder) throws InterruptedException {
+    private boolean hasCopyableCoverArt(SmartTempFile in, SmartTempFile out, FFmpegCommand commandBuilder) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(in.getAbsolutePath());
         if (!CollectionUtils.isEmpty(videoStreams)) {
-            commandBuilder = new FFmpegCommandBuilder(commandBuilder)
+            commandBuilder = new FFmpegCommand(commandBuilder)
                     .mapVideo(COVER_INDEX)
                     .copyVideo(COVER_INDEX);
 
@@ -62,9 +62,9 @@ public class FFmpegAudioStreamConversionHelper {
         return false;
     }
 
-    public void copyOrConvertAudioCodecs(FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> audioStreams,
+    public void copyOrConvertAudioCodecs(FFmpegCommand commandBuilder, List<FFprobeDevice.FFProbeStream> audioStreams,
                                          Format targetFormat, SmartTempFile result) throws InterruptedException {
-        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+        FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
         int outCodecIndex = 0;
         for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
             FFprobeDevice.FFProbeStream audioStream = audioStreams.get(audioStreamMapIndex);
@@ -79,16 +79,16 @@ public class FFmpegAudioStreamConversionHelper {
         }
     }
 
-    public void convertAudioCodecs(FFmpegCommandBuilder commandBuilder, Format targetFormat) {
+    public void convertAudioCodecs(FFmpegCommand commandBuilder, Format targetFormat) {
         commandBuilder.mapAudio(0);
         addAudioCodecOptions(commandBuilder, targetFormat);
     }
 
-    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+    public void addAudioTargetOptions(FFmpegCommand commandBuilder, Format target) {
         addAudioTargetOptions(commandBuilder, target, true);
     }
 
-    public void addAudioTargetOptions(FFmpegCommandBuilder commandBuilder, Format target, boolean appendAr) {
+    public void addAudioTargetOptions(FFmpegCommand commandBuilder, Format target, boolean appendAr) {
         if (target.getAssociatedFormat() == AMR) {
             if (appendAr) {
                 commandBuilder.ar("8000");
@@ -99,26 +99,26 @@ public class FFmpegAudioStreamConversionHelper {
         }
     }
 
-    private boolean isCopyableAudioCodecs(FFmpegCommandBuilder baseCommand, SmartTempFile out,
+    private boolean isCopyableAudioCodecs(FFmpegCommand baseCommand, SmartTempFile out,
                                           Format targetFormat, Integer input, int streamMapIndex) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommand);
+        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
 
-        commandBuilder.mapAudio(input, streamMapIndex).copy(FFmpegCommandBuilder.AUDIO_STREAM_SPECIFIER);
+        commandBuilder.mapAudio(input, streamMapIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
         addAudioTargetOptions(commandBuilder, targetFormat);
         commandBuilder.out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
-    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, int streamIndex, Format target) {
+    private void addAudioCodecOptions(FFmpegCommand commandBuilder, int streamIndex, Format target) {
         if (target.getAssociatedFormat() == OGG) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommandBuilder.LIBOPUS);
+            commandBuilder.audioCodec(streamIndex, FFmpegCommand.LIBOPUS);
         }
     }
 
-    private void addAudioCodecOptions(FFmpegCommandBuilder commandBuilder, Format target) {
+    private void addAudioCodecOptions(FFmpegCommand commandBuilder, Format target) {
         if (target.getAssociatedFormat().canBeSentAsVoice()) {
-            commandBuilder.audioCodec(FFmpegCommandBuilder.LIBOPUS);
+            commandBuilder.audioCodec(FFmpegCommand.LIBOPUS);
         }
     }
 }

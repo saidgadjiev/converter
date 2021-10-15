@@ -6,7 +6,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -117,7 +117,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
                                       ConversionQueueItem fileQueueItem, Format targetFormat,
                                       boolean withProgress) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+        FFmpegCommand commandBuilder = new FFmpegCommand();
 
         commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
         if (targetFormat.canBeSentAsVideo()) {
@@ -128,7 +128,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         }
         fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
 
-        FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+        FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
         if (targetFormat.canBeSentAsVideo()) {
             videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
         } else {

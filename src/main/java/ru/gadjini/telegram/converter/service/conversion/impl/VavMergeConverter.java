@@ -6,7 +6,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -127,7 +127,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
         try {
             List<FFprobeDevice.FFProbeStream> videoStreamsForConversion = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             videoStreamsForConversion.forEach(s -> s.setInput(0));
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder().hideBanner().quite().input(video.getAbsolutePath());
+            FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(video.getAbsolutePath());
 
             if (!audios.isEmpty()) {
                 audios.forEach(a -> commandBuilder.input(a.getAbsolutePath()));
@@ -144,7 +144,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                         result);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
-            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+            FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
 
             SettingsState settingsState = jackson.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
             if (!audios.isEmpty()) {

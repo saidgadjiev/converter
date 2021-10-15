@@ -11,7 +11,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.EmptyConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -181,7 +180,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
-            FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder();
+            FFmpegCommand commandBuilder = new FFmpegCommand();
             commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
 
             streamProcessor.process(fileQueueItem.getFirstFileFormat(), allStreams, settingsState);
@@ -191,7 +190,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
             videoStreamConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
 
-            FFmpegCommandBuilder baseCommand = new FFmpegCommandBuilder(commandBuilder);
+            FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
             audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams,
                     audioBitrate);
 

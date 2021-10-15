@@ -2,7 +2,7 @@ package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -23,8 +23,8 @@ public class FFmpegSubtitlesStreamConversionHelper {
         this.fFmpegDevice = fFmpegDevice;
     }
 
-    public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommandBuilder baseCommand,
-                                                     FFmpegCommandBuilder commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
+    public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommand baseCommand,
+                                                     FFmpegCommand commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
                                                      SmartTempFile result, Format targetFormat) throws InterruptedException {
         if (!isSubtitlesSupported(targetFormat)) {
             return;
@@ -113,19 +113,19 @@ public class FFmpegSubtitlesStreamConversionHelper {
         }
     }
 
-    private boolean isSubtitlesCopyable(FFmpegCommandBuilder baseCommandBuilder,
+    private boolean isSubtitlesCopyable(FFmpegCommand baseCommandBuilder,
                                         SmartTempFile out, Integer input, int index) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
+        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
         commandBuilder.mapSubtitles(input, index).copySubtitles();
         commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
     }
 
-    private boolean isSubtitlesConvertable(FFmpegCommandBuilder baseCommandBuilder,
+    private boolean isSubtitlesConvertable(FFmpegCommand baseCommandBuilder,
                                            SmartTempFile out, Integer input,
                                            int index, Format format) throws InterruptedException {
-        FFmpegCommandBuilder commandBuilder = new FFmpegCommandBuilder(baseCommandBuilder);
+        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
         commandBuilder.mapSubtitles(input, index);
         addSubtitlesCodec(commandBuilder, format);
         commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
@@ -137,23 +137,23 @@ public class FFmpegSubtitlesStreamConversionHelper {
         return Set.of(MP4, MOV, WEBM, MKV).contains(format);
     }
 
-    private static void addSubtitlesCodec(FFmpegCommandBuilder commandBuilder, int index, Format format) {
+    private static void addSubtitlesCodec(FFmpegCommand commandBuilder, int index, Format format) {
         if (format == MP4 || format == MOV) {
-            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.MOV_TEXT_CODEC, index);
+            commandBuilder.subtitlesCodec(FFmpegCommand.MOV_TEXT_CODEC, index);
         } else if (format == WEBM) {
-            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.WEBVTT_CODEC, index);
+            commandBuilder.subtitlesCodec(FFmpegCommand.WEBVTT_CODEC, index);
         } else if (format == MKV) {
-            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.SRT_CODEC, index);
+            commandBuilder.subtitlesCodec(FFmpegCommand.SRT_CODEC, index);
         }
     }
 
-    private static void addSubtitlesCodec(FFmpegCommandBuilder commandBuilder, Format format) {
+    private static void addSubtitlesCodec(FFmpegCommand commandBuilder, Format format) {
         if (format == MP4 || format == MOV) {
-            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.MOV_TEXT_CODEC);
+            commandBuilder.subtitlesCodec(FFmpegCommand.MOV_TEXT_CODEC);
         } else if (format == WEBM) {
-            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.WEBVTT_CODEC);
+            commandBuilder.subtitlesCodec(FFmpegCommand.WEBVTT_CODEC);
         } else if (format == MKV) {
-            commandBuilder.subtitlesCodec(FFmpegCommandBuilder.SRT_CODEC);
+            commandBuilder.subtitlesCodec(FFmpegCommand.SRT_CODEC);
         }
     }
 }

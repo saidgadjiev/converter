@@ -1,6 +1,6 @@
 package ru.gadjini.telegram.converter.service.stream;
 
-import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilder;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -16,7 +16,7 @@ public class TelegramVideoStreamProcessor extends BaseStreamProcessor {
                 if (stream.getCodecName().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {
                     stream.setTargetCodecType(FFmpegAudioStreamInVideoFileConversionHelper.TELEGRAM_VIDEO_AUDIO_CODEC);
                 } else if (stream.getCodecName().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)) {
-                    stream.setTargetCodecType(FFmpegCommandBuilder.H264_CODEC);
+                    stream.setTargetCodecType(FFmpegCommand.H264_CODEC);
                 }
             }
         }
