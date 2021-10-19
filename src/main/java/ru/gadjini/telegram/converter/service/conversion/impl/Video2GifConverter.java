@@ -86,7 +86,7 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
             commandBuilder.vf("fps=5,scale=-2:" + gifHeight + ":flags=lanczos");
             commandBuilder.out(result.getAbsolutePath());
 
-            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callbackHandlerFactory.createCallback(fileQueueItem,
+            fFmpegDevice.execute(commandBuilder.toCmd(), callbackHandlerFactory.createCallback(fileQueueItem,
                     whd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId())));
 
             return result;

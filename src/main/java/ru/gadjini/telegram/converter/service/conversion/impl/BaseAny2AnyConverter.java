@@ -150,7 +150,7 @@ public abstract class BaseAny2AnyConverter implements Any2AnyConverter {
         return conversionQueueItem.getFiles().size();
     }
 
-    protected final SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
+    public static SmartTempFile downloadThumb(ConversionQueueItem fileQueueItem) {
         if (StringUtils.isNotBlank(fileQueueItem.getFirstFile().getThumb())) {
             SmartTempFile thumb = fileQueueItem.getDownloadedFileOrNull(fileQueueItem.getFirstFile().getThumb());
 

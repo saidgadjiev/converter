@@ -98,7 +98,7 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
                     .mapVideo(fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams)).vframes("1").qv("2")
                     .out(result.getAbsolutePath());
 
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            fFmpegDevice.execute(commandBuilder.toCmd());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
             String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VSCREENSHOT_RESULT,

@@ -27,7 +27,7 @@ public class EditVideoAudioChannelLayoutState extends BaseEditVideoState {
 
     public static final String MONO = "mono";
 
-    private static final String STEREO = "stereo";
+    public static final String STEREO = "stereo";
 
     public static final List<String> AVAILABLE_AUDIO_MONO_STEREO = List.of(AUTO, MONO, STEREO);
 

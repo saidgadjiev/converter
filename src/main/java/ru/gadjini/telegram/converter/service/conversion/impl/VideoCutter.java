@@ -186,7 +186,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
                 duration,
                 userService.getLocaleOrDefault(fileQueueItem.getUserId())
         ) : null;
-        fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
+        fFmpegDevice.execute(commandBuilder.toCmd(), callback);
     }
 
     private void validateRange(Integer replyMessageId, Period start, Period end, Long totalLength, Locale locale) {

@@ -71,7 +71,7 @@ public class VideoMerger extends BaseAny2AnyConverter {
                 }
                 commandBuilder.out(result.getAbsolutePath());
 
-                fFmpegDevice.execute(commandBuilder.buildFullCommand());
+                fFmpegDevice.execute(commandBuilder.toCmd());
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 

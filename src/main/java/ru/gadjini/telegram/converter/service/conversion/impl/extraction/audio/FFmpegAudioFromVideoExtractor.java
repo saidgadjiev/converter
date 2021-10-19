@@ -85,10 +85,9 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
                 audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream),
                         fileQueueItem.getTargetFormat(), result);
             }
-            audioConversionHelper.addAudioTargetOptions(commandBuilder, fileQueueItem.getTargetFormat());
             audioConversionHelper.addChannelMapFilter(commandBuilder, result);
             commandBuilder.out(result.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            fFmpegDevice.execute(commandBuilder.toCmd());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
                     String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());

@@ -140,8 +140,8 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, result, videoStreamsForConversion,
                         targetFormat, conversionQueueItem.getSize());
             } else {
-                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, videoStreamsForConversion, targetFormat,
-                        result);
+                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, , videoStreamsForConversion
+                );
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
             FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
@@ -200,7 +200,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(conversionQueueItem, durationInSeconds,
                     userService.getLocaleOrDefault(conversionQueueItem.getUserId()));
-            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
+            fFmpegDevice.execute(commandBuilder.toCmd(), callback);
 
             String fileName = Any2AnyFileNameUtils.getFileName(videoFile.getFileName(),
                     targetFormat.getExt());

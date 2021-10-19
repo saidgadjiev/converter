@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.service.conversion.impl.videoeditor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.*;
@@ -10,24 +9,21 @@ import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
-import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.EmptyConversionResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
-import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.StandardVideoEditorState;
-import ru.gadjini.telegram.converter.service.conversion.impl.videoeditor.state.VideoEditorState;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
+import ru.gadjini.telegram.converter.service.conversion.result.VideoResultBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
-import ru.gadjini.telegram.converter.service.stream.StreamProcessor;
-import ru.gadjini.telegram.converter.service.stream.StreamProcessorFactory;
-import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
@@ -57,8 +53,6 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper;
-
     private UserService userService;
 
     private FFprobeDevice fFprobeDevice;
@@ -69,42 +63,56 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
 
-    private CaptionGenerator captionGenerator;
-
-    private StandardVideoEditorState standardVideoEditorState;
-
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
     private Set<EditVideoSettingsState> editVideoSettingsStateSet;
 
     private CommandStateService commandStateService;
 
-    private StreamProcessor streamProcessor;
+    private FFmpegConversionContextPreparerChain streamProcessor;
+
+    private FFmpegCommandBuilderChain commandBuilderChain;
+
+    private VideoResultBuilder videoResultBuilder;
 
     @Autowired
     public VideoEditor(ConversionMessageBuilder messageBuilder,
-                       FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
                        UserService userService, FFprobeDevice fFprobeDevice,
                        FFmpegDevice fFmpegDevice, Jackson jackson,
                        FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
-                       CaptionGenerator captionGenerator, StandardVideoEditorState standardVideoEditorState,
                        FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
-                       CommandStateService commandStateService, StreamProcessorFactory streamProcessorFactory) {
+                       CommandStateService commandStateService,
+                       FFmpegConversionContextPreparerChainFactory streamProcessorFactory,
+                       FFmpegCommandBuilderFactory commandBuilderChainFactory,
+                       VideoResultBuilder videoResultBuilder) {
         super(MAP);
         this.messageBuilder = messageBuilder;
-        this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
         this.jackson = jackson;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
-        this.captionGenerator = captionGenerator;
-        this.standardVideoEditorState = standardVideoEditorState;
         this.callbackHandlerFactory = callbackHandlerFactory;
         this.commandStateService = commandStateService;
-        this.streamProcessor = streamProcessorFactory.telegramVideoProcessor();
+        this.videoResultBuilder = videoResultBuilder;
 
-        streamProcessor.setNext(streamProcessorFactory.videoEditorProcessor());
+        this.commandBuilderChain = commandBuilderChainFactory.input();
+        commandBuilderChain.setNext(commandBuilderChainFactory.telegramVideoConversion())
+                .setNext(commandBuilderChainFactory.videoConversion())
+                .setNext(commandBuilderChainFactory.audioInVideoConversion())
+                .setNext(commandBuilderChainFactory.subtitlesConversion())
+                .setNext(commandBuilderChainFactory.videoEditor())
+                .setNext(commandBuilderChainFactory.webmQuality())
+                .setNext(commandBuilderChainFactory.fastVideoConversion())
+                .setNext(commandBuilderChainFactory.enableExperimentalFeatures())
+                .setNext(commandBuilderChainFactory.synchronizeVideoTimestamp())
+                .setNext(commandBuilderChainFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderChainFactory.output());
+
+        this.streamProcessor = streamProcessorFactory.telegramVideoContextPreparer();
+        streamProcessor.setNext(streamProcessorFactory.videoEditorContextPreparer())
+                .setNext(streamProcessorFactory.streamScaleContextPreparer())
+                .setNext(streamProcessorFactory.telegramVoiceContextPreparer());
     }
 
     @Autowired
@@ -175,65 +183,29 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
-
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+
+            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                    .outputFormat(fileQueueItem.getFirstFileFormat())
+                    .streams(allStreams);
+            streamProcessor.prepare(conversionContext);
+
+            FFmpegCommand command = new FFmpegCommand();
+            commandBuilderChain.prepareCommand(command, conversionContext);
+
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory
+                    .createCallback(fileQueueItem, srcWhd.getDuration(),
+                            userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+            fFmpegDevice.execute(command.toCmd(), callback);
 
-            FFmpegCommand commandBuilder = new FFmpegCommand();
-            commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
-
-            streamProcessor.process(fileQueueItem.getFirstFileFormat(), allStreams, settingsState);
-
-            videoStreamConversionHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams,
-                    fileQueueItem.getFirstFileFormat(), result);
-
-            videoStreamConversionHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-
-            FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
-            audioStreamInVideoFileConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, allStreams,
-                    audioBitrate);
-
-            subtitlesStreamConversionHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder,
-                    allStreams, result, fileQueueItem.getFirstFileFormat());
-
-            commandBuilder.fastConversion();
-
-            if (fileQueueItem.getFirstFileFormat() == WEBM) {
-                commandBuilder.vp8QMinQMax();
-            }
-
-            String monoStereo = EditVideoAudioChannelLayoutState.AUTO.equalsIgnoreCase(settingsState.getAudioChannelLayout())
-                    ? null
-                    : EditVideoAudioChannelLayoutState.MONO.equalsIgnoreCase(settingsState.getAudioChannelLayout())
-                    ? "1"
-                    : "2";
-
-            if (StringUtils.isNotBlank(monoStereo) && !commandBuilder.hasAc()) {
-                commandBuilder.ac(monoStereo);
-            }
-
-            audioStreamInVideoFileConversionHelper.addChannelMapFilter(commandBuilder, result);
-            commandBuilder.defaultOptions().out(result.getAbsolutePath());
-            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
-                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
-
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-
-            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(),
+                    videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             String resolutionChangedInfo = messageBuilder.getVideoEditedInfoMessage(fileQueueItem.getSize(),
                     result.length(), srcWhd.getHeight(),
                     targetWhd.getHeight(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-
-            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), resolutionChangedInfo);
-            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem),
-                        targetWhd.getWidth(), targetWhd.getHeight(),
-                        targetWhd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
-            } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
-            }
+            return videoResultBuilder.build(fileQueueItem, fileQueueItem.getFirstFileFormat(), resolutionChangedInfo, result);
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;

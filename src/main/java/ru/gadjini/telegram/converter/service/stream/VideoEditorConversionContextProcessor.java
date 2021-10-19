@@ -1,4 +1,4 @@
-package ru.gadjini.telegram.converter.service.conversion.impl.videoeditor;
+package ru.gadjini.telegram.converter.service.stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -7,17 +7,13 @@ import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudio
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
-import ru.gadjini.telegram.converter.service.stream.BaseStreamProcessor;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.List;
-
-public class VideoEditorStreamProcessor extends BaseStreamProcessor {
+public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionContextPreparerChain {
 
     @Override
-    public void process(Format format, List<FFprobeDevice.FFProbeStream> allStreams, Object... args) {
+    public void prepare(FFmpegConversionContext conversionContext) {
         SettingsState settingsState = (SettingsState) args[0];
-        for (FFprobeDevice.FFProbeStream stream : allStreams) {
+        for (FFprobeDevice.FFProbeStream stream : conversionContext.streams()) {
             if (stream.getCodecName().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)) {
                 stream.setTargetBitrate(settingsState.getVideoBitrate());
 
@@ -34,13 +30,13 @@ public class VideoEditorStreamProcessor extends BaseStreamProcessor {
                 }
                 if (StringUtils.isBlank(settingsState.getAudioCodec())
                         || EditVideoAudioCodecState.AUTO.equals(settingsState.getAudioCodec())) {
-                    stream.setTargetCodecType(stream.getCodecType());
+                    stream.setTargetCodecName(stream.getCodecType());
                 } else {
-                    stream.setTargetCodecType(settingsState.getAudioCodec());
+                    stream.setTargetCodecName(settingsState.getAudioCodec());
                 }
             }
         }
 
-        super.process(format, allStreams, args);
+        super.prepare(conversionContext);
     }
 }

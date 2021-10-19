@@ -1,5 +1,7 @@
 package ru.gadjini.telegram.converter.service.command;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -76,9 +78,6 @@ public class FFmpegCommand {
 
     private List<String> options = new ArrayList<>();
 
-    private static final List<String> DEFAULT_OPTIONS = List.of("-strict", "-2",
-            "-vsync", "2", "-max_muxing_queue_size", "9999", "-pix_fmt", YUV_420_P);
-
     private List<String> complexFilters = new ArrayList<>();
 
     private boolean useFilterComplex;
@@ -99,6 +98,36 @@ public class FFmpegCommand {
     public boolean useFilterComplex() {
         return useFilterComplex;
     }
+
+    public FFmpegCommand maxMuxingQueueSize(String size) {
+        options.add("-max_muxing_queue_size");
+        options.add(size);
+
+        return this;
+    }
+
+    public FFmpegCommand vsync(String vsync) {
+        options.add("-vsync");
+        options.add(vsync);
+
+        return this;
+    }
+
+    public FFmpegCommand strict(String strict) {
+        options.add("-strict");
+        options.add(strict);
+
+        return this;
+    }
+
+    public FFmpegCommand pixFmt(String pixFmt) {
+        options.add("-pix_fmt");
+        options.add(pixFmt);
+
+        return this;
+    }
+
+
 
     public FFmpegCommand safe(String s) {
         options.add("-safe");
@@ -435,6 +464,9 @@ public class FFmpegCommand {
     }
 
     public FFmpegCommand filterVideo(int index, String filter) {
+        if (StringUtils.isBlank(filter)) {
+            return this;
+        }
         options.add("-filter:v:" + index);
         options.add(filter);
 
@@ -637,44 +669,13 @@ public class FFmpegCommand {
         return this;
     }
 
-    public FFmpegCommand vp8QMinQMax() {
-        qmin("0").qmax("40");
-
-        return this;
-    }
-
-    public FFmpegCommand fastConversion() {
-        preset(FFmpegCommand.PRESET_VERY_FAST);
-
-        speed("16");
-
-        return this;
-    }
-
-    public FFmpegCommand deadline(String deadline) {
-        options.add("-deadline");
-        options.add(deadline);
-
-        return this;
-    }
-
-    public FFmpegCommand defaultOptions() {
-        options.addAll(DEFAULT_OPTIONS);
-
-        return this;
-    }
-
     public FFmpegCommand complexFilters() {
         options.addAll(getComplexFilterOptions());
 
         return this;
     }
 
-    public String[] build() {
-        return options.toArray(new String[0]);
-    }
-
-    public String[] buildFullCommand() {
+    public String[] toCmd() {
         List<String> command = new ArrayList<>();
         command.add("ffmpeg");
         command.addAll(options);

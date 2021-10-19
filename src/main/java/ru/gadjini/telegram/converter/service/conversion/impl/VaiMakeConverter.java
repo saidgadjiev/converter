@@ -5,18 +5,22 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
+import ru.gadjini.telegram.converter.service.conversion.result.VideoResultBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
-import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,26 +39,48 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
             List.of(Format.IMAGEAUDIO), List.of(Format.VMAKE)
     );
 
+    private final FFmpegCommandBuilderChain commandBuilderChain;
+
+    private final FFmpegConversionContextPreparerChain contextPreparer;
+
     private FFmpegDevice fFmpegDevice;
 
     private FFprobeDevice fFprobeDevice;
-
-    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
 
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
     private UserService userService;
 
+    private VideoResultBuilder videoResultBuilder;
+
     @Autowired
     public VaiMakeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                            FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
-                            FFmpegProgressCallbackHandlerFactory callbackHandlerFactory, UserService userService) {
+                            FFmpegProgressCallbackHandlerFactory callbackHandlerFactory, UserService userService,
+                            FFmpegCommandBuilderFactory commandBuilderFactory,
+                            FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory,
+                            VideoResultBuilder videoResultBuilder) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
-        this.videoAudioConversionHelper = videoAudioConversionHelper;
         this.callbackHandlerFactory = callbackHandlerFactory;
         this.userService = userService;
+
+        this.contextPreparer = contextPreparerChainFactory.telegramVideoContextPreparer();
+        this.videoResultBuilder = videoResultBuilder;
+        contextPreparer.setNext(contextPreparerChainFactory.streamScaleContextPreparer());
+
+        this.commandBuilderChain = commandBuilderFactory.singleLoop();
+        commandBuilderChain.setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.singleFramerate())
+                .setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.vaiMake())
+                .setNext(commandBuilderFactory.videoConversion())
+                .setNext(commandBuilderFactory.audioInVideoConversion())
+                .setNext(commandBuilderFactory.fastVideoConversion())
+                .setNext(commandBuilderFactory.enableExperimentalFeatures())
+                .setNext(commandBuilderFactory.synchronizeVideoTimestamp())
+                .setNext(commandBuilderFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderFactory.output());
     }
 
     @Override
@@ -76,26 +102,27 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                 conversionQueueItem.getFirstFileId(), TAG, OUTPUT_FORMAT.getExt());
 
         try {
-            long durationInSeconds = fFprobeDevice.getDurationInSeconds(downloadedAudio.getAbsolutePath());
-            FFmpegCommand commandBuilder = new FFmpegCommand()
-                    .loop(1).hideBanner().quite().framerate("1").input(downloadedImage.getAbsolutePath())
-                    .input(downloadedAudio.getAbsolutePath()).videoCodec(FFmpegCommand.H264_CODEC)
-                    .filterVideo(FFmpegCommand.EVEN_SCALE)
-                    .tune(FFmpegCommand.TUNE_STILLIMAGE).t(durationInSeconds);
-
             List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
-            videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreams, false);
-            commandBuilder.defaultOptions().out(result.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> streams = new ArrayList<>();
+            streams.addAll(audioStreams);
+            streams.addAll(fFprobeDevice.getAllStreams(downloadedImage.getAbsolutePath()));
+            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                    .streams(streams)
+                    .input(downloadedImage)
+                    .input(downloadedAudio)
+                    .output(result)
+                    .outputFormat(OUTPUT_FORMAT);
+            contextPreparer.prepare(conversionContext);
 
-            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(conversionQueueItem, durationInSeconds,
-                    userService.getLocaleOrDefault(conversionQueueItem.getUserId()));
-            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
+            FFmpegCommand command = new FFmpegCommand();
+            commandBuilderChain.prepareCommand(command, conversionContext);
 
-            String fileName = Any2AnyFileNameUtils.getFileName(conversionQueueItem.getFiles().get(AUDIO_FILE_INDEX).getFileName(),
-                    OUTPUT_FORMAT.getExt());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
-            return new VideoResult(fileName, result, OUTPUT_FORMAT, downloadThumb(conversionQueueItem),
-                    whd.getWidth(), whd.getHeight(), whd.getDuration(), OUTPUT_FORMAT.supportsStreaming());
+            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory
+                    .createCallback(conversionQueueItem, audioStreams.iterator().next().getDuration(),
+                            userService.getLocaleOrDefault(conversionQueueItem.getUserId()));
+            fFmpegDevice.execute(command.toCmd(), callback);
+
+            return videoResultBuilder.build(conversionQueueItem, OUTPUT_FORMAT, result);
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

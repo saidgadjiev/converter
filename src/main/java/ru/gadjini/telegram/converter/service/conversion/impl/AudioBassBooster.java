@@ -6,11 +6,14 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
-import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
@@ -30,6 +33,10 @@ public class AudioBassBooster extends BaseAudioConverter {
             List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, RA, RM, M4A, M4B), List.of(BASS_BOOST)
     );
 
+    private final FFmpegCommandBuilderChain commandBuilderChain;
+
+    private final FFmpegConversionContextPreparerChain contextPreparerChain;
+
     private Jackson json;
 
     private FFmpegDevice fFmpegDevice;
@@ -38,26 +45,33 @@ public class AudioBassBooster extends BaseAudioConverter {
 
     private UserService userService;
 
-    private FFmpegAudioStreamConversionHelper fFmpegAudioHelper;
-
     private LocalisationService localisationService;
 
     @Autowired
     public AudioBassBooster(Jackson jackson, FFmpegDevice fFmpegDevice,
                             FFprobeDevice fFprobeDevice, UserService userService,
-                            FFmpegAudioStreamConversionHelper fFmpegAudioHelper,
-                            LocalisationService localisationService) {
+                            LocalisationService localisationService,
+                            FFmpegCommandBuilderFactory commandBuilderFactory,
+                            FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory) {
         super(MAP);
         this.json = jackson;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.userService = userService;
-        this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.localisationService = localisationService;
+
+        this.contextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
+
+        this.commandBuilderChain = commandBuilderFactory.hideBannerQuite();
+        this.commandBuilderChain.setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.audioCover())
+                .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.audioBassBoost())
+                .setNext(commandBuilderFactory.output());
     }
 
     @Override
-    protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
+    protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) throws InterruptedException {
         SettingsState settingsState = json.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
         String bassBoost = settingsState.getBassBoost();
 
@@ -67,24 +81,17 @@ public class AudioBassBooster extends BaseAudioConverter {
             ));
         }
 
-        FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(in.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                .streams(audioStreams)
+                .input(in)
+                .output(out)
+                .putExtra(FFmpegConversionContext.BASS_BOOST, bassBoost);
+        contextPreparerChain.prepare(conversionContext);
 
-        try {
-            fFmpegAudioHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-            if (conversionQueueItem.getFirstFileFormat().canBeSentAsVoice()) {
-                fFmpegAudioHelper.convertAudioCodecsForTelegramVoice(commandBuilder);
-            } else {
-                fFmpegAudioHelper.convertAudioCodecs(commandBuilder, conversionQueueItem.getFirstFileFormat());
-            }
-            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
-            commandBuilder.keepAudioBitRate(audioStreams.iterator().next().getBitRate());
-            fFmpegAudioHelper.addAudioTargetOptions(commandBuilder, conversionQueueItem.getFirstFileFormat(), false);
-            commandBuilder.af("bass=g=" + bassBoost);
+        FFmpegCommand command = new FFmpegCommand();
+        commandBuilderChain.prepareCommand(command, conversionContext);
 
-            commandBuilder.out(out.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
-        } catch (InterruptedException e) {
-            throw new ConvertException(e);
-        }
+        fFmpegDevice.execute(command.toCmd());
     }
 }

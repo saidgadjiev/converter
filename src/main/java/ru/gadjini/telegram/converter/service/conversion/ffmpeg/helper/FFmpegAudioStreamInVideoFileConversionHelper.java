@@ -6,16 +6,12 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
 @SuppressWarnings("CPD-START")
@@ -38,49 +34,37 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
         return audioStreams.stream().allMatch(a -> TELEGRAM_VIDEO_AUDIO_CODEC.equals(a.getCodecName()));
     }
 
-    public void copyOrConvertToTargetAudioCodecs(FFmpegCommand commandBuilder, List<FFprobeDevice.FFProbeStream> allStreams,
-                                                 boolean appendMapAudio) {
-        if (allStreams.stream().anyMatch(stream -> FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE.equals(stream.getCodecType()))) {
-            List<FFprobeDevice.FFProbeStream> audioStreams = allStreams.stream()
-                    .filter(s -> FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE.equals(s.getCodecType()))
-                    .collect(Collectors.toList());
+    public void copyOrConvertAudioCodecs(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
+        List<FFprobeDevice.FFProbeStream> audioStreams = conversionContext.audioStreams();
+        if (audioStreams.size() > 0) {
             List<Integer> inputs = audioStreams.stream().map(FFprobeDevice.FFProbeStream::getInput).distinct().collect(Collectors.toList());
-            int audioStreamIndex = 0;
-            Map<Integer, Boolean> audioIndexes = new LinkedHashMap<>();
 
+            int audioStreamIndex = 0;
             for (Integer input : inputs) {
-                if (appendMapAudio) {
-                    commandBuilder.mapAudioInput(input);
-                }
+                command.mapAudioInput(input);
+
                 List<FFprobeDevice.FFProbeStream> byInput = audioStreams.stream()
                         .filter(s -> input.equals(s.getInput()))
                         .collect(Collectors.toList());
 
+                FFmpegCommand baseCommand = new FFmpegCommand(command);
                 for (FFprobeDevice.FFProbeStream audioStream : byInput) {
-                    if (isAudioStreamEquals(audioStream, targetAudioCodecName, targetAudioBitrate)) {
-                        audioIndexes.put(audioStreamIndex, true);
+                    boolean copied = false;
+                    if (StringUtils.isNotBlank(audioStream.getTargetCodecName())
+                            && !Objects.equals(audioStream.getTargetCodecName(), audioStream.getCodecName())) {
+                        command.audioCodec(audioStreamIndex, audioStream.getTargetCodecName());
                     } else {
-                        audioIndexes.put(audioStreamIndex, false);
+                        if (isCopyableAudioCodecs(baseCommand, conversionContext.output(), input, audioStreamIndex)) {
+                            command.copyAudio(audioStreamIndex);
+                            copied = true;
+                        }
+                    }
+
+                    if (!copied) {
+                        command.keepVideoBitRate(audioStream.getBitRate(), audioStreamIndex);
                     }
                     ++audioStreamIndex;
                 }
-            }
-
-            if (audioIndexes.values().stream().allMatch(s -> s)) {
-                commandBuilder.copyAudio();
-            } else if (audioIndexes.values().stream().noneMatch(s -> s) && StringUtils.isNotBlank(targetAudioCodec)) {
-                commandBuilder.audioCodec(targetAudioCodec);
-            } else {
-                audioIndexes.forEach((streamIndex, aBoolean) -> {
-                    if (aBoolean) {
-                        commandBuilder.copyAudio(streamIndex);
-                    } else if (StringUtils.isNotBlank(targetAudioCodec)) {
-                        commandBuilder.audioCodec(streamIndex, targetAudioCodec);
-                    }
-                });
-            }
-            if (targetAudioBitrate != null) {
-                commandBuilder.audioBitrate(targetAudioBitrate);
             }
         }
     }
@@ -89,49 +73,8 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
         FFmpegCommand command = new FFmpegCommand(commandBuilder);
         command.out(out.getAbsolutePath());
 
-        if (fFmpegDevice.isChannelMapError(command.buildFullCommand())) {
+        if (fFmpegDevice.isChannelMapError(command.toCmd())) {
             commandBuilder.filterAudio("channelmap=channel_layout=5.1");
-        }
-    }
-
-    public void addAudioTargetOptions(FFmpegCommand commandBuilder, Format target) {
-        if (target.getAssociatedFormat() == AMR) {
-            commandBuilder.ar("8000").ac("1");
-        } else if (target.getAssociatedFormat().canBeSentAsVoice()) {
-            commandBuilder.ar("48000");
-        }
-    }
-
-    private void addAudioCodecOptions(FFmpegCommand commandBuilder, int streamIndex, Format target) {
-        if (target.getAssociatedFormat().canBeSentAsVoice()) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommand.LIBOPUS);
-        }
-    }
-
-    private boolean isCopyableAudioCodecs(FFmpegCommand baseCommand, SmartTempFile out,
-                                          Format targetFormat, Integer input, int streamMapIndex) throws InterruptedException {
-        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
-
-        commandBuilder.mapAudio(input, streamMapIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
-        addAudioTargetOptions(commandBuilder, targetFormat);
-        commandBuilder.out(out.getAbsolutePath());
-
-        return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
-    }
-
-    private void addAudioCodecByTargetFormat(FFmpegCommand commandBuilder, Format target) {
-        if (target == MTS) {
-            commandBuilder.audioCodec(FFmpegCommand.AC3_CODEC);
-        } else if (target == WEBM) {
-            commandBuilder.audioCodec(FFmpegCommand.LIBVORBIS);
-        }
-    }
-
-    private void addAudioCodecByTargetFormat(FFmpegCommand commandBuilder, Format target, int streamIndex) {
-        if (target == MTS) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommand.AC3_CODEC);
-        } else if (target == WEBM) {
-            commandBuilder.audioCodec(streamIndex, FFmpegCommand.LIBVORBIS);
         }
     }
 
@@ -141,18 +84,6 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
         commandBuilder.mapAudio(input, streamIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
         commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
 
-        return fFmpegDevice.isExecutable(commandBuilder.buildFullCommand());
-    }
-
-    private boolean isAudioStreamEquals(FFprobeDevice.FFProbeStream stream, String audioCodecName, Long audioBitrate) {
-        if (StringUtils.isNotBlank(audioCodecName) && !Objects.equals(audioCodecName, stream.getCodecName())) {
-            return false;
-        }
-
-        if (audioBitrate != null && !Objects.equals(audioBitrate, stream.getBitRate())) {
-            return false;
-        }
-
-        return true;
+        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
     }
 }

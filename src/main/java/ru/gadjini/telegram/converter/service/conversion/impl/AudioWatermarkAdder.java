@@ -91,8 +91,8 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
             files = makeChannelsAndSampleRatesTheSame(files, finallyGarbageFileCollection);
             SmartTempFile mixResult = mixWithSox(bitrate, files, finallyGarbageFileCollection);
 
-            audioFormatsConverter.doConvertAudioWithCopy(mixResult, out,
-                    fileQueueItem.getFirstFileFormat(), bitrate);
+            audioFormatsConverter.doConvert(mixResult, out,
+                    fileQueueItem.getFirstFileFormat());
         } finally {
             finallyGarbageFileCollection.delete();
         }
@@ -166,7 +166,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
     private SmartTempFile convertToMp3(SmartTempFile in) {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.TEMP, TAG, MP3.getExt());
         try {
-            audioFormatsConverter.doConvertAudio(in, result, MP3);
+            audioFormatsConverter.doConvert(in, result, MP3);
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
@@ -223,7 +223,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         commandBuilder.keepAudioBitRate(bitrate);
         commandBuilder.out(result.getAbsolutePath());
 
-        fFmpegDevice.execute(commandBuilder.buildFullCommand());
+        fFmpegDevice.execute(commandBuilder.toCmd());
 
         return result;
     }
@@ -241,7 +241,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
             String filePath = Any2AnyFileNameUtils.getFileName(tempDir.getAbsolutePath(), "%01d", queueItem.getFirstFileFormat().getExt());
             commandBuilder.out(filePath);
 
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            fFmpegDevice.execute(commandBuilder.toCmd());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }

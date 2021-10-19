@@ -7,9 +7,13 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
@@ -36,25 +40,37 @@ public class AudioCutter extends BaseAudioConverter {
 
     private FFprobeDevice fFprobeDevice;
 
-    private FFmpegAudioStreamConversionHelper audioHelper;
-
     private UserService userService;
 
     private LocalisationService localisationService;
 
     private Jackson jackson;
 
+    private FFmpegCommandBuilderChain commandBuilderChain;
+
+    private FFmpegConversionContextPreparerChain contextPreparerChain;
+
     @Autowired
-    public AudioCutter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                       FFmpegAudioStreamConversionHelper audioHelper, UserService userService,
-                       LocalisationService localisationService, Jackson jackson) {
+    public AudioCutter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, UserService userService,
+                       LocalisationService localisationService, Jackson jackson,
+                       FFmpegCommandBuilderFactory commandBuilderFactory,
+                       FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
-        this.audioHelper = audioHelper;
         this.userService = userService;
         this.localisationService = localisationService;
         this.jackson = jackson;
+
+        this.contextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
+
+        this.commandBuilderChain = commandBuilderFactory.hideBannerQuite();
+        this.commandBuilderChain.setNext(commandBuilderFactory.cutStartPoint())
+                .setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.cutEndPoint())
+                .setNext(commandBuilderFactory.audioCover())
+                .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.output());
     }
 
     @Override
@@ -64,22 +80,21 @@ public class AudioCutter extends BaseAudioConverter {
         SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
         validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(),
                 durationInSeconds, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-        String startPoint = PERIOD_FORMATTER.print(settingsState.getCutStartPoint());
-        String duration = String.valueOf(settingsState.getCutEndPoint().minus(settingsState.getCutStartPoint()).toStandardDuration().getStandardSeconds());
 
-        FFmpegCommand commandBuilder = new FFmpegCommand();
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                .input(file)
+                .output(result)
+                .streams(allStreams)
+                .outputFormat(fileQueueItem.getFirstFileFormat())
+                .putExtra(FFmpegConversionContext.CUT_START_POINT, settingsState.getCutStartPoint())
+                .putExtra(FFmpegConversionContext.CUT_END_POINT, settingsState.getCutEndPoint());
+        contextPreparerChain.prepare(conversionContext);
 
-        commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
-        audioHelper.addCopyableCoverArtOptions(file, result, commandBuilder);
-        if (fileQueueItem.getFirstFileFormat().canBeSentAsVoice()) {
-            audioHelper.convertAudioCodecsForTelegramVoice(commandBuilder);
-        } else {
-            audioHelper.convertAudioCodecs(commandBuilder, fileQueueItem.getFirstFileFormat());
-        }
-        audioHelper.addAudioTargetOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-        commandBuilder.out(result.getAbsolutePath());
+        FFmpegCommand command = new FFmpegCommand();
+        commandBuilderChain.prepareCommand(command, conversionContext);
 
-        fFmpegDevice.execute(commandBuilder.buildFullCommand());
+        fFmpegDevice.execute(command.toCmd());
     }
 
     private void validateRange(Integer replyMessageId, Period start, Period end, Long totalLength, Locale locale) {

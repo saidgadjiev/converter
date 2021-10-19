@@ -98,7 +98,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             }
 
             commandBuilder.out(out.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.buildFullCommand());
+            fFmpegDevice.execute(commandBuilder.toCmd());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }

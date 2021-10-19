@@ -85,7 +85,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
                 fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, result, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
             } else {
-                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
+                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, , allStreams);
             }
             fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
             FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
@@ -101,7 +101,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
             FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, whd.getDuration(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
+            fFmpegDevice.execute(commandBuilder.toCmd(), callback);
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 

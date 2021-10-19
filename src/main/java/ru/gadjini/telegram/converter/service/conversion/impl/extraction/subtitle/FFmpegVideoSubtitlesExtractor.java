@@ -58,7 +58,7 @@ public class FFmpegVideoSubtitlesExtractor extends BaseFromVideoByLanguageExtrac
 
         try {
             FFmpegCommand commandBuilder = new FFmpegCommand().mapSubtitles(streamIndex);
-            fFmpegDevice.convert(file.getAbsolutePath(), result.getAbsolutePath(), commandBuilder.build());
+            fFmpegDevice.execute(commandBuilder.toCmd());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
                     String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());

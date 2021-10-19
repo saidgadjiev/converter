@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
@@ -19,6 +20,9 @@ import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressC
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -48,8 +52,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         put(filter(FormatCategory.VIDEO), List.of(COMPRESS));
     }};
 
-    private static final String SCALE = "scale=-2:ceil(ih/3)*2";
-
     public static final int DEFAULT_QUALITY = 70;
 
     private FFmpegDevice fFmpegDevice;
@@ -62,30 +64,37 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private FFmpegVideoCommandPreparer videoStreamsChangeHelper;
-
     private CaptionGenerator captionGenerator;
 
     private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
 
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
+    private FFmpegConversionContextPreparerChain conversionContextPreparer;
+
+    private FFmpegCommandBuilderFactory commandBuilderFactory;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
-                                  FFmpegVideoCommandPreparer videoStreamsChangeHelper,
                                   CaptionGenerator captionGenerator, FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
-                                  FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
+                                  FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
+                                  FFmpegConversionContextPreparerChainFactory contextPreparerFactory,
+                                  FFmpegCommandBuilderFactory commandBuilderFactory) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.messageBuilder = messageBuilder;
-        this.videoStreamsChangeHelper = videoStreamsChangeHelper;
         this.captionGenerator = captionGenerator;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
         this.callbackHandlerFactory = callbackHandlerFactory;
+        this.commandBuilderFactory = commandBuilderFactory;
+        this.conversionContextPreparer = contextPreparerFactory.telegramVideoContextPreparer();
+
+        conversionContextPreparer.setNext(contextPreparerFactory.streamScaleContextPreparer())
+                .setNext(contextPreparerFactory.telegramVoiceContextPreparer());
     }
 
     @Override
@@ -99,20 +108,26 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            FFmpegCommand commandBuilder = new FFmpegCommand();
-            commandBuilder.hideBanner().quite().input(file.getAbsolutePath());
-
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                    .streams(allStreams)
+                    .outputFormat(fileQueueItem.getFirstFileFormat());
+
+            conversionContextPreparer.prepare(conversionContext);
+
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
-            videoStreamsChangeHelper.prepareCommandForVideoScaling(commandBuilder, allStreams, result,
-                    fileQueueItem.getFirstFileFormat());
-
-            commandBuilder.defaultOptions().out(result.getAbsolutePath());
 
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, whd.getDuration(), locale);
-            fFmpegDevice.execute(commandBuilder.buildFullCommand(), callback);
+
+            FFmpegCommand command = commandBuilderFactory.newVideoCommandBuilder(conversionContext)
+                    .buildVideoCodecs()
+                    .buildAudioCodecs()
+                    .buildSubtitles()
+                    .buildOutput(result)
+                    .build();
+            fFmpegDevice.execute(command.toCmd(), callback);
 
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
                     fileQueueItem.getFirstFileFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), MemoryUtils.humanReadableByteCount(result.length()));

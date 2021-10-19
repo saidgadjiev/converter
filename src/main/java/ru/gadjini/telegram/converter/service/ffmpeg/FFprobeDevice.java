@@ -353,7 +353,7 @@ public class FFprobeDevice {
         private Integer targetBitrate;
 
         @JsonIgnore
-        private String targetCodecType;
+        private String targetCodecName;
 
         @JsonIgnore
         private String targetScale;
@@ -462,12 +462,12 @@ public class FFprobeDevice {
             return targetBitrate;
         }
 
-        public void setTargetCodecType(String targetCodecType) {
-            this.targetCodecType = targetCodecType;
+        public void setTargetCodecName(String targetCodecName) {
+            this.targetCodecName = targetCodecName;
         }
 
-        public String getTargetCodecType() {
-            return targetCodecType;
+        public String getTargetCodecName() {
+            return targetCodecName;
         }
 
         public String getTargetScale() {

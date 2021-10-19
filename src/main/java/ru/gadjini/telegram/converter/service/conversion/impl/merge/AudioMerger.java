@@ -80,7 +80,7 @@ public class AudioMerger extends BaseAny2AnyConverter {
                 audioHelper.addAudioTargetOptions(commandBuilder, targetFormat);
                 commandBuilder.out(result.getAbsolutePath());
 
-                fFmpegDevice.execute(commandBuilder.buildFullCommand());
+                fFmpegDevice.execute(commandBuilder.toCmd());
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
                 if (targetFormat.canBeSentAsAudio()) {
