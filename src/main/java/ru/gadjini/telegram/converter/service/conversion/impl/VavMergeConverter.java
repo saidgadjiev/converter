@@ -5,19 +5,18 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
-import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.result.VideoResultBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
-import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
@@ -30,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
 
 @Component
 public class VavMergeConverter extends BaseAny2AnyConverter {
@@ -56,35 +53,44 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
     private Jackson jackson;
 
-    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
-
-    private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
-
-    private FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper;
-
-    private CaptionGenerator captionGenerator;
-
     private UserService userService;
 
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
+    private FFmpegCommandBuilderChain commandBuilderChain;
+
+    private FFmpegConversionContextPreparerChain contextPreparerChain;
+
+    private VideoResultBuilder videoResultBuilder;
+
     @Autowired
     public VavMergeConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                             Jackson jackson, FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
-                             FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
-                             FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper,
-                             CaptionGenerator captionGenerator, UserService userService,
-                             FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
+                             Jackson jackson, UserService userService,
+                             FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
+                             FFmpegCommandBuilderFactory commandBuilderFactory,
+                             FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory,
+                             VideoResultBuilder videoResultBuilder) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.jackson = jackson;
-        this.videoAudioConversionHelper = videoAudioConversionHelper;
-        this.fFmpegVideoHelper = fFmpegVideoHelper;
-        this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
-        this.captionGenerator = captionGenerator;
         this.userService = userService;
         this.callbackHandlerFactory = callbackHandlerFactory;
+
+        this.commandBuilderChain = commandBuilderFactory.hideBannerQuite();
+        this.videoResultBuilder = videoResultBuilder;
+        commandBuilderChain.setNext(commandBuilderFactory.videoConversion())
+                .setNext(commandBuilderFactory.vavMerge())
+                .setNext(commandBuilderFactory.streamDuration())
+                .setNext(commandBuilderFactory.webmQuality())
+                .setNext(commandBuilderFactory.fastVideoConversion())
+                .setNext(commandBuilderFactory.enableExperimentalFeatures())
+                .setNext(commandBuilderFactory.synchronizeVideoTimestamp())
+                .setNext(commandBuilderFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderFactory.output());
+
+        this.contextPreparerChain = contextPreparerChainFactory.telegramVideoContextPreparer();
+        contextPreparerChain.setNext(contextPreparerChainFactory.subtitlesContextPreparer());
     }
 
     @Override
@@ -125,26 +131,8 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 conversionQueueItem.getFirstFileId(), TAG, targetFormat.getExt());
 
         try {
-            List<FFprobeDevice.FFProbeStream> videoStreamsForConversion = fFprobeDevice.getAllStreams(video.getAbsolutePath());
-            videoStreamsForConversion.forEach(s -> s.setInput(0));
-            FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(video.getAbsolutePath());
-
-            if (!audios.isEmpty()) {
-                audios.forEach(a -> commandBuilder.input(a.getAbsolutePath()));
-            }
-            if (!subtitles.isEmpty()) {
-                subtitles.forEach(s -> commandBuilder.input(s.getAbsolutePath()));
-            }
-
-            if (targetFormat.canBeSentAsVideo()) {
-                fFmpegVideoHelper.copyOrConvertVideoCodecsForTelegramVideo(commandBuilder, result, videoStreamsForConversion,
-                        targetFormat, conversionQueueItem.getSize());
-            } else {
-                fFmpegVideoHelper.copyOrConvertVideoCodecs(commandBuilder, , videoStreamsForConversion
-                );
-            }
-            fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, targetFormat);
-            FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
+            List<FFprobeDevice.FFProbeStream> streams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
+            streams.forEach(s -> s.setInput(0));
 
             SettingsState settingsState = jackson.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
             if (!audios.isEmpty()) {
@@ -158,21 +146,10 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                     }
                     audioStreamsForConversion.addAll(allStreams);
                 }
-                audioStreamsForConversion.addAll(ADD_AUDIO_MODE.equals(settingsState.getVavMergeAudioMode()) ? videoStreamsForConversion : List.of());
-                if (targetFormat.canBeSentAsVideo()) {
-                    videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, audioStreamsForConversion);
-                } else {
-                    videoAudioConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, audioStreamsForConversion, result, targetFormat);
+                if (REPLACE_AUDIO_MODE.equals(settingsState.getVavMergeAudioMode())) {
+                    streams.removeIf(f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE));
                 }
-                if (subtitles.isEmpty()) {
-                    fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
-                }
-            } else {
-                if (targetFormat.canBeSentAsVideo()) {
-                    videoAudioConversionHelper.copyOrConvertAudioCodecsForTelegramVideo(commandBuilder, videoStreamsForConversion);
-                } else {
-                    videoAudioConversionHelper.copyOrConvertAudioCodecs(baseCommand, commandBuilder, videoStreamsForConversion, result, targetFormat);
-                }
+                streams.addAll(audioStreamsForConversion);
             }
             if (!subtitles.isEmpty()) {
                 int subtitlesInput = audios.size() + 1;
@@ -186,33 +163,36 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                     subtitlesStreams.addAll(allStreams);
                     ++subtitlesInput;
                 }
-                subtitlesStreams.addAll(ADD_SUBTITLES_MODE.equals(settingsState.getVavMergeSubtitlesMode()) ? videoStreamsForConversion : List.of());
-                fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, subtitlesStreams, result, targetFormat);
+                if (REPLACE_SUBTITLES_MODE.equals(settingsState.getVavMergeSubtitlesMode())) {
+                    streams.removeIf(f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.SUBTITLE_CODEC_TYPE));
+                }
+                streams.addAll(subtitlesStreams);
             }
-            if (WEBM.equals(targetFormat)) {
-                commandBuilder.vp8QMinQMax();
-            }
-            commandBuilder.fastConversion();
 
             long durationInSeconds = fFprobeDevice.getDurationInSeconds(video.getAbsolutePath());
-            commandBuilder.t(durationInSeconds);
-            commandBuilder.defaultOptions().out(result.getAbsolutePath());
+            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                    .streams(streams)
+                    .input(video)
+                    .output(result)
+                    .putExtra(FFmpegConversionContext.AUDIO_STREAMS_COUNT, audios.size())
+                    .putExtra(FFmpegConversionContext.SUBTITLE_STREAMS_COUNT, subtitles.size())
+                    .putExtra(FFmpegConversionContext.STREAM_DURATION, durationInSeconds);
+            if (!audios.isEmpty()) {
+                audios.forEach(conversionContext::input);
+            }
+            if (!subtitles.isEmpty()) {
+                subtitles.forEach(conversionContext::input);
+            }
+            contextPreparerChain.prepare(conversionContext);
+
+            FFmpegCommand command = new FFmpegCommand();
+            commandBuilderChain.prepareCommand(command, conversionContext);
 
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(conversionQueueItem, durationInSeconds,
                     userService.getLocaleOrDefault(conversionQueueItem.getUserId()));
-            fFmpegDevice.execute(commandBuilder.toCmd(), callback);
+            fFmpegDevice.execute(command.toCmd(), callback);
 
-            String fileName = Any2AnyFileNameUtils.getFileName(videoFile.getFileName(),
-                    targetFormat.getExt());
-            String caption = captionGenerator.generate(conversionQueueItem.getUserId(), videoFile.getSource());
-            if (targetFormat.canBeSentAsVideo()) {
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
-
-                return new VideoResult(fileName, result, targetFormat, downloadThumb(conversionQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), targetFormat.supportsStreaming(), caption);
-            } else {
-                return new FileResult(fileName, result, downloadThumb(conversionQueueItem), caption);
-            }
+            return videoResultBuilder.build(conversionQueueItem, conversionQueueItem.getFirstFileFormat(), result);
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);

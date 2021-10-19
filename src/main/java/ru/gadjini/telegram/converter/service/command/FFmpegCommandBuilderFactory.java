@@ -132,8 +132,8 @@ public class FFmpegCommandBuilderFactory {
         return new FFmpegCutStartPointCommandBuilder();
     }
 
-    public FFmpegCommandBuilderChain cutEndPoint() {
-        return new FFmpegCutEndPointCommandBuilder();
+    public FFmpegCommandBuilderChain streamDuration() {
+        return new FFmpegStreamDurationCommandBuilder();
     }
 
     public FFmpegCommandBuilderChain audioBassBoost() {
@@ -150,5 +150,9 @@ public class FFmpegCommandBuilderFactory {
 
     public FFmpegCommandBuilderChain singleFramerate() {
         return new FFmpegSingleFramerateCommandBuilder();
+    }
+
+    public FFmpegCommandBuilderChain vavMerge() {
+        return new FFmpegVavMergeCommandBuilder(audioStreamInVideoFileConversionHelper, subtitlesStreamConversionHelper);
     }
 }

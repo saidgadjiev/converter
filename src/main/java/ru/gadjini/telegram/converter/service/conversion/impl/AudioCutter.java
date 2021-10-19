@@ -67,7 +67,7 @@ public class AudioCutter extends BaseAudioConverter {
         this.commandBuilderChain = commandBuilderFactory.hideBannerQuite();
         this.commandBuilderChain.setNext(commandBuilderFactory.cutStartPoint())
                 .setNext(commandBuilderFactory.input())
-                .setNext(commandBuilderFactory.cutEndPoint())
+                .setNext(commandBuilderFactory.streamDuration())
                 .setNext(commandBuilderFactory.audioCover())
                 .setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.output());
@@ -82,13 +82,17 @@ public class AudioCutter extends BaseAudioConverter {
                 durationInSeconds, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
 
         List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
+
+        Period cutEndPoint = settingsState.getCutEndPoint();
+        Period cutStartPoint = settingsState.getCutStartPoint();
+        long duration = cutEndPoint.minus(cutStartPoint).toStandardDuration().getStandardSeconds();
         FFmpegConversionContext conversionContext = new FFmpegConversionContext()
                 .input(file)
                 .output(result)
                 .streams(allStreams)
                 .outputFormat(fileQueueItem.getFirstFileFormat())
-                .putExtra(FFmpegConversionContext.CUT_START_POINT, settingsState.getCutStartPoint())
-                .putExtra(FFmpegConversionContext.CUT_END_POINT, settingsState.getCutEndPoint());
+                .putExtra(FFmpegConversionContext.CUT_START_POINT, PERIOD_FORMATTER.print(cutStartPoint))
+                .putExtra(FFmpegConversionContext.STREAM_DURATION, duration);
         contextPreparerChain.prepare(conversionContext);
 
         FFmpegCommand command = new FFmpegCommand();

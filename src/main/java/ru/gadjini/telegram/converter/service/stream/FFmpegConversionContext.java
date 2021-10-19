@@ -26,7 +26,13 @@ public class FFmpegConversionContext {
 
     public static final String CUT_START_POINT = "ss";
 
-    public static final String CUT_END_POINT = "t";
+    public static final String STREAM_DURATION = "t";
+
+    public static final String SETTINGS_STATE = "stgs";
+
+    public static final String AUDIO_STREAMS_COUNT = "acn";
+
+    public static final String SUBTITLE_STREAMS_COUNT = "scn";
 
     private List<FFprobeDevice.FFProbeStream> streams;
 

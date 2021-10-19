@@ -2,13 +2,13 @@ package ru.gadjini.telegram.converter.service.command;
 
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 
-public class FFmpegCutStartPointCommandBuilder extends BaseFFmpegCommandBuilderChain {
+public class FFmpegStreamDurationCommandBuilder extends BaseFFmpegCommandBuilderChain {
 
     @Override
     public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
-        String startPoint = conversionContext.getExtra(FFmpegConversionContext.CUT_START_POINT);
+        long duration = conversionContext.getExtra(FFmpegConversionContext.STREAM_DURATION);
 
-        command.ss(startPoint);
+        command.t(duration);
 
         super.prepareCommand(command, conversionContext);
     }
