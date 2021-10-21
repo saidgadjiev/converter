@@ -81,8 +81,8 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
     private boolean isCopyableAudioCodecs(FFmpegCommand baseCommandBuilder, SmartTempFile out, Integer input, int streamIndex) throws InterruptedException {
         FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
 
-        commandBuilder.mapAudio(input, streamIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
-        commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
+        commandBuilder.mapAudio(input, streamIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER)
+                .out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.toCmd());
     }

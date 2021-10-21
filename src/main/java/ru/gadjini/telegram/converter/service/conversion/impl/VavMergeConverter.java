@@ -77,7 +77,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
         this.userService = userService;
         this.callbackHandlerFactory = callbackHandlerFactory;
 
-        this.commandBuilderChain = commandBuilderFactory.hideBannerQuite();
+        this.commandBuilderChain = commandBuilderFactory.quite();
         this.videoResultBuilder = videoResultBuilder;
         commandBuilderChain.setNext(commandBuilderFactory.videoConversion())
                 .setNext(commandBuilderFactory.vavMerge())

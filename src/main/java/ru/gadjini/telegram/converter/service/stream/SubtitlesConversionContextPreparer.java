@@ -4,12 +4,11 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.MKV;
 
 public class SubtitlesConversionContextPreparer extends BaseFFmpegConversionContextPreparerChain {
 
     @Override
-    public void prepare(FFmpegConversionContext conversionContext) {
+    public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
         String subtitlesCodec = null;
         if (conversionContext.outputFormat() == MP4 || conversionContext.outputFormat() == MOV) {
             subtitlesCodec = FFmpegCommand.MOV_TEXT_CODEC;

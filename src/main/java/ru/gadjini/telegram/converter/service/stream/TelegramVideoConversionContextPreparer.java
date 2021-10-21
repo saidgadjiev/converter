@@ -7,7 +7,7 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 public class TelegramVideoConversionContextPreparer extends BaseFFmpegConversionContextPreparerChain {
 
     @Override
-    public void prepare(FFmpegConversionContext conversionContext) {
+    public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
         if (conversionContext.outputFormat().canBeSentAsVideo()) {
             for (FFprobeDevice.FFProbeStream stream : conversionContext.streams()) {
                 if (stream.getCodecName().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {

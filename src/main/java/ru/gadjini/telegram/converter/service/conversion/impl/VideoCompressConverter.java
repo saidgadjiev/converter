@@ -8,22 +8,20 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
-import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler;
+import ru.gadjini.telegram.converter.service.conversion.result.VideoResultBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.queue.ConversionMessageBuilder;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
-import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -54,6 +52,8 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     public static final int DEFAULT_QUALITY = 70;
 
+    private final FFmpegCommandBuilderChain commandBuilderChain;
+
     private FFmpegDevice fFmpegDevice;
 
     private LocalisationService localisationService;
@@ -64,37 +64,46 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private ConversionMessageBuilder messageBuilder;
 
-    private CaptionGenerator captionGenerator;
-
     private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
 
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
     private FFmpegConversionContextPreparerChain conversionContextPreparer;
 
-    private FFmpegCommandBuilderFactory commandBuilderFactory;
+    private VideoResultBuilder videoResultBuilder;
 
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
-                                  CaptionGenerator captionGenerator, FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
+                                  FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
                                   FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
                                   FFmpegConversionContextPreparerChainFactory contextPreparerFactory,
-                                  FFmpegCommandBuilderFactory commandBuilderFactory) {
+                                  FFmpegCommandBuilderFactory commandBuilderFactory, VideoResultBuilder videoResultBuilder) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
         this.userService = userService;
         this.fFprobeDevice = fFprobeDevice;
         this.messageBuilder = messageBuilder;
-        this.captionGenerator = captionGenerator;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
         this.callbackHandlerFactory = callbackHandlerFactory;
-        this.commandBuilderFactory = commandBuilderFactory;
         this.conversionContextPreparer = contextPreparerFactory.telegramVideoContextPreparer();
+        this.videoResultBuilder = videoResultBuilder;
 
         conversionContextPreparer.setNext(contextPreparerFactory.streamScaleContextPreparer())
-                .setNext(contextPreparerFactory.telegramVoiceContextPreparer());
+                .setNext(contextPreparerFactory.telegramVoiceContextPreparer())
+                .setNext(contextPreparerFactory.videoCompression());
+
+        this.commandBuilderChain = commandBuilderFactory.quite();
+        commandBuilderChain.setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.videoConversion())
+                .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.subtitlesConversion())
+                .setNext(commandBuilderFactory.fastVideoConversion())
+                .setNext(commandBuilderFactory.enableExperimentalFeatures())
+                .setNext(commandBuilderFactory.synchronizeVideoTimestamp())
+                .setNext(commandBuilderFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderFactory.output());
     }
 
     @Override
@@ -110,23 +119,20 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                    .input(file)
+                    .output(result)
                     .streams(allStreams)
                     .outputFormat(fileQueueItem.getFirstFileFormat());
-
             conversionContextPreparer.prepare(conversionContext);
+
+            FFmpegCommand command = new FFmpegCommand();
+            commandBuilderChain.prepareCommand(command, conversionContext);
 
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
                     videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
-
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, whd.getDuration(), locale);
 
-            FFmpegCommand command = commandBuilderFactory.newVideoCommandBuilder(conversionContext)
-                    .buildVideoCodecs()
-                    .buildAudioCodecs()
-                    .buildSubtitles()
-                    .buildOutput(result)
-                    .build();
             fFmpegDevice.execute(command.toCmd(), callback);
 
             LOGGER.debug("Compress({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getId(), fileQueueItem.getFirstFileId(),
@@ -136,17 +142,11 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_VIDEO, locale))
                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
 
             String compessionInfo = messageBuilder.getVideoCompressionInfoMessage(fileQueueItem.getSize(), result.length(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), compessionInfo);
-            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
-                        whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
-            } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
-            }
+
+            return videoResultBuilder.build(fileQueueItem, fileQueueItem.getFirstFileFormat(), compessionInfo, result);
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;

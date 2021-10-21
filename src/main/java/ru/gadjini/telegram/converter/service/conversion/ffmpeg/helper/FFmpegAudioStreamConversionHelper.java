@@ -6,6 +6,7 @@ import org.springframework.util.CollectionUtils;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 
 import java.util.List;
@@ -26,13 +27,13 @@ public class FFmpegAudioStreamConversionHelper {
         this.fFmpegDevice = fFmpegDevice;
     }
 
-    public void addCopyableCoverArtOptions(SmartTempFile in, SmartTempFile out, FFmpegCommand commandBuilder) throws InterruptedException {
-        if (hasCopyableCoverArt(in, out, commandBuilder)) {
+    public void addCopyableCoverArtOptions(SmartTempFile in, FFmpegCommand commandBuilder) throws InterruptedException {
+        if (hasCopyableCoverArt(in, commandBuilder)) {
             commandBuilder.mapVideo(COVER_INDEX).copyVideo(COVER_INDEX);
         }
     }
 
-    private boolean hasCopyableCoverArt(SmartTempFile in, SmartTempFile out, FFmpegCommand commandBuilder) throws InterruptedException {
+    private boolean hasCopyableCoverArt(SmartTempFile in, FFmpegCommand commandBuilder) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(in.getAbsolutePath());
         if (!CollectionUtils.isEmpty(videoStreams)) {
             commandBuilder = new FFmpegCommand(commandBuilder)
@@ -45,15 +46,15 @@ public class FFmpegAudioStreamConversionHelper {
         return false;
     }
 
-    public void copyOrConvertAudioCodecs(FFmpegCommand commandBuilder, List<FFprobeDevice.FFProbeStream> audioStreams,
-                                         SmartTempFile result) throws InterruptedException {
+    public void copyOrConvertAudioCodecs(FFmpegCommand commandBuilder, FFmpegConversionContext conversionContext) throws InterruptedException {
         FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
         int outCodecIndex = 0;
+        List<FFprobeDevice.FFProbeStream> audioStreams = conversionContext.audioStreams();
         for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
             FFprobeDevice.FFProbeStream audioStream = audioStreams.get(audioStreamMapIndex);
 
             commandBuilder.mapAudio(audioStream.getInput(), audioStreamMapIndex);
-            if (isCopyableAudioCodecs(baseCommand, result, audioStream.getInput(), audioStreamMapIndex)) {
+            if (isCopyableAudioCodecs(baseCommand, conversionContext.output(), audioStream.getInput(), audioStreamMapIndex)) {
                 commandBuilder.copyAudio(outCodecIndex);
             }
             ++outCodecIndex;

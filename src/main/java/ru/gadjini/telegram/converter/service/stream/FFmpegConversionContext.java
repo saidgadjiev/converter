@@ -12,6 +12,12 @@ import java.util.stream.Collectors;
 
 public class FFmpegConversionContext {
 
+    public static final String AUDIO_BITRATE = "ab";
+
+    public static final String FREQUENCY = "fq";
+
+    public static final String MAP_AUDIO_INDEX = "mai";
+
     public static final String VIDEO_WATERMARK = "vmark";
 
     public static final String GARBAGE_FILE_COLLECTOR = "gfile";

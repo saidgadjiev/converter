@@ -64,7 +64,7 @@ public class AudioCutter extends BaseAudioConverter {
 
         this.contextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
 
-        this.commandBuilderChain = commandBuilderFactory.hideBannerQuite();
+        this.commandBuilderChain = commandBuilderFactory.quite();
         this.commandBuilderChain.setNext(commandBuilderFactory.cutStartPoint())
                 .setNext(commandBuilderFactory.input())
                 .setNext(commandBuilderFactory.streamDuration())

@@ -18,7 +18,7 @@ public class FFmpegConversionContextPreparerChainFactory {
     }
 
     public FFmpegConversionContextPreparerChain telegramVoiceContextPreparer() {
-        return new StreamScaleConversionContextPreparer();
+        return new TelegramVoiceConversionContextPreparer();
     }
 
     public FFmpegConversionContextPreparerChain subtitlesContextPreparer() {
@@ -27,5 +27,13 @@ public class FFmpegConversionContextPreparerChainFactory {
 
     public FFmpegConversionContextPreparerChain squareVideo() {
         return new FFmpegSquareVideoContextPreparer();
+    }
+
+    public FFmpegConversionContextPreparerChain videoCompression() {
+        return new FFmpegVideoCompressionContextPreparer();
+    }
+
+    public FFmpegConversionContextPreparerChain audioCompression() {
+        return new FFmpegAudioCompressionContextPreparer();
     }
 }

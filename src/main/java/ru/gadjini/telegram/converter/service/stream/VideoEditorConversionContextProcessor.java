@@ -11,8 +11,8 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionContextPreparerChain {
 
     @Override
-    public void prepare(FFmpegConversionContext conversionContext) {
-        SettingsState settingsState = (SettingsState) args[0];
+    public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
+        SettingsState settingsState = conversionContext.getExtra(FFmpegConversionContext.SETTINGS_STATE);
         for (FFprobeDevice.FFProbeStream stream : conversionContext.streams()) {
             if (stream.getCodecName().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)) {
                 stream.setTargetBitrate(settingsState.getVideoBitrate());

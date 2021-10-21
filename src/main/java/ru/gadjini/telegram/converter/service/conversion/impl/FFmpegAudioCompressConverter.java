@@ -7,8 +7,13 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
@@ -43,26 +48,41 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, RA, RM, M4A, M4B), List.of(COMPRESS)
     );
 
+    private final FFmpegCommandBuilderChain commandBuilder;
+
+    private final FFmpegConversionContextPreparerChain conversionContextPreparerChain;
+
     private Jackson json;
 
     private FFmpegDevice fFmpegDevice;
 
-    private UserService userService;
+    private FFprobeDevice fFprobeDevice;
 
-    private FFmpegAudioStreamConversionHelper fFmpegAudioHelper;
+    private UserService userService;
 
     private LocalisationService localisationService;
 
     @Autowired
     public FFmpegAudioCompressConverter(Jackson jackson, FFmpegDevice fFmpegDevice,
-                                        UserService userService, FFmpegAudioStreamConversionHelper fFmpegAudioHelper,
-                                        LocalisationService localisationService) {
+                                        UserService userService,
+                                        LocalisationService localisationService,
+                                        FFmpegCommandBuilderFactory commandBuilderFactory,
+                                        FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory,
+                                        FFprobeDevice fFprobeDevice) {
         super(MAP);
         this.json = jackson;
         this.fFmpegDevice = fFmpegDevice;
         this.userService = userService;
-        this.fFmpegAudioHelper = fFmpegAudioHelper;
         this.localisationService = localisationService;
+
+        this.commandBuilder = commandBuilderFactory.quite();
+        this.fFprobeDevice = fFprobeDevice;
+        commandBuilder.setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.audioCompression())
+                .setNext(commandBuilderFactory.output());
+
+        this.conversionContextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
     }
 
     public static String getDefaultFrequency(Format format) {
@@ -81,24 +101,21 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(compressionFormat));
         }
 
-        FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(in.getAbsolutePath());
-
         try {
-            fFmpegAudioHelper.addCopyableCoverArtOptions(in, out, commandBuilder);
-            if (compressionFormat.canBeSentAsVoice()) {
-                fFmpegAudioHelper.convertAudioCodecsForTelegramVoice(commandBuilder);
-            } else {
-                fFmpegAudioHelper.convertAudioCodecs(commandBuilder, compressionFormat);
-            }
-            fFmpegAudioHelper.addAudioTargetOptions(commandBuilder, compressionFormat, false);
-            commandBuilder.ba(bitrate + "k");
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath());
+            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                    .streams(allStreams)
+                    .input(in)
+                    .output(out)
+                    .outputFormat(compressionFormat)
+                    .putExtra(FFmpegConversionContext.AUDIO_BITRATE, Integer.parseInt(bitrate))
+                    .putExtra(FFmpegConversionContext.FREQUENCY, frequency);
+            conversionContextPreparerChain.prepare(conversionContext);
 
-            if (MP3.equals(compressionFormat)) {
-                commandBuilder.ar(normalizeFrequency(frequency));
-            }
+            FFmpegCommand command = new FFmpegCommand();
+            commandBuilder.prepareCommand(command, conversionContext);
 
-            commandBuilder.out(out.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.toCmd());
+            fFmpegDevice.execute(command.toCmd());
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }
@@ -107,9 +124,5 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_AUDIO, localeOrDefault))
                     .setReplyToMessageId(conversionQueueItem.getReplyToMessageId());
         }
-    }
-
-    private String normalizeFrequency(String frequency) {
-        return MP3_FREQUENCY_44.equals(frequency) ? "44100" : "22050";
     }
 }

@@ -187,7 +187,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
             FFmpegConversionContext conversionContext = new FFmpegConversionContext()
                     .outputFormat(fileQueueItem.getFirstFileFormat())
-                    .streams(allStreams);
+                    .input(file)
+                    .output(result)
+                    .streams(allStreams)
+                    .putExtra(FFmpegConversionContext.SETTINGS_STATE, settingsState);
             streamProcessor.prepare(conversionContext);
 
             FFmpegCommand command = new FFmpegCommand();
@@ -205,6 +208,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             String resolutionChangedInfo = messageBuilder.getVideoEditedInfoMessage(fileQueueItem.getSize(),
                     result.length(), srcWhd.getHeight(),
                     targetWhd.getHeight(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+
             return videoResultBuilder.build(fileQueueItem, fileQueueItem.getFirstFileFormat(), resolutionChangedInfo, result);
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);

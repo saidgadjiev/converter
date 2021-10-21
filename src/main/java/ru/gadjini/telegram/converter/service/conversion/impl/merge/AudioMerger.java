@@ -7,22 +7,24 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioFormatsConverter;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,22 +40,37 @@ public class AudioMerger extends BaseAny2AnyConverter {
             Format.filter(FormatCategory.AUDIO), List.of(Format.MERGE)
     );
 
+    private final FFmpegCommandBuilderChain commandBuilderChain;
+
+    private final FFmpegConversionContextPreparerChain contextPreparer;
+
     private FFprobeDevice fFprobeDevice;
 
     private FFmpegDevice fFmpegDevice;
 
-    private FFmpegAudioStreamConversionHelper audioHelper;
+    private FilesListCreator filesListCreator;
 
     private FFmpegAudioFormatsConverter audioFormatsConverter;
 
     @Autowired
     public AudioMerger(FFprobeDevice fFprobeDevice, FFmpegDevice fFmpegDevice,
-                       FFmpegAudioStreamConversionHelper audioHelper, FFmpegAudioFormatsConverter audioFormatsConverter) {
+                       FFmpegAudioFormatsConverter audioFormatsConverter,
+                       FFmpegCommandBuilderFactory commandBuilderFactory,
+                       FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory,
+                       FilesListCreator filesListCreator) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegDevice = fFmpegDevice;
-        this.audioHelper = audioHelper;
         this.audioFormatsConverter = audioFormatsConverter;
+
+        this.commandBuilderChain = commandBuilderFactory.quite();
+        this.filesListCreator = filesListCreator;
+        commandBuilderChain.setNext(commandBuilderFactory.concat())
+                .setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.mapAndCopy())
+                .setNext(commandBuilderFactory.output());
+
+        this.contextPreparer = contextPreparerChainFactory.telegramVoiceContextPreparer();
     }
 
     @Override
@@ -67,20 +84,21 @@ public class AudioMerger extends BaseAny2AnyConverter {
 
         try {
             filesToConcatenate = prepareFilesToConcatenate(fileQueueItem);
-            SmartTempFile filesList = createFilesListFile(fileQueueItem.getUserId(), filesToConcatenate);
+            SmartTempFile filesList = filesListCreator.createFilesList(fileQueueItem.getUserId(), filesToConcatenate);
 
             Format targetFormat = fileQueueItem.getFirstFileFormat();
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG,
                     targetFormat.getExt());
             try {
-                FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
-                        .f(FFmpegCommand.CONCAT).safe("0").input(filesList.getAbsolutePath())
-                        .mapAudio(0).copyAudio();
+                FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                        .outputFormat(targetFormat)
+                        .input(filesList)
+                        .output(result);
+                contextPreparer.prepare(conversionContext);
 
-                audioHelper.addAudioTargetOptions(commandBuilder, targetFormat);
-                commandBuilder.out(result.getAbsolutePath());
-
-                fFmpegDevice.execute(commandBuilder.toCmd());
+                FFmpegCommand command = new FFmpegCommand();
+                commandBuilderChain.prepareCommand(command, conversionContext);
+                fFmpegDevice.execute(command.toCmd());
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
                 if (targetFormat.canBeSentAsAudio()) {
@@ -114,20 +132,6 @@ public class AudioMerger extends BaseAny2AnyConverter {
         }
     }
 
-    private SmartTempFile createFilesListFile(long userId, List<SmartTempFile> files) {
-        SmartTempFile filesList = tempFileService().createTempFile(FileTarget.TEMP, userId, TAG, Format.TXT.getExt());
-        try (PrintWriter printWriter = new PrintWriter(filesList.getAbsolutePath())) {
-            for (SmartTempFile downloadedFile : files) {
-                printWriter.println(filesListFileStr(downloadedFile.getAbsolutePath()));
-            }
-
-            return filesList;
-        } catch (FileNotFoundException e) {
-            tempFileService().delete(filesList);
-            throw new ConvertException(e);
-        }
-    }
-
     private List<SmartTempFile> prepareFilesToConcatenate(ConversionQueueItem fileQueueItem) throws InterruptedException {
         if (isTheSameFormatFiles(fileQueueItem) && isTheSameCodecs(fileQueueItem)) {
             return fileQueueItem.getDownloadedFiles();
@@ -139,17 +143,13 @@ public class AudioMerger extends BaseAny2AnyConverter {
             files.add(result);
 
             try {
-                audioFormatsConverter.doConvertAudio(fileQueueItem.getDownloadedFiles().get(i), result, fileQueueItem.getFirstFileFormat());
+                audioFormatsConverter.doConvert(fileQueueItem.getDownloadedFiles().get(i), result, fileQueueItem.getFirstFileFormat());
             } catch (Throwable e) {
                 files.forEach(f -> tempFileService().delete(f));
             }
         }
 
         return files;
-    }
-
-    private String filesListFileStr(String filePath) {
-        return "file '" + filePath + "'";
     }
 
     private boolean isTheSameFormatFiles(ConversionQueueItem queueItem) {

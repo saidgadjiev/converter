@@ -13,7 +13,7 @@ public class FFmpegAudioCoverCommandBuilder extends BaseFFmpegCommandBuilderChai
 
     @Override
     public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
-        fFmpegAudioHelper.addCopyableCoverArtOptions(conversionContext.getInput(), conversionContext.output(), command);
+        fFmpegAudioHelper.addCopyableCoverArtOptions(conversionContext.getInput(), command);
 
         super.prepareCommand(command, conversionContext);
     }

@@ -7,14 +7,18 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.AudioResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VoiceResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.extraction.BaseFromVideoByLanguageExtractor;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -44,22 +48,33 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
         put(filter(FormatCategory.VIDEO), List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, OPUS, SPX, M4A, VOICE, RA));
     }};
 
+    private final FFmpegCommandBuilderChain commandBuilderChain;
+
+    private final FFmpegConversionContextPreparerChain conversionContextPreparerChain;
+
     private FFmpegDevice fFmpegDevice;
 
     private FFprobeDevice fFprobeDevice;
 
     private UserService userService;
 
-    private FFmpegAudioStreamInVideoFileConversionHelper audioConversionHelper;
-
     @Autowired
     public FFmpegAudioFromVideoExtractor(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                         UserService userService, FFmpegAudioStreamInVideoFileConversionHelper audioConversionHelper) {
+                                         UserService userService,
+                                         FFmpegCommandBuilderFactory commandBuilderFactory,
+                                         FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.userService = userService;
-        this.audioConversionHelper = audioConversionHelper;
+
+        this.commandBuilderChain = commandBuilderFactory.quite();
+        commandBuilderChain.setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.audioChannelMapFilter())
+                .setNext(commandBuilderFactory.output());
+
+        this.conversionContextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
     }
 
     @Override
@@ -75,19 +90,16 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
-                    .input(file.getAbsolutePath());
+            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                    .streams(List.of(audioStream))
+                    .input(file)
+                    .output(result)
+                    .outputFormat(fileQueueItem.getTargetFormat());
+            conversionContextPreparerChain.prepare(conversionContext);
 
-            if (fileQueueItem.getTargetFormat().canBeSentAsVoice()) {
-                audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream),
-                        fileQueueItem.getTargetFormat(), result);
-            } else {
-                audioConversionHelper.copyOrConvertAudioCodecs(commandBuilder, List.of(audioStream),
-                        fileQueueItem.getTargetFormat(), result);
-            }
-            audioConversionHelper.addChannelMapFilter(commandBuilder, result);
-            commandBuilder.out(result.getAbsolutePath());
-            fFmpegDevice.execute(commandBuilder.toCmd());
+            FFmpegCommand command = new FFmpegCommand();
+            commandBuilderChain.prepareCommand(command, conversionContext);
+            fFmpegDevice.execute(command.toCmd());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(),
                     String.valueOf(streamIndex), fileQueueItem.getTargetFormat().getExt());

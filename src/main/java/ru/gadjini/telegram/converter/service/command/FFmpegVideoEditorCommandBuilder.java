@@ -9,7 +9,7 @@ public class FFmpegVideoEditorCommandBuilder extends BaseFFmpegCommandBuilderCha
     @Override
     public void prepareCommand(FFmpegCommand command,
                                FFmpegConversionContext conversionContext) throws InterruptedException {
-        SettingsState settingsState = (SettingsState) args[0];
+        SettingsState settingsState = conversionContext.getExtra(FFmpegConversionContext.SETTINGS_STATE);
 
         if (EditVideoAudioChannelLayoutState.MONO.equals(settingsState.getAudioChannelLayout())) {
             command.ac("1");

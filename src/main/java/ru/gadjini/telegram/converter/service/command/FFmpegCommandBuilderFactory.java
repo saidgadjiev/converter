@@ -116,16 +116,16 @@ public class FFmpegCommandBuilderFactory {
         return new FFmpegVideoWatermarkCommandBuilder(fontProperties);
     }
 
-    public FFmpegAudioCodecsConvertCommandBuilder audioConversion() {
-        return new FFmpegAudioCodecsConvertCommandBuilder(audioStreamInVideoFileConversionHelper);
+    public FFmpegCommandBuilderChain audioConversion() {
+        return new FFmpegAudioCodecsConvertCommandBuilder(audioStreamConversionHelper);
     }
 
     public FFmpegAudioCoverCommandBuilder audioCover() {
         return new FFmpegAudioCoverCommandBuilder(audioStreamConversionHelper);
     }
 
-    public FFmpegCommandBuilderChain hideBannerQuite() {
-        return new FFmpegHideBannerQuiteCommandBuilder();
+    public FFmpegCommandBuilderChain quite() {
+        return new FFmpegQuiteCommandBuilder();
     }
 
     public FFmpegCommandBuilderChain cutStartPoint() {
@@ -154,5 +154,17 @@ public class FFmpegCommandBuilderFactory {
 
     public FFmpegCommandBuilderChain vavMerge() {
         return new FFmpegVavMergeCommandBuilder(audioStreamInVideoFileConversionHelper, subtitlesStreamConversionHelper);
+    }
+
+    public FFmpegCommandBuilderChain concat() {
+        return new FFmpegConcatCommandBuilder();
+    }
+
+    public FFmpegCommandBuilderChain mapAndCopy() {
+        return new FFmpegMapAndCopyAudioCommandBuilder();
+    }
+
+    public FFmpegCommandBuilderChain audioCompression() {
+        return new FFmpegAudioCompressionCommandBuilder();
     }
 }

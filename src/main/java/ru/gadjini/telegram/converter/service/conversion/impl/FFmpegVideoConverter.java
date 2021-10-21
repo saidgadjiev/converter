@@ -81,7 +81,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         this.userService = userService;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
 
-        this.commandBuilderChain = commandBuilderChainFactory.hideBannerQuite();
+        this.commandBuilderChain = commandBuilderChainFactory.quite();
         commandBuilderChain.setNext(commandBuilderChainFactory.input())
                 .setNext(commandBuilderChainFactory.telegramVideoConversion())
                 .setNext(commandBuilderChainFactory.videoConversion())

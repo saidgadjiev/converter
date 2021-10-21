@@ -10,18 +10,18 @@ import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
-import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
-import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
+import ru.gadjini.telegram.converter.service.conversion.result.VideoResultBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
-import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
@@ -36,7 +36,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.CUT;
-import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.WEBM;
 
 @Component
 @SuppressWarnings("CPD-START")
@@ -63,11 +62,11 @@ public class VideoCutter extends BaseAny2AnyConverter {
             Format.filter(FormatCategory.VIDEO), List.of(CUT)
     );
 
+    private final FFmpegCommandBuilderChain commandBuilderChain;
+
+    private final FFmpegConversionContextPreparerChain contextPreparerChain;
+
     private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
-
-    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
-
-    private FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper;
 
     private FFmpegDevice fFmpegDevice;
 
@@ -79,27 +78,43 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
     private Jackson jackson;
 
-    private CaptionGenerator captionGenerator;
-
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
+    private VideoResultBuilder videoResultBuilder;
+
     @Autowired
-    public VideoCutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
-                       FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
-                       FFmpegSubtitlesStreamConversionHelper fFmpegSubtitlesHelper, FFmpegDevice fFmpegDevice,
+    public VideoCutter(FFmpegVideoStreamConversionHelper fFmpegVideoHelper, FFmpegDevice fFmpegDevice,
                        FFprobeDevice fFprobeDevice, UserService userService, LocalisationService localisationService,
-                       Jackson jackson, CaptionGenerator captionGenerator, FFmpegProgressCallbackHandlerFactory callbackHandlerFactory) {
+                       Jackson jackson, FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
+                       FFmpegCommandBuilderFactory commandBuilderFactory,
+                       FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory,
+                       VideoResultBuilder videoResultBuilder) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
-        this.videoAudioConversionHelper = videoAudioConversionHelper;
-        this.fFmpegSubtitlesHelper = fFmpegSubtitlesHelper;
+        this.videoResultBuilder = videoResultBuilder;
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
         this.userService = userService;
         this.localisationService = localisationService;
         this.jackson = jackson;
-        this.captionGenerator = captionGenerator;
         this.callbackHandlerFactory = callbackHandlerFactory;
+
+        this.commandBuilderChain = commandBuilderFactory.quite();
+        commandBuilderChain.setNext(commandBuilderFactory.cutStartPoint())
+                .setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.streamDuration())
+                .setNext(commandBuilderFactory.videoConversion())
+                .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.subtitlesConversion())
+                .setNext(commandBuilderFactory.webmQuality())
+                .setNext(commandBuilderFactory.fastVideoConversion())
+                .setNext(commandBuilderFactory.enableExperimentalFeatures())
+                .setNext(commandBuilderFactory.synchronizeVideoTimestamp())
+                .setNext(commandBuilderFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderFactory.output());
+
+        this.contextPreparerChain = contextPreparerChainFactory.telegramVideoContextPreparer();
+        contextPreparerChain.setNext(contextPreparerChainFactory.subtitlesContextPreparer());
     }
 
     @Override
@@ -122,16 +137,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
             doCut(file, result, settingsState.getCutStartPoint(), settingsState.getCutEndPoint(),
                     srcWhd.getDuration(), fileQueueItem, true);
 
-            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-            String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
-            if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
-
-                return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), wdh.getWidth(), wdh.getHeight(),
-                        wdh.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), caption);
-            } else {
-                return new FileResult(fileName, result, downloadThumb(fileQueueItem), caption);
-            }
+            return videoResultBuilder.build(fileQueueItem, fileQueueItem.getFirstFileFormat(), result);
         } catch (UserException | CorruptedVideoException e) {
             tempFileService().delete(result);
             throw e;
@@ -141,13 +147,13 @@ public class VideoCutter extends BaseAny2AnyConverter {
         }
     }
 
-    public void doCut(SmartTempFile file, SmartTempFile result,
-                      Period sp, Period ep, Long knownDuration,
-                      ConversionQueueItem fileQueueItem, boolean withProgress) throws InterruptedException {
+    void doCut(SmartTempFile file, SmartTempFile result,
+               Period sp, Period ep, Long knownDuration,
+               ConversionQueueItem fileQueueItem, boolean withProgress) throws InterruptedException {
         String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
         if (knownDuration != null && sp.toStandardSeconds().getSeconds() > knownDuration) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_START_POINT,
-                    new Object[] {
+                    new Object[]{
                             startPoint, PERIOD_FORMATTER.print(Period.seconds(knownDuration.intValue()).normalizedStandard())
                     },
                     userService.getLocaleOrDefault(fileQueueItem.getUserId())));
@@ -160,33 +166,23 @@ public class VideoCutter extends BaseAny2AnyConverter {
         }
 
         long duration = ep.minus(sp).toStandardDuration().getStandardSeconds();
-        FFmpegCommand commandBuilder = new FFmpegCommand();
 
-        commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath()).t(duration);
-        if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-            fFmpegVideoHelper.convertVideoCodecsForTelegramVideo(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), fileQueueItem.getSize());
-        } else {
-            fFmpegVideoHelper.convertVideoCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat(), result);
-        }
-        fFmpegVideoHelper.addVideoTargetFormatOptions(commandBuilder, fileQueueItem.getFirstFileFormat());
-        FFmpegCommand baseCommand = new FFmpegCommand(commandBuilder);
-        if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-            videoAudioConversionHelper.convertAudioCodecsForTelegramVideo(commandBuilder, allStreams);
-        } else {
-            videoAudioConversionHelper.convertAudioCodecs(commandBuilder, allStreams, fileQueueItem.getFirstFileFormat());
-        }
-        fFmpegSubtitlesHelper.copyOrConvertOrIgnoreSubtitlesCodecs(baseCommand, commandBuilder, allStreams, result, fileQueueItem.getFirstFileFormat());
-        if (WEBM.equals(fileQueueItem.getFirstFileFormat())) {
-            commandBuilder.vp8QMinQMax();
-        }
-        commandBuilder.fastConversion();
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext();
+        conversionContext.streams(allStreams)
+                .input(file)
+                .output(result)
+                .outputFormat(fileQueueItem.getFirstFileFormat())
+                .putExtra(FFmpegConversionContext.CUT_START_POINT, startPoint)
+                .putExtra(FFmpegConversionContext.STREAM_DURATION, duration);
+        contextPreparerChain.prepare(conversionContext);
 
-        commandBuilder.defaultOptions().out(result.getAbsolutePath());
-        FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = withProgress ? callbackHandlerFactory.createCallback(fileQueueItem,
-                duration,
-                userService.getLocaleOrDefault(fileQueueItem.getUserId())
-        ) : null;
-        fFmpegDevice.execute(commandBuilder.toCmd(), callback);
+        FFmpegCommand command = new FFmpegCommand();
+        commandBuilderChain.prepareCommand(command, conversionContext);
+
+        FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = withProgress
+                ? callbackHandlerFactory.createCallback(fileQueueItem, duration, userService.getLocaleOrDefault(fileQueueItem.getUserId()))
+                : null;
+        fFmpegDevice.execute(command.toCmd(), callback);
     }
 
     private void validateRange(Integer replyMessageId, Period start, Period end, Long totalLength, Locale locale) {

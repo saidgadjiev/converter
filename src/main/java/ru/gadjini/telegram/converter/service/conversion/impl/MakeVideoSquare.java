@@ -78,7 +78,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.callbackHandlerFactory = callbackHandlerFactory;
 
-        this.commandBuilderChain = commandBuilderChainFactory.hideBannerQuite();
+        this.commandBuilderChain = commandBuilderChainFactory.quite();
         this.videoResultBuilder = videoResultBuilder;
         commandBuilderChain.setNext(commandBuilderChainFactory.input())
                 .setNext(commandBuilderChainFactory.telegramVideoConversion())

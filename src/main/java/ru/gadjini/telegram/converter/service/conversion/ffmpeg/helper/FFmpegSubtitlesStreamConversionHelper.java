@@ -110,8 +110,7 @@ public class FFmpegSubtitlesStreamConversionHelper {
     private boolean isSubtitlesCopyable(FFmpegCommand baseCommandBuilder,
                                         SmartTempFile out, Integer input, int index) throws InterruptedException {
         FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
-        commandBuilder.mapSubtitles(input, index).copySubtitles();
-        commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
+        commandBuilder.mapSubtitles(input, index).copySubtitles().out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.toCmd());
     }
@@ -120,8 +119,7 @@ public class FFmpegSubtitlesStreamConversionHelper {
                                            SmartTempFile out, Integer input,
                                            int index) throws InterruptedException {
         FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
-        commandBuilder.mapSubtitles(input, index);
-        commandBuilder.fastConversion().defaultOptions().out(out.getAbsolutePath());
+        commandBuilder.mapSubtitles(input, index).out(out.getAbsolutePath());
 
         return fFmpegDevice.isExecutable(commandBuilder.toCmd());
     }
