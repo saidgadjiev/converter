@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
@@ -21,9 +22,12 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
 
     private FFmpegDevice fFmpegDevice;
 
+    private FFmpegCommandBuilderFactory commandBuilderFactory;
+
     @Autowired
-    public FFmpegAudioStreamInVideoFileConversionHelper(FFmpegDevice fFmpegDevice) {
+    public FFmpegAudioStreamInVideoFileConversionHelper(FFmpegDevice fFmpegDevice, FFmpegCommandBuilderFactory commandBuilderFactory) {
         this.fFmpegDevice = fFmpegDevice;
+        this.commandBuilderFactory = commandBuilderFactory;
     }
 
     public boolean isAudioStreamsValidForTelegramVideo(List<FFprobeDevice.FFProbeStream> allStreams) {
@@ -79,11 +83,13 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
     }
 
     private boolean isCopyableAudioCodecs(FFmpegCommand baseCommandBuilder, SmartTempFile out, Integer input, int streamIndex) throws InterruptedException {
-        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
+        FFmpegCommand command = new FFmpegCommand(baseCommandBuilder);
 
-        commandBuilder.mapAudio(input, streamIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER)
-                .out(out.getAbsolutePath());
+        command.mapAudio(input, streamIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
+        commandBuilderFactory.output().prepareCommand(command, conversionContext);
 
-        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
+        return fFmpegDevice.isExecutable(command.toCmd());
     }
 }

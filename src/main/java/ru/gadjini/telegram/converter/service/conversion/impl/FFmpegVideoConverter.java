@@ -88,10 +88,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderChainFactory.audioInVideoConversion())
                 .setNext(commandBuilderChainFactory.subtitlesConversion())
                 .setNext(commandBuilderChainFactory.webmQuality())
-                .setNext(commandBuilderChainFactory.fastVideoConversion())
-                .setNext(commandBuilderChainFactory.enableExperimentalFeatures())
-                .setNext(commandBuilderChainFactory.synchronizeVideoTimestamp())
-                .setNext(commandBuilderChainFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 
         this.conversionContextPreparer = chainFactory.telegramVideoContextPreparer();

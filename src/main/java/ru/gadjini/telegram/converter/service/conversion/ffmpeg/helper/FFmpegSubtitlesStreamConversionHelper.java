@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
@@ -20,9 +21,12 @@ public class FFmpegSubtitlesStreamConversionHelper {
 
     private FFmpegDevice fFmpegDevice;
 
+    private FFmpegCommandBuilderFactory commandBuilderFactory;
+
     @Autowired
-    public FFmpegSubtitlesStreamConversionHelper(FFmpegDevice fFmpegDevice) {
+    public FFmpegSubtitlesStreamConversionHelper(FFmpegDevice fFmpegDevice, FFmpegCommandBuilderFactory commandBuilderFactory) {
         this.fFmpegDevice = fFmpegDevice;
+        this.commandBuilderFactory = commandBuilderFactory;
     }
 
     public void copyOrConvertOrIgnoreSubtitlesCodecs(FFmpegCommand baseCommand, FFmpegCommand commandBuilder,
@@ -109,19 +113,25 @@ public class FFmpegSubtitlesStreamConversionHelper {
 
     private boolean isSubtitlesCopyable(FFmpegCommand baseCommandBuilder,
                                         SmartTempFile out, Integer input, int index) throws InterruptedException {
-        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
-        commandBuilder.mapSubtitles(input, index).copySubtitles().out(out.getAbsolutePath());
+        FFmpegCommand command = new FFmpegCommand(baseCommandBuilder);
+        command.mapSubtitles(input, index).copySubtitles();
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
+        commandBuilderFactory.output().prepareCommand(command, conversionContext);
 
-        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
+        return fFmpegDevice.isExecutable(command.toCmd());
     }
 
     private boolean isSubtitlesConvertable(FFmpegCommand baseCommandBuilder,
                                            SmartTempFile out, Integer input,
                                            int index) throws InterruptedException {
-        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommandBuilder);
-        commandBuilder.mapSubtitles(input, index).out(out.getAbsolutePath());
+        FFmpegCommand command = new FFmpegCommand(baseCommandBuilder);
+        command.mapSubtitles(input, index);
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
+        commandBuilderFactory.output().prepareCommand(command, conversionContext);
 
-        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
+        return fFmpegDevice.isExecutable(command.toCmd());
     }
 
     private static boolean isSubtitlesSupported(Format format) {

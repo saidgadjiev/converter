@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
@@ -31,10 +32,15 @@ public class FFmpegVideoStreamConversionHelper {
 
     private FormatService formatService;
 
+    private FFmpegCommandBuilderFactory commandBuilderFactory;
+
     @Autowired
-    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService) {
+    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService,
+                                             FFmpegCommandBuilderFactory commandBuilderFactory) {
         this.fFmpegDevice = fFmpegDevice;
         this.formatService = formatService;
+
+        this.commandBuilderFactory = commandBuilderFactory;
     }
 
     public boolean isVideoStreamsValidForTelegramVideo(List<FFprobeDevice.FFProbeStream> allStreams) {
@@ -86,21 +92,25 @@ public class FFmpegVideoStreamConversionHelper {
 
     private boolean isCopyableVideoCodecs(FFmpegCommand baseCommand, SmartTempFile out,
                                           Integer input, int videoStreamMapIndex) throws InterruptedException {
-        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
+        FFmpegCommand command = new FFmpegCommand(baseCommand);
 
-        commandBuilder.mapVideo(input, videoStreamMapIndex).copy(FFmpegCommand.VIDEO_STREAM_SPECIFIER)
-                .out(out.getAbsolutePath());
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        command.mapVideo(input, videoStreamMapIndex).copy(FFmpegCommand.VIDEO_STREAM_SPECIFIER);
+        commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
+        commandBuilderFactory.output().prepareCommand(command, conversionContext);
 
-        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
+        return fFmpegDevice.isExecutable(command.toCmd());
     }
 
     public boolean isConvertibleToH264(FFmpegCommand baseCommand, SmartTempFile out,
                                        Integer input, int videoStreamMapIndex, String scale) throws InterruptedException {
-        FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
-        commandBuilder.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommand.H264_CODEC).filterVideo(scale)
-                .out(out.getAbsolutePath());
+        FFmpegCommand command = new FFmpegCommand(baseCommand);
 
-        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
+        command.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommand.H264_CODEC).filterVideo(scale);
+        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        commandBuilderFactory.output().prepareCommand(command, conversionContext);
+
+        return fFmpegDevice.isExecutable(command.toCmd());
     }
 
     public boolean addFastestVideoCodec(FFmpegCommand commandBuilder, FFprobeDevice.FFProbeStream videoStream,

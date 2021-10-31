@@ -103,10 +103,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 .setNext(commandBuilderChainFactory.subtitlesConversion())
                 .setNext(commandBuilderChainFactory.videoEditor())
                 .setNext(commandBuilderChainFactory.webmQuality())
-                .setNext(commandBuilderChainFactory.fastVideoConversion())
-                .setNext(commandBuilderChainFactory.enableExperimentalFeatures())
-                .setNext(commandBuilderChainFactory.synchronizeVideoTimestamp())
-                .setNext(commandBuilderChainFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 
         this.streamProcessor = streamProcessorFactory.telegramVideoContextPreparer();

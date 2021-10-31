@@ -77,10 +77,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderFactory.videoConversion())
                 .setNext(commandBuilderFactory.audioInVideoConversion())
                 .setNext(commandBuilderFactory.webmQuality())
-                .setNext(commandBuilderFactory.fastVideoConversion())
-                .setNext(commandBuilderFactory.enableExperimentalFeatures())
-                .setNext(commandBuilderFactory.synchronizeVideoTimestamp())
-                .setNext(commandBuilderFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
     }
 

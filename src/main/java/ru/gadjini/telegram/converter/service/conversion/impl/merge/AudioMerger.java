@@ -67,7 +67,7 @@ public class AudioMerger extends BaseAny2AnyConverter {
         this.filesListCreator = filesListCreator;
         commandBuilderChain.setNext(commandBuilderFactory.concat())
                 .setNext(commandBuilderFactory.input())
-                .setNext(commandBuilderFactory.mapAndCopy())
+                .setNext(commandBuilderFactory.mapAndCopyAudio())
                 .setNext(commandBuilderFactory.output());
 
         this.contextPreparer = contextPreparerChainFactory.telegramVoiceContextPreparer();

@@ -107,10 +107,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.subtitlesConversion())
                 .setNext(commandBuilderFactory.webmQuality())
-                .setNext(commandBuilderFactory.fastVideoConversion())
-                .setNext(commandBuilderFactory.enableExperimentalFeatures())
-                .setNext(commandBuilderFactory.synchronizeVideoTimestamp())
-                .setNext(commandBuilderFactory.maxMuxingQueueSize())
+                .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
 
         this.contextPreparerChain = contextPreparerChainFactory.telegramVideoContextPreparer();

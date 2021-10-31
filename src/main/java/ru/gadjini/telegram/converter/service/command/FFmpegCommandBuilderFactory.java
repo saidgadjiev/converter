@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.conversion.impl.Tgs2GifConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.Video2GifConverter;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 
@@ -62,6 +63,20 @@ public class FFmpegCommandBuilderFactory {
 
     public FFmpegCommandBuilderChain fastVideoConversion() {
         return new FFmpegFastVideoConversionCommandBuilder();
+    }
+
+    public FFmpegCommandBuilderChain fastVideoConversionAndDefaultOptions() {
+        return new BaseFFmpegCommandBuilderChain() {
+            @Override
+            public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
+                fastVideoConversion().prepareCommand(command, conversionContext);
+                enableExperimentalFeatures().prepareCommand(command, conversionContext);
+                synchronizeVideoTimestamp().prepareCommand(command, conversionContext);
+                maxMuxingQueueSize().prepareCommand(command, conversionContext);
+
+                super.prepareCommand(command, conversionContext);
+            }
+        };
     }
 
     public FFmpegCommandBuilderChain input() {
@@ -160,7 +175,7 @@ public class FFmpegCommandBuilderFactory {
         return new FFmpegConcatCommandBuilder();
     }
 
-    public FFmpegCommandBuilderChain mapAndCopy() {
+    public FFmpegCommandBuilderChain mapAndCopyAudio() {
         return new FFmpegMapAndCopyAudioCommandBuilder();
     }
 
