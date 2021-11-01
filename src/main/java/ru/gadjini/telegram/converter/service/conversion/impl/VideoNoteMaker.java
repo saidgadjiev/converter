@@ -29,7 +29,6 @@ import java.util.Objects;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.VIDEO_NOTE;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class VideoNoteMaker extends BaseAny2AnyConverter {
 
     private static final String TAG = "vnote";

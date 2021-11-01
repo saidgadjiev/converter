@@ -6,5 +6,7 @@ public interface FFmpegCommandBuilderChain {
 
     FFmpegCommandBuilderChain setNext(FFmpegCommandBuilderChain next);
 
+    FFmpegCommandBuilderChain getNext();
+
     void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException;
 }

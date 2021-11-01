@@ -34,7 +34,6 @@ import java.util.Objects;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.SQUARE;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class MakeVideoSquare extends BaseAny2AnyConverter {
 
     private static final String TAG = "vsquare";
@@ -82,10 +81,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         this.videoResultBuilder = videoResultBuilder;
         commandBuilderChain.setNext(commandBuilderChainFactory.input())
                 .setNext(commandBuilderChainFactory.telegramVideoConversion())
-                .setNext(commandBuilderChainFactory.videoConversion())
-                .setNext(commandBuilderChainFactory.audioInVideoConversion())
-                .setNext(commandBuilderChainFactory.subtitlesConversion())
-                .setNext(commandBuilderChainFactory.webmQuality())
+                .setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 

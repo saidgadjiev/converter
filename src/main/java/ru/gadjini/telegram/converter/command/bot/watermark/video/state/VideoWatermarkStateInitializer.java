@@ -9,7 +9,6 @@ import ru.gadjini.telegram.converter.service.watermark.video.VideoWatermarkServi
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class VideoWatermarkStateInitializer {
 
     private CommandStateService commandStateService;

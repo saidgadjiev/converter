@@ -36,6 +36,7 @@ import java.util.Locale;
 import static ru.gadjini.telegram.converter.service.conversion.impl.VideoCutter.PERIOD_FORMATTER;
 
 @Component
+@SuppressWarnings("CPD-START")
 public class VSampleCommand implements BotCommand, NavigableBotCommand {
 
     private MessageService messageService;

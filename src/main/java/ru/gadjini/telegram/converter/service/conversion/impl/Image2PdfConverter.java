@@ -22,7 +22,6 @@ import java.util.Map;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class Image2PdfConverter extends BaseAny2AnyConverter {
 
     public static final String TAG = "image2";

@@ -38,7 +38,6 @@ import java.util.Map;
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.CUT;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class VideoCutter extends BaseAny2AnyConverter {
 
     public static final PeriodFormatter PERIOD_FORMATTER = new PeriodFormatterBuilder()
@@ -103,10 +102,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         commandBuilderChain.setNext(commandBuilderFactory.cutStartPoint())
                 .setNext(commandBuilderFactory.input())
                 .setNext(commandBuilderFactory.streamDuration())
-                .setNext(commandBuilderFactory.videoConversion())
-                .setNext(commandBuilderFactory.audioConversion())
-                .setNext(commandBuilderFactory.subtitlesConversion())
-                .setNext(commandBuilderFactory.webmQuality())
+                .setNext(commandBuilderFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
 

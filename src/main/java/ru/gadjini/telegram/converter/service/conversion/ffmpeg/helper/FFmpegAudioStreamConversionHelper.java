@@ -12,7 +12,6 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import java.util.List;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class FFmpegAudioStreamConversionHelper {
 
     private static final int COVER_INDEX = 0;

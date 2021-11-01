@@ -41,7 +41,6 @@ import java.util.Objects;
 import java.util.Set;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class VavMergeCommand implements NavigableBotCommand, BotCommand, CallbackBotCommand {
 
     private static final int AUDIOS_COUNT = 3;

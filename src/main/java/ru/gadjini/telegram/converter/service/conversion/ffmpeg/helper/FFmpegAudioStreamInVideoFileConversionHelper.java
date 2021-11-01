@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
-@SuppressWarnings("CPD-START")
 public class FFmpegAudioStreamInVideoFileConversionHelper {
 
     public static final String TELEGRAM_VIDEO_AUDIO_CODEC = FFmpegCommand.AAC_CODEC;

@@ -96,9 +96,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
         this.commandBuilderChain = commandBuilderFactory.quite();
         commandBuilderChain.setNext(commandBuilderFactory.input())
-                .setNext(commandBuilderFactory.videoConversion())
-                .setNext(commandBuilderFactory.audioConversion())
-                .setNext(commandBuilderFactory.subtitlesConversion())
+                .setNext(commandBuilderFactory.simpleVideoStreamsConversion())
                 .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
     }

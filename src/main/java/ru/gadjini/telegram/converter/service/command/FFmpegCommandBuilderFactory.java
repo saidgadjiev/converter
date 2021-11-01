@@ -91,6 +91,37 @@ public class FFmpegCommandBuilderFactory {
         return new FFmpegSubtitleConvertCommandBuilder(subtitlesStreamConversionHelper);
     }
 
+    public FFmpegCommandBuilderChain simpleVideoStreamsConversionWithWebmQuality() {
+        FFmpegCommandBuilderChain fFmpegCommandBuilderChain = simpleVideoStreamsConversion();
+
+        FFmpegCommandBuilderChain prev = fFmpegCommandBuilderChain;
+        FFmpegCommandBuilderChain last = fFmpegCommandBuilderChain.getNext();
+        while (last != null) {
+            prev = last;
+            last = fFmpegCommandBuilderChain.getNext();
+        }
+
+        prev.setNext(webmQuality());
+
+        return fFmpegCommandBuilderChain;
+    }
+
+    public FFmpegCommandBuilderChain simpleVideoStreamsConversion() {
+        BaseFFmpegCommandBuilderChain commandBuilderChain = new BaseFFmpegCommandBuilderChain() {
+            @Override
+            public void prepareCommand(FFmpegCommand command,
+                                       FFmpegConversionContext conversionContext) throws InterruptedException {
+                super.prepareCommand(command, conversionContext);
+            }
+        };
+
+        commandBuilderChain.setNext(videoConversion())
+                .setNext(audioInVideoConversion())
+                .setNext(subtitlesConversion());
+
+        return commandBuilderChain;
+    }
+
     public FFmpegCommandBuilderChain videoConversion() {
         return new FFmpegVideoConvertCommandBuilder(videoStreamConversionHelper);
     }

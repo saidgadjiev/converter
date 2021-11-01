@@ -14,6 +14,11 @@ public class BaseFFmpegCommandBuilderChain implements FFmpegCommandBuilderChain 
     }
 
     @Override
+    public FFmpegCommandBuilderChain getNext() {
+        return next;
+    }
+
+    @Override
     public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
         if (next != null) {
             next.prepareCommand(command, conversionContext);
