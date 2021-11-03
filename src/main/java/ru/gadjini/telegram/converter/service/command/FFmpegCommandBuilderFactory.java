@@ -38,23 +38,39 @@ public class FFmpegCommandBuilderFactory {
     private UserService userService;
 
     @Autowired
-    public FFmpegCommandBuilderFactory(FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
-                                       FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
-                                       FFmpegAudioStreamConversionHelper audioStreamConversionHelper,
-                                       FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper,
-                                       Tgs2GifConverter tgs2GifConverter, Video2GifConverter video2GifConverter,
+    public FFmpegCommandBuilderFactory(Tgs2GifConverter tgs2GifConverter,
                                        LocalisationService localisationService, FontProperties fontProperties,
                                        FFprobeDevice fFprobeDevice, UserService userService) {
-        this.videoStreamConversionHelper = videoStreamConversionHelper;
-        this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
-        this.audioStreamConversionHelper = audioStreamConversionHelper;
-        this.subtitlesStreamConversionHelper = subtitlesStreamConversionHelper;
         this.tgs2GifConverter = tgs2GifConverter;
-        this.video2GifConverter = video2GifConverter;
         this.localisationService = localisationService;
         this.fontProperties = fontProperties;
         this.fFprobeDevice = fFprobeDevice;
         this.userService = userService;
+    }
+
+    @Autowired
+    public void setVideo2GifConverter(Video2GifConverter video2GifConverter) {
+        this.video2GifConverter = video2GifConverter;
+    }
+
+    @Autowired
+    public void setVideoStreamConversionHelper(FFmpegVideoStreamConversionHelper videoStreamConversionHelper) {
+        this.videoStreamConversionHelper = videoStreamConversionHelper;
+    }
+
+    @Autowired
+    public void setAudioStreamInVideoFileConversionHelper(FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper) {
+        this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
+    }
+
+    @Autowired
+    public void setAudioStreamConversionHelper(FFmpegAudioStreamConversionHelper audioStreamConversionHelper) {
+        this.audioStreamConversionHelper = audioStreamConversionHelper;
+    }
+
+    @Autowired
+    public void setSubtitlesStreamConversionHelper(FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper) {
+        this.subtitlesStreamConversionHelper = subtitlesStreamConversionHelper;
     }
 
     public FFmpegCommandBuilderChain enableExperimentalFeatures() {
@@ -92,34 +108,42 @@ public class FFmpegCommandBuilderFactory {
     }
 
     public FFmpegCommandBuilderChain simpleVideoStreamsConversionWithWebmQuality() {
-        FFmpegCommandBuilderChain fFmpegCommandBuilderChain = simpleVideoStreamsConversion();
+        FFmpegCommandBuilderChain simpleVideoStreamsConversion = simpleVideoStreamsConversion();
+        FFmpegCommandBuilderChain webmQuality = webmQuality();
 
-        FFmpegCommandBuilderChain prev = fFmpegCommandBuilderChain;
-        FFmpegCommandBuilderChain last = fFmpegCommandBuilderChain.getNext();
-        while (last != null) {
-            prev = last;
-            last = fFmpegCommandBuilderChain.getNext();
-        }
+        simpleVideoStreamsConversion.setNext(webmQuality);
 
-        prev.setNext(webmQuality());
+        return new BaseFFmpegCommandBuilderChain() {
+            @Override
+            public FFmpegCommandBuilderChain setNext(FFmpegCommandBuilderChain next) {
+                return webmQuality.setNext(next);
+            }
 
-        return fFmpegCommandBuilderChain;
+            @Override
+            public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
+                simpleVideoStreamsConversion.prepareCommand(command, conversionContext);
+            }
+        };
     }
 
     public FFmpegCommandBuilderChain simpleVideoStreamsConversion() {
-        BaseFFmpegCommandBuilderChain commandBuilderChain = new BaseFFmpegCommandBuilderChain() {
+        FFmpegCommandBuilderChain videoConversion = videoConversion();
+        FFmpegCommandBuilderChain subtitlesConversion = subtitlesConversion();
+
+        videoConversion.setNext(audioInVideoConversion())
+                .setNext(subtitlesConversion);
+
+        return new BaseFFmpegCommandBuilderChain() {
             @Override
-            public void prepareCommand(FFmpegCommand command,
-                                       FFmpegConversionContext conversionContext) throws InterruptedException {
-                super.prepareCommand(command, conversionContext);
+            public FFmpegCommandBuilderChain setNext(FFmpegCommandBuilderChain next) {
+                return subtitlesConversion.setNext(next);
+            }
+
+            @Override
+            public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
+                videoConversion.prepareCommand(command, conversionContext);
             }
         };
-
-        commandBuilderChain.setNext(videoConversion())
-                .setNext(audioInVideoConversion())
-                .setNext(subtitlesConversion());
-
-        return commandBuilderChain;
     }
 
     public FFmpegCommandBuilderChain videoConversion() {

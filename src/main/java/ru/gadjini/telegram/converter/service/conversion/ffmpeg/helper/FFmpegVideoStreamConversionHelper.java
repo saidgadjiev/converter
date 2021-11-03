@@ -35,11 +35,13 @@ public class FFmpegVideoStreamConversionHelper {
     private FFmpegCommandBuilderFactory commandBuilderFactory;
 
     @Autowired
-    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService,
-                                             FFmpegCommandBuilderFactory commandBuilderFactory) {
+    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService) {
         this.fFmpegDevice = fFmpegDevice;
         this.formatService = formatService;
+    }
 
+    @Autowired
+    public void setCommandBuilderFactory(FFmpegCommandBuilderFactory commandBuilderFactory) {
         this.commandBuilderFactory = commandBuilderFactory;
     }
 
@@ -68,7 +70,8 @@ public class FFmpegVideoStreamConversionHelper {
                 commandBuilder.videoCodec(outCodecIndex, videoStream.getTargetCodecName())
                         .filterVideo(outCodecIndex, videoStream.getTargetScale());
             } else {
-                if (isCopyableVideoCodecs(baseCommand, conversionContext.output(), videoStream.getInput(), videoStreamMapIndex)) {
+                if (Objects.equals(videoStream.getBitRate(), videoStream.getTargetBitrate())
+                        && isCopyableVideoCodecs(baseCommand, conversionContext.output(), videoStream.getInput(), videoStreamMapIndex)) {
                     commandBuilder.copyVideo(outCodecIndex);
                     copied = true;
                 } else {
@@ -84,7 +87,11 @@ public class FFmpegVideoStreamConversionHelper {
                 }
             }
             if (!copied) {
-                commandBuilder.keepVideoBitRate(videoStream.getBitRate(), outCodecIndex);
+                if (videoStream.getTargetBitrate() != null) {
+                    commandBuilder.keepVideoBitRate(videoStream.getTargetBitrate(), outCodecIndex);
+                } else {
+                    commandBuilder.keepVideoBitRate(videoStream.getBitRate(), outCodecIndex);
+                }
             }
             ++outCodecIndex;
         }

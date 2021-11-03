@@ -26,9 +26,10 @@ public class VideoResultBuilder {
     private FFprobeDevice fFprobeDevice;
 
     @Autowired
-    public VideoResultBuilder(CaptionGenerator captionGenerator, FFmpegVideoStreamConversionHelper videoStreamConversionHelper) {
+    public VideoResultBuilder(CaptionGenerator captionGenerator, FFmpegVideoStreamConversionHelper videoStreamConversionHelper, FFprobeDevice fFprobeDevice) {
         this.captionGenerator = captionGenerator;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
+        this.fFprobeDevice = fFprobeDevice;
     }
 
     public ConversionResult build(ConversionQueueItem fileQueueItem, SmartTempFile result) throws InterruptedException {

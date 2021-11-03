@@ -7,14 +7,9 @@ public class BaseFFmpegCommandBuilderChain implements FFmpegCommandBuilderChain 
     private FFmpegCommandBuilderChain next;
 
     @Override
-    public final FFmpegCommandBuilderChain setNext(FFmpegCommandBuilderChain next) {
+    public FFmpegCommandBuilderChain setNext(FFmpegCommandBuilderChain next) {
         this.next = next;
 
-        return next;
-    }
-
-    @Override
-    public FFmpegCommandBuilderChain getNext() {
         return next;
     }
 
