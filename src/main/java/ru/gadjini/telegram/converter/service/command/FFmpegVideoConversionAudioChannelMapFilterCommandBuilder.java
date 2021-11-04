@@ -1,13 +1,13 @@
 package ru.gadjini.telegram.converter.service.command;
 
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 
 public class FFmpegVideoConversionAudioChannelMapFilterCommandBuilder extends BaseFFmpegCommandBuilderChain {
 
-    private FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper;
+    private FFmpegAudioStreamInVideoConversionHelper audioStreamInVideoFileConversionHelper;
 
-    public FFmpegVideoConversionAudioChannelMapFilterCommandBuilder(FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper) {
+    public FFmpegVideoConversionAudioChannelMapFilterCommandBuilder(FFmpegAudioStreamInVideoConversionHelper audioStreamInVideoFileConversionHelper) {
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
     }
 

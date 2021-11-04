@@ -539,6 +539,13 @@ public class FFmpegCommand {
         return this;
     }
 
+    public FFmpegCommand ba(int index, String ba) {
+        options.add("-b:a:" + index);
+        options.add(ba);
+
+        return this;
+    }
+
     public FFmpegCommand ba(String ba) {
         options.add("-b:a");
         options.add(ba);
@@ -636,6 +643,16 @@ public class FFmpegCommand {
         return this;
     }
 
+    public FFmpegCommand keepAudioBitRate(int index, Integer bitRate) {
+        if (bitRate == null) {
+            return this;
+        }
+
+        ba(index, bitRate / 1024 + "k");
+
+        return this;
+    }
+
     public FFmpegCommand keepAudioBitRate(Integer bitRate) {
         if (bitRate == null) {
             return this;
@@ -646,7 +663,7 @@ public class FFmpegCommand {
         return this;
     }
 
-    public FFmpegCommand keepVideoBitRate(Integer videoBitRate, int index) {
+    public FFmpegCommand keepVideoBitRate(int index, Integer videoBitRate) {
         return keepVideoBitRate(videoBitRate, index, 100);
     }
 
@@ -664,7 +681,7 @@ public class FFmpegCommand {
         options.add("-minrate");
         options.add(videoBitRate + "k");
         options.add("-bufsize");
-        options.add(videoBitRate / 2 + "k");
+        options.add(videoBitRate + "k");
 
         return this;
     }

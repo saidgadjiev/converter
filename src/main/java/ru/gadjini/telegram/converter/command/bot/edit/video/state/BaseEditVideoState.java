@@ -48,7 +48,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 new Object[]{convertState.getFirstFormat().getName(),
                         MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
                         editVideoState.getCurrentVideoResolution() + "p",
-                        getCompressionRateMessage(editVideoState.getSettings().getQuality(), locale),
+                        getCompressionRateMessage(editVideoState.getSettings().getCompressBy(), locale),
                         getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
@@ -96,9 +96,9 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     }
 
     private String getCompressionRateMessage(String quality, Locale locale) {
-        return EditVideoResolutionState.AUTO.equals(quality) || Integer.parseInt(quality) >= EditVideoQualityState.MAX_QUALITY ?
+        return EditVideoResolutionState.AUTO.equals(quality) || Integer.parseInt(quality) <= EditVideoQualityState.MIN_QUALITY ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale)
-                : EditVideoQualityState.MAX_QUALITY - Integer.parseInt(quality) + "%";
+                : quality + "%";
     }
 
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
@@ -135,7 +135,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 : getName() == EditVideoSettingsStateName.AUDIO_CHANNEL_LAYOUT
                 ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioChannelLayout(),
                 EditVideoAudioChannelLayoutState.AVAILABLE_AUDIO_MONO_STEREO, new Locale(convertState.getUserLanguage()))
-                : inlineKeyboardService.getVideoEditQualityKeyboard(QualityCalculator.getCompressionRate(editVideoState),
+                : inlineKeyboardService.getVideoEditQualityKeyboard(editVideoState.getSettings().getCompressBy(),
                 EditVideoQualityState.AVAILABLE_QUALITIES, new Locale(convertState.getUserLanguage()));
     }
 }

@@ -106,7 +106,7 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
 
         String oldAudioBitrate = convertState.getSettings().getAudioBitrate();
         convertState.getSettings().setAudioBitrate(audioBitrate);
-        convertState.getSettings().setQuality(String.valueOf(QualityCalculator.getQuality(convertState)));
+        convertState.getSettings().setCompressBy(String.valueOf(EditVideoQualityState.MAX_QUALITY - QualityCalculator.getQuality(convertState)));
         if (!Objects.equals(audioBitrate, oldAudioBitrate)) {
             updateSettingsMessage(callbackQuery, chatId, convertState);
         }

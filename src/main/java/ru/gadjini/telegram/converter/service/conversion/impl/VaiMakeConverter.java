@@ -70,7 +70,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
         contextPreparer.setNext(contextPreparerChainFactory.streamScaleContextPreparer());
 
         this.commandBuilderChain = commandBuilderFactory.singleLoop();
-        commandBuilderChain.setNext(commandBuilderFactory.input())
+        commandBuilderChain.setNext(commandBuilderFactory.quite())
                 .setNext(commandBuilderFactory.singleFramerate())
                 .setNext(commandBuilderFactory.input())
                 .setNext(commandBuilderFactory.vaiMake())

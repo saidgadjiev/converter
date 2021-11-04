@@ -17,10 +17,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -71,7 +68,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                         .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
-                        .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(QualityCalculator.getCompressionRate(currentState),
+                        .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(currentState.getSettings().getCompressBy(),
                                 AVAILABLE_QUALITIES, new Locale(currentState.getUserLanguage())))
                         .build()
         );
@@ -86,7 +83,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
                     EditMessageReplyMarkup.builder()
                             .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                             .messageId(callbackQuery.getMessage().getMessageId())
-                            .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(QualityCalculator.getCompressionRate(currentState),
+                            .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(currentState.getSettings().getCompressBy(),
                                     AVAILABLE_QUALITIES, new Locale(currentState.getUserLanguage())))
                             .build()
             );
@@ -125,22 +122,24 @@ public class EditVideoQualityState extends BaseEditVideoState {
 
         if (compressionRate.equals(AUTO)) {
             convertState.getSettings().setVideoBitrate(convertState.getCurrentVideoBitrate());
+            convertState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
         } else {
-            int targetOverallBitrate = convertState.getCurrentOverallBitrate() * Integer.parseInt(compressionRate)
-                    / EditVideoQualityState.MAX_QUALITY;
+            int quality = MAX_QUALITY - Integer.parseInt(compressionRate);
+            int targetOverallBitrate = convertState.getCurrentOverallBitrate() * quality / MAX_QUALITY;
             int targetAudioBitrate = findTargetAudioBitrate(convertState.getSettings().getResolutionOrDefault(convertState.getCurrentVideoResolution()));
+
             AtomicInteger videoBitrate = new AtomicInteger();
             AtomicInteger audioBitrate = new AtomicInteger();
             VideoAudioBitrateCalculator.calculateVideoAudioBitrate(convertState.getCurrentOverallBitrate(),
                     convertState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate, convertState.getCurrentAudioBitrate(),
-                    videoBitrate, audioBitrate);
+                    videoBitrate, audioBitrate, EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.values());
             convertState.getSettings().setAudioBitrate(String.valueOf(audioBitrate.get()));
             convertState.getSettings().setVideoBitrate(videoBitrate.get());
         }
 
-        String oldQuality = convertState.getSettings().getQuality();
-        convertState.getSettings().setQuality(String.valueOf(QualityCalculator.getQuality(convertState)));
-        if (!Objects.equals(oldQuality, convertState.getSettings().getQuality())) {
+        String oldQuality = convertState.getSettings().getCompressBy();
+        convertState.getSettings().setCompressBy(compressionRate);
+        if (!Objects.equals(oldQuality, convertState.getSettings().getCompressBy())) {
             updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);

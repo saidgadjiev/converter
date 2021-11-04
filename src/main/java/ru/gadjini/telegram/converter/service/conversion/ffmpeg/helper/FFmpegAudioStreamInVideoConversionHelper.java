@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
-public class FFmpegAudioStreamInVideoFileConversionHelper {
+public class FFmpegAudioStreamInVideoConversionHelper {
 
     public static final String TELEGRAM_VIDEO_AUDIO_CODEC = FFmpegCommand.AAC_CODEC;
 
@@ -24,7 +24,7 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
     private FFmpegCommandBuilderFactory commandBuilderFactory;
 
     @Autowired
-    public FFmpegAudioStreamInVideoFileConversionHelper(FFmpegDevice fFmpegDevice, FFmpegCommandBuilderFactory commandBuilderFactory) {
+    public FFmpegAudioStreamInVideoConversionHelper(FFmpegDevice fFmpegDevice, FFmpegCommandBuilderFactory commandBuilderFactory) {
         this.fFmpegDevice = fFmpegDevice;
         this.commandBuilderFactory = commandBuilderFactory;
     }
@@ -54,7 +54,9 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                 for (FFprobeDevice.FFProbeStream audioStream : byInput) {
                     boolean copied = false;
                     if (StringUtils.isNotBlank(audioStream.getTargetCodecName())
-                            && !Objects.equals(audioStream.getTargetCodecName(), audioStream.getCodecName())) {
+                            && !Objects.equals(audioStream.getTargetCodecName(), audioStream.getCodecName())
+                            || audioStream.getTargetBitrate() != null
+                            && !Objects.equals(audioStream.getBitRate(), audioStream.getTargetBitrate())) {
                         command.audioCodec(audioStreamIndex, audioStream.getTargetCodecName());
                     } else {
                         if (isCopyableAudioCodecs(baseCommand, conversionContext.output(), input, audioStreamIndex)) {
@@ -64,7 +66,8 @@ public class FFmpegAudioStreamInVideoFileConversionHelper {
                     }
 
                     if (!copied) {
-                        command.keepVideoBitRate(audioStream.getBitRate(), audioStreamIndex);
+                        command.keepAudioBitRate(audioStreamIndex, audioStream.getTargetBitrate() != null ? audioStream.getTargetBitrate()
+                                : audioStream.getBitRate());
                     }
                     ++audioStreamIndex;
                 }

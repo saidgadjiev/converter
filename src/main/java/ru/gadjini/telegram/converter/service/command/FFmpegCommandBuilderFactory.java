@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.property.FontProperties;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamConversionHelper;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.Tgs2GifConverter;
@@ -19,7 +19,7 @@ public class FFmpegCommandBuilderFactory {
 
     private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
 
-    private FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper;
+    private FFmpegAudioStreamInVideoConversionHelper audioStreamInVideoFileConversionHelper;
 
     private FFmpegAudioStreamConversionHelper audioStreamConversionHelper;
 
@@ -59,7 +59,7 @@ public class FFmpegCommandBuilderFactory {
     }
 
     @Autowired
-    public void setAudioStreamInVideoFileConversionHelper(FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper) {
+    public void setAudioStreamInVideoFileConversionHelper(FFmpegAudioStreamInVideoConversionHelper audioStreamInVideoFileConversionHelper) {
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
     }
 
@@ -196,6 +196,17 @@ public class FFmpegCommandBuilderFactory {
 
     public FFmpegCommandBuilderChain quite() {
         return new FFmpegQuiteCommandBuilder();
+    }
+
+    public FFmpegCommandBuilderChain quiteInput() {
+        return new BaseFFmpegCommandBuilderChain() {
+            @Override
+            public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
+                quite().prepareCommand(command, conversionContext);
+                input().prepareCommand(command, conversionContext);
+                super.prepareCommand(command, conversionContext);
+            }
+        };
     }
 
     public FFmpegCommandBuilderChain cutStartPoint() {

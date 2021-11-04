@@ -106,7 +106,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                     setResolution(currentState, callbackQuery, resolution);
                     answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
                             new Object[]{
-                                    EditVideoQualityState.MAX_QUALITY - currentState.getSettings().getParsedQuality(),
+                                    currentState.getSettings().getParsedCompressBy(),
                                     getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
                             },
                             locale);
@@ -146,7 +146,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
     private void setQualityByResolution(EditVideoState editVideoState, String resolution) {
         if (resolution.equals(AUTO)) {
             editVideoState.getSettings().setVideoBitrate(editVideoState.getCurrentVideoBitrate());
-            editVideoState.getSettings().setQuality(EditVideoQualityState.AUTO);
+            editVideoState.getSettings().setCompressBy(EditVideoQualityState.AUTO);
             editVideoState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
         } else {
             int res = Integer.parseInt(resolution);
@@ -159,19 +159,20 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                 int targetOverallBitrate = editVideoState.getCurrentOverallBitrate() * minimumQuality
                         / EditVideoQualityState.MAX_QUALITY;
                 int targetAudioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+
                 AtomicInteger resultVideoBitrate = new AtomicInteger();
                 AtomicInteger resultAudioBitrate = new AtomicInteger();
                 VideoAudioBitrateCalculator.calculateVideoAudioBitrate(editVideoState.getCurrentOverallBitrate(),
                         editVideoState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate,
                         editVideoState.getCurrentAudioBitrate(),
-                        resultVideoBitrate, resultAudioBitrate);
+                        resultVideoBitrate, resultAudioBitrate, AUDIO_BITRATE_BY_RESOLUTION.values());
                 editVideoState.getSettings().setVideoBitrate(resultVideoBitrate.get());
                 editVideoState.getSettings().setAudioBitrate(String.valueOf(resultAudioBitrate.get()));
-                editVideoState.getSettings().setQuality(String.valueOf(minimumQuality));
+                editVideoState.getSettings().setCompressBy(String.valueOf(EditVideoQualityState.MAX_QUALITY - minimumQuality));
             } else {
                 editVideoState.getSettings().setVideoBitrate(videoBitrate);
                 editVideoState.getSettings().setAudioBitrate(String.valueOf(audioBitrate));
-                editVideoState.getSettings().setQuality(String.valueOf(QualityCalculator.getQuality(editVideoState)));
+                editVideoState.getSettings().setCompressBy(String.valueOf(EditVideoQualityState.MAX_QUALITY - QualityCalculator.getQuality(editVideoState)));
             }
         }
     }

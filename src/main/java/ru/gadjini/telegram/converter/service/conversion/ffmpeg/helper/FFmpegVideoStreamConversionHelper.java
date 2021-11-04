@@ -88,9 +88,9 @@ public class FFmpegVideoStreamConversionHelper {
             }
             if (!copied) {
                 if (videoStream.getTargetBitrate() != null) {
-                    commandBuilder.keepVideoBitRate(videoStream.getTargetBitrate(), outCodecIndex);
+                    commandBuilder.keepVideoBitRate(outCodecIndex, videoStream.getTargetBitrate());
                 } else {
-                    commandBuilder.keepVideoBitRate(videoStream.getBitRate(), outCodecIndex);
+                    commandBuilder.keepVideoBitRate(outCodecIndex, videoStream.getBitRate());
                 }
             }
             ++outCodecIndex;

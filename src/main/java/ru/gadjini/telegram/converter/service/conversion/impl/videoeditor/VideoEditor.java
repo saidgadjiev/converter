@@ -96,7 +96,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         this.commandStateService = commandStateService;
         this.videoResultBuilder = videoResultBuilder;
 
-        this.commandBuilderChain = commandBuilderChainFactory.input();
+        this.commandBuilderChain = commandBuilderChainFactory.quiteInput();
         commandBuilderChain.setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.videoEditor())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
@@ -227,7 +227,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
         convertState.setMessageId(conversionQueueItem.getReplyToMessageId());
         convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
-        convertState.getSettings().setQuality(EditVideoQualityState.AUTO);
+        convertState.getSettings().setCompressBy(EditVideoQualityState.AUTO);
         convertState.getSettings().setAudioCodec(EditVideoAudioCodecState.AUTO);
         convertState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
         convertState.getSettings().setAudioChannelLayout(EditVideoAudioChannelLayoutState.AUTO);

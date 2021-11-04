@@ -8,7 +8,7 @@ import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
@@ -37,14 +37,14 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
 
     private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
-    private FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper;
+    private FFmpegAudioStreamInVideoConversionHelper videoAudioConversionHelper;
 
     private CaptionGenerator captionGenerator;
 
     @Autowired
     public Video2StreamingConverter(FFprobeDevice fFprobeDevice, FFmpegVideoConverter fFmpegVideoFormatsConverter,
                                     FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
-                                    FFmpegAudioStreamInVideoFileConversionHelper videoAudioConversionHelper,
+                                    FFmpegAudioStreamInVideoConversionHelper videoAudioConversionHelper,
                                     CaptionGenerator captionGenerator) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;

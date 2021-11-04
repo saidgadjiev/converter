@@ -16,7 +16,7 @@ public class QualityCalculator {
 
         double factor = currentOverallBitrate / estimatedOverallBitrate;
 
-        return (int) (EditVideoQualityState.MAX_QUALITY / factor);
+        return (int) Math.round(EditVideoQualityState.MAX_QUALITY / factor);
     }
 
     public static int getQuality(EditVideoState editVideoState, int videoBitrate, int audioBitrate) {
@@ -27,7 +27,7 @@ public class QualityCalculator {
 
         double factor = currentOverallBitrate / estimatedOverallBitrate;
 
-        return (int) (EditVideoQualityState.MAX_QUALITY / factor);
+        return (int) Math.round(EditVideoQualityState.MAX_QUALITY / factor);
     }
 
     public static int getCompressionRate(EditVideoState editVideoState) {

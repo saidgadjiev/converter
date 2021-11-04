@@ -67,10 +67,9 @@ public class VideoMutter extends BaseAny2AnyConverter {
         this.userService = userService;
         this.callbackHandlerFactory = callbackHandlerFactory;
 
-        this.commandBuilderChain = commandBuilderFactory.quite();
+        this.commandBuilderChain = commandBuilderFactory.quiteInput();
         this.videoResultBuilder = videoResultBuilder;
-        commandBuilderChain.setNext(commandBuilderFactory.input())
-                .setNext(commandBuilderFactory.videoConversion())
+        commandBuilderChain.setNext(commandBuilderFactory.videoConversion())
                 .setNext(commandBuilderFactory.subtitlesConversion())
                 .setNext(commandBuilderFactory.webmQuality())
                 .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())

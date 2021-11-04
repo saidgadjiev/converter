@@ -35,7 +35,7 @@ public class SettingsState {
 
     private int videoBitrate;
 
-    private String quality;
+    private String compressBy;
 
     private String audioChannelLayout;
 
@@ -177,15 +177,15 @@ public class SettingsState {
         this.videoBitrate = videoBitrate;
     }
 
-    public String getQuality() {
-        return quality;
+    public String getCompressBy() {
+        return compressBy;
     }
 
-    public int getParsedQuality() {
-        return EditVideoQualityState.AUTO.equals(quality) ? 0 : Integer.parseInt(quality);
+    public int getParsedCompressBy() {
+        return EditVideoQualityState.AUTO.equals(compressBy) ? 0 : Integer.parseInt(compressBy);
     }
 
-    public void setQuality(String quality) {
-        this.quality = quality;
+    public void setCompressBy(String compressBy) {
+        this.compressBy = compressBy;
     }
 }

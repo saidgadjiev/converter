@@ -1,16 +1,16 @@
 package ru.gadjini.telegram.converter.service.command;
 
-import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoFileConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegAudioStreamInVideoConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegSubtitlesStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 
 public class FFmpegVavMergeCommandBuilder extends BaseFFmpegCommandBuilderChain {
 
-    private FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper;
+    private FFmpegAudioStreamInVideoConversionHelper audioStreamInVideoFileConversionHelper;
 
     private FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper;
 
-    public FFmpegVavMergeCommandBuilder(FFmpegAudioStreamInVideoFileConversionHelper audioStreamInVideoFileConversionHelper,
+    public FFmpegVavMergeCommandBuilder(FFmpegAudioStreamInVideoConversionHelper audioStreamInVideoFileConversionHelper,
                                         FFmpegSubtitlesStreamConversionHelper subtitlesStreamConversionHelper) {
         this.audioStreamInVideoFileConversionHelper = audioStreamInVideoFileConversionHelper;
         this.subtitlesStreamConversionHelper = subtitlesStreamConversionHelper;
