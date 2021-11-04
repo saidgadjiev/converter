@@ -123,6 +123,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
         if (compressionRate.equals(AUTO)) {
             convertState.getSettings().setVideoBitrate(convertState.getCurrentVideoBitrate());
             convertState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
+            convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
         } else {
             int quality = MAX_QUALITY - Integer.parseInt(compressionRate);
             int targetOverallBitrate = convertState.getCurrentOverallBitrate() * quality / MAX_QUALITY;
@@ -135,6 +136,11 @@ public class EditVideoQualityState extends BaseEditVideoState {
                     videoBitrate, audioBitrate, EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.values());
             convertState.getSettings().setAudioBitrate(String.valueOf(audioBitrate.get()));
             convertState.getSettings().setVideoBitrate(videoBitrate.get());
+
+            int appropriateResolutionForVideoBitrate = findAppropriateResolutionForVideoBitrate(
+                    convertState.getCurrentVideoResolution(),
+                    convertState.getSettings().getVideoBitrate());
+            convertState.getSettings().setResolution(String.valueOf(appropriateResolutionForVideoBitrate));
         }
 
         String oldQuality = convertState.getSettings().getCompressBy();
@@ -143,6 +149,22 @@ public class EditVideoQualityState extends BaseEditVideoState {
             updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
+    }
+
+    private int findAppropriateResolutionForVideoBitrate(int currentResolution, int videoBitrate) {
+        List<Integer> availableResolutions = AvailableVideoResolutionsProvider
+                .getPermittedVideoResolutions(currentResolution, EditVideoResolutionState.AVAILABLE_RESOLUTIONS);
+        int distance = Math.abs(videoBitrate - EditVideoResolutionState.VIDEO_BITRATE_BY_RESOLUTION.get(availableResolutions.get(0)));
+        int idx = 0;
+        for (int c = 1; c < availableResolutions.size(); c++) {
+            int cdistance = Math.abs(videoBitrate - EditVideoResolutionState.VIDEO_BITRATE_BY_RESOLUTION.get(availableResolutions.get(c)));
+            if (cdistance < distance) {
+                idx = c;
+                distance = cdistance;
+            }
+        }
+
+        return availableResolutions.get(idx);
     }
 
     private int findTargetAudioBitrate(int resolution) {

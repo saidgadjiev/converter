@@ -24,6 +24,8 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
+    public static final int MIN_RESOLUTION = 144;
+
     static final List<Integer> AVAILABLE_RESOLUTIONS = List.of(1080, 720, 480, 360, 240, 144);
 
     public static final Map<Integer, Integer> VIDEO_BITRATE_BY_RESOLUTION = Map.of(

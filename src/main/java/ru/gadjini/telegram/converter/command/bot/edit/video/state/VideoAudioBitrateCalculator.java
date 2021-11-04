@@ -37,7 +37,7 @@ public class VideoAudioBitrateCalculator {
         }
     }
 
-    public static void calculateVideoAudioBitrate(int currentOverallBitrate, int currentVideoBitrate,
+    private static void calculateVideoAudioBitrate(int currentOverallBitrate, int currentVideoBitrate,
                                                   int targetOverallBitrate, int targetAudioBitrate,
                                                   List<Integer> currentAudioBitrate, AtomicInteger videoBitrate,
                                                   AtomicInteger audioBitrate) {
