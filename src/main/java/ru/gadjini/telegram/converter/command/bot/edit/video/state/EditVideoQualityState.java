@@ -33,6 +33,14 @@ public class EditVideoQualityState extends BaseEditVideoState {
 
     static final int MIN_QUALITY = 0;
 
+    private static final List<Integer> AUDIO_BITRATE = List.of(
+            128 * 1024,
+            64 * 1024,
+            32 * 1024,
+            16 * 1024,
+            8 * 1024
+    );
+
     static final List<Integer> AVAILABLE_QUALITIES = List.of(10, 20, 30, 40, 50, 60, 70, 80, 90);
 
     private MessageService messageService;
@@ -133,7 +141,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
             AtomicInteger audioBitrate = new AtomicInteger();
             VideoAudioBitrateCalculator.calculateVideoAudioBitrate(convertState.getCurrentOverallBitrate(),
                     convertState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate, convertState.getCurrentAudioBitrate(),
-                    videoBitrate, audioBitrate, EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.values());
+                    videoBitrate, audioBitrate, AUDIO_BITRATE);
             convertState.getSettings().setAudioBitrate(String.valueOf(audioBitrate.get()));
             convertState.getSettings().setVideoBitrate(videoBitrate.get());
 

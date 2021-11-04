@@ -165,7 +165,7 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getVideoEditAudioBitratesKeyboard(String currentBitrate, List<String> bitrates, Locale locale) {
+    public InlineKeyboardMarkup getVideoEditAudioBitrateKeyboard(String currentBitrate, List<String> bitrates, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         bitrates = new ArrayList<>(bitrates);
         bitrates.remove(EditVideoAudioCodecState.AUTO);

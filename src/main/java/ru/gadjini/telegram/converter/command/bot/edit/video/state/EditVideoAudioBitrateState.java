@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.converter.utils.BitrateUtils;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -25,7 +26,8 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
-    public static final List<String> AVAILABLE_AUDIO_BITRATES = List.of(AUTO, "64", "96", "128", "160", "192", "256");
+    public static final List<String> AVAILABLE_AUDIO_BITRATES = List.of(AUTO, "8", "16", "32", "64", "96", "128", "160",
+            "192", "256", "320", "510");
 
     private MessageService messageService;
 
@@ -60,7 +62,7 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
                         .chatId(String.valueOf(callbackQuery.getFrom().getId()))
                         .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
-                        .replyMarkup(inlineKeyboardService.getVideoEditAudioBitratesKeyboard(currentState.getSettings().getAudioBitrate(),
+                        .replyMarkup(inlineKeyboardService.getVideoEditAudioBitrateKeyboard(currentState.getSettings().getAudioBitrateInKBytes(),
                                 AVAILABLE_AUDIO_BITRATES, new Locale(currentState.getUserLanguage())))
                         .build()
         );
@@ -105,7 +107,11 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
                 ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
         String oldAudioBitrate = convertState.getSettings().getAudioBitrate();
-        convertState.getSettings().setAudioBitrate(audioBitrate);
+        if (!AUTO.equals(audioBitrate)) {
+            convertState.getSettings().setAudioBitrate(String.valueOf(BitrateUtils.toBytes(Integer.parseInt(audioBitrate))));
+        } else {
+            convertState.getSettings().setAudioBitrate(AUTO);
+        }
         convertState.getSettings().setCompressBy(String.valueOf(EditVideoQualityState.MAX_QUALITY - QualityCalculator.getQuality(convertState)));
         if (!Objects.equals(audioBitrate, oldAudioBitrate)) {
             updateSettingsMessage(callbackQuery, chatId, convertState);

@@ -130,7 +130,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 ? inlineKeyboardService.getVideoEditAudioCodecsKeyboard(convertState.getSettings().getAudioCodec(),
                 EditVideoAudioCodecState.AVAILABLE_AUDIO_CODECS, new Locale(convertState.getUserLanguage()))
                 : getName() == EditVideoSettingsStateName.AUDIO_BITRATE
-                ? inlineKeyboardService.getVideoEditAudioBitratesKeyboard(convertState.getSettings().getAudioBitrate(),
+                ? inlineKeyboardService.getVideoEditAudioBitrateKeyboard(convertState.getSettings().getAudioBitrateInKBytes(),
                 EditVideoAudioBitrateState.AVAILABLE_AUDIO_BITRATES, new Locale(convertState.getUserLanguage()))
                 : getName() == EditVideoSettingsStateName.AUDIO_CHANNEL_LAYOUT
                 ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioChannelLayout(),

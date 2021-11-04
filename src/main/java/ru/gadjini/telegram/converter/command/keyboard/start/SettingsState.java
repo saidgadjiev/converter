@@ -5,6 +5,7 @@ import org.joda.time.Period;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
+import ru.gadjini.telegram.converter.utils.BitrateUtils;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 public class SettingsState {
@@ -143,6 +144,10 @@ public class SettingsState {
 
     public String getAudioBitrate() {
         return audioBitrate;
+    }
+
+    public String getAudioBitrateInKBytes() {
+        return EditVideoAudioBitrateState.AUTO.equals(audioBitrate) ? EditVideoAudioBitrateState.AUTO : String.valueOf(BitrateUtils.toKBytes(Integer.parseInt(audioBitrate)));
     }
 
     public int getParsedAudioBitrate() {

@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 public class VideoAudioBitrateCalculator {
 
+    private static final int MIN_VIDEO_BITRATE = 128 * 1024;
+
     private VideoAudioBitrateCalculator() {
 
     }
@@ -23,13 +25,13 @@ public class VideoAudioBitrateCalculator {
 
         calculateVideoAudioBitrate(currentOverallBitrate, currentVideoBitrate, targetOverallBitrate,
                 targetAudioBitrate, currentAudioBitrate, videoBitrate, audioBitrate);
-        if (videoBitrate.get() < 0) {
+        if (videoBitrate.get() < MIN_VIDEO_BITRATE) {
             for (Integer lessAudioBitrateVariation : audioBitrateVariations.stream()
                     .sorted((f1, f2) -> Integer.compare(f2, f1)).distinct().collect(Collectors.toList())) {
                 if (lessAudioBitrateVariation < targetAudioBitrate) {
                     calculateVideoAudioBitrate(currentOverallBitrate, currentVideoBitrate, targetOverallBitrate,
                             lessAudioBitrateVariation, currentAudioBitrate, videoBitrate, audioBitrate);
-                    if (videoBitrate.get() > 0) {
+                    if (videoBitrate.get() >= MIN_VIDEO_BITRATE) {
                         return;
                     }
                 }
