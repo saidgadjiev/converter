@@ -103,10 +103,22 @@ public class EditVideoQualityState extends BaseEditVideoState {
             String crf = requestParams.getString(ConverterArg.CRF.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
+            boolean showAlert = true;
             if (isValid(crf)) {
                 setQuality(callbackQuery, crf, currentState);
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
-                        locale);
+                if (AUTO.equals(crf)) {
+                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
+                            locale);
+                    showAlert = false;
+                } else {
+                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSION_RATE_SELECTED,
+                            new Object[]{
+                                    currentState.getSettings().getAudioBitrateInKBytes() + "k",
+                                    currentState.getSettings().getResolution() + "p",
+                                    getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
+                            },
+                            locale);
+                }
             } else {
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_CRF,
                         locale);
@@ -115,6 +127,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
                     AnswerCallbackQuery.builder()
                             .callbackQueryId(callbackQuery.getId())
                             .text(answerCallbackQuery)
+                            .showAlert(showAlert)
                             .build()
             );
         }

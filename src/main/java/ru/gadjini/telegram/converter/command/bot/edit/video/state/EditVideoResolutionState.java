@@ -16,7 +16,10 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -97,6 +100,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             String resolution = requestParams.getString(ConverterArg.RESOLUTION.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
+            boolean showAlert = true;
             if (isValid(resolution)) {
                 if (isGteThanSource(resolution, currentState.getCurrentVideoResolution())) {
                     answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_CANT_BE_INCREASED,
@@ -106,12 +110,19 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                             locale);
                 } else {
                     setResolution(currentState, callbackQuery, resolution);
-                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
-                            new Object[]{
-                                    currentState.getSettings().getParsedCompressBy(),
-                                    getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
-                            },
-                            locale);
+                    if (AUTO.equals(resolution)) {
+                        answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
+                                locale);
+                        showAlert = false;
+                    } else {
+                        answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+                                new Object[]{
+                                        currentState.getSettings().getParsedCompressBy(),
+                                        currentState.getSettings().getAudioBitrateInKBytes() + "k",
+                                        getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
+                                },
+                                locale);
+                    }
                 }
             } else {
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VEDIT_CHOOSE_RESOLUTION,
@@ -121,7 +132,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                     AnswerCallbackQuery.builder()
                             .callbackQueryId(callbackQuery.getId())
                             .text(answerCallbackQuery)
-                            .showAlert(true)
+                            .showAlert(showAlert)
                             .build()
             );
         }

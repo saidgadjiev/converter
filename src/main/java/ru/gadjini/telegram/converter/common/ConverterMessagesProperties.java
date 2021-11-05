@@ -390,6 +390,8 @@ public class ConverterMessagesProperties {
     public static final String VEDIT_QUALITY_COMMAND_NAME = "vedit.quality.command.name";
 
     public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
+
+    public static final String MESSAGE_COMPRESSION_RATE_SELECTED = "message.compression.rate.selected";
     
     public static final String MESSAGE_RESOLUTION_CANT_BE_INCREASED = "message.resolution.cant.be.increased";
 
