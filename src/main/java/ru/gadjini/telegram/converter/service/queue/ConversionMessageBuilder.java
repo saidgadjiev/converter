@@ -238,6 +238,9 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         } else if (queueItem.getTargetFormat() == Format.VMAKE) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_QUEUED,
                     new Object[]{VaiMakeConverter.OUTPUT_FORMAT.getName(), queueItem.getQueuePosition()}, locale));
+        } else if (queueItem.getTargetFormat() == Format.PREPARE_VIDEO_EDITING) {
+            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_PREPARE_VIDEO_EDITING_QUEUED,
+                    new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.WATERMARK) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_WATERMARK_QUEUED,
                     new Object[]{queueItem.getQueuePosition()}, locale));
@@ -268,13 +271,13 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                     .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION,
                             new Object[]{MemoryUtils.humanReadableByteCount(
                                     queueItem.getSize() * VideoCompressConverter.DEFAULT_QUALITY / 100)}, locale))
-            .append("\n\n")
-            .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_USE_VEDIT_FOR_COMPRESSION,
-                    new Object[]{
-                            EditVideoQualityState.MAX_COMPRESSION_RATE + percentageEscape,
-                            MemoryUtils.humanReadableByteCount(
-                                    queueItem.getSize() * (100 - EditVideoQualityState.MAX_COMPRESSION_RATE) / 100)
-                    }, locale));
+                    .append("\n\n")
+                    .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_USE_VEDIT_FOR_COMPRESSION,
+                            new Object[]{
+                                    EditVideoQualityState.MAX_COMPRESSION_RATE + percentageEscape,
+                                    MemoryUtils.humanReadableByteCount(
+                                            queueItem.getSize() * (100 - EditVideoQualityState.MAX_COMPRESSION_RATE) / 100)
+                            }, locale));
         }
 
         Set<String> warns = new LinkedHashSet<>();

@@ -48,12 +48,12 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 new Object[]{convertState.getFirstFormat().getName(),
                         MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
                         editVideoState.getCurrentVideoResolution() + "p",
+                        getEstimatedSize(convertState.getFirstFile().getFileSize(), QualityCalculator.getQuality(editVideoState)),
                         getCompressionRateMessage(editVideoState.getSettings().getCompressBy(), locale),
                         getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
-                        getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale),
-                        getEstimatedSize(convertState.getFirstFile().getFileSize(), QualityCalculator.getQuality(editVideoState))},
+                        getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale)},
                 locale));
 
         switch (getName()) {
