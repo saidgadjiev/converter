@@ -137,16 +137,19 @@ public class EditVideoSettingsWelcomeState extends BaseEditVideoState {
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_AUDIO_CODEC.getKey())) {
             currentState.setStateName(audioCodecState.getName());
-            audioCodecState.enter(editVideoCommand, callbackQuery, currentState);
-            commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+            if (audioCodecState.enter(editVideoCommand, callbackQuery, currentState)) {
+                commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+            }
         } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_AUDIO_BITRATE.getKey())) {
             currentState.setStateName(audioBitrateState.getName());
-            audioBitrateState.enter(editVideoCommand, callbackQuery, currentState);
-            commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+            if (audioBitrateState.enter(editVideoCommand, callbackQuery, currentState)) {
+                commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+            }
         } else if (requestParams.contains(ConverterArg.VEDIT_CHOOSE_MONO_STEREO.getKey())) {
             currentState.setStateName(monoStereoState.getName());
-            monoStereoState.enter(editVideoCommand, callbackQuery, currentState);
-            commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+            if (monoStereoState.enter(editVideoCommand, callbackQuery, currentState)) {
+                commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
+            }
         } else if (requestParams.contains(ConverterArg.EDIT_VIDEO.getKey())) {
             EditVideoState editVideoState = commandStateService.getState(callbackQuery.getFrom().getId(),
                     ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);

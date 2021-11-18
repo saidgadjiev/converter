@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.command.bot.edit.video.state;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -138,4 +139,18 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 : inlineKeyboardService.getVideoEditQualityKeyboard(editVideoState.getSettings().getCompressBy(),
                 EditVideoQualityState.AVAILABLE_QUALITIES, new Locale(convertState.getUserLanguage()));
     }
+
+    final void sendVideoHasNoAudioAnswer(CallbackQuery callbackQuery, Locale locale) {
+        messageService.sendAnswerCallbackQuery(
+                AnswerCallbackQuery.builder()
+                        .callbackQueryId(callbackQuery.getId())
+                        .text(localisationService.getMessage(
+                                ConverterMessagesProperties.MESSAGE_NO_AUDIO_IN_VIDEO,
+                                locale
+                        ))
+                        .showAlert(true)
+                        .build()
+        );
+    }
+
 }

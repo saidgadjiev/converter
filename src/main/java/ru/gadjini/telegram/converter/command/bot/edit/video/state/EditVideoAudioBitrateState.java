@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 @Component
+@SuppressWarnings("CPD-START")
 public class EditVideoAudioBitrateState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
@@ -54,7 +55,13 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
     }
 
     @Override
-    public void enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
+    public boolean enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
+        Locale locale = new Locale(currentState.getUserLanguage());
+        if (!currentState.hasAudio()) {
+            sendVideoHasNoAudioAnswer(callbackQuery, locale);
+
+            return false;
+        }
         messageService.editMessage(
                 callbackQuery.getMessage().getText(),
                 callbackQuery.getMessage().getReplyMarkup(),
@@ -63,9 +70,11 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
                         .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditAudioBitrateKeyboard(currentState.getSettings().getAudioBitrateInKBytes(),
-                                AVAILABLE_AUDIO_BITRATES, new Locale(currentState.getUserLanguage())))
+                                AVAILABLE_AUDIO_BITRATES, locale))
                         .build()
         );
+
+        return true;
     }
 
     @Override
@@ -76,23 +85,36 @@ public class EditVideoAudioBitrateState extends BaseEditVideoState {
             welcomeState.goBack(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
         } else if (requestParams.contains(ConverterArg.AUDIO_BITRATE.getKey())) {
-            String audioBitrate = requestParams.getString(ConverterArg.AUDIO_BITRATE.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
-            String answerCallbackQuery;
-            if (AVAILABLE_AUDIO_BITRATES.contains(audioBitrate)) {
-                setAudioBitrate(callbackQuery, audioBitrate);
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
-                        locale);
+            if (!currentState.hasAudio()) {
+                messageService.sendAnswerCallbackQuery(
+                        AnswerCallbackQuery.builder()
+                                .callbackQueryId(callbackQuery.getId())
+                                .text(localisationService.getMessage(
+                                        ConverterMessagesProperties.MESSAGE_NO_AUDIO_IN_VIDEO,
+                                        locale
+                                ))
+                                .showAlert(true)
+                                .build()
+                );
             } else {
-                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_AUDIO_BITRATE,
-                        locale);
+                String audioBitrate = requestParams.getString(ConverterArg.AUDIO_BITRATE.getKey());
+                String answerCallbackQuery;
+                if (AVAILABLE_AUDIO_BITRATES.contains(audioBitrate)) {
+                    setAudioBitrate(callbackQuery, audioBitrate);
+                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
+                            locale);
+                } else {
+                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_AUDIO_BITRATE,
+                            locale);
+                }
+                messageService.sendAnswerCallbackQuery(
+                        AnswerCallbackQuery.builder()
+                                .callbackQueryId(callbackQuery.getId())
+                                .text(answerCallbackQuery)
+                                .build()
+                );
             }
-            messageService.sendAnswerCallbackQuery(
-                    AnswerCallbackQuery.builder()
-                            .callbackQueryId(callbackQuery.getId())
-                            .text(answerCallbackQuery)
-                            .build()
-            );
         }
     }
 

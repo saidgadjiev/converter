@@ -75,7 +75,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
     }
 
     @Override
-    public void enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
+    public boolean enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
         messageService.editMessage(
                 callbackQuery.getMessage().getText(),
                 callbackQuery.getMessage().getReplyMarkup(),
@@ -87,6 +87,8 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                                 AVAILABLE_RESOLUTIONS, currentState.getCurrentVideoResolution(), new Locale(currentState.getUserLanguage())))
                         .build()
         );
+
+        return true;
     }
 
     @Override
@@ -115,13 +117,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                                 locale);
                         showAlert = false;
                     } else {
-                        answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
-                                new Object[]{
-                                        currentState.getSettings().getParsedCompressBy(),
-                                        currentState.getSettings().getAudioBitrateInKBytes() + "k",
-                                        getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
-                                },
-                                locale);
+                        answerCallbackQuery = getResolutionSelectedMessage(currentState, locale);
                     }
                 }
             } else {
@@ -171,7 +167,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                 int minimumQuality = findMinimumQuality(editVideoState, res);
                 int targetOverallBitrate = editVideoState.getCurrentOverallBitrate() * minimumQuality
                         / EditVideoQualityState.MAX_QUALITY;
-                int targetAudioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+                int targetAudioBitrate = editVideoState.hasAudio() ? AUDIO_BITRATE_BY_RESOLUTION.get(res) : 0;
 
                 AtomicInteger resultVideoBitrate = new AtomicInteger();
                 AtomicInteger resultAudioBitrate = new AtomicInteger();
@@ -180,7 +176,9 @@ public class EditVideoResolutionState extends BaseEditVideoState {
                         editVideoState.getCurrentAudioBitrate(),
                         resultVideoBitrate, resultAudioBitrate, AUDIO_BITRATE_BY_RESOLUTION.values());
                 editVideoState.getSettings().setVideoBitrate(resultVideoBitrate.get());
-                editVideoState.getSettings().setAudioBitrate(String.valueOf(resultAudioBitrate.get()));
+                if (editVideoState.hasAudio()) {
+                    editVideoState.getSettings().setAudioBitrate(String.valueOf(resultAudioBitrate.get()));
+                }
                 editVideoState.getSettings().setCompressBy(String.valueOf(EditVideoQualityState.MAX_QUALITY - minimumQuality));
             } else {
                 editVideoState.getSettings().setVideoBitrate(videoBitrate);
@@ -228,5 +226,22 @@ public class EditVideoResolutionState extends BaseEditVideoState {
         }
 
         return Integer.parseInt(resolution) >= currentResolution;
+    }
+
+    private String getResolutionSelectedMessage(EditVideoState currentState, Locale locale) {
+        return currentState.hasAudio() ? localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+                new Object[]{
+                        currentState.getSettings().getParsedCompressBy(),
+                        currentState.getSettings().getAudioBitrateInKBytes() + "k",
+                        getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
+                },
+                locale) :
+        localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED_NO_AUDIO,
+                new Object[]{
+                        currentState.getSettings().getParsedCompressBy(),
+                        currentState.getSettings().getAudioBitrateInKBytes() + "k",
+                        getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
+                },
+                locale);
     }
 }

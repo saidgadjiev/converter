@@ -175,6 +175,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VIDEO_EDIT_SETTINGS = "message.video.edit.settings";
 
+    public static final String MESSAGE_NO_AUDIO_IN_VIDEO = "message.no.audio.in.video";
+
     public static final String MESSAGE_VIDEO_EDIT_CHOOSE_SETTINGS = "message.video.edit.choose.settings";
 
     public static final String MESSAGE_VIDEO_WILL_BE_EDITED = "message.video.will.be.edited";
@@ -393,7 +395,11 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_RESOLUTION_SELECTED = "message.resolution.selected";
 
+    public static final String MESSAGE_RESOLUTION_SELECTED_NO_AUDIO = "message.resolution.selected.no.audio";
+
     public static final String MESSAGE_COMPRESSION_RATE_SELECTED = "message.compression.rate.selected";
+
+    public static final String MESSAGE_COMPRESSION_RATE_SELECTED_NO_AUDIO = "message.compression.rate.selected.no.audio";
     
     public static final String MESSAGE_RESOLUTION_CANT_BE_INCREASED = "message.resolution.cant.be.increased";
 

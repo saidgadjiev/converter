@@ -10,8 +10,8 @@ public interface EditVideoSettingsState {
         throw new UnsupportedOperationException();
     }
 
-    default void enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
-
+    default boolean enter(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {
+        return true;
     }
 
     default void goBack(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery, EditVideoState currentState) {

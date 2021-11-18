@@ -158,4 +158,8 @@ public class EditVideoState {
     public void setCurrentVideoBitrate(int currentVideoBitrate) {
         this.currentVideoBitrate = currentVideoBitrate;
     }
+
+    public boolean hasAudio() {
+        return currentAudioBitrate.size() > 0;
+    }
 }

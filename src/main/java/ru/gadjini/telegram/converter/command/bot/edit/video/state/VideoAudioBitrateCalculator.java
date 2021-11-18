@@ -18,7 +18,7 @@ public class VideoAudioBitrateCalculator {
                                                   List<Integer> currentAudioBitrate, AtomicInteger videoBitrate,
                                                   AtomicInteger audioBitrate,
                                                   Collection<Integer> audioBitrateVariations) {
-        int maxCurrentAudioBitrate = currentAudioBitrate.stream().max(Integer::compareTo).get();
+        int maxCurrentAudioBitrate = currentAudioBitrate.stream().max(Integer::compareTo).orElse(0);
         if (maxCurrentAudioBitrate < targetAudioBitrate) {
             targetAudioBitrate = maxCurrentAudioBitrate;
         }

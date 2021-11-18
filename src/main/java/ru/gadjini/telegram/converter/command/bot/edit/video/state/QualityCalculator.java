@@ -29,10 +29,4 @@ public class QualityCalculator {
 
         return (int) Math.round(EditVideoQualityState.MAX_QUALITY / factor);
     }
-
-    public static int getCompressionRate(EditVideoState editVideoState) {
-        int quality = getQuality(editVideoState);
-
-        return EditVideoQualityState.MAX_QUALITY - quality;
-    }
 }
