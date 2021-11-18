@@ -74,7 +74,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
 
     @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out,
-                                  ConversionQueueItem fileQueueItem) throws InterruptedException {
+                                  ConversionQueueItem fileQueueItem, Format targetFormat) throws InterruptedException {
         AudioWatermark watermark = audioWatermarkService.getWatermark(fileQueueItem.getUserId());
         GarbageFileCollection finallyGarbageFileCollection = tempFileGarbageCollector.getNewCollection();
 

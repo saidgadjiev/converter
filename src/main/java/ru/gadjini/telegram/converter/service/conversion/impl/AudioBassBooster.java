@@ -71,7 +71,7 @@ public class AudioBassBooster extends BaseAudioConverter {
     }
 
     @Override
-    protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) throws InterruptedException {
+    protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem, Format targetFormat) throws InterruptedException {
         SettingsState settingsState = json.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
         String bassBoost = settingsState.getBassBoost();
 
@@ -86,6 +86,7 @@ public class AudioBassBooster extends BaseAudioConverter {
                 .streams(audioStreams)
                 .input(in)
                 .output(out)
+                .outputFormat(targetFormat)
                 .putExtra(FFmpegConversionContext.BASS_BOOST, bassBoost);
         contextPreparerChain.prepare(conversionContext);
 

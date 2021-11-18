@@ -106,13 +106,17 @@ public class VideoCutter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
 
-        this.contextPreparerChain = contextPreparerChainFactory.telegramVideoContextPreparer();
-        contextPreparerChain.setNext(contextPreparerChainFactory.subtitlesContextPreparer());
+        this.contextPreparerChain = contextPreparerChainFactory.videoConversionContextPreparer();
     }
 
     @Override
     public boolean supportsProgress() {
         return true;
+    }
+
+    @Override
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
     }
 
     @Override

@@ -80,15 +80,12 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         this.commandBuilderChain = commandBuilderChainFactory.quite();
         this.videoResultBuilder = videoResultBuilder;
         commandBuilderChain.setNext(commandBuilderChainFactory.input())
-                .setNext(commandBuilderChainFactory.telegramVideoConversion())
                 .setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 
-        this.conversionContextPreparer = contextPreparerChainFactory.telegramVideoContextPreparer();
-        conversionContextPreparer.setNext(contextPreparerChainFactory.telegramVoiceContextPreparer())
-                .setNext(contextPreparerChainFactory.subtitlesContextPreparer())
-                .setNext(contextPreparerChainFactory.squareVideo());
+        this.conversionContextPreparer = contextPreparerChainFactory.videoConversionContextPreparer();
+        conversionContextPreparer.setNext(contextPreparerChainFactory.squareVideo());
     }
 
     @Override
@@ -113,6 +110,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
                     .streams(allStreams)
                     .input(file)
                     .output(result)
+                    .outputFormat(TARGET_FORMAT)
                     .putExtra(FFmpegConversionContext.SQUARE_SIZE, size);
             conversionContextPreparer.prepare(conversionContext);
 

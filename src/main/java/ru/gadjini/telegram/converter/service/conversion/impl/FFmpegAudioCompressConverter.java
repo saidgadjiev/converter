@@ -90,7 +90,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     }
 
     @Override
-    protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem) {
+    protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem, Format targetFormat) {
         String bitrate = AUTO_BITRATE;
         Format compressionFormat = DEFAULT_AUDIO_COMPRESS_FORMAT;
         String frequency = MP3_FREQUENCY_44;

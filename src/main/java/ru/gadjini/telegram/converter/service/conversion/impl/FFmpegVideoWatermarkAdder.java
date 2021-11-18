@@ -90,7 +90,6 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
 
         this.commandBuilderChain = commandBuilderChainFactory.input();
         commandBuilderChain.setNext(commandBuilderChainFactory.videoWatermarkInput())
-                .setNext(commandBuilderChainFactory.telegramVideoConversion())
                 .setNext(commandBuilderChainFactory.videoConversion())
                 .setNext(commandBuilderChainFactory.videoWatermark())
                 .setNext(commandBuilderChainFactory.audioInVideoConversion())
@@ -99,9 +98,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 
-        this.conversionContextPreparer = chainFactory.telegramVideoContextPreparer();
-        conversionContextPreparer.setNext(chainFactory.telegramVoiceContextPreparer())
-                .setNext(chainFactory.subtitlesContextPreparer());
+        this.conversionContextPreparer = chainFactory.videoConversionContextPreparer();
     }
 
     @Override
@@ -132,8 +129,10 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             VideoWatermark watermark = videoWatermarkService.getWatermark(fileQueueItem.getUserId());
             validateWatermarkFile(fileQueueItem, watermark);
 
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             FFmpegConversionContext conversionContext = new FFmpegConversionContext()
                     .input(video)
+                    .streams(allStreams)
                     .outputFormat(fileQueueItem.getFirstFileFormat())
                     .output(result)
                     .putExtra(FFmpegConversionContext.VIDEO_WATERMARK, watermark)

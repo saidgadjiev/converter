@@ -87,12 +87,10 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.messageBuilder = messageBuilder;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
         this.callbackHandlerFactory = callbackHandlerFactory;
-        this.conversionContextPreparer = contextPreparerFactory.telegramVideoContextPreparer();
+        this.conversionContextPreparer = contextPreparerFactory.videoConversionContextPreparer();
         this.videoResultBuilder = videoResultBuilder;
 
-        conversionContextPreparer.setNext(contextPreparerFactory.streamScaleContextPreparer())
-                .setNext(contextPreparerFactory.telegramVoiceContextPreparer())
-                .setNext(contextPreparerFactory.videoCompression());
+        conversionContextPreparer.setNext(contextPreparerFactory.videoCompression());
 
         this.commandBuilderChain = commandBuilderFactory.quite();
         commandBuilderChain.setNext(commandBuilderFactory.input())

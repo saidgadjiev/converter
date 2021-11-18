@@ -74,7 +74,12 @@ public class AudioCutter extends BaseAudioConverter {
     }
 
     @Override
-    protected void doConvertAudio(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem) throws InterruptedException {
+    public int createDownloads(ConversionQueueItem conversionQueueItem) {
+        return super.createDownloadsWithThumb(conversionQueueItem);
+    }
+
+    @Override
+    protected void doConvertAudio(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem, Format targetFormat) throws InterruptedException {
         long durationInSeconds = fFprobeDevice.getDurationInSeconds(file.getAbsolutePath());
 
         SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);

@@ -34,12 +34,12 @@ public class TimidityAudioFormatsConverter extends BaseAudioConverter {
     }
 
     @Override
-    public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem) throws InterruptedException {
+    public void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem fileQueueItem, Format targetFormat) throws InterruptedException {
         SmartTempFile outWavFile = tempFileService().createTempFile(FileTarget.TEMP, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, WAV.getExt());
         try {
-            wavFormatConverter.doConvertAudio(in, outWavFile, fileQueueItem);
-            fFmpegAudioFormatsConverter.doConvertAudio(outWavFile, out, fileQueueItem);
+            wavFormatConverter.doConvertAudio(in, outWavFile, fileQueueItem, targetFormat);
+            fFmpegAudioFormatsConverter.doConvertAudio(outWavFile, out, fileQueueItem, targetFormat);
         } finally {
             tempFileService().delete(outWavFile);
         }

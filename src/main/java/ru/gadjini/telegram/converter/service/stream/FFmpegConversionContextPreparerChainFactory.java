@@ -5,6 +5,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class FFmpegConversionContextPreparerChainFactory {
 
+    public FFmpegConversionContextPreparerChain videoConversionContextPreparer() {
+        return new BaseFFmpegConversionContextPreparerChain() {
+            @Override
+            public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
+                telegramVideoContextPreparer().prepare(conversionContext);
+                streamScaleContextPreparer().prepare(conversionContext);
+                subtitlesContextPreparer().prepare(conversionContext);
+
+                super.prepare(conversionContext);
+            }
+        };
+    }
+
     public FFmpegConversionContextPreparerChain telegramVideoContextPreparer() {
         return new TelegramVideoConversionContextPreparer();
     }

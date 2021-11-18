@@ -89,6 +89,7 @@ public class FFmpegCommandBuilderFactory {
                 enableExperimentalFeatures().prepareCommand(command, conversionContext);
                 synchronizeVideoTimestamp().prepareCommand(command, conversionContext);
                 maxMuxingQueueSize().prepareCommand(command, conversionContext);
+                telegramVideoConversion().prepareCommand(command, conversionContext);
 
                 super.prepareCommand(command, conversionContext);
             }

@@ -75,9 +75,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
 
-        this.conversionContextPreparerChain = contextPreparerChainFactory.telegramVideoContextPreparer();
-        conversionContextPreparerChain.setNext(contextPreparerChainFactory.subtitlesContextPreparer())
-                .setNext(contextPreparerChainFactory.streamScaleContextPreparer());
+        this.conversionContextPreparerChain = contextPreparerChainFactory.videoConversionContextPreparer();
     }
 
     @Override

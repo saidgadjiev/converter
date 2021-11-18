@@ -100,13 +100,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
         commandBuilderChain.setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.videoEditor())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
-                .setNext(commandBuilderChainFactory.telegramVideoConversion())
                 .setNext(commandBuilderChainFactory.output());
 
-        this.streamProcessor = streamProcessorFactory.telegramVideoContextPreparer();
-        streamProcessor.setNext(streamProcessorFactory.videoEditorContextPreparer())
-                .setNext(streamProcessorFactory.streamScaleContextPreparer())
-                .setNext(streamProcessorFactory.telegramVoiceContextPreparer());
+        this.streamProcessor = streamProcessorFactory.videoConversionContextPreparer();
+        streamProcessor.setNext(streamProcessorFactory.videoEditorContextPreparer());
     }
 
     @Autowired

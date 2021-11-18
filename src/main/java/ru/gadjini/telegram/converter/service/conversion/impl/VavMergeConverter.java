@@ -86,8 +86,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
 
-        this.contextPreparerChain = contextPreparerChainFactory.telegramVideoContextPreparer();
-        contextPreparerChain.setNext(contextPreparerChainFactory.subtitlesContextPreparer());
+        this.contextPreparerChain = contextPreparerChainFactory.videoConversionContextPreparer();
     }
 
     @Override
@@ -171,6 +170,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                     .streams(streams)
                     .input(video)
                     .output(result)
+                    .outputFormat(targetFormat)
                     .putExtra(FFmpegConversionContext.AUDIO_STREAMS_COUNT, audios.size())
                     .putExtra(FFmpegConversionContext.SUBTITLE_STREAMS_COUNT, subtitles.size())
                     .putExtra(FFmpegConversionContext.STREAM_DURATION, durationInSeconds);

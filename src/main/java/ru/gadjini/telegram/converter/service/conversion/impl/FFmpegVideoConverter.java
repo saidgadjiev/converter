@@ -83,14 +83,11 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
 
         this.commandBuilderChain = commandBuilderChainFactory.quite();
         commandBuilderChain.setNext(commandBuilderChainFactory.input())
-                .setNext(commandBuilderChainFactory.telegramVideoConversion())
                 .setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 
-        this.conversionContextPreparer = chainFactory.telegramVideoContextPreparer();
-        conversionContextPreparer.setNext(chainFactory.telegramVoiceContextPreparer())
-                .setNext(chainFactory.subtitlesContextPreparer());
+        this.conversionContextPreparer = chainFactory.videoConversionContextPreparer();
     }
 
     @Override
@@ -127,6 +124,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
         FFmpegConversionContext conversionContext = new FFmpegConversionContext()
+                .input(file)
                 .streams(allStreams)
                 .outputFormat(targetFormat)
                 .output(result);
