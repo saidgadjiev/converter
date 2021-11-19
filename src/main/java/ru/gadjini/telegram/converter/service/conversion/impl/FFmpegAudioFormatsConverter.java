@@ -57,7 +57,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
 
-        this.commandBuilderChain = commandBuilderFactory.input();
+        this.commandBuilderChain = commandBuilderFactory.quiteInput();
         this.commandBuilderChain.setNext(commandBuilderFactory.audioCover())
                 .setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.output());

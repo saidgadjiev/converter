@@ -68,9 +68,8 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
         this.fFprobeDevice = fFprobeDevice;
         this.userService = userService;
 
-        this.commandBuilderChain = commandBuilderFactory.quite();
-        commandBuilderChain.setNext(commandBuilderFactory.input())
-                .setNext(commandBuilderFactory.audioConversion())
+        this.commandBuilderChain = commandBuilderFactory.quiteInput();
+        commandBuilderChain.setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.audioChannelMapFilter())
                 .setNext(commandBuilderFactory.output());
 

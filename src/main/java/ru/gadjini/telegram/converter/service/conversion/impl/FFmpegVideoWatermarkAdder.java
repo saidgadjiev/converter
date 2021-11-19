@@ -88,7 +88,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         this.callbackHandlerFactory = callbackHandlerFactory;
         this.videoResultBuilder = videoResultBuilder;
 
-        this.commandBuilderChain = commandBuilderChainFactory.input();
+        this.commandBuilderChain = commandBuilderChainFactory.quiteInput();
         commandBuilderChain.setNext(commandBuilderChainFactory.videoWatermarkInput())
                 .setNext(commandBuilderChainFactory.videoConversion())
                 .setNext(commandBuilderChainFactory.videoWatermark())

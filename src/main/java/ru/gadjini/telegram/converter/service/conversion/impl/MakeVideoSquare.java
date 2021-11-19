@@ -77,10 +77,9 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.callbackHandlerFactory = callbackHandlerFactory;
 
-        this.commandBuilderChain = commandBuilderChainFactory.quite();
         this.videoResultBuilder = videoResultBuilder;
-        commandBuilderChain.setNext(commandBuilderChainFactory.input())
-                .setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
+        this.commandBuilderChain = commandBuilderChainFactory.quiteInput();
+        commandBuilderChain.setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 

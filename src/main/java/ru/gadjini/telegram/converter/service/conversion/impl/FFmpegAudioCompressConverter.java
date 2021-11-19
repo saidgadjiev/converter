@@ -75,10 +75,9 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         this.userService = userService;
         this.localisationService = localisationService;
 
-        this.commandBuilder = commandBuilderFactory.quite();
+        this.commandBuilder = commandBuilderFactory.quiteInput();
         this.fFprobeDevice = fFprobeDevice;
-        commandBuilder.setNext(commandBuilderFactory.input())
-                .setNext(commandBuilderFactory.audioConversion())
+        commandBuilder.setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.audioCompression())
                 .setNext(commandBuilderFactory.output());
 

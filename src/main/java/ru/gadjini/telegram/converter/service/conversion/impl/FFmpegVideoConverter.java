@@ -81,9 +81,8 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         this.userService = userService;
         this.videoStreamConversionHelper = videoStreamConversionHelper;
 
-        this.commandBuilderChain = commandBuilderChainFactory.quite();
-        commandBuilderChain.setNext(commandBuilderChainFactory.input())
-                .setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
+        this.commandBuilderChain = commandBuilderChainFactory.quiteInput();
+        commandBuilderChain.setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
 
