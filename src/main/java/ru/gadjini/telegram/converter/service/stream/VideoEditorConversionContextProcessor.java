@@ -22,16 +22,12 @@ public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionC
                         : "scale=-2:" + (NumberUtils.isDigits(height) ? height : "ceil(ih" + height + "/2)*2");
                 stream.setTargetScale(scale);
             } else if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {
-                if (StringUtils.isBlank(settingsState.getAudioBitrate())
-                        || EditVideoAudioBitrateState.AUTO.equals(settingsState.getAudioBitrate())) {
-                    stream.setTargetBitrate(stream.getBitRate());
-                } else {
+                if (!StringUtils.isBlank(settingsState.getAudioBitrate())
+                        && !EditVideoAudioBitrateState.AUTO.equals(settingsState.getAudioBitrate())) {
                     stream.setTargetBitrate(settingsState.getParsedAudioBitrate());
                 }
-                if (StringUtils.isBlank(settingsState.getAudioCodec())
-                        || EditVideoAudioCodecState.AUTO.equals(settingsState.getAudioCodec())) {
-                    stream.setTargetCodecName(stream.getCodecName());
-                } else {
+                if (!StringUtils.isBlank(settingsState.getAudioCodec())
+                        && !EditVideoAudioCodecState.AUTO.equals(settingsState.getAudioCodec())) {
                     stream.setTargetCodecName(settingsState.getAudioCodec());
                 }
             }

@@ -358,6 +358,9 @@ public class FFprobeDevice {
         @JsonIgnore
         private String targetScale;
 
+        @JsonIgnore
+        private boolean dontCopy;
+
         public int getIndex() {
             return index;
         }
@@ -476,6 +479,14 @@ public class FFprobeDevice {
 
         public void setTargetScale(String targetScale) {
             this.targetScale = targetScale;
+        }
+
+        public boolean isDontCopy() {
+            return dontCopy;
+        }
+
+        public void setDontCopy(boolean dontCopy) {
+            this.dontCopy = dontCopy;
         }
 
         @Override

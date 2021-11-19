@@ -107,6 +107,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderFactory.output());
 
         this.contextPreparerChain = contextPreparerChainFactory.videoConversionContextPreparer();
+        contextPreparerChain.setNext(contextPreparerChainFactory.videoCut());
     }
 
     @Override

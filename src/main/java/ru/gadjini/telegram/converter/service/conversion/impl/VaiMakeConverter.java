@@ -68,7 +68,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
         this.videoResultBuilder = videoResultBuilder;
 
         this.contextPreparer = contextPreparerChainFactory.telegramVideoContextPreparer();
-        contextPreparer.setNext(contextPreparerChainFactory.streamScaleContextPreparer())
+        contextPreparer.setNext(contextPreparerChainFactory._3gpScaleContextPreparer())
                 .setNext(contextPreparerChainFactory.vaiMake());
 
         this.commandBuilderChain = commandBuilderFactory.singleLoop();

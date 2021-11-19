@@ -233,7 +233,9 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_UPLOAD_QUEUED,
                     new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.CUT) {
-            text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_CUT_QUEUED,
+            text.append(localisationService.getMessage(queueItem.getFirstFileFormat().getCategory() == FormatCategory.VIDEO
+                            ? ConverterMessagesProperties.MESSAGE_VIDEO_CUT_QUEUED
+                            : ConverterMessagesProperties.MESSAGE_AUDIO_CUT_QUEUED,
                     new Object[]{queueItem.getQueuePosition()}, locale));
         } else if (queueItem.getTargetFormat() == Format.VMAKE) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VMAKE_QUEUED,

@@ -70,18 +70,20 @@ public class FFmpegVideoStreamConversionHelper {
                 commandBuilder.videoCodec(outCodecIndex, videoStream.getTargetCodecName())
                         .filterVideo(outCodecIndex, videoStream.getTargetScale());
             } else {
-                if (Objects.equals(videoStream.getBitRate(), videoStream.getTargetBitrate())
+                if (!videoStream.isDontCopy()
+                        && (videoStream.getTargetBitrate() == null || Objects.equals(videoStream.getBitRate(), videoStream.getTargetBitrate()))
                         && isCopyableVideoCodecs(baseCommand, conversionContext.output(), videoStream.getInput(), videoStreamMapIndex)) {
                     commandBuilder.copyVideo(outCodecIndex);
                     copied = true;
                 } else {
+                    String h264Scale = StringUtils.defaultIfBlank(videoStream.getTargetScale(), FFmpegCommand.EVEN_SCALE);
                     boolean convertibleToH264 = isConvertibleToH264(baseCommand, conversionContext.output(),
-                            videoStream.getInput(), videoStreamMapIndex, videoStream.getTargetScale());
+                            videoStream.getInput(), videoStreamMapIndex, h264Scale);
                     if (!addFastestVideoCodec(commandBuilder, videoStream, outCodecIndex,
-                            convertibleToH264, videoStream.getTargetScale())) {
+                            convertibleToH264, h264Scale)) {
                         if (StringUtils.isNotBlank(videoStream.getTargetCodecName())) {
                             commandBuilder.videoCodec(outCodecIndex, videoStream.getTargetCodecName());
-                        }
+                        } //TODO: Если надо сохранять текущий кодек видео
                         commandBuilder.filterVideo(videoStream.getTargetScale());
                     }
                 }

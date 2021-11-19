@@ -10,7 +10,7 @@ public class FFmpegConversionContextPreparerChainFactory {
             @Override
             public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
                 telegramVideoContextPreparer().prepare(conversionContext);
-                streamScaleContextPreparer().prepare(conversionContext);
+                _3gpScaleContextPreparer().prepare(conversionContext);
                 subtitlesContextPreparer().prepare(conversionContext);
 
                 super.prepare(conversionContext);
@@ -26,8 +26,8 @@ public class FFmpegConversionContextPreparerChainFactory {
         return new VideoEditorConversionContextProcessor();
     }
 
-    public FFmpegConversionContextPreparerChain streamScaleContextPreparer() {
-        return new StreamScaleConversionContextPreparer();
+    public FFmpegConversionContextPreparerChain _3gpScaleContextPreparer() {
+        return new _3gpScaleConversionContextPreparer();
     }
 
     public FFmpegConversionContextPreparerChain telegramVoiceContextPreparer() {
@@ -52,5 +52,9 @@ public class FFmpegConversionContextPreparerChainFactory {
 
     public FFmpegConversionContextPreparerChain vaiMake() {
         return new VaiMakeConversionContextPreparer();
+    }
+
+    public FFmpegConversionContextPreparerChain videoCut() {
+        return new VideoCutConversionContextPreparer();
     }
 }

@@ -6,7 +6,10 @@ public class VaiMakeConversionContextPreparer extends BaseFFmpegConversionContex
 
     @Override
     public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
-        conversionContext.videoStreams().forEach(v -> v.setTargetCodecName(FFmpegCommand.H264_CODEC));
+        conversionContext.videoStreams().forEach(v -> {
+            v.setTargetCodecName(FFmpegCommand.H264_CODEC);
+            v.setTargetScale(FFmpegCommand.EVEN_SCALE);
+        });
 
         super.prepare(conversionContext);
     }

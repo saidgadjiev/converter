@@ -259,6 +259,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VIDEO_CUT_QUEUED = "message.video.cut.queued";
 
+    public static final String MESSAGE_AUDIO_CUT_QUEUED = "message.audio.cut.queued";
+
     public static final String VIDEO_MAKING_STEP = "video.making.step";
 
     public static final String MUTING_STEP = "muting.step";
