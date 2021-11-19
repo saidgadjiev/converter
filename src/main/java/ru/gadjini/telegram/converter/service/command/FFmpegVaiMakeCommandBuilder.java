@@ -13,7 +13,7 @@ public class FFmpegVaiMakeCommandBuilder extends BaseFFmpegCommandBuilderChain {
 
     @Override
     public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
-        long durationInSeconds = fFprobeDevice.getDurationInSeconds(conversionContext.getInput().getAbsolutePath());
+        long durationInSeconds = fFprobeDevice.getDurationInSeconds(conversionContext.getInputs().get(1).getAbsolutePath());
         command.tune(FFmpegCommand.TUNE_STILLIMAGE).t(durationInSeconds);
 
         super.prepareCommand(command, conversionContext);

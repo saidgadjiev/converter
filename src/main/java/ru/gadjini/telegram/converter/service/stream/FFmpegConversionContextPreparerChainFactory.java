@@ -49,4 +49,8 @@ public class FFmpegConversionContextPreparerChainFactory {
     public FFmpegConversionContextPreparerChain audioCompression() {
         return new FFmpegAudioCompressionContextPreparer();
     }
+
+    public FFmpegConversionContextPreparerChain vaiMake() {
+        return new VaiMakeConversionContextPreparer();
+    }
 }

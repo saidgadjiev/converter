@@ -82,6 +82,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
                 .setNext(commandBuilderFactory.output());
 
         this.conversionContextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
+        conversionContextPreparerChain.setNext(contextPreparerChainFactory.audioCompression());
     }
 
     public static String getDefaultFrequency(Format format) {

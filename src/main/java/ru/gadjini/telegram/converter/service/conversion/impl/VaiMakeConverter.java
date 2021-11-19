@@ -65,9 +65,11 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
         this.callbackHandlerFactory = callbackHandlerFactory;
         this.userService = userService;
 
-        this.contextPreparer = contextPreparerChainFactory.telegramVideoContextPreparer();
         this.videoResultBuilder = videoResultBuilder;
-        contextPreparer.setNext(contextPreparerChainFactory.streamScaleContextPreparer());
+
+        this.contextPreparer = contextPreparerChainFactory.telegramVideoContextPreparer();
+        contextPreparer.setNext(contextPreparerChainFactory.streamScaleContextPreparer())
+                .setNext(contextPreparerChainFactory.vaiMake());
 
         this.commandBuilderChain = commandBuilderFactory.singleLoop();
         commandBuilderChain.setNext(commandBuilderFactory.quite())
@@ -101,6 +103,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
 
         try {
             List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
+            audioStreams.forEach(f -> f.setInput(1));
             List<FFprobeDevice.FFProbeStream> streams = new ArrayList<>();
             streams.addAll(audioStreams);
             streams.addAll(fFprobeDevice.getAllStreams(downloadedImage.getAbsolutePath()));

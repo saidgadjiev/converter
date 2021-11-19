@@ -177,6 +177,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_NO_AUDIO_IN_VIDEO = "message.no.audio.in.video";
 
+    public static final String MESSAGE_VIDEO_SCREENSHOT_OUT_OF_RANGE = "message.video.screenshot.out.of.range";
+
     public static final String MESSAGE_VIDEO_EDIT_CHOOSE_SETTINGS = "message.video.edit.choose.settings";
 
     public static final String MESSAGE_VIDEO_WILL_BE_EDITED = "message.video.will.be.edited";

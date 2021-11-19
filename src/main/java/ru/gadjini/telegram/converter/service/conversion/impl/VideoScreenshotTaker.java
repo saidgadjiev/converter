@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.joda.time.Period;
+import org.joda.time.Seconds;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
@@ -89,20 +91,24 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            if (settingsState.getCutStartPoint() != null) {
+                validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(),
+                        srcWhd.getDuration(), locale);
+            }
             Period sp = getStartPoint(srcWhd, settingsState);
             String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
 
-            FFmpegCommand commandBuilder = new FFmpegCommand();
-
-            commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath())
-                    .mapVideo(fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams)).vframes("1").qv("2")
-                    .out(result.getAbsolutePath());
-
-            fFmpegDevice.execute(commandBuilder.toCmd());
+            takeScreenshot(file, startPoint, allStreams, result);
+            if (result.length() == 0) {
+                sp = sp.minusSeconds(1);
+                startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
+                takeScreenshot(file, startPoint, allStreams, result);
+            }
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
             String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VSCREENSHOT_RESULT,
-                    new Object[]{startPoint}, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+                    new Object[]{startPoint}, locale);
 
             return new PhotoResult(fileName, result, caption);
         } catch (UserException | CorruptedVideoException e) {
@@ -114,9 +120,20 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
         }
     }
 
+    private void takeScreenshot(SmartTempFile file, String startPoint,
+                                List<FFprobeDevice.FFProbeStream> allStreams, SmartTempFile result) throws InterruptedException {
+        FFmpegCommand commandBuilder = new FFmpegCommand();
+
+        commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath())
+                .mapVideo(fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams)).vframes("1").qv("2")
+                .out(result.getAbsolutePath());
+
+        fFmpegDevice.execute(commandBuilder.toCmd());
+    }
+
     private Period getStartPoint(FFprobeDevice.WHD whd, SettingsState settingsState) {
         if (settingsState.getCutStartPoint() != null) {
-            return settingsState.getCutStartPoint();
+            return settingsState.getCutStartPoint().minusSeconds(1);
         }
         if (whd.getDuration() == null) {
             return Period.seconds(0);
@@ -127,5 +144,20 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
         }
 
         return Period.seconds(new RandomDataGenerator().nextInt(30, whd.getDuration().intValue() - 30));
+    }
+
+    private void validateRange(Integer replyMessageId, Period start, Long totalLength, Locale locale) {
+        if (totalLength == null) {
+            return;
+        }
+        long startSeconds = start.toStandardDuration().getStandardSeconds();
+
+        if (startSeconds < 0 || startSeconds > totalLength) {
+            throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_SCREENSHOT_OUT_OF_RANGE,
+                    new Object[]{
+                            PERIOD_FORMATTER.print(new Period(totalLength * 1000L).normalizedStandard()),
+                            PERIOD_FORMATTER.print(start.normalizedStandard())
+                    }, locale)).setReplyToMessageId(replyMessageId);
+        }
     }
 }
