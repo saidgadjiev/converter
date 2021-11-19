@@ -54,6 +54,10 @@ public class FFmpegConversionContext {
 
     private Map<String, Object> extra = new HashMap<>();
 
+    private FFmpegConversionContext() {
+
+    }
+
     public List<FFprobeDevice.FFProbeStream> streams() {
         return this.streams;
     }
@@ -138,5 +142,25 @@ public class FFmpegConversionContext {
 
     public <T> T getExtra(String name) {
         return (T) extra.get(name);
+    }
+
+    public static FFmpegConversionContext from(SmartTempFile in, SmartTempFile out,
+                                               Format outputFormat, List<FFprobeDevice.FFProbeStream> streams) {
+        return new FFmpegConversionContext()
+                .input(in)
+                .output(out)
+                .outputFormat(outputFormat)
+                .streams(streams);
+    }
+
+    public static FFmpegConversionContext from(SmartTempFile in, SmartTempFile out, Format outputFormat) {
+        return new FFmpegConversionContext()
+                .input(in)
+                .output(out)
+                .outputFormat(outputFormat);
+    }
+
+    public static FFmpegConversionContext from(SmartTempFile output) {
+        return new FFmpegConversionContext().output(output);
     }
 }

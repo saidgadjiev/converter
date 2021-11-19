@@ -115,7 +115,7 @@ public class FFmpegSubtitlesStreamConversionHelper {
                                         SmartTempFile out, Integer input, int index) throws InterruptedException {
         FFmpegCommand command = new FFmpegCommand(baseCommandBuilder);
         command.mapSubtitles(input, index).copySubtitles();
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(out);
         commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
         commandBuilderFactory.output().prepareCommand(command, conversionContext);
 
@@ -127,7 +127,7 @@ public class FFmpegSubtitlesStreamConversionHelper {
                                            int index) throws InterruptedException {
         FFmpegCommand command = new FFmpegCommand(baseCommandBuilder);
         command.mapSubtitles(input, index);
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(out);
         commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
         commandBuilderFactory.output().prepareCommand(command, conversionContext);
 

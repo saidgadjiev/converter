@@ -82,12 +82,9 @@ public class AudioBassBooster extends BaseAudioConverter {
         }
 
         List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                .streams(audioStreams)
-                .input(in)
-                .output(out)
-                .outputFormat(targetFormat)
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, audioStreams)
                 .putExtra(FFmpegConversionContext.BASS_BOOST, bassBoost);
+
         contextPreparerChain.prepare(conversionContext);
 
         FFmpegCommand command = new FFmpegCommand();

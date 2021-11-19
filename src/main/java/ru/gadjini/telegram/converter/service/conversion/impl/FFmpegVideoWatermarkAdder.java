@@ -130,11 +130,8 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             validateWatermarkFile(fileQueueItem, watermark);
 
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .input(video)
-                    .streams(allStreams)
-                    .outputFormat(fileQueueItem.getFirstFileFormat())
-                    .output(result)
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(video, result,
+                    fileQueueItem.getFirstFileFormat(), allStreams)
                     .putExtra(FFmpegConversionContext.VIDEO_WATERMARK, watermark)
                     .putExtra(FFmpegConversionContext.QUEUE_ITEM, fileQueueItem)
                     .putExtra(FFmpegConversionContext.GARBAGE_FILE_COLLECTOR, garbageFileCollection);
@@ -143,7 +140,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             FFmpegCommand command = new FFmpegCommand();
             commandBuilderChain.prepareCommand(command, conversionContext);
 
-            FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(video.getAbsolutePath(), 0);
+            FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(video.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, wdh.getDuration(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             fFmpegDevice.execute(command.toCmd(), callback);

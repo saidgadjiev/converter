@@ -106,11 +106,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             validate(fileQueueItem, srcWhd);
 
             int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .streams(allStreams)
-                    .input(file)
-                    .output(result)
-                    .outputFormat(TARGET_FORMAT)
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, TARGET_FORMAT, allStreams)
                     .putExtra(FFmpegConversionContext.SQUARE_SIZE, size);
             conversionContextPreparer.prepare(conversionContext);
 

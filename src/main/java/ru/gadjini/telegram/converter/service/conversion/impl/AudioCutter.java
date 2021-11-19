@@ -91,11 +91,7 @@ public class AudioCutter extends BaseAudioConverter {
         Period cutEndPoint = settingsState.getCutEndPoint();
         Period cutStartPoint = settingsState.getCutStartPoint();
         long duration = cutEndPoint.minus(cutStartPoint).toStandardDuration().getStandardSeconds();
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                .input(file)
-                .output(result)
-                .streams(allStreams)
-                .outputFormat(fileQueueItem.getFirstFileFormat())
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, targetFormat, allStreams)
                 .putExtra(FFmpegConversionContext.CUT_START_POINT, PERIOD_FORMATTER.print(cutStartPoint))
                 .putExtra(FFmpegConversionContext.STREAM_DURATION, duration);
         contextPreparerChain.prepare(conversionContext);

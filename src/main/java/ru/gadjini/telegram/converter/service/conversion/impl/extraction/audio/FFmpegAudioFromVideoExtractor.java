@@ -90,11 +90,7 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .streams(List.of(audioStream))
-                    .input(file)
-                    .output(result)
-                    .outputFormat(fileQueueItem.getTargetFormat());
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getTargetFormat(), List.of(audioStream));
             conversionContextPreparerChain.prepare(conversionContext);
 
             FFmpegCommand command = new FFmpegCommand();

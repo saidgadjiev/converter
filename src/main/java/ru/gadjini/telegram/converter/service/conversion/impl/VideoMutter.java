@@ -91,11 +91,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .streams(allStreams)
-                    .input(file)
-                    .output(result)
-                    .outputFormat(fileQueueItem.getFirstFileFormat());
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getFirstFileFormat(), allStreams);
             conversionContextPreparerChain.prepare(conversionContext);
 
             FFmpegCommand command = new FFmpegCommand();

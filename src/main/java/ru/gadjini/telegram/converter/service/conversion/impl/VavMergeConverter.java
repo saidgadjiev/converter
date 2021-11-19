@@ -166,11 +166,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
             }
 
             long durationInSeconds = fFprobeDevice.getDurationInSeconds(video.getAbsolutePath());
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .streams(streams)
-                    .input(video)
-                    .output(result)
-                    .outputFormat(targetFormat)
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(video, result, targetFormat, streams)
                     .putExtra(FFmpegConversionContext.AUDIO_STREAMS_COUNT, audios.size())
                     .putExtra(FFmpegConversionContext.SUBTITLE_STREAMS_COUNT, subtitles.size())
                     .putExtra(FFmpegConversionContext.STREAM_DURATION, durationInSeconds);

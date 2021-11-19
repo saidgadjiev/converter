@@ -76,11 +76,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
 
     public void doConvert(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                .input(in)
-                .output(out)
-                .outputFormat(targetFormat)
-                .streams(audioStreams);
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, audioStreams);
         contextPreparerChain.prepare(conversionContext);
 
         FFmpegCommand command = new FFmpegCommand();

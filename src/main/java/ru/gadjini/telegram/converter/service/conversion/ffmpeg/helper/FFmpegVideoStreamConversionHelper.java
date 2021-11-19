@@ -101,7 +101,7 @@ public class FFmpegVideoStreamConversionHelper {
                                           Integer input, int videoStreamMapIndex) throws InterruptedException {
         FFmpegCommand command = new FFmpegCommand(baseCommand);
 
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(out);
         command.mapVideo(input, videoStreamMapIndex).copy(FFmpegCommand.VIDEO_STREAM_SPECIFIER);
         commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
         commandBuilderFactory.output().prepareCommand(command, conversionContext);
@@ -114,7 +114,7 @@ public class FFmpegVideoStreamConversionHelper {
         FFmpegCommand command = new FFmpegCommand(baseCommand);
 
         command.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommand.H264_CODEC).filterVideo(scale);
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(out);
         commandBuilderFactory.output().prepareCommand(command, conversionContext);
 
         return fFmpegDevice.isExecutable(command.toCmd());

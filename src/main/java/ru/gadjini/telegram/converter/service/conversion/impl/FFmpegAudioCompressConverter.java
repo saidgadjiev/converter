@@ -92,22 +92,16 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem, Format targetFormat) {
         String bitrate = AUTO_BITRATE;
-        Format compressionFormat = DEFAULT_AUDIO_COMPRESS_FORMAT;
         String frequency = MP3_FREQUENCY_44;
         if (conversionQueueItem.getExtra() != null) {
             SettingsState settingsState = json.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
-            compressionFormat = settingsState.getFormatOrDefault(MP3);
-            frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(compressionFormat));
+            frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(targetFormat));
         }
 
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath());
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .streams(allStreams)
-                    .input(in)
-                    .output(out)
-                    .outputFormat(compressionFormat)
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, allStreams)
                     .putExtra(FFmpegConversionContext.AUDIO_BITRATE, Integer.parseInt(bitrate))
                     .putExtra(FFmpegConversionContext.FREQUENCY, frequency);
             conversionContextPreparerChain.prepare(conversionContext);

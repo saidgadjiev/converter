@@ -90,10 +90,7 @@ public class AudioMerger extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG,
                     targetFormat.getExt());
             try {
-                FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                        .outputFormat(targetFormat)
-                        .input(filesList)
-                        .output(result);
+                FFmpegConversionContext conversionContext = FFmpegConversionContext.from(filesList, result, targetFormat);
                 contextPreparer.prepare(conversionContext);
 
                 FFmpegCommand command = new FFmpegCommand();

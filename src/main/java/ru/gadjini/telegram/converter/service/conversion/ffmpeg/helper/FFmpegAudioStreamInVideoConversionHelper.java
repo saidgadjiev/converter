@@ -88,7 +88,7 @@ public class FFmpegAudioStreamInVideoConversionHelper {
         FFmpegCommand command = new FFmpegCommand(baseCommandBuilder);
 
         command.mapAudio(input, streamIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext().output(out);
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(out);
         commandBuilderFactory.fastVideoConversionAndDefaultOptions().prepareCommand(command, conversionContext);
         commandBuilderFactory.output().prepareCommand(command, conversionContext);
 

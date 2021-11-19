@@ -111,11 +111,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .input(file)
-                    .output(result)
-                    .streams(allStreams)
-                    .outputFormat(fileQueueItem.getFirstFileFormat());
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getFirstFileFormat(), allStreams);
             conversionContextPreparer.prepare(conversionContext);
 
             FFmpegCommand command = new FFmpegCommand();

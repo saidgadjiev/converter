@@ -104,12 +104,8 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
             List<FFprobeDevice.FFProbeStream> streams = new ArrayList<>();
             streams.addAll(audioStreams);
             streams.addAll(fFprobeDevice.getAllStreams(downloadedImage.getAbsolutePath()));
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .streams(streams)
-                    .input(downloadedImage)
-                    .input(downloadedAudio)
-                    .output(result)
-                    .outputFormat(OUTPUT_FORMAT);
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(downloadedImage, result, OUTPUT_FORMAT, streams)
+                    .input(downloadedAudio);
             contextPreparer.prepare(conversionContext);
 
             FFmpegCommand command = new FFmpegCommand();

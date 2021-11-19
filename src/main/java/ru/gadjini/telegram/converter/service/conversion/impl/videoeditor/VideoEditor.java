@@ -176,11 +176,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
-            FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                    .outputFormat(fileQueueItem.getFirstFileFormat())
-                    .input(file)
-                    .output(result)
-                    .streams(allStreams)
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getFirstFileFormat(), allStreams)
                     .putExtra(FFmpegConversionContext.SETTINGS_STATE, settingsState);
             streamProcessor.prepare(conversionContext);
 

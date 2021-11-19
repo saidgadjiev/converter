@@ -164,11 +164,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
         long duration = ep.minus(sp).toStandardDuration().getStandardSeconds();
 
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext();
-        conversionContext.streams(allStreams)
-                .input(file)
-                .output(result)
-                .outputFormat(fileQueueItem.getFirstFileFormat())
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getFirstFileFormat(), allStreams)
                 .putExtra(FFmpegConversionContext.CUT_START_POINT, startPoint)
                 .putExtra(FFmpegConversionContext.STREAM_DURATION, duration);
         contextPreparerChain.prepare(conversionContext);

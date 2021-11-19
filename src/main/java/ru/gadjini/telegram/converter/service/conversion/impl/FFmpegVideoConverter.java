@@ -123,11 +123,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
                                       boolean withProgress) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
-        FFmpegConversionContext conversionContext = new FFmpegConversionContext()
-                .input(file)
-                .streams(allStreams)
-                .outputFormat(targetFormat)
-                .output(result);
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, targetFormat, allStreams);
         conversionContextPreparer.prepare(conversionContext);
 
         FFmpegCommand command = new FFmpegCommand();
