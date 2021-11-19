@@ -2,7 +2,6 @@ package ru.gadjini.telegram.converter.service.conversion.impl;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.joda.time.Period;
-import org.joda.time.Seconds;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +12,14 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.PhotoResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -55,6 +57,8 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
             Format.filter(FormatCategory.VIDEO), List.of(Format.SCREENSHOT)
     );
 
+    private final FFmpegCommandBuilderChain commandBuilder;
+
     private FFmpegVideoStreamConversionHelper fFmpegVideoHelper;
 
     private FFmpegDevice fFmpegDevice;
@@ -70,7 +74,8 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
     @Autowired
     public VideoScreenshotTaker(FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                                 FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                UserService userService, LocalisationService localisationService, Jackson jackson) {
+                                UserService userService, LocalisationService localisationService, Jackson jackson,
+                                FFmpegCommandBuilderFactory commandBuilderFactory) {
         super(MAP);
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.fFmpegDevice = fFmpegDevice;
@@ -78,6 +83,12 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
         this.userService = userService;
         this.localisationService = localisationService;
         this.jackson = jackson;
+
+        this.commandBuilder = commandBuilderFactory.quite();
+        commandBuilder.setNext(commandBuilderFactory.cutStartPoint())
+                .setNext(commandBuilderFactory.input())
+                .setNext(commandBuilderFactory.videoScreenshot())
+                .setNext(commandBuilderFactory.output());
     }
 
     @Override
@@ -99,11 +110,14 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
             Period sp = getStartPoint(srcWhd, settingsState);
             String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
 
-            takeScreenshot(file, startPoint, allStreams, result);
-            if (result.length() == 0) {
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, Format.JPG, allStreams)
+                    .putExtra(FFmpegConversionContext.CUT_START_POINT, startPoint);
+            takeScreenshot(conversionContext);
+            if (result.length() == 0 && sp.toStandardSeconds().getSeconds() > 0) {
                 sp = sp.minusSeconds(1);
                 startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
-                takeScreenshot(file, startPoint, allStreams, result);
+                conversionContext.putExtra(FFmpegConversionContext.CUT_START_POINT, startPoint);
+                takeScreenshot(conversionContext);
             }
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
@@ -120,20 +134,16 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
         }
     }
 
-    private void takeScreenshot(SmartTempFile file, String startPoint,
-                                List<FFprobeDevice.FFProbeStream> allStreams, SmartTempFile result) throws InterruptedException {
-        FFmpegCommand commandBuilder = new FFmpegCommand();
+    private void takeScreenshot(FFmpegConversionContext conversionContext) throws InterruptedException {
+        FFmpegCommand command = new FFmpegCommand();
+        commandBuilder.prepareCommand(command, conversionContext);
 
-        commandBuilder.hideBanner().quite().ss(startPoint).input(file.getAbsolutePath())
-                .mapVideo(fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams)).vframes("1").qv("2")
-                .out(result.getAbsolutePath());
-
-        fFmpegDevice.execute(commandBuilder.toCmd());
+        fFmpegDevice.execute(command.toCmd());
     }
 
     private Period getStartPoint(FFprobeDevice.WHD whd, SettingsState settingsState) {
         if (settingsState.getCutStartPoint() != null) {
-            return settingsState.getCutStartPoint().minusSeconds(1);
+            return settingsState.getCutStartPoint();
         }
         if (whd.getDuration() == null) {
             return Period.seconds(0);

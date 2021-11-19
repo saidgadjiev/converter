@@ -246,6 +246,10 @@ public class FFmpegCommandBuilderFactory {
         return new FFmpegMapAndCopyAudioCommandBuilder();
     }
 
+    public FFmpegCommandBuilderChain videoScreenshot() {
+        return new FFmpegVideoScreenshotCommandBuilder(videoStreamConversionHelper);
+    }
+
     public FFmpegCommandBuilderChain audioCompression() {
         return new FFmpegAudioCompressionCommandBuilder();
     }
