@@ -15,6 +15,10 @@ public class BitrateCalculatorContext {
 
     private List<MediaInfoService.MediaInfoTrack> mediaInfoTracks;
 
+    private Integer overallBitrate;
+
+    private boolean manualBitrateCalculated;
+
     private Integer videoBitrate;
 
     private Integer audioBitrate;
@@ -79,5 +83,21 @@ public class BitrateCalculatorContext {
 
     public void setVideoBitrate(Integer videoBitrate) {
         this.videoBitrate = videoBitrate;
+    }
+
+    public Integer getOverallBitrate() {
+        return overallBitrate;
+    }
+
+    public void setOverallBitrate(Integer overallBitrate) {
+        this.overallBitrate = overallBitrate;
+    }
+
+    public boolean isManualBitrateCalculated() {
+        return manualBitrateCalculated;
+    }
+
+    public void setManualBitrateCalculated(boolean manualBitrateCalculated) {
+        this.manualBitrateCalculated = manualBitrateCalculated;
     }
 }

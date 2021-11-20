@@ -11,7 +11,7 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVide
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegWdhService;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -20,7 +20,7 @@ public class ManualBitrateCalculator implements BitrateCalculator {
 
     private FFmpegImageStreamDetector imageStreamDetector;
 
-    private Set<VideoOverallBitrateCalculator> overallBitrateCalculators;
+    private List<VideoOverallBitrateCalculator> overallBitrateCalculators;
 
     private FFmpegWdhService fFmpegWdhService;
 
@@ -28,7 +28,7 @@ public class ManualBitrateCalculator implements BitrateCalculator {
 
     @Autowired
     public ManualBitrateCalculator(FFmpegImageStreamDetector imageStreamDetector,
-                                   Set<VideoOverallBitrateCalculator> overallBitrateCalculators,
+                                   List<VideoOverallBitrateCalculator> overallBitrateCalculators,
                                    FFmpegWdhService fFmpegWdhService, FFmpegVideoStreamDetector videoStreamDetector) {
         this.imageStreamDetector = imageStreamDetector;
         this.overallBitrateCalculators = overallBitrateCalculators;
@@ -42,6 +42,32 @@ public class ManualBitrateCalculator implements BitrateCalculator {
                 videoStreamDetector.getFirstVideoStreamIndex(bitrateCalculatorContext.getStreams()));
         bitrateCalculatorContext.setWhd(whd);
         Integer overallBitrate = getOverallBitrate(bitrateCalculatorContext);
+        bitrateCalculatorContext.setOverallBitrate(overallBitrate);
+    }
+
+    @Override
+    public Integer calculateBitrate(FFprobeDevice.FFProbeStream stream, BitrateCalculatorContext bitrateCalculatorContext) {
+        if (!bitrateCalculatorContext.isManualBitrateCalculated()) {
+            calculateManualBitrate(bitrateCalculatorContext);
+            bitrateCalculatorContext.setManualBitrateCalculated(true);
+        }
+        if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)
+                && imageStreamDetector.isImageStream(stream)) {
+            return bitrateCalculatorContext.getImageVideoBitrate();
+        }
+        if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)
+                && !imageStreamDetector.isImageStream(stream)) {
+            return bitrateCalculatorContext.getVideoBitrate();
+        }
+        if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {
+            return bitrateCalculatorContext.getAudioBitrate();
+        }
+
+        return null;
+    }
+
+    private void calculateManualBitrate(BitrateCalculatorContext bitrateCalculatorContext) {
+        Integer overallBitrate = bitrateCalculatorContext.getOverallBitrate();
         for (FFprobeDevice.FFProbeStream stream : bitrateCalculatorContext.getStreams()) {
             if (stream.getBitRate() != null) {
                 overallBitrate -= stream.getBitRate();
@@ -73,23 +99,6 @@ public class ManualBitrateCalculator implements BitrateCalculator {
         bitrateCalculatorContext.setVideoBitrate(videoBitrateResult.get());
         bitrateCalculatorContext.setAudioBitrate(audioBitrateResult.get());
         bitrateCalculatorContext.setImageVideoBitrate(imageVideoBitrateResult.get());
-    }
-
-    @Override
-    public Integer calculateBitrate(FFprobeDevice.FFProbeStream stream, BitrateCalculatorContext bitrateCalculatorContext) {
-        if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)
-                && imageStreamDetector.isImageStream(stream)) {
-            return bitrateCalculatorContext.getImageVideoBitrate();
-        }
-        if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)
-                && !imageStreamDetector.isImageStream(stream)) {
-            return bitrateCalculatorContext.getVideoBitrate();
-        }
-        if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {
-            return bitrateCalculatorContext.getAudioBitrate();
-        }
-
-        return null;
     }
 
     private Integer getOverallBitrate(BitrateCalculatorContext calculatorContext) throws InterruptedException {

@@ -71,6 +71,7 @@ public class FFmpegWdhService {
         command.add("error");
         command.add("-select_streams");
         command.add(FFmpegCommand.VIDEO_STREAM_SPECIFIER + ":" + streamIndex);
+        command.add("-show_entries");
         command.add("stream=index,codec_name,codec_type,width,height:stream_tags=language,mimetype,filename:format=duration");
         command.add("-of");
         command.add("json");

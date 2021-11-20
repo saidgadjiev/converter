@@ -14,7 +14,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Service
 public class FFprobeDevice {
@@ -27,12 +26,12 @@ public class FFprobeDevice {
 
     private FFmpegWdhService fFmpegWdhService;
 
-    private Set<BitrateCalculator> bitrateCalculators;
+    private List<BitrateCalculator> bitrateCalculators;
 
     @Autowired
     public FFprobeDevice(ProcessExecutor processExecutor, Jackson jsonMapper,
                          FFmpegWdhService fFmpegWdhService,
-                         Set<BitrateCalculator> bitrateCalculators) {
+                         List<BitrateCalculator> bitrateCalculators) {
         this.processExecutor = processExecutor;
         this.jsonMapper = jsonMapper;
         this.fFmpegWdhService = fFmpegWdhService;
@@ -124,13 +123,13 @@ public class FFprobeDevice {
         for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
             bitrateCalculator.prepareContext(bitrateCalculatorContext);
         }
-        for (FFProbeStream stream : streams) {
-            for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
-                Integer bitrate = bitrateCalculator.calculateBitrate(stream, bitrateCalculatorContext);
-                if (bitrate != null) {
-                    stream.setBitRate(bitrate);
-                    break;
+        for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
+            for (FFProbeStream stream : streams) {
+                if (stream.getBitRate() != null) {
+                    continue;
                 }
+                Integer bitrate = bitrateCalculator.calculateBitrate(stream, bitrateCalculatorContext);
+                stream.setBitRate(bitrate);
             }
         }
     }

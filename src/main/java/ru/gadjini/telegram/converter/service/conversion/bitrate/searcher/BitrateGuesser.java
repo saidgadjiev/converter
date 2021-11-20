@@ -21,7 +21,7 @@ public class BitrateGuesser {
         }
         calculateVideoAudioBitrate(overallBitrate, startAudioBitrate, videoStreamsCount,
                 audioStreamsCount, videoBitrateResult, audioBitrateResult);
-        if (videoBitrateResult.get() < MIN_VIDEO_BITRATE) {
+        if (videoBitrateResult.get() < MIN_VIDEO_BITRATE && videoStreamsCount > 0) {
             for (Integer lessAudioBitrateVariation : AVAILABLE_AUDIO_BITRATES) {
                 if (lessAudioBitrateVariation < startAudioBitrate) {
                     calculateVideoAudioBitrate(overallBitrate, lessAudioBitrateVariation, videoStreamsCount,
@@ -37,12 +37,16 @@ public class BitrateGuesser {
     private static void calculateVideoAudioBitrate(int overallBitrate, int audioBitrate,
                                                    int videoStreamsCount, int audioStreamsCount,
                                                    AtomicInteger videoBitrateResult, AtomicInteger audioBitrateResult) {
-        if (audioStreamsCount > 0) {
-            overallBitrate -= audioStreamsCount * audioBitrate;
-            audioBitrateResult.set(audioBitrate);
-        }
-        int videoBitrate = overallBitrate / videoStreamsCount;
+        if (videoStreamsCount == 0) {
+            audioBitrateResult.set(overallBitrate / audioStreamsCount);
+        } else {
+            if (audioStreamsCount > 0) {
+                overallBitrate -= audioStreamsCount * audioBitrate;
+                audioBitrateResult.set(audioBitrate);
+            }
+            int videoBitrate = overallBitrate / videoStreamsCount;
 
-        videoBitrateResult.set(videoBitrate);
+            videoBitrateResult.set(videoBitrate);
+        }
     }
 }

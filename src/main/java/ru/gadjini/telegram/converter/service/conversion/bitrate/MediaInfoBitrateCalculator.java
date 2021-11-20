@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.bitrate;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -28,12 +29,13 @@ public class MediaInfoBitrateCalculator implements BitrateCalculator {
 
     @Override
     public Integer calculateBitrate(FFprobeDevice.FFProbeStream ffProbeStream, BitrateCalculatorContext bitrateCalculatorContext) {
-        return bitrateCalculatorContext.getMediaInfoTracks().stream()
+        MediaInfoService.MediaInfoTrack mediaInfoTrack = bitrateCalculatorContext.getMediaInfoTracks().stream()
                 .filter(t -> Objects.equals(ffProbeStream.getIndex(), t.getStreamOrder()) &&
                         Objects.equals(t.getType(), getMediaInfoStreamTypeByFFmpegCodecType(ffProbeStream.getCodecType())))
                 .findFirst()
-                .orElse(new MediaInfoService.MediaInfoTrack())
-                .getBitRate();
+                .orElse(new MediaInfoService.MediaInfoTrack());
+
+        return ObjectUtils.firstNonNull(mediaInfoTrack.getBitRate(), mediaInfoTrack.getBitrateNominal());
     }
 
     private String getMediaInfoStreamTypeByFFmpegCodecType(String ffmpegCodecType) {

@@ -3,16 +3,19 @@ package ru.gadjini.telegram.converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
 import javax.annotation.PostConstruct;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -20,7 +23,7 @@ import java.util.TimeZone;
 @EnableScheduling
 @SpringBootApplication
 @ComponentScan("ru")
-public class ConverterApplication {
+public class ConverterApplication implements CommandLineRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterApplication.class);
 
@@ -55,5 +58,15 @@ public class ConverterApplication {
     private static void setDefaultLocaleAndTZ() {
         Locale.setDefault(new Locale(LocalisationService.EN_LOCALE));
         TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
+    }
+
+    @Autowired
+    private FFprobeDevice fFprobeDevice;
+
+    @Override
+    public void run(String... args) throws Exception {
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams("C:/mm.mkv");
+
+        System.out.println(allStreams);
     }
 }
