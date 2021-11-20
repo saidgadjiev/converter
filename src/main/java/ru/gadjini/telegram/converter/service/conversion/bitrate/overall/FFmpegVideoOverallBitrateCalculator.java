@@ -5,6 +5,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.conversion.bitrate.BitrateCalculatorContext;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
+import ru.gadjini.telegram.converter.utils.BitrateUtils;
 
 @Component
 @Order(2)
@@ -19,6 +20,8 @@ public class FFmpegVideoOverallBitrateCalculator implements VideoOverallBitrateC
 
     @Override
     public Integer calculate(BitrateCalculatorContext bitrateCalculatorContext) throws InterruptedException {
-        return fFmpegDevice.getOverallBitrate(bitrateCalculatorContext.getIn());
+        Integer overallBitrate = fFmpegDevice.getOverallBitrate(bitrateCalculatorContext.getIn());
+
+        return overallBitrate == null ? null : BitrateUtils.toBytes(overallBitrate);
     }
 }

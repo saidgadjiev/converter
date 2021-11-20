@@ -35,7 +35,7 @@ public class FFmpegDevice {
     }
 
     public Integer getOverallBitrate(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getBitrateCommand(in));
+        String result = processExecutor.tryExecute(getBitrateCommand(in), 3);
 
         Matcher matcher = BITRATE_PATTERN.matcher(result);
         if (matcher.find()) {
