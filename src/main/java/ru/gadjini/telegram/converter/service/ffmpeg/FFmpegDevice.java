@@ -1,5 +1,7 @@
 package ru.gadjini.telegram.converter.service.ffmpeg;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
@@ -10,12 +12,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
 public class FFmpegDevice {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegDevice.class);
+
     private static final Pattern DECODER_NOT_FOUND_PATTERN = Pattern.compile(".*Decoder \\(.*\\) not found for input stream.*", Pattern.DOTALL);
+
+    private static final Pattern BITRATE_PATTERN = Pattern.compile("(?<=bitrate: )[\\d:.]*");
 
     private ProcessExecutor processExecutor;
 
@@ -25,6 +32,22 @@ public class FFmpegDevice {
     public FFmpegDevice(ProcessExecutor processExecutor, FFmpegProcessExecutor fFmpegProcessExecutor) {
         this.processExecutor = processExecutor;
         this.fFmpegProcessExecutor = fFmpegProcessExecutor;
+    }
+
+    public Integer getOverallBitrate(String in) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getBitrateCommand(in));
+
+        Matcher matcher = BITRATE_PATTERN.matcher(result);
+        if (matcher.find()) {
+            try {
+                return Integer.valueOf(result.substring(matcher.start(), matcher.end()));
+            } catch (NumberFormatException e) {
+                LOGGER.error(e.getMessage(), e);
+                return null;
+            }
+        }
+
+        return null;
     }
 
     public void convert(String in, String out, String... options) throws InterruptedException {
@@ -72,6 +95,12 @@ public class FFmpegDevice {
         cmd.add(out);
 
         return cmd.toArray(String[]::new);
+    }
+
+    private String[] getBitrateCommand(String in) {
+        return new String[] {
+                "ffmpeg", "-y", "-i", in
+        };
     }
 
     private boolean isOkay(String result) {

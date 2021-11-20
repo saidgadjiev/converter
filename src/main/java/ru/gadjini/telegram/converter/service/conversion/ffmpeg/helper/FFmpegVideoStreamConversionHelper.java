@@ -1,8 +1,6 @@
 package ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
@@ -11,33 +9,29 @@ import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.utils.NumberUtils;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 public class FFmpegVideoStreamConversionHelper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideoStreamConversionHelper.class);
-
-    private static final Set<String> IMAGE_CODECS = Set.of(FFmpegCommand.BMP, FFmpegCommand.PNG, FFmpegCommand.MJPEG);
-
     private FFmpegDevice fFmpegDevice;
-
-    private FormatService formatService;
 
     private FFmpegCommandBuilderFactory commandBuilderFactory;
 
+    private FFmpegImageStreamDetector imageStreamDetector;
+
+    private FFmpegVideoStreamDetector videoStreamDetector;
+
     @Autowired
-    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice, FormatService formatService) {
+    public FFmpegVideoStreamConversionHelper(FFmpegDevice fFmpegDevice,
+                                             FFmpegImageStreamDetector imageStreamDetector, FFmpegVideoStreamDetector videoStreamDetector) {
         this.fFmpegDevice = fFmpegDevice;
-        this.formatService = formatService;
+        this.imageStreamDetector = imageStreamDetector;
+        this.videoStreamDetector = videoStreamDetector;
     }
 
     @Autowired
@@ -145,7 +139,7 @@ public class FFmpegVideoStreamConversionHelper {
     public Integer getOverallBitrate(List<FFprobeDevice.FFProbeStream> streams) {
         Integer overallBitrate = 0;
         for (FFprobeDevice.FFProbeStream stream : streams) {
-            if (isImageStream(stream)) {
+            if (imageStreamDetector.isImageStream(stream)) {
                 continue;
             }
             overallBitrate += stream.getBitRate();
@@ -155,29 +149,11 @@ public class FFmpegVideoStreamConversionHelper {
     }
 
     public boolean isExtraVideoStream(List<FFprobeDevice.FFProbeStream> videoStreams, FFprobeDevice.FFProbeStream videoStream) {
-        if (videoStreams.size() == 1 && isImageStream(videoStream)) {
-            return false;
-        }
-        if (videoStreams.stream().allMatch(this::isImageStream)) {
-            return false;
-        }
-
-        return isImageStream(videoStream);
+        return videoStreamDetector.isExtraVideoStream(videoStreams, videoStream);
     }
 
     public int getFirstVideoStreamIndex(List<FFprobeDevice.FFProbeStream> allStreams) {
-        List<FFprobeDevice.FFProbeStream> videoStreams = allStreams.stream()
-                .filter(s -> FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
-                .collect(Collectors.toList());
-
-        for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
-            FFprobeDevice.FFProbeStream videoStream = videoStreams.get(videoStreamMapIndex);
-            if (!isExtraVideoStream(videoStreams, videoStream)) {
-                return videoStreamMapIndex;
-            }
-        }
-
-        return 0;
+        return videoStreamDetector.getFirstVideoStreamIndex(allStreams);
     }
 
     private void addScaleFilterForH264(FFmpegCommand commandBuilder, FFprobeDevice.FFProbeStream stream,
@@ -191,22 +167,5 @@ public class FFmpegVideoStreamConversionHelper {
                 commandBuilder.filterVideo(codecIndex, scale);
             }
         }
-    }
-
-    private boolean isImageStream(FFprobeDevice.FFProbeStream stream) {
-        if (StringUtils.isNotBlank(stream.getCodecName()) && IMAGE_CODECS.contains(stream.getCodecName())) {
-            return true;
-        }
-        try {
-            Format format = formatService.getFormat(stream.getFileName(), stream.getMimeType());
-
-            if (format != null && format.getCategory() == FormatCategory.IMAGES) {
-                return true;
-            }
-        } catch (Throwable e) {
-            LOGGER.error(e.getMessage());
-        }
-
-        return false;
     }
 }

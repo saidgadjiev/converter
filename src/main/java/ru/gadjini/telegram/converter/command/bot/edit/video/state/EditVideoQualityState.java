@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
+import ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.AudioBitrateByResolutionSearcher;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -17,7 +18,9 @@ import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -145,7 +148,8 @@ public class EditVideoQualityState extends BaseEditVideoState {
             int quality = MAX_QUALITY - Integer.parseInt(compressionRate);
             int targetOverallBitrate = convertState.getCurrentOverallBitrate() * quality / MAX_QUALITY;
             int targetAudioBitrate = convertState.hasAudio()
-                    ? findTargetAudioBitrate(convertState.getSettings().getResolutionOrDefault(convertState.getCurrentVideoResolution()))
+                    ? AudioBitrateByResolutionSearcher
+                    .getAudioBitrate(convertState.getSettings().getResolutionOrDefault(convertState.getCurrentVideoResolution()))
                     : 0;
 
             AtomicInteger videoBitrate = new AtomicInteger();
@@ -186,24 +190,6 @@ public class EditVideoQualityState extends BaseEditVideoState {
         }
 
         return availableResolutions.get(idx);
-    }
-
-    private int findTargetAudioBitrate(int resolution) {
-        if (EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.containsKey(resolution)) {
-            return EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.get(resolution);
-        }
-        List<Integer> resolutions = new ArrayList<>(EditVideoResolutionState.VIDEO_BITRATE_BY_RESOLUTION.keySet());
-        int distance = Math.abs(resolutions.get(0) - resolution);
-        int idx = 0;
-        for (int c = 1; c < resolutions.size(); c++) {
-            int cdistance = Math.abs(resolutions.get(c) - resolution);
-            if (cdistance < distance) {
-                idx = c;
-                distance = cdistance;
-            }
-        }
-
-        return EditVideoResolutionState.AUDIO_BITRATE_BY_RESOLUTION.get(resolutions.get(idx));
     }
 
     private boolean isValid(String crf) {

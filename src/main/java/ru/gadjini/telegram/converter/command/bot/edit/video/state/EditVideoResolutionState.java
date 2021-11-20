@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.AudioBitrateByResolutionSearcher.AUDIO_BITRATE_BY_RESOLUTION;
+
 @Component
 public class EditVideoResolutionState extends BaseEditVideoState {
 
@@ -38,15 +40,6 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             360, 636 * 1024,
             240, 368 * 1024,
             144, 218 * 1024
-    );
-
-    public static final Map<Integer, Integer> AUDIO_BITRATE_BY_RESOLUTION = Map.of(
-            1080, 128 * 1024,
-            720, 64 * 1024,
-            480, 64 * 1024,
-            360, 64 * 1024,
-            240, 32 * 1024,
-            144, 32 * 1024
     );
 
     private MessageService messageService;

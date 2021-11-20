@@ -4,25 +4,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
-import ru.gadjini.telegram.converter.service.mediainfo.MediaInfoService;
+import ru.gadjini.telegram.converter.service.conversion.bitrate.BitrateCalculator;
+import ru.gadjini.telegram.converter.service.conversion.bitrate.BitrateCalculatorContext;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 
 @Service
 public class FFprobeDevice {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFprobeDevice.class);
 
     private static final String STREAMS_JSON_ATTR = "streams";
 
@@ -30,18 +25,22 @@ public class FFprobeDevice {
 
     private Jackson jsonMapper;
 
-    private MediaInfoService mediaInfoService;
+    private FFmpegWdhService fFmpegWdhService;
+
+    private Set<BitrateCalculator> bitrateCalculators;
 
     @Autowired
     public FFprobeDevice(ProcessExecutor processExecutor, Jackson jsonMapper,
-                         MediaInfoService mediaInfoService) {
+                         FFmpegWdhService fFmpegWdhService,
+                         Set<BitrateCalculator> bitrateCalculators) {
         this.processExecutor = processExecutor;
         this.jsonMapper = jsonMapper;
-        this.mediaInfoService = mediaInfoService;
+        this.fFmpegWdhService = fFmpegWdhService;
+        this.bitrateCalculators = bitrateCalculators;
     }
 
     public List<FFProbeStream> getAudioStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.AUDIO_STREAM_SPECIFIER));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
@@ -53,7 +52,7 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getSubtitleStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.SUBTITLES_STREAM_SPECIFIER));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
@@ -61,7 +60,7 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getVideoStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.VIDEO_STREAM_SPECIFIER));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
@@ -91,32 +90,7 @@ public class FFprobeDevice {
     }
 
     public WHD getWHD(String in, int index, boolean throwEx) throws InterruptedException {
-        WHD whd = new WHD();
-        try {
-            FFprobeDevice.FFprobeResult probeVideoStream = probeVideoStream(in, index);
-            if (probeVideoStream != null) {
-                FFProbeStream videoStream = probeVideoStream.getFirstStream();
-                if (videoStream != null) {
-                    whd.setWidth(videoStream.getWidth());
-                    whd.setHeight(videoStream.getHeight());
-                }
-                FFprobeDevice.FFprobeFormat fFprobeFormat = probeVideoStream.getFormat();
-                if (fFprobeFormat != null) {
-                    Long duration = probeVideoStream.getFormat().getDuration();
-                    whd.setDuration(duration);
-                }
-            }
-        } catch (InterruptedException e) {
-            throw e;
-        } catch (Exception e) {
-            if (throwEx) {
-                throw e;
-            } else {
-                LOGGER.error(e.getMessage(), e);
-            }
-        }
-
-        return whd;
+        return fFmpegWdhService.getWHD(in, index, throwEx);
     }
 
     public long getDurationInSeconds(String in) throws InterruptedException {
@@ -129,34 +103,13 @@ public class FFprobeDevice {
         return new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", in};
     }
 
-    private FFprobeResult probeVideoStream(String in, int index) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.VIDEO_STREAM_SPECIFIER, index));
-        return jsonMapper.readValue(result, FFprobeResult.class);
-    }
-
     private String[] getProbeStreamsCommand(String in) {
-        return getProbeStreamsCommand(in, null);
-    }
-
-    private String[] getProbeStreamsCommand(String in, String selectStreamsTag) {
-        return getProbeStreamsCommand(in, selectStreamsTag, null);
-    }
-
-    private String[] getProbeStreamsCommand(String in, String selectStreamsTag, Integer streamIndex) {
         List<String> command = new ArrayList<>();
         command.add("ffprobe");
         command.add("-v");
         command.add("error");
-        if (StringUtils.isNotBlank(selectStreamsTag)) {
-            command.add("-select_streams");
-            if (streamIndex == null) {
-                command.add(selectStreamsTag);
-            } else {
-                command.add(selectStreamsTag + ":" + streamIndex);
-            }
-        }
         command.add("-show_entries");
-        command.add("stream=index,codec_name,codec_type,width,height,bit_rate:stream_tags=language,mimetype,filename:format=duration");
+        command.add("stream=index,codec_name,codec_type,width,height:stream_tags=language,mimetype,filename:format=duration");
         command.add("-of");
         command.add("json");
         command.add(in);
@@ -165,39 +118,20 @@ public class FFprobeDevice {
     }
 
     private void setBitrateAndSizesForStreams(String in, List<FFProbeStream> streams) throws InterruptedException {
-        List<MediaInfoService.MediaInfoTrack> tracks = mediaInfoService.getTracks(in);
-
-        streams.forEach(ffProbeStream -> tracks.stream().filter(t -> Objects.equals(ffProbeStream.index, t.getStreamOrder()) &&
-                Objects.equals(t.getType(), getMediaInfoStreamTypeByFFmpegCodecType(ffProbeStream.getCodecType())))
-                .findFirst()
-                .ifPresent(mediaInfoTrack -> {
-                    if (mediaInfoTrack.getBitRate() != null) {
-                        ffProbeStream.setBitRate(mediaInfoTrack.getBitRate());
-                    }
-                    ffProbeStream.streamSize = mediaInfoTrack.getStreamSize();
-                    if (FFProbeStream.VIDEO_CODEC_TYPE.equals(ffProbeStream.getCodecType())
-                            && ffProbeStream.getBitRate() == null
-                            && ffProbeStream.getStreamSize() != null
-                    ) {
-                        ffProbeStream.setBitRate(calculateBitRate(ffProbeStream.getStreamSize(), ffProbeStream.getDuration()));
-                    }
-                }));
-    }
-
-    private int calculateBitRate(long fileSize, long duration) {
-        return (int) ((fileSize / 1024 * 8) / duration);
-    }
-
-    private String getMediaInfoStreamTypeByFFmpegCodecType(String ffmpegCodecType) {
-        switch (ffmpegCodecType) {
-            case FFProbeStream.AUDIO_CODEC_TYPE:
-                return MediaInfoService.AUDIO_TYPE;
-            case FFProbeStream.VIDEO_CODEC_TYPE:
-                return MediaInfoService.VIDEO_TYPE;
-            case FFProbeStream.SUBTITLE_CODEC_TYPE:
-                return MediaInfoService.SUBTITLE_TYPE;
-            default:
-                return "unknown";
+        BitrateCalculatorContext bitrateCalculatorContext = new BitrateCalculatorContext()
+                .setIn(in)
+                .setStreams(streams);
+        for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
+            bitrateCalculator.prepareContext(bitrateCalculatorContext);
+        }
+        for (FFProbeStream stream : streams) {
+            for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
+                Integer bitrate = bitrateCalculator.calculateBitrate(stream, bitrateCalculatorContext);
+                if (bitrate != null) {
+                    stream.setBitRate(bitrate);
+                    break;
+                }
+            }
         }
     }
 

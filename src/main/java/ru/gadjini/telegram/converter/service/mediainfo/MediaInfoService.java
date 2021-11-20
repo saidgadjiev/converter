@@ -68,6 +68,10 @@ public class MediaInfoService {
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         private Long streamSize;
 
+        @JsonProperty("OverallBitRate")
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        private Integer overallBitRate;;
+
         public String getType() {
             return type;
         }
@@ -82,6 +86,10 @@ public class MediaInfoService {
 
         public Long getStreamSize() {
             return streamSize;
+        }
+
+        public Integer getOverallBitRate() {
+            return overallBitRate;
         }
     }
 
