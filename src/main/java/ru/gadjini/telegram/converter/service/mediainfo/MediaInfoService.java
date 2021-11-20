@@ -64,17 +64,13 @@ public class MediaInfoService {
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         private Integer bitRate;
 
-        @JsonProperty("BitRate_Nominal")
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
-        private Integer bitrateNominal;
-
         @JsonProperty("StreamSize")
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         private Long streamSize;
 
         @JsonProperty("OverallBitRate")
         @JsonFormat(shape = JsonFormat.Shape.STRING)
-        private Integer overallBitRate;;
+        private Integer overallBitRate;
 
         public String getType() {
             return type;
@@ -86,10 +82,6 @@ public class MediaInfoService {
 
         public Integer getBitRate() {
             return bitRate;
-        }
-
-        public Integer getBitrateNominal() {
-            return bitrateNominal;
         }
 
         public Long getStreamSize() {
