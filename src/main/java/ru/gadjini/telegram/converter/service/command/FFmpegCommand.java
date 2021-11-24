@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.command;
 
 import org.apache.commons.lang3.StringUtils;
+import ru.gadjini.telegram.converter.utils.BitrateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -648,7 +649,7 @@ public class FFmpegCommand {
             return this;
         }
 
-        ba(index, bitRate / 1024 + "k");
+        ba(index, BitrateUtils.toKBytes(bitRate) + "k");
 
         return this;
     }
@@ -658,7 +659,7 @@ public class FFmpegCommand {
             return this;
         }
 
-        ba(bitRate / 1024 + "k");
+        ba(BitrateUtils.toKBytes(bitRate) + "k");
 
         return this;
     }
@@ -672,7 +673,7 @@ public class FFmpegCommand {
             return this;
         }
 
-        videoBitRate = videoBitRate / 1024;
+        videoBitRate = BitrateUtils.toKBytes(videoBitRate);
         videoBitRate = videoBitRate * quality / 100;
 
         bv(index, videoBitRate + "k");

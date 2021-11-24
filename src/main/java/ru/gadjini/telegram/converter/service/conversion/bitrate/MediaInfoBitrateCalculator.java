@@ -29,7 +29,7 @@ public class MediaInfoBitrateCalculator implements BitrateCalculator {
     @Override
     public Integer calculateBitrate(FFprobeDevice.FFProbeStream ffProbeStream, BitrateCalculatorContext bitrateCalculatorContext) {
         return bitrateCalculatorContext.getMediaInfoTracks().stream()
-                .filter(t -> Objects.equals(ffProbeStream.getIndex(), t.getStreamOrder()) &&
+                .filter(t -> Objects.equals(ffProbeStream.getIndex(), t.getIndex()) &&
                         Objects.equals(t.getType(), getMediaInfoStreamTypeByFFmpegCodecType(ffProbeStream.getCodecType())))
                 .findFirst()
                 .orElse(new MediaInfoService.MediaInfoTrack())

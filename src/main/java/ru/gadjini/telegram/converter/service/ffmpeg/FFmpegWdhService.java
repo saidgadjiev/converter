@@ -26,6 +26,16 @@ public class FFmpegWdhService {
         this.jsonMapper = jsonMapper;
     }
 
+    public long getDurationInSeconds(String in) throws InterruptedException {
+        String duration = processExecutor.executeWithResult(getDurationCommand(in));
+
+        return Math.round(Double.parseDouble(duration));
+    }
+
+    private String[] getDurationCommand(String in) {
+        return new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", in};
+    }
+
     public FFprobeDevice.WHD getWHD(String in, int index) throws InterruptedException {
         return getWHD(in, index, false);
     }

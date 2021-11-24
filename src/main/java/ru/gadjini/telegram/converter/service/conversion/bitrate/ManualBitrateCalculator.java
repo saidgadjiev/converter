@@ -3,7 +3,7 @@ package ru.gadjini.telegram.converter.service.conversion.bitrate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.converter.service.conversion.bitrate.overall.VideoOverallBitrateCalculator;
+import ru.gadjini.telegram.converter.service.conversion.bitrate.overall.OverallBitrateCalculator;
 import ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.AudioBitrateByResolutionSearcher;
 import ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.BitrateGuesser;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegImageStreamDetector;
@@ -20,7 +20,7 @@ public class ManualBitrateCalculator implements BitrateCalculator {
 
     private FFmpegImageStreamDetector imageStreamDetector;
 
-    private List<VideoOverallBitrateCalculator> overallBitrateCalculators;
+    private List<OverallBitrateCalculator> overallBitrateCalculators;
 
     private FFmpegWdhService fFmpegWdhService;
 
@@ -28,7 +28,7 @@ public class ManualBitrateCalculator implements BitrateCalculator {
 
     @Autowired
     public ManualBitrateCalculator(FFmpegImageStreamDetector imageStreamDetector,
-                                   List<VideoOverallBitrateCalculator> overallBitrateCalculators,
+                                   List<OverallBitrateCalculator> overallBitrateCalculators,
                                    FFmpegWdhService fFmpegWdhService, FFmpegVideoStreamDetector videoStreamDetector) {
         this.imageStreamDetector = imageStreamDetector;
         this.overallBitrateCalculators = overallBitrateCalculators;
@@ -38,9 +38,17 @@ public class ManualBitrateCalculator implements BitrateCalculator {
 
     @Override
     public void prepareContext(BitrateCalculatorContext bitrateCalculatorContext) throws InterruptedException {
-        FFprobeDevice.WHD whd = fFmpegWdhService.getWHD(bitrateCalculatorContext.getIn(),
-                videoStreamDetector.getFirstVideoStreamIndex(bitrateCalculatorContext.getStreams()));
-        bitrateCalculatorContext.setWhd(whd);
+        if (bitrateCalculatorContext.getStreams().stream().anyMatch(f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE))) {
+            FFprobeDevice.WHD whd = fFmpegWdhService.getWHD(bitrateCalculatorContext.getIn(),
+                    videoStreamDetector.getFirstVideoStreamIndex(bitrateCalculatorContext.getStreams()));
+            bitrateCalculatorContext.setWhd(whd);
+        } else {
+            long durationInSeconds = fFmpegWdhService.getDurationInSeconds(bitrateCalculatorContext.getIn());
+            FFprobeDevice.WHD whd = new FFprobeDevice.WHD();
+            whd.setDuration(durationInSeconds);
+            bitrateCalculatorContext.setWhd(whd);
+        }
+
         Integer overallBitrate = getOverallBitrate(bitrateCalculatorContext);
         bitrateCalculatorContext.setOverallBitrate(overallBitrate);
     }
@@ -74,7 +82,6 @@ public class ManualBitrateCalculator implements BitrateCalculator {
             }
         }
 
-        int startAudioBitrate = AudioBitrateByResolutionSearcher.getAudioBitrate(bitrateCalculatorContext.getWhd().getHeight());
         int videoStreamsCount = (int) bitrateCalculatorContext.getStreams().stream().filter(
                 f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)
                         && f.getBitRate() == null
@@ -93,6 +100,11 @@ public class ManualBitrateCalculator implements BitrateCalculator {
         AtomicInteger videoBitrateResult = new AtomicInteger();
         AtomicInteger audioBitrateResult = new AtomicInteger();
         AtomicInteger imageVideoBitrateResult = new AtomicInteger();
+
+        int startAudioBitrate = 0;
+        if (bitrateCalculatorContext.getStreams().stream().anyMatch(f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE))) {
+            startAudioBitrate = AudioBitrateByResolutionSearcher.getAudioBitrate(bitrateCalculatorContext.getWhd().getHeight());
+        }
         BitrateGuesser.guessBitrate(overallBitrate, startAudioBitrate, videoStreamsCount, audioStreamsCount, imageVideoStreamsCount,
                 videoBitrateResult, audioBitrateResult, imageVideoBitrateResult);
 
@@ -102,7 +114,7 @@ public class ManualBitrateCalculator implements BitrateCalculator {
     }
 
     private Integer getOverallBitrate(BitrateCalculatorContext calculatorContext) throws InterruptedException {
-        for (VideoOverallBitrateCalculator overallBitrateCalculator : overallBitrateCalculators) {
+        for (OverallBitrateCalculator overallBitrateCalculator : overallBitrateCalculators) {
             Integer bitrate = overallBitrateCalculator.calculate(calculatorContext);
 
             if (bitrate != null) {

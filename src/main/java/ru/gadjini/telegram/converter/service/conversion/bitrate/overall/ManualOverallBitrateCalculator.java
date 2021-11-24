@@ -8,7 +8,7 @@ import java.io.File;
 
 @Component
 @Order(3)
-public class ManualOverallBitrateCalculator implements VideoOverallBitrateCalculator {
+public class ManualOverallBitrateCalculator implements OverallBitrateCalculator {
 
     @Override
     public Integer calculate(BitrateCalculatorContext bitrateCalculatorContext) {
@@ -18,6 +18,6 @@ public class ManualOverallBitrateCalculator implements VideoOverallBitrateCalcul
     }
 
     private int calculateBitRate(long fileSize, long duration) {
-        return (int) ((fileSize / 1024 * 8) / duration);
+        return (int) ((fileSize * 8) / duration);
     }
 }

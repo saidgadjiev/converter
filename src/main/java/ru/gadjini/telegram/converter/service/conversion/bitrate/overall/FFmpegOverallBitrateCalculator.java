@@ -9,12 +9,12 @@ import ru.gadjini.telegram.converter.utils.BitrateUtils;
 
 @Component
 @Order(2)
-public class FFmpegVideoOverallBitrateCalculator implements VideoOverallBitrateCalculator {
+public class FFmpegOverallBitrateCalculator implements OverallBitrateCalculator {
 
     private FFmpegDevice fFmpegDevice;
 
     @Autowired
-    public FFmpegVideoOverallBitrateCalculator(FFmpegDevice fFmpegDevice) {
+    public FFmpegOverallBitrateCalculator(FFmpegDevice fFmpegDevice) {
         this.fFmpegDevice = fFmpegDevice;
     }
 

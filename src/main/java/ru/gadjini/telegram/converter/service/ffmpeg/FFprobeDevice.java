@@ -71,6 +71,10 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getAllStreams(String in) throws InterruptedException {
+        return getAllStreams(in, true);
+    }
+
+    public List<FFProbeStream> getAllStreams(String in, boolean noBitrate) throws InterruptedException {
         String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
@@ -79,7 +83,9 @@ public class FFprobeDevice {
         for (FFProbeStream stream : fFprobeResult.getStreams()) {
             stream.setFormat(fFprobeResult.getFormat());
         }
-        setBitrateAndSizesForStreams(in, fFprobeResult.getStreams());
+        if (!noBitrate) {
+            setBitrateAndSizesForStreams(in, fFprobeResult.getStreams());
+        }
 
         return fFprobeResult.getStreams();
     }
@@ -108,7 +114,7 @@ public class FFprobeDevice {
         command.add("-v");
         command.add("error");
         command.add("-show_entries");
-        command.add("stream=index,codec_name,codec_type,width,height:stream_tags=language,mimetype,filename:format=duration");
+        command.add("stream=index,codec_name,codec_type,bit_rate,width,height:stream_tags=language,mimetype,filename:format=duration");
         command.add("-of");
         command.add("json");
         command.add(in);
@@ -117,6 +123,8 @@ public class FFprobeDevice {
     }
 
     private void setBitrateAndSizesForStreams(String in, List<FFProbeStream> streams) throws InterruptedException {
+        setIndexes(streams);
+
         BitrateCalculatorContext bitrateCalculatorContext = new BitrateCalculatorContext()
                 .setIn(in)
                 .setStreams(streams);
@@ -130,6 +138,23 @@ public class FFprobeDevice {
                 }
                 Integer bitrate = bitrateCalculator.calculateBitrate(stream, bitrateCalculatorContext);
                 stream.setBitRate(bitrate);
+            }
+        }
+    }
+
+    private void setIndexes(List<FFProbeStream> streams) {
+        StreamIndexGenerator streamIndexGenerator = new StreamIndexGenerator();
+        for (FFProbeStream stream : streams) {
+            switch (stream.getCodecType()) {
+                case FFProbeStream.AUDIO_CODEC_TYPE:
+                    stream.setIndex(streamIndexGenerator.nextAudioStreamIndex());
+                    break;
+                case FFProbeStream.VIDEO_CODEC_TYPE:
+                    stream.setIndex(streamIndexGenerator.nextVideoStreamIndex());
+                    break;
+                case FFProbeStream.SUBTITLE_CODEC_TYPE:
+                    stream.setIndex(streamIndexGenerator.nextTextStreamIndex());
+                    break;
             }
         }
     }

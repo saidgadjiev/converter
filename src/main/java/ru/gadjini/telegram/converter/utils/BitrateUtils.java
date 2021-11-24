@@ -7,10 +7,10 @@ public class BitrateUtils {
     }
 
     public static int toBytes(int kBytes) {
-        return kBytes * 1024;
+        return kBytes * 1000;
     }
 
     public static int toKBytes(int bytes) {
-        return bytes / 1024;
+        return bytes / 1000;
     }
 }

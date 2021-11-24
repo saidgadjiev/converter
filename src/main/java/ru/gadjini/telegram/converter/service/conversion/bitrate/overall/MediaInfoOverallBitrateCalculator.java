@@ -10,7 +10,7 @@ import java.util.List;
 
 @Component
 @Order(1)
-public class MediaInfoOverallBitrateCalculator implements VideoOverallBitrateCalculator {
+public class MediaInfoOverallBitrateCalculator implements OverallBitrateCalculator {
 
     private MediaInfoService mediaInfoService;
 

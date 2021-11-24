@@ -1,10 +1,12 @@
 package ru.gadjini.telegram.converter.service.mediainfo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.service.ffmpeg.StreamIndexGenerator;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
@@ -42,7 +44,23 @@ public class MediaInfoService {
             return null;
         }
 
-        return Objects.requireNonNullElseGet(mediaInfoResult.media.track, List::of);
+        List<MediaInfoTrack> tracks = Objects.requireNonNullElseGet(mediaInfoResult.media.track, List::of);
+        StreamIndexGenerator streamIndexGenerator = new StreamIndexGenerator();
+        for (MediaInfoTrack mediaInfoTrack : tracks) {
+            switch (mediaInfoTrack.getType()) {
+                case AUDIO_TYPE:
+                    mediaInfoTrack.index = streamIndexGenerator.nextAudioStreamIndex();
+                    break;
+                case VIDEO_TYPE:
+                    mediaInfoTrack.index = streamIndexGenerator.nextVideoStreamIndex();
+                    break;
+                case SUBTITLE_TYPE:
+                    mediaInfoTrack.index = streamIndexGenerator.nextTextStreamIndex();
+                    break;
+            }
+        }
+
+        return tracks;
     }
 
     private String[] getMediaInfoCommand(String in) {
@@ -56,9 +74,8 @@ public class MediaInfoService {
         @JsonProperty("@type")
         private String type;
 
-        @JsonProperty("StreamOrder")
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
-        private Integer streamOrder;
+        @JsonIgnore
+        private int index;
 
         @JsonProperty("BitRate")
         @JsonFormat(shape = JsonFormat.Shape.STRING)
@@ -76,8 +93,8 @@ public class MediaInfoService {
             return type;
         }
 
-        public Integer getStreamOrder() {
-            return streamOrder;
+        public Integer getIndex() {
+            return index;
         }
 
         public Integer getBitRate() {
