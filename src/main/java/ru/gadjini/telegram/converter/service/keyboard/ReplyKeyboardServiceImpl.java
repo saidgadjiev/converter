@@ -380,6 +380,9 @@ public class ReplyKeyboardServiceImpl implements ConverterReplyKeyboardService {
         if (targetFormats.remove(Format.PROBE)) {
             formats.add(Format.PROBE);
         }
+        if (targetFormats.remove(Format.GIF)) {
+            formats.add(Format.GIF);
+        }
 
         return formats;
     }

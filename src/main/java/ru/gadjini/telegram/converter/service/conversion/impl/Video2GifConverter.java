@@ -128,6 +128,8 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
             } else {
                 commandBuilder.copyVideo();
             }
+            commandBuilder.out(result.getAbsolutePath());
+            fFmpegDevice.execute(commandBuilder.toCmd());
 
             String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), Format.MP4.getExt());
             return new AnimationResult(fileName, result, Format.MP4, downloadThumb(fileQueueItem), whd.getWidth(),
