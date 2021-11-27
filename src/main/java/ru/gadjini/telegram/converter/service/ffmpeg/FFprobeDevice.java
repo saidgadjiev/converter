@@ -4,12 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.bitrate.BitrateCalculator;
 import ru.gadjini.telegram.converter.service.conversion.bitrate.BitrateCalculatorContext;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,19 +42,29 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getAudioStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
+        return getAudioStreams(in, null, true);
+    }
+
+    public List<FFProbeStream> getAudioStreams(String in, FormatCategory targetFormatCategory) throws InterruptedException {
+        return getAudioStreams(in, targetFormatCategory, false);
+    }
+
+    public List<FFProbeStream> getAudioStreams(String in, FormatCategory targetFormatCategory, boolean noBitrate) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.AUDIO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
         });
 
-        setBitrateAndSizesForStreams(in, streams);
+        if (!noBitrate) {
+            setBitrateAndSizesForStreams(in, targetFormatCategory, streams);
+        }
 
         return streams;
     }
 
     public List<FFProbeStream> getSubtitleStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.SUBTITLES_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
@@ -59,23 +72,23 @@ public class FFprobeDevice {
     }
 
     public List<FFProbeStream> getVideoStreams(String in) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.VIDEO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
         });
-
-        setBitrateAndSizesForStreams(in, streams);
-
-        return streams;
     }
 
-    public List<FFProbeStream> getAllStreams(String in) throws InterruptedException {
-        return getAllStreams(in, true);
+    public List<FFProbeStream> getAllStreamsWithoutBitrate(String in) throws InterruptedException {
+        return getAllStreams(in, null, true);
     }
 
-    public List<FFProbeStream> getAllStreams(String in, boolean noBitrate) throws InterruptedException {
-        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in));
+    public List<FFProbeStream> getAllStreams(String in, FormatCategory targetFormatCategory) throws InterruptedException {
+        return getAllStreams(in, targetFormatCategory, false);
+    }
+
+    public List<FFProbeStream> getAllStreams(String in, FormatCategory targetFormatCategory, boolean noBitrate) throws InterruptedException {
+        String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, null));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
         FFprobeResult fFprobeResult = jsonMapper.convertValue(json, FFprobeResult.class);
@@ -84,7 +97,7 @@ public class FFprobeDevice {
             stream.setFormat(fFprobeResult.getFormat());
         }
         if (!noBitrate) {
-            setBitrateAndSizesForStreams(in, fFprobeResult.getStreams());
+            setBitrateAndSizesForStreams(in, targetFormatCategory, fFprobeResult.getStreams());
         }
 
         return fFprobeResult.getStreams();
@@ -108,11 +121,15 @@ public class FFprobeDevice {
         return new String[]{"ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", in};
     }
 
-    private String[] getProbeStreamsCommand(String in) {
+    private String[] getProbeStreamsCommand(String in, String selectStreamsTag) {
         List<String> command = new ArrayList<>();
         command.add("ffprobe");
         command.add("-v");
         command.add("error");
+        if (StringUtils.isNotBlank(selectStreamsTag)) {
+            command.add("-select_streams");
+            command.add(selectStreamsTag);
+        }
         command.add("-show_entries");
         command.add("stream=index,codec_name,codec_type,bit_rate,width,height:stream_tags=language,mimetype,filename:format=duration");
         command.add("-of");
@@ -122,11 +139,12 @@ public class FFprobeDevice {
         return command.toArray(String[]::new);
     }
 
-    private void setBitrateAndSizesForStreams(String in, List<FFProbeStream> streams) throws InterruptedException {
+    private void setBitrateAndSizesForStreams(String in, FormatCategory targetFormatCategory, List<FFProbeStream> streams) throws InterruptedException {
         setIndexes(streams);
 
         BitrateCalculatorContext bitrateCalculatorContext = new BitrateCalculatorContext()
                 .setIn(in)
+                .setTargetFormatCategory(targetFormatCategory)
                 .setStreams(streams);
         for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
             bitrateCalculator.prepareContext(bitrateCalculatorContext);

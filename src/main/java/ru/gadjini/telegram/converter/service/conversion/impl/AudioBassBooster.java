@@ -20,6 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 import java.util.Map;
@@ -63,9 +64,10 @@ public class AudioBassBooster extends BaseAudioConverter {
         this.contextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
 
         this.commandBuilderChain = commandBuilderFactory.quiteInput();
-        this.commandBuilderChain.setNext(commandBuilderFactory.audioCover())
-                .setNext(commandBuilderFactory.audioConversion())
+        this.commandBuilderChain
                 .setNext(commandBuilderFactory.audioBassBoost())
+                .setNext(commandBuilderFactory.audioCover())
+                .setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.output());
     }
 
@@ -80,7 +82,7 @@ public class AudioBassBooster extends BaseAudioConverter {
             ));
         }
 
-        List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, audioStreams)
                 .putExtra(FFmpegConversionContext.BASS_BOOST, bassBoost);
 

@@ -14,6 +14,7 @@ import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPrepa
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -75,7 +76,7 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     }
 
     public void doConvert(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
-        List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, audioStreams);
         contextPreparerChain.prepare(conversionContext);
 

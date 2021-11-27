@@ -148,7 +148,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
         state.setDownloadedFilePath(file.getAbsolutePath());
 
         try {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             state.setCurrentVideoResolution(whd.getHeight());
             state.setCurrentOverallBitrate(videoStreamConversionHelper.getOverallBitrate(allStreams));
@@ -174,7 +174,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
 
             FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getFirstFileFormat(), allStreams)
                     .putExtra(FFmpegConversionContext.SETTINGS_STATE, settingsState);

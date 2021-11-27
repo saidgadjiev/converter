@@ -10,13 +10,14 @@ import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegImag
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamDetector;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegWdhService;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @Order(2)
-public class ManualBitrateCalculator implements BitrateCalculator {
+public class ManualVideoBitrateCalculator implements BitrateCalculator {
 
     private FFmpegImageStreamDetector imageStreamDetector;
 
@@ -27,9 +28,9 @@ public class ManualBitrateCalculator implements BitrateCalculator {
     private FFmpegVideoStreamDetector videoStreamDetector;
 
     @Autowired
-    public ManualBitrateCalculator(FFmpegImageStreamDetector imageStreamDetector,
-                                   List<OverallBitrateCalculator> overallBitrateCalculators,
-                                   FFmpegWdhService fFmpegWdhService, FFmpegVideoStreamDetector videoStreamDetector) {
+    public ManualVideoBitrateCalculator(FFmpegImageStreamDetector imageStreamDetector,
+                                        List<OverallBitrateCalculator> overallBitrateCalculators,
+                                        FFmpegWdhService fFmpegWdhService, FFmpegVideoStreamDetector videoStreamDetector) {
         this.imageStreamDetector = imageStreamDetector;
         this.overallBitrateCalculators = overallBitrateCalculators;
         this.fFmpegWdhService = fFmpegWdhService;
@@ -38,26 +39,24 @@ public class ManualBitrateCalculator implements BitrateCalculator {
 
     @Override
     public void prepareContext(BitrateCalculatorContext bitrateCalculatorContext) throws InterruptedException {
-        if (bitrateCalculatorContext.getStreams().stream().anyMatch(f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE))) {
+        if (bitrateCalculatorContext.getTargetFormatCategory() == FormatCategory.VIDEO) {
             FFprobeDevice.WHD whd = fFmpegWdhService.getWHD(bitrateCalculatorContext.getIn(),
                     videoStreamDetector.getFirstVideoStreamIndex(bitrateCalculatorContext.getStreams()));
             bitrateCalculatorContext.setWhd(whd);
-        } else {
-            long durationInSeconds = fFmpegWdhService.getDurationInSeconds(bitrateCalculatorContext.getIn());
-            FFprobeDevice.WHD whd = new FFprobeDevice.WHD();
-            whd.setDuration(durationInSeconds);
-            bitrateCalculatorContext.setWhd(whd);
-        }
 
-        Integer overallBitrate = getOverallBitrate(bitrateCalculatorContext);
-        bitrateCalculatorContext.setOverallBitrate(overallBitrate);
+            Integer overallBitrate = getOverallBitrate(bitrateCalculatorContext);
+            bitrateCalculatorContext.setOverallBitrate(overallBitrate);
+        }
     }
 
     @Override
     public Integer calculateBitrate(FFprobeDevice.FFProbeStream stream, BitrateCalculatorContext bitrateCalculatorContext) {
-        if (!bitrateCalculatorContext.isManualBitrateCalculated()) {
+        if (bitrateCalculatorContext.getTargetFormatCategory() != FormatCategory.VIDEO) {
+            return null;
+        }
+        if (!bitrateCalculatorContext.isVideoManualBitrateCalculated()) {
             calculateManualBitrate(bitrateCalculatorContext);
-            bitrateCalculatorContext.setManualBitrateCalculated(true);
+            bitrateCalculatorContext.setVideoManualBitrateCalculated(true);
         }
         if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)
                 && imageStreamDetector.isImageStream(stream)) {
@@ -101,16 +100,19 @@ public class ManualBitrateCalculator implements BitrateCalculator {
         AtomicInteger audioBitrateResult = new AtomicInteger();
         AtomicInteger imageVideoBitrateResult = new AtomicInteger();
 
-        int startAudioBitrate = 0;
-        if (bitrateCalculatorContext.getStreams().stream().anyMatch(f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE))) {
-            startAudioBitrate = AudioBitrateByResolutionSearcher.getAudioBitrate(bitrateCalculatorContext.getWhd().getHeight());
-        }
-        BitrateGuesser.guessBitrate(overallBitrate, startAudioBitrate, videoStreamsCount, audioStreamsCount, imageVideoStreamsCount,
+        int startAudioBitrate =  AudioBitrateByResolutionSearcher.getAudioBitrate(bitrateCalculatorContext.getWhd().getHeight());
+        BitrateGuesser.guessVideoFileBitrate(overallBitrate, startAudioBitrate, videoStreamsCount, audioStreamsCount, imageVideoStreamsCount,
                 videoBitrateResult, audioBitrateResult, imageVideoBitrateResult);
 
-        bitrateCalculatorContext.setVideoBitrate(videoBitrateResult.get());
-        bitrateCalculatorContext.setAudioBitrate(audioBitrateResult.get());
-        bitrateCalculatorContext.setImageVideoBitrate(imageVideoBitrateResult.get());
+        if (videoStreamsCount > 0) {
+            bitrateCalculatorContext.setVideoBitrate(videoBitrateResult.get());
+        }
+        if (audioStreamsCount > 0) {
+            bitrateCalculatorContext.setAudioBitrate(audioBitrateResult.get());
+        }
+        if (imageVideoStreamsCount > 0) {
+            bitrateCalculatorContext.setImageVideoBitrate(imageVideoBitrateResult.get());
+        }
     }
 
     private Integer getOverallBitrate(BitrateCalculatorContext calculatorContext) throws InterruptedException {

@@ -124,6 +124,7 @@ tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \
 ./configure && make -j 4 && \
 make install && \
 make distclean && ldconfig
+RUN apt-get install -y mediainfo
 
 RUN rm /usr/src/ImageMagick.tar.bz2
 

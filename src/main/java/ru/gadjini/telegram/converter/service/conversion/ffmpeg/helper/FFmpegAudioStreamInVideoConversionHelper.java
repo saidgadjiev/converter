@@ -54,12 +54,12 @@ public class FFmpegAudioStreamInVideoConversionHelper {
                 for (FFprobeDevice.FFProbeStream audioStream : byInput) {
                     boolean copied = false;
                     if (StringUtils.isNotBlank(audioStream.getTargetCodecName())
-                            && !Objects.equals(audioStream.getTargetCodecName(), audioStream.getCodecName())
-                            || audioStream.getTargetBitrate() != null
-                            && !Objects.equals(audioStream.getBitRate(), audioStream.getTargetBitrate())) {
+                            && !Objects.equals(audioStream.getTargetCodecName(), audioStream.getCodecName())) {
                         command.audioCodec(audioStreamIndex, audioStream.getTargetCodecName());
                     } else {
-                        if (isCopyableAudioCodecs(baseCommand, conversionContext.output(), input, audioStreamIndex)) {
+                        if ((audioStream.getTargetBitrate() == null ||
+                                Objects.equals(audioStream.getBitRate(), audioStream.getTargetBitrate()))
+                                && isCopyableAudioCodecs(baseCommand, conversionContext.output(), input, audioStreamIndex)) {
                             command.copyAudio(audioStreamIndex);
                             copied = true;
                         }

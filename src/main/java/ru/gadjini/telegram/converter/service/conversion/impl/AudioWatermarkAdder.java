@@ -81,7 +81,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         try {
             Integer bitrate = null;
             if (fileQueueItem.getFirstFileFormat() == NATIVE_FORMAT) {
-                List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
+                List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
                 bitrate = audioStreams.iterator().next().getBitRate();
             }
 
@@ -197,7 +197,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
     }
 
     private SmartTempFile mergeAudioFiles(SmartTempFile filesList, ConversionQueueItem fileQueueItem,
-                                          GarbageFileCollection garbageFileCollection) {
+                                          GarbageFileCollection garbageFileCollection) throws InterruptedException {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         garbageFileCollection.addFile(result);
@@ -207,6 +207,8 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
                 .mapAudio(0).copyAudio();
 
         mergeCommandBuilder.out(result.getAbsolutePath());
+
+        fFmpegDevice.execute(mergeCommandBuilder.toCmd());
 
         return result;
     }
@@ -236,10 +238,10 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         garbageFileCollection.addFile(tempDir);
 
         try {
-            commandBuilder.segmentTimes(Set.of("3", 3 + "" + watermarkDuration)).copyCodecs();
+            commandBuilder.segmentTimes(List.of(3L, watermarkDuration + 3)).copyCodecs();
 
-            String filePath = Any2AnyFileNameUtils.getFileName(tempDir.getAbsolutePath(), "%01d", queueItem.getFirstFileFormat().getExt());
-            commandBuilder.out(filePath);
+            String fileName = Any2AnyFileNameUtils.getFileName(tempDir.getName(), "%01d", queueItem.getFirstFileFormat().getExt());
+            commandBuilder.out(new File(tempDir.getFile(), fileName).getAbsolutePath());
 
             fFmpegDevice.execute(commandBuilder.toCmd());
         } catch (InterruptedException e) {

@@ -10,6 +10,7 @@ import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.MessageResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamDetector;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -36,12 +37,16 @@ public class VideoProbber extends BaseAny2AnyConverter {
 
     private UserService userService;
 
+    private FFmpegVideoStreamDetector videoStreamDetector;
+
     @Autowired
-    public VideoProbber(FFprobeDevice fFprobeDevice, LocalisationService localisationService, UserService userService) {
+    public VideoProbber(FFprobeDevice fFprobeDevice, LocalisationService localisationService,
+                        UserService userService, FFmpegVideoStreamDetector videoStreamDetector) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.localisationService = localisationService;
         this.userService = userService;
+        this.videoStreamDetector = videoStreamDetector;
     }
 
     @Override
@@ -49,8 +54,8 @@ public class VideoProbber extends BaseAny2AnyConverter {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
         try {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), 0, true);
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreamsWithoutBitrate(file.getAbsolutePath());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamDetector.getFirstVideoStreamIndex(allStreams), true);
 
             String text = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_PROBE_RESULT,
                     new Object[]{fileQueueItem.getFirstFileFormat().getName(),

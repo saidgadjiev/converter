@@ -11,7 +11,15 @@ public class BitrateGuesser {
 
     private static final List<Integer> AVAILABLE_AUDIO_BITRATES = List.of(128, 96, 64, 32, 16, 8);
 
-    public static void guessBitrate(int overallBitrate, int startAudioBitrate,
+
+    public static void guessAudioFileBitrate(int overallBitrate,
+                                             int audioStreamsCount, AtomicInteger audioBitrateResult) {
+        if (audioStreamsCount > 0) {
+            audioBitrateResult.set(overallBitrate / audioStreamsCount);
+        }
+    }
+
+    public static void guessVideoFileBitrate(int overallBitrate, int startAudioBitrate,
                                     int videoStreamsCount, int audioStreamsCount, int imageVideoStreamsCount,
                                     AtomicInteger videoBitrateResult, AtomicInteger audioBitrateResult,
                                     AtomicInteger imageVideoBitrateResult) {
@@ -38,6 +46,9 @@ public class BitrateGuesser {
                                                    int videoStreamsCount, int audioStreamsCount,
                                                    AtomicInteger videoBitrateResult, AtomicInteger audioBitrateResult) {
         if (videoStreamsCount == 0) {
+            if (audioStreamsCount == 0) {
+                return;
+            }
             audioBitrateResult.set(overallBitrate / audioStreamsCount);
         } else {
             if (audioStreamsCount > 0) {

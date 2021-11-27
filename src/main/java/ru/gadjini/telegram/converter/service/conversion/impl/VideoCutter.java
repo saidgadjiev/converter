@@ -127,7 +127,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreamsWithoutBitrate(file.getAbsolutePath());
             FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
@@ -157,7 +157,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
                     userService.getLocaleOrDefault(fileQueueItem.getUserId())));
         }
 
-        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
 
         if (knownDuration != null && ep.toStandardSeconds().getSeconds() > knownDuration.intValue()) {
             ep = Period.seconds(knownDuration.intValue());

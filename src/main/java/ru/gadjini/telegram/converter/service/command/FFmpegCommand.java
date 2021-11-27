@@ -5,7 +5,7 @@ import ru.gadjini.telegram.converter.utils.BitrateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FFmpegCommand {
 
@@ -100,6 +100,10 @@ public class FFmpegCommand {
         return useFilterComplex;
     }
 
+    public boolean hasAudioFilter() {
+        return options.contains("-af");
+    }
+
     public FFmpegCommand maxMuxingQueueSize(String size) {
         options.add("-max_muxing_queue_size");
         options.add(size);
@@ -129,7 +133,6 @@ public class FFmpegCommand {
     }
 
 
-
     public FFmpegCommand safe(String s) {
         options.add("-safe");
         options.add(s);
@@ -156,11 +159,11 @@ public class FFmpegCommand {
         return this;
     }
 
-    public FFmpegCommand segmentTimes(Set<String> segmentTimes) {
+    public FFmpegCommand segmentTimes(List<Long> segmentTimes) {
         options.add("-f");
         options.add("segment");
         options.add("-segment_times");
-        options.addAll(segmentTimes);
+        options.add(segmentTimes.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
         return this;
     }

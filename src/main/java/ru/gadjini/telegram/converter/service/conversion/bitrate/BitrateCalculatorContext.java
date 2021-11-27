@@ -2,10 +2,13 @@ package ru.gadjini.telegram.converter.service.conversion.bitrate;
 
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.mediainfo.MediaInfoService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 
 public class BitrateCalculatorContext {
+
+    private FormatCategory targetFormatCategory;
 
     private String in;
 
@@ -17,7 +20,9 @@ public class BitrateCalculatorContext {
 
     private Integer overallBitrate;
 
-    private boolean manualBitrateCalculated;
+    private boolean videoManualBitrateCalculated;
+
+    private boolean audioManualBitrateCalculated;
 
     private Integer videoBitrate;
 
@@ -93,11 +98,29 @@ public class BitrateCalculatorContext {
         this.overallBitrate = overallBitrate;
     }
 
-    public boolean isManualBitrateCalculated() {
-        return manualBitrateCalculated;
+    public boolean isVideoManualBitrateCalculated() {
+        return videoManualBitrateCalculated;
     }
 
-    public void setManualBitrateCalculated(boolean manualBitrateCalculated) {
-        this.manualBitrateCalculated = manualBitrateCalculated;
+    public void setVideoManualBitrateCalculated(boolean videoManualBitrateCalculated) {
+        this.videoManualBitrateCalculated = videoManualBitrateCalculated;
+    }
+
+    public boolean isAudioManualBitrateCalculated() {
+        return audioManualBitrateCalculated;
+    }
+
+    public void setAudioManualBitrateCalculated(boolean audioManualBitrateCalculated) {
+        this.audioManualBitrateCalculated = audioManualBitrateCalculated;
+    }
+
+    public FormatCategory getTargetFormatCategory() {
+        return targetFormatCategory;
+    }
+
+    public BitrateCalculatorContext setTargetFormatCategory(FormatCategory targetFormatCategory) {
+        this.targetFormatCategory = targetFormatCategory;
+
+        return this;
     }
 }

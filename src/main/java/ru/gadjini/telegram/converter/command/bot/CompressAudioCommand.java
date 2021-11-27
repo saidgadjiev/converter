@@ -14,6 +14,7 @@ import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
+import ru.gadjini.telegram.converter.event.AudioCompressionSettingsSentEvent;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
 import ru.gadjini.telegram.converter.service.conversion.ConvertionService;
@@ -158,7 +159,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
                                     COMPRESSION_FORMATS,
                                     frequencies,
                                     bitrates, locale
-                            )).build()
+                            )).build(), new AudioCompressionSettingsSentEvent()
             );
         } else {
             updateState(existsState, message);
@@ -220,7 +221,7 @@ public class CompressAudioCommand implements BotCommand, NavigableBotCommand, Ca
             messageService.editMessage(callbackQuery.getMessage().getText(),
                     callbackQuery.getMessage().getReplyMarkup(),
                     EditMessageText.builder().chatId(String.valueOf(chatId))
-                            .messageId(convertState.getSettings().getMessageId())
+                            .messageId(callbackQuery.getMessage().getMessageId())
                             .text(buildSettingsMessage(convertState))
                             .parseMode(ParseMode.HTML)
                             .replyMarkup(inlineKeyboardService.getAudioCompressionSettingsKeyboard(convertState.getSettings().getBitrate(),
