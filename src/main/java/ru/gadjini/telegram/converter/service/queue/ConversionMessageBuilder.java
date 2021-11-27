@@ -272,14 +272,17 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                     .append("\n")
                     .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION,
                             new Object[]{MemoryUtils.humanReadableByteCount(
-                                    queueItem.getSize() * VideoCompressConverter.DEFAULT_QUALITY / 100)}, locale))
-                    .append("\n\n")
-                    .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_USE_VEDIT_FOR_COMPRESSION,
-                            new Object[]{
-                                    EditVideoQualityState.MAX_COMPRESSION_RATE + percentageEscape,
-                                    MemoryUtils.humanReadableByteCount(
-                                            queueItem.getSize() * (100 - EditVideoQualityState.MAX_COMPRESSION_RATE) / 100)
-                            }, locale));
+                                    queueItem.getSize() * VideoCompressConverter.DEFAULT_QUALITY / 100)}, locale));
+
+            if (queueItem.getFirstFileFormat().getCategory() == FormatCategory.VIDEO) {
+                    text.append("\n\n")
+                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_USE_VEDIT_FOR_COMPRESSION,
+                                new Object[]{
+                                        EditVideoQualityState.MAX_COMPRESSION_RATE + percentageEscape,
+                                        MemoryUtils.humanReadableByteCount(
+                                                queueItem.getSize() * (100 - EditVideoQualityState.MAX_COMPRESSION_RATE) / 100)
+                                }, locale));
+            }
         }
 
         Set<String> warns = new LinkedHashSet<>();

@@ -91,14 +91,14 @@ public class InlineKeyboardService {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.chooseCrfButton(locale),
-                buttonFactory.chooseResolutionButton(locale)
+                buttonFactory.chooseCrfButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.chooseAudioCodecButton(locale),
-                buttonFactory.chooseAudioBitrateButton(locale)
+                buttonFactory.chooseResolutionButton(locale),
+                buttonFactory.chooseAudioCodecButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.chooseAudioBitrateButton(locale),
                 buttonFactory.chooseAudioMonoStereoButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
