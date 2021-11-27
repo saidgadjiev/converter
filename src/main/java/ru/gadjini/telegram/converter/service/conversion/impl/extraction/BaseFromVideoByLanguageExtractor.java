@@ -144,7 +144,10 @@ public abstract class BaseFromVideoByLanguageExtractor extends BaseAny2AnyConver
 
             if (streamsToExtract.size() == 1) {
                 return doExtract(fileQueueItem, file, streamsToExtract, 0);
-            } else if (streamsToExtract.stream().anyMatch(a -> StringUtils.isNotBlank(a.getLanguage()))) {
+            } else if (streamsToExtract.stream().map(FFprobeDevice.FFProbeStream::getLanguage)
+                    .filter(StringUtils::isNotBlank)
+                    .distinct()
+                    .count() > 1) {
                 List<String> languages = streamsToExtract.stream().map(FFprobeDevice.FFProbeStream::getLanguage)
                         .filter(Objects::nonNull).distinct().collect(Collectors.toList());
                 commandStateService.setState(fileQueueItem.getUserId(), ConverterCommandNames.EXTRACT_MEDIA_BY_LANGUAGE, createState(fileQueueItem, languages));
