@@ -51,9 +51,10 @@ public class FFmpegAudioStreamConversionHelper {
         FFmpegCommand baseCommand = new FFmpegCommand(command);
         int audioStreamIndex = 0;
         List<FFprobeDevice.FFProbeStream> audioStreams = conversionContext.audioStreams();
-        command.mapAudio();
-        for (FFprobeDevice.FFProbeStream audioStream : audioStreams) {
+        for (int audioStreamMapIndex = 0; audioStreamMapIndex < audioStreams.size(); ++audioStreamMapIndex) {
             boolean copied = false;
+            command.mapAudio(audioStreamMapIndex);
+            FFprobeDevice.FFProbeStream audioStream = audioStreams.get(audioStreamMapIndex);
             if (StringUtils.isNotBlank(audioStream.getTargetCodecName())
                     && !Objects.equals(audioStream.getTargetCodecName(), audioStream.getCodecName())) {
                 command.audioCodec(audioStreamIndex, audioStream.getTargetCodecName());
