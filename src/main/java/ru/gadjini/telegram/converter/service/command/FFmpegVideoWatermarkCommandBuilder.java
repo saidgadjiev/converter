@@ -67,23 +67,15 @@ public class FFmpegVideoWatermarkCommandBuilder extends BaseFFmpegCommandBuilder
     }
 
     private String createGifWatermarkFilter(String videoComplexFilterInLink, VideoWatermark videoWatermark) {
-        StringBuilder filter = new StringBuilder();
-
-        filter.append("[1]scale=-2:").append(videoWatermark.getImageHeight() == null ? "ih*0.2" : videoWatermark.getImageHeight())
-                .append("[wm];[wm]lut=a=val*").append(videoWatermark.getTransparency()).append("[a];[").append(videoComplexFilterInLink)
-                .append("][a]overlay=").append(getImageXY(videoWatermark.getWatermarkPosition())).append(":shortest=1");
-
-        return filter.toString();
+        return "[1]scale=-2:" + (videoWatermark.getImageHeight() == null ? "ih*0.2" : videoWatermark.getImageHeight()) +
+                "[wm];[wm]lut=a=val*" + videoWatermark.getTransparency() + "[a];[" + videoComplexFilterInLink +
+                "][a]overlay=" + getImageXY(videoWatermark.getWatermarkPosition()) + ":shortest=1";
     }
 
     private String createImageWatermarkFilter(String videoComplexFilterInLink, VideoWatermark videoWatermark) {
-        StringBuilder filter = new StringBuilder();
-
-        filter.append("[1]scale=-2:").append(videoWatermark.getImageHeight() == null ? "ih*0.2" : videoWatermark.getImageHeight())
-                .append("[wm];[wm]lut=a=val*").append(videoWatermark.getTransparency()).append("[a];[").append(videoComplexFilterInLink)
-                .append("][a]overlay=").append(getImageXY(videoWatermark.getWatermarkPosition()));
-
-        return filter.toString();
+        return "[1]scale=-2:" + (videoWatermark.getImageHeight() == null ? "ih*0.2" : videoWatermark.getImageHeight()) +
+                "[wm];[wm]lut=a=val*" + videoWatermark.getTransparency() + "[a];[" + videoComplexFilterInLink +
+                "][a]overlay=" + getImageXY(videoWatermark.getWatermarkPosition());
     }
 
     private String getTextXY(VideoWatermarkPosition position) {

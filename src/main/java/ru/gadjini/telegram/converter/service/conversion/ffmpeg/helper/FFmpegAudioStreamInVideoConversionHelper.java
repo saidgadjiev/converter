@@ -60,6 +60,7 @@ public class FFmpegAudioStreamInVideoConversionHelper {
                         if ((audioStream.getTargetBitrate() == null ||
                                 Objects.equals(audioStream.getBitRate(), audioStream.getTargetBitrate()))
                                 && !conversionContext.isUseStaticAudioFilter()
+                                && !audioStream.isDontCopy()
                                 && isCopyableAudioCodecs(baseCommand, conversionContext.output(), input, audioStreamIndex)) {
                             command.copyAudio(audioStreamIndex);
                             copied = true;

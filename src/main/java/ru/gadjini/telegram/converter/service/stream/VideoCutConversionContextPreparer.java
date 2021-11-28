@@ -5,6 +5,7 @@ public class VideoCutConversionContextPreparer extends BaseFFmpegConversionConte
     @Override
     public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
         conversionContext.videoStreams().forEach(v -> v.setDontCopy(true));
+        conversionContext.audioStreams().forEach(f -> f.setDontCopy(true));
 
         super.prepare(conversionContext);
     }
