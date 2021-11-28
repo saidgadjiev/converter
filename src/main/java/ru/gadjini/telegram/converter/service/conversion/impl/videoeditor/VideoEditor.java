@@ -37,7 +37,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.*;
@@ -65,7 +64,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
     private FFmpegProgressCallbackHandlerFactory callbackHandlerFactory;
 
-    private Set<EditVideoSettingsState> editVideoSettingsStateSet;
+    private EditVideoSettingsWelcomeState welcomeState;
 
     private CommandStateService commandStateService;
 
@@ -107,8 +106,8 @@ public class VideoEditor extends BaseAny2AnyConverter {
     }
 
     @Autowired
-    public void setEditVideoSettingsStateSet(Set<EditVideoSettingsState> editVideoSettingsStateSet) {
-        this.editVideoSettingsStateSet = editVideoSettingsStateSet;
+    public void setWelcomeState(EditVideoSettingsWelcomeState welcomeState) {
+        this.welcomeState = welcomeState;
     }
 
     @Override
@@ -162,7 +161,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
             throw new ConvertException(e);
         }
 
-        getState(state.getStateName()).enter(fileQueueItem.getUserId(), state);
+        welcomeState.enter(fileQueueItem.getUserId(), state);
 
         return new EmptyConversionResult(false);
     }
@@ -226,9 +225,5 @@ public class VideoEditor extends BaseAny2AnyConverter {
         convertState.getSettings().setAudioChannelLayout(EditVideoAudioChannelLayoutState.AUTO);
 
         return editVideoState;
-    }
-
-    private EditVideoSettingsState getState(EditVideoSettingsStateName settingsStateName) {
-        return editVideoSettingsStateSet.stream().filter(s -> settingsStateName.equals(s.getName())).findFirst().orElseThrow();
     }
 }
