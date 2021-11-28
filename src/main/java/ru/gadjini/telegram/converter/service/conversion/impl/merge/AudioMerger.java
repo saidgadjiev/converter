@@ -26,6 +26,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class AudioMerger extends BaseAny2AnyConverter {
@@ -127,7 +128,7 @@ public class AudioMerger extends BaseAny2AnyConverter {
             return fileQueueItem.getDownloadedFiles();
         }
         List<SmartTempFile> files = new ArrayList<>();
-        for (int i = 1; i < fileQueueItem.getDownloadedFiles().size(); i++) {
+        for (int i = 0; i < fileQueueItem.getDownloadedFiles().size(); i++) {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                     fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
             files.add(result);
@@ -155,11 +156,28 @@ public class AudioMerger extends BaseAny2AnyConverter {
             List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(
                     queueItem.getDownloadedFiles().get(i).getAbsolutePath(), FormatCategory.AUDIO);
 
-            if (!firstAudioStreams.equals(audioStreams)) {
+            if (!equalAudioStreams(firstAudioStreams, audioStreams)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private boolean equalAudioStreams(List<FFprobeDevice.FFProbeStream> src, List<FFprobeDevice.FFProbeStream> target) {
+        if (src.size() != target.size()) {
+            return false;
+        }
+        for (int i = 0; i < src.size(); ++i) {
+            if (!equalStreams(src.get(i), target.get(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean equalStreams(FFprobeDevice.FFProbeStream src, FFprobeDevice.FFProbeStream target) {
+        return Objects.equals(src.getCodecName(), target.getCodecName());
     }
 }

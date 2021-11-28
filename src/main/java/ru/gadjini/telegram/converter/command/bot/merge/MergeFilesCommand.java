@@ -109,7 +109,7 @@ public class MergeFilesCommand implements BotCommand, NavigableBotCommand {
             MessageMedia media = messageMediaService.getMedia(message, locale);
             if (media != null) {
                 if (mergeFilesConfigurator.isValidFormat(media.getFormat())
-                        && mergeFilesConfigurator.getMaxFiles() >= mergeState.getFiles().size()) {
+                        && mergeFilesConfigurator.getMaxFiles() > mergeState.getFiles().size()) {
                     mergeState.addMedia(media);
                     commandStateService.setState(message.getChatId(), getCommandIdentifier(), mergeState);
                 }

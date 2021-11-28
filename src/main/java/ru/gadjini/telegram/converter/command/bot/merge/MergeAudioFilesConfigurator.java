@@ -54,6 +54,6 @@ public class MergeAudioFilesConfigurator implements MergeFilesConfigurator {
 
     @Override
     public int getMaxFiles() {
-        return 2;
+        return 3;
     }
 }
