@@ -10,8 +10,6 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
-import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
-import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
@@ -48,12 +46,9 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
 
     private FFmpegCommandBuilderChain commandBuilderChain;
 
-    private FFmpegConversionContextPreparerChain contextPreparerChain;
-
     @Autowired
     public FFmpegAudioFormatsConverter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice,
-                                       FFmpegCommandBuilderFactory commandBuilderFactory,
-                                       FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory) {
+                                       FFmpegCommandBuilderFactory commandBuilderFactory) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
@@ -61,9 +56,8 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
         this.commandBuilderChain = commandBuilderFactory.quiteInput();
         this.commandBuilderChain.setNext(commandBuilderFactory.audioCover())
                 .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.telegramVoiceConversion())
                 .setNext(commandBuilderFactory.output());
-
-        this.contextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
     }
 
     @Override
@@ -78,7 +72,6 @@ public class FFmpegAudioFormatsConverter extends BaseAudioConverter {
     public void doConvert(SmartTempFile in, SmartTempFile out, Format targetFormat) throws InterruptedException {
         List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, audioStreams);
-        contextPreparerChain.prepare(conversionContext);
 
         FFmpegCommand command = new FFmpegCommand();
         commandBuilderChain.prepareCommand(command, conversionContext);

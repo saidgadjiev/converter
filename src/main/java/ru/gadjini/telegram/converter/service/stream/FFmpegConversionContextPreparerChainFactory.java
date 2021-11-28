@@ -1,9 +1,18 @@
 package ru.gadjini.telegram.converter.service.stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 
 @Component
 public class FFmpegConversionContextPreparerChainFactory {
+
+    private FFmpegDevice fFmpegDevice;
+
+    @Autowired
+    public FFmpegConversionContextPreparerChainFactory(FFmpegDevice fFmpegDevice) {
+        this.fFmpegDevice = fFmpegDevice;
+    }
 
     public FFmpegConversionContextPreparerChain videoConversionContextPreparer() {
         return new BaseFFmpegConversionContextPreparerChain() {
@@ -30,8 +39,16 @@ public class FFmpegConversionContextPreparerChainFactory {
         return new _3gpScaleConversionContextPreparer();
     }
 
-    public FFmpegConversionContextPreparerChain telegramVoiceContextPreparer() {
-        return new TelegramVoiceConversionContextPreparer();
+    public FFmpegConversionContextPreparerChain bassBoostPreparer() {
+        return new FFmpegBassBoostConversionContextPreparer();
+    }
+
+    public FFmpegConversionContextPreparerChain videoWatermark() {
+        return new FFmpegVideoWatermarkContextPreparer();
+    }
+
+    public FFmpegConversionContextPreparerChain extractAudioPreparer() {
+        return new FFmpegExtractAudioContextPreparer(fFmpegDevice);
     }
 
     public FFmpegConversionContextPreparerChain subtitlesContextPreparer() {

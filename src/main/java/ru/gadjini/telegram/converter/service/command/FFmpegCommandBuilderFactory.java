@@ -191,6 +191,10 @@ public class FFmpegCommandBuilderFactory {
         return new FFmpegAudioCodecsConvertCommandBuilder(audioStreamConversionHelper);
     }
 
+    public FFmpegCommandBuilderChain telegramVoiceConversion() {
+        return new FFmpegTelegramVoiceCommandBuilder();
+    }
+
     public FFmpegAudioCoverCommandBuilder audioCover() {
         return new FFmpegAudioCoverCommandBuilder(audioStreamConversionHelper);
     }

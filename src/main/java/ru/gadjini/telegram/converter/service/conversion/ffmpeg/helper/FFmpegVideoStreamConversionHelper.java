@@ -66,6 +66,7 @@ public class FFmpegVideoStreamConversionHelper {
             } else {
                 if (!videoStream.isDontCopy()
                         && (videoStream.getTargetBitrate() == null || Objects.equals(videoStream.getBitRate(), videoStream.getTargetBitrate()))
+                        && !conversionContext.isUseStaticVideoFilter()
                         && isCopyableVideoCodecs(baseCommand, conversionContext.output(), videoStream.getInput(), videoStreamMapIndex)) {
                     commandBuilder.copyVideo(outCodecIndex);
                     copied = true;
@@ -78,7 +79,7 @@ public class FFmpegVideoStreamConversionHelper {
                         if (StringUtils.isNotBlank(videoStream.getTargetCodecName())) {
                             commandBuilder.videoCodec(outCodecIndex, videoStream.getTargetCodecName());
                         } //TODO: Если надо сохранять текущий кодек видео
-                        commandBuilder.filterVideo(videoStream.getTargetScale());
+                        commandBuilder.vf(videoStream.getTargetScale());
                     }
                 }
             }
@@ -109,7 +110,7 @@ public class FFmpegVideoStreamConversionHelper {
                                        Integer input, int videoStreamMapIndex, String scale) throws InterruptedException {
         FFmpegCommand command = new FFmpegCommand(baseCommand);
 
-        command.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommand.H264_CODEC).filterVideo(scale);
+        command.mapVideo(input, videoStreamMapIndex).videoCodec(FFmpegCommand.H264_CODEC).vf(scale);
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(out);
         commandBuilderFactory.output().prepareCommand(command, conversionContext);
 
@@ -161,7 +162,7 @@ public class FFmpegVideoStreamConversionHelper {
         if (StringUtils.isNotBlank(scale)
                 && (!FFmpegCommand.EVEN_SCALE.equals(scale)
                 || !NumberUtils.isEvent(stream.getWidth()) || !NumberUtils.isEvent(stream.getHeight()))) {
-            if (commandBuilder.useFilterComplex()) {
+            if (commandBuilder.isUseFilterComplex()) {
                 commandBuilder.complexFilter("[v:" + codecIndex + "]" + scale + "[sv] ");
             } else {
                 commandBuilder.filterVideo(codecIndex, scale);

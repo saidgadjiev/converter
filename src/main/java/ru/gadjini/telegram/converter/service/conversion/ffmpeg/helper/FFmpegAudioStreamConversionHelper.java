@@ -61,6 +61,7 @@ public class FFmpegAudioStreamConversionHelper {
             } else {
                 if ((audioStream.getTargetBitrate() == null ||
                         Objects.equals(audioStream.getBitRate(), audioStream.getTargetBitrate()))
+                        && !conversionContext.isUseStaticAudioFilter()
                         && isCopyableAudioCodecs(baseCommand, conversionContext.output(), audioStreamIndex)) {
                     command.copyAudio(audioStreamIndex);
                     copied = true;
@@ -76,9 +77,6 @@ public class FFmpegAudioStreamConversionHelper {
     }
 
     private boolean isCopyableAudioCodecs(FFmpegCommand baseCommand, SmartTempFile out, int streamMapIndex) throws InterruptedException {
-        if (baseCommand.hasAudioFilter()) {
-            return false;
-        }
         FFmpegCommand commandBuilder = new FFmpegCommand(baseCommand);
 
         commandBuilder.mapAudio(streamMapIndex).copy(FFmpegCommand.AUDIO_STREAM_SPECIFIER);

@@ -22,11 +22,11 @@ public class FFmpegConversionContext {
 
     public static final String GARBAGE_FILE_COLLECTOR = "gfile";
 
+    public static final String EXTRACT_AUDIO_INDEX = "exti";
+
     public static final String BASS_BOOST = "bs";
 
     public static final String QUEUE_ITEM = "qitem";
-
-    public static final String VIDEO_EDITOR_SETTINGS = "vsettings";
 
     public static final String SQUARE_SIZE = "sqs";
 
@@ -48,9 +48,9 @@ public class FFmpegConversionContext {
 
     private SmartTempFile output;
 
-    private String ffmpegOutputFormat;
+    private boolean useStaticVideoFilter;
 
-    private String audioSamplingFrequency;
+    private boolean useStaticAudioFilter;
 
     private Map<String, Object> extra = new HashMap<>();
 
@@ -70,14 +70,6 @@ public class FFmpegConversionContext {
         return this.output;
     }
 
-    public String ffmpegOutputFormat() {
-        return this.ffmpegOutputFormat;
-    }
-
-    public String audioSamplingFrequency() {
-        return this.audioSamplingFrequency;
-    }
-
     public FFmpegConversionContext streams(final List<FFprobeDevice.FFProbeStream> streams) {
         this.streams = streams;
         return this;
@@ -90,16 +82,6 @@ public class FFmpegConversionContext {
 
     public FFmpegConversionContext output(final SmartTempFile tempFile) {
         this.output = tempFile;
-        return this;
-    }
-
-    public FFmpegConversionContext ffmpegOutputFormat(final String ffmpegOutputFormat) {
-        this.ffmpegOutputFormat = ffmpegOutputFormat;
-        return this;
-    }
-
-    public FFmpegConversionContext audioSamplingFrequency(final String audioSamplingFrequency) {
-        this.audioSamplingFrequency = audioSamplingFrequency;
         return this;
     }
 
@@ -142,6 +124,24 @@ public class FFmpegConversionContext {
 
     public <T> T getExtra(String name) {
         return (T) extra.get(name);
+    }
+
+    public boolean isUseStaticVideoFilter() {
+        return useStaticVideoFilter;
+    }
+
+    public FFmpegConversionContext useStaticVideoFilter() {
+        this.useStaticVideoFilter = true;
+        return this;
+    }
+
+    public FFmpegConversionContext useStaticAudioFilter() {
+        this.useStaticAudioFilter = true;
+        return this;
+    }
+
+    public boolean isUseStaticAudioFilter() {
+        return useStaticAudioFilter;
     }
 
     public static FFmpegConversionContext from(SmartTempFile in, SmartTempFile out,

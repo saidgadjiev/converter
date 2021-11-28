@@ -61,13 +61,13 @@ public class AudioBassBooster extends BaseAudioConverter {
         this.userService = userService;
         this.localisationService = localisationService;
 
-        this.contextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
+        this.contextPreparerChain = contextPreparerChainFactory.bassBoostPreparer();
 
         this.commandBuilderChain = commandBuilderFactory.quiteInput();
-        this.commandBuilderChain
-                .setNext(commandBuilderFactory.audioBassBoost())
-                .setNext(commandBuilderFactory.audioCover())
+        this.commandBuilderChain.setNext(commandBuilderFactory.audioCover())
                 .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.audioBassBoost())
+                .setNext(commandBuilderFactory.telegramVoiceConversion())
                 .setNext(commandBuilderFactory.output());
     }
 

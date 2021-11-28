@@ -71,9 +71,10 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
         this.commandBuilderChain = commandBuilderFactory.quiteInput();
         commandBuilderChain.setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.audioChannelMapFilter())
+                .setNext(commandBuilderFactory.telegramVoiceConversion())
                 .setNext(commandBuilderFactory.output());
 
-        this.conversionContextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
+        this.conversionContextPreparerChain = contextPreparerChainFactory.extractAudioPreparer();
     }
 
     @Override
@@ -89,7 +90,9 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getTargetFormat(), List.of(audioStream));
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result,
+                    fileQueueItem.getTargetFormat(), List.of(audioStream))
+                    .putExtra(FFmpegConversionContext.EXTRACT_AUDIO_INDEX, streamIndex);
             conversionContextPreparerChain.prepare(conversionContext);
 
             FFmpegCommand command = new FFmpegCommand();

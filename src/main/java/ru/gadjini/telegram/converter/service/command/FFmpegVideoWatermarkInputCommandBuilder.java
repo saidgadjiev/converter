@@ -45,7 +45,7 @@ public class FFmpegVideoWatermarkInputCommandBuilder extends BaseFFmpegCommandBu
         }
 
         if (watermark.getWatermarkType() != VideoWatermarkType.TEXT) {
-            command.useFilterComplex(true);
+            command.useFilterComplex();
             GarbageFileCollection garbageFileCollection = conversionContext.getExtra(FFmpegConversionContext.GARBAGE_FILE_COLLECTOR);
             ConversionQueueItem fileQueueItem = conversionContext.getExtra(FFmpegConversionContext.QUEUE_ITEM);
             SmartTempFile watermarkImage = prepareAndGetWatermarkFile(garbageFileCollection, fileQueueItem, watermark);

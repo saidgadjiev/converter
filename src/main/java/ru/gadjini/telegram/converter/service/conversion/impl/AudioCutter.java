@@ -12,8 +12,6 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
-import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
-import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
@@ -48,13 +46,10 @@ public class AudioCutter extends BaseAudioConverter {
 
     private FFmpegCommandBuilderChain commandBuilderChain;
 
-    private FFmpegConversionContextPreparerChain contextPreparerChain;
-
     @Autowired
     public AudioCutter(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, UserService userService,
                        LocalisationService localisationService, Jackson jackson,
-                       FFmpegCommandBuilderFactory commandBuilderFactory,
-                       FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory) {
+                       FFmpegCommandBuilderFactory commandBuilderFactory) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
@@ -62,14 +57,13 @@ public class AudioCutter extends BaseAudioConverter {
         this.localisationService = localisationService;
         this.jackson = jackson;
 
-        this.contextPreparerChain = contextPreparerChainFactory.telegramVoiceContextPreparer();
-
         this.commandBuilderChain = commandBuilderFactory.quite();
         this.commandBuilderChain.setNext(commandBuilderFactory.cutStartPoint())
                 .setNext(commandBuilderFactory.input())
                 .setNext(commandBuilderFactory.streamDuration())
                 .setNext(commandBuilderFactory.audioCover())
                 .setNext(commandBuilderFactory.audioConversion())
+                .setNext(commandBuilderFactory.telegramVoiceConversion())
                 .setNext(commandBuilderFactory.output());
     }
 
@@ -94,7 +88,6 @@ public class AudioCutter extends BaseAudioConverter {
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, targetFormat, allStreams)
                 .putExtra(FFmpegConversionContext.CUT_START_POINT, PERIOD_FORMATTER.print(cutStartPoint))
                 .putExtra(FFmpegConversionContext.STREAM_DURATION, duration);
-        contextPreparerChain.prepare(conversionContext);
 
         FFmpegCommand command = new FFmpegCommand();
         commandBuilderChain.prepareCommand(command, conversionContext);

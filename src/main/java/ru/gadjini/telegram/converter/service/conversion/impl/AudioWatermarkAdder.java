@@ -221,7 +221,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
 
         FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite().input(in.getAbsolutePath());
 
-        commandBuilder.filterAudioV2("volume=0.2");
+        commandBuilder.filterAudio("volume=0.1");
         commandBuilder.keepAudioBitRate(bitrate);
         commandBuilder.out(result.getAbsolutePath());
 

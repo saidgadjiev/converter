@@ -85,23 +85,21 @@ public class FFmpegCommand {
 
     public FFmpegCommand(FFmpegCommand commandBuilder) {
         this.options.addAll(commandBuilder.options);
+        this.complexFilters.addAll(commandBuilder.complexFilters);
+        this.useFilterComplex = commandBuilder.useFilterComplex;
     }
 
     public FFmpegCommand() {
     }
 
-    public FFmpegCommand useFilterComplex(boolean useFilterComplex) {
-        this.useFilterComplex = useFilterComplex;
+    public FFmpegCommand useFilterComplex() {
+        this.useFilterComplex = true;
 
         return this;
     }
 
-    public boolean useFilterComplex() {
+    public boolean isUseFilterComplex() {
         return useFilterComplex;
-    }
-
-    public boolean hasAudioFilter() {
-        return options.contains("-af");
     }
 
     public FFmpegCommand maxMuxingQueueSize(String size) {
@@ -488,21 +486,7 @@ public class FFmpegCommand {
     }
 
     public FFmpegCommand filterAudio(String filter) {
-        options.add("-af");
-        options.add(filter);
-
-        return this;
-    }
-
-    public FFmpegCommand filterAudioV2(String filter) {
         options.add("-filter:a");
-        options.add(filter);
-
-        return this;
-    }
-
-    public FFmpegCommand filterVideo(String filter) {
-        options.add("-vf");
         options.add(filter);
 
         return this;

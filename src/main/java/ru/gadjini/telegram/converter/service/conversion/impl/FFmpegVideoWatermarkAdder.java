@@ -99,6 +99,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
                 .setNext(commandBuilderChainFactory.output());
 
         this.conversionContextPreparer = chainFactory.videoConversionContextPreparer();
+        conversionContextPreparer.setNext(chainFactory.videoWatermark());
     }
 
     @Override

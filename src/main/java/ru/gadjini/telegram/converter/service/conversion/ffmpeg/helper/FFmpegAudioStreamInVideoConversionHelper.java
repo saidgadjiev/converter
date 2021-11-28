@@ -59,6 +59,7 @@ public class FFmpegAudioStreamInVideoConversionHelper {
                     } else {
                         if ((audioStream.getTargetBitrate() == null ||
                                 Objects.equals(audioStream.getBitRate(), audioStream.getTargetBitrate()))
+                                && !conversionContext.isUseStaticAudioFilter()
                                 && isCopyableAudioCodecs(baseCommand, conversionContext.output(), input, audioStreamIndex)) {
                             command.copyAudio(audioStreamIndex);
                             copied = true;
@@ -80,7 +81,7 @@ public class FFmpegAudioStreamInVideoConversionHelper {
         command.out(out.getAbsolutePath());
 
         if (fFmpegDevice.isChannelMapError(command.toCmd())) {
-            commandBuilder.filterAudio("channelmap=channel_layout=5.1");
+            commandBuilder.af("channelmap=channel_layout=5.1");
         }
     }
 
