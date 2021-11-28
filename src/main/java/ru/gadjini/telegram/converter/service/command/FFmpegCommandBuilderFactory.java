@@ -96,6 +96,18 @@ public class FFmpegCommandBuilderFactory {
         };
     }
 
+    public FFmpegCommandBuilderChain audioConversionDefaultOptions() {
+        return new BaseFFmpegCommandBuilderChain() {
+            @Override
+            public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
+                enableExperimentalFeatures().prepareCommand(command, conversionContext);
+                telegramVoiceConversion().prepareCommand(command, conversionContext);
+
+                super.prepareCommand(command, conversionContext);
+            }
+        };
+    }
+
     public FFmpegCommandBuilderChain input() {
         return new FFmpegInputCommandBuilder();
     }

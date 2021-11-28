@@ -80,10 +80,11 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         this.fFprobeDevice = fFprobeDevice;
         commandBuilder.setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.audioCompression())
-                .setNext(commandBuilderFactory.telegramVoiceConversion())
+                .setNext(commandBuilderFactory.audioConversionDefaultOptions())
                 .setNext(commandBuilderFactory.output());
 
         this.conversionContextPreparerChain = contextPreparerChainFactory.audioCompression();
+        conversionContextPreparerChain.setNext(contextPreparerChainFactory.telegramVoiceContextPreparer());
     }
 
     public static String getDefaultFrequency(Format format) {

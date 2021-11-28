@@ -266,21 +266,6 @@ public class FFprobeDevice {
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            FFprobeFormat that = (FFprobeFormat) o;
-
-            return duration != null ? duration.equals(that.duration) : that.duration == null;
-        }
-
-        @Override
-        public int hashCode() {
-            return duration != null ? duration.hashCode() : 0;
-        }
-
-        @Override
         public String toString() {
             return "FFprobeFormat{" +
                     "duration=" + duration +

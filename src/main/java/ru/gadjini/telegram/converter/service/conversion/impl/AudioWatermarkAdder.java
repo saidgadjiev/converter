@@ -35,8 +35,6 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
             Format.filter(FormatCategory.AUDIO), List.of(Format.WATERMARK)
     );
 
-    private static final Format NATIVE_FORMAT = MP3;
-
     private AudioWatermarkService audioWatermarkService;
 
     private SoxService soxService;
@@ -79,11 +77,8 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         GarbageFileCollection finallyGarbageFileCollection = tempFileGarbageCollector.getNewCollection();
 
         try {
-            Integer bitrate = null;
-            if (fileQueueItem.getFirstFileFormat() == NATIVE_FORMAT) {
-                List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
-                bitrate = audioStreams.iterator().next().getBitRate();
-            }
+            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
+            Integer bitrate = audioStreams.iterator().next().getBitRate();
 
             SmartTempFile audio = makeWatermarkPartVolumeLower(watermark, fileQueueItem, bitrate, finallyGarbageFileCollection);
             List<SmartTempFile> files = convertToFormatSuitableForSox(watermark, audio, fileQueueItem, finallyGarbageFileCollection);
@@ -223,6 +218,10 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
 
         commandBuilder.filterAudio("volume=0.1");
         commandBuilder.keepAudioBitRate(bitrate);
+        if (fileQueueItem.getFirstFileFormat().canBeSentAsVoice()) {
+            commandBuilder.audioCodec(FFmpegCommand.OPUS_CODEC_NAME);
+        }
+        commandBuilder.strict("-2");
         commandBuilder.out(result.getAbsolutePath());
 
         fFmpegDevice.execute(commandBuilder.toCmd());

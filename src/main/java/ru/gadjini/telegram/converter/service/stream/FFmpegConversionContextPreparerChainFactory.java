@@ -39,6 +39,10 @@ public class FFmpegConversionContextPreparerChainFactory {
         return new _3gpScaleConversionContextPreparer();
     }
 
+    public FFmpegConversionContextPreparerChain telegramVoiceContextPreparer() {
+        return new FFmpegTelegramVoiceContextPreparer();
+    }
+
     public FFmpegConversionContextPreparerChain bassBoostPreparer() {
         return new FFmpegBassBoostConversionContextPreparer();
     }

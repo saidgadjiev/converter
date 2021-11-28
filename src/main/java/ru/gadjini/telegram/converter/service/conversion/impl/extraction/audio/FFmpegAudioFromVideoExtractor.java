@@ -71,10 +71,11 @@ public class FFmpegAudioFromVideoExtractor extends BaseFromVideoByLanguageExtrac
         this.commandBuilderChain = commandBuilderFactory.quiteInput();
         commandBuilderChain.setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.audioChannelMapFilter())
-                .setNext(commandBuilderFactory.telegramVoiceConversion())
+                .setNext(commandBuilderFactory.audioConversionDefaultOptions())
                 .setNext(commandBuilderFactory.output());
 
         this.conversionContextPreparerChain = contextPreparerChainFactory.extractAudioPreparer();
+        conversionContextPreparerChain.setNext(contextPreparerChainFactory.telegramVoiceContextPreparer());
     }
 
     @Override
