@@ -243,7 +243,7 @@ public class FFmpegCommandBuilderFactory {
     }
 
     public FFmpegCommandBuilderChain vaiMake() {
-        return new FFmpegVaiMakeCommandBuilder(fFprobeDevice);
+        return new FFmpegVaiMakeCommandBuilder(fFprobeDevice, audioInVideoConversion());
     }
 
     public FFmpegCommandBuilderChain singleFramerate() {

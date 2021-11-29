@@ -77,9 +77,6 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                 .setNext(commandBuilderFactory.singleFramerate())
                 .setNext(commandBuilderFactory.input())
                 .setNext(commandBuilderFactory.vaiMake())
-                .setNext(commandBuilderFactory.videoConversion())
-                .setNext(commandBuilderFactory.audioInVideoConversion())
-                .setNext(commandBuilderFactory.webmQuality())
                 .setNext(commandBuilderFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderFactory.output());
     }
@@ -103,7 +100,7 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                 conversionQueueItem.getFirstFileId(), TAG, OUTPUT_FORMAT.getExt());
 
         try {
-            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath(), FormatCategory.VIDEO);
+            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath(), FormatCategory.AUDIO);
             audioStreams.forEach(f -> f.setInput(1));
             List<FFprobeDevice.FFProbeStream> streams = new ArrayList<>();
             streams.addAll(audioStreams);
