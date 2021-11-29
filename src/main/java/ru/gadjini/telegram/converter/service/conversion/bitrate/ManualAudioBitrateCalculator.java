@@ -7,6 +7,7 @@ import ru.gadjini.telegram.converter.service.conversion.bitrate.overall.OverallB
 import ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.BitrateGuesser;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegWdhService;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,17 +29,22 @@ public class ManualAudioBitrateCalculator implements BitrateCalculator {
 
     @Override
     public void prepareContext(BitrateCalculatorContext bitrateCalculatorContext) throws InterruptedException {
-        long durationInSeconds = fFmpegWdhService.getDurationInSeconds(bitrateCalculatorContext.getIn());
-        FFprobeDevice.WHD whd = new FFprobeDevice.WHD();
-        whd.setDuration(durationInSeconds);
-        bitrateCalculatorContext.setWhd(whd);
+        if (bitrateCalculatorContext.getTargetFormatCategory() == FormatCategory.AUDIO) {
+            long durationInSeconds = fFmpegWdhService.getDurationInSeconds(bitrateCalculatorContext.getIn());
+            FFprobeDevice.WHD whd = new FFprobeDevice.WHD();
+            whd.setDuration(durationInSeconds);
+            bitrateCalculatorContext.setWhd(whd);
 
-        Integer overallBitrate = getOverallBitrate(bitrateCalculatorContext);
-        bitrateCalculatorContext.setOverallBitrate(overallBitrate);
+            Integer overallBitrate = getOverallBitrate(bitrateCalculatorContext);
+            bitrateCalculatorContext.setOverallBitrate(overallBitrate);
+        }
     }
 
     @Override
     public Integer calculateBitrate(FFprobeDevice.FFProbeStream stream, BitrateCalculatorContext bitrateCalculatorContext) {
+        if (bitrateCalculatorContext.getTargetFormatCategory() != FormatCategory.AUDIO) {
+            return null;
+        }
         if (!bitrateCalculatorContext.isAudioManualBitrateCalculated()) {
             calculateManualBitrate(bitrateCalculatorContext);
             bitrateCalculatorContext.setAudioManualBitrateCalculated(true);
