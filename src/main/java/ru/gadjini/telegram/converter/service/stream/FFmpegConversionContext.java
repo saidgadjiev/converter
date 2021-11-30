@@ -52,6 +52,8 @@ public class FFmpegConversionContext {
 
     private boolean useStaticAudioFilter;
 
+    private boolean useCrf;
+
     private Map<String, Object> extra = new HashMap<>();
 
     private FFmpegConversionContext() {
@@ -142,6 +144,16 @@ public class FFmpegConversionContext {
 
     public boolean isUseStaticAudioFilter() {
         return useStaticAudioFilter;
+    }
+
+    public boolean isUseCrf() {
+        return useCrf;
+    }
+
+    public FFmpegConversionContext setUseCrf(boolean useCrf) {
+        this.useCrf = useCrf;
+
+        return this;
     }
 
     public static FFmpegConversionContext from(SmartTempFile in, SmartTempFile out,

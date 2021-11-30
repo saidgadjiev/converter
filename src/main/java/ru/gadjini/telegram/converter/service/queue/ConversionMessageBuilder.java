@@ -5,14 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.configuration.FormatsConfiguration;
 import ru.gadjini.telegram.converter.domain.ConversionQueueItem;
 import ru.gadjini.telegram.converter.property.ApplicationProperties;
 import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioCompressConverter;
 import ru.gadjini.telegram.converter.service.conversion.impl.VaiMakeConverter;
-import ru.gadjini.telegram.converter.service.conversion.impl.VideoCompressConverter;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
@@ -64,8 +62,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     }
 
     public String getVideoCompressionInfoMessage(long sourceSize, long resultSize, Locale locale) {
-        return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_COMPRESSION_CAPTION, locale) + "\n\n"
-                + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSED_SIZE,
+        return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSED_SIZE,
                 new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
     }
 
@@ -160,7 +157,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     }
 
     public String getFilesDownloadingProgressMessage(ConversionQueueItem queueItem, int current, int total, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, "%", locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
 
         return progressingMessage + "\n\n" + getFilesDownloadingProgressMessage(current, total, queueItem.getTargetFormat(), locale);
     }
@@ -187,7 +184,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
 
     public String getConversionProcessingMessage(ConversionQueueItem queueItem,
                                                  ConversionStep conversionStep, Set<ConversionStep> completedSteps, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, "%", locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
 
         return progressingMessage + "\n\n" +
                 getProgressMessage(conversionStep, completedSteps, false, false,
@@ -197,7 +194,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
     public String getConversionProcessingMessage(ConversionQueueItem queueItem,
                                                  ConversionStep conversionStep, Set<ConversionStep> completedSteps,
                                                  boolean withConversionPercentage, Locale locale) {
-        String progressingMessage = getConversionProgressingMessage(queueItem, percentageEscape(conversionStep, withConversionPercentage, false), locale);
+        String progressingMessage = getConversionProgressingMessage(queueItem, locale);
 
         return progressingMessage + "\n\n" +
                 getProgressMessage(conversionStep, completedSteps, withConversionPercentage, false,
@@ -208,14 +205,14 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                                                  ConversionStep conversionStep, Set<ConversionStep> completedSteps,
                                                  boolean withPercentage, boolean withEtaSpeedPercentage, Locale locale) {
         String progressingMessage = getConversionProgressingMessage(queueItem,
-                percentageEscape(conversionStep, withPercentage, withEtaSpeedPercentage), locale);
+                locale);
 
         return progressingMessage + "\n\n" +
                 getProgressMessage(conversionStep, completedSteps, withPercentage, withEtaSpeedPercentage,
                         queueItem.getFirstFileFormat(), queueItem.getTargetFormat(), locale);
     }
 
-    private String getConversionProgressingMessage(ConversionQueueItem queueItem, String percentageEscape, Locale locale) {
+    private String getConversionProgressingMessage(ConversionQueueItem queueItem, Locale locale) {
         StringBuilder text = new StringBuilder();
         if (queueItem.getTargetFormat() == Format.COMPRESS) {
             text.append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale));
@@ -263,26 +260,6 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
         if (queueItem.getFiles().size() > 1) {
             text.append("\n")
                     .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_FILES_COUNT, new Object[]{queueItem.getFiles().size()}, locale));
-        }
-        if (queueItem.getTargetFormat() == Format.COMPRESS) {
-            text.append("\n\n")
-                    .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESS_BY, new Object[]{
-                            100 - VideoCompressConverter.DEFAULT_QUALITY + percentageEscape
-                    }, locale))
-                    .append("\n")
-                    .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION,
-                            new Object[]{MemoryUtils.humanReadableByteCount(
-                                    queueItem.getSize() * VideoCompressConverter.DEFAULT_QUALITY / 100)}, locale));
-
-            if (queueItem.getFirstFileFormat().getCategory() == FormatCategory.VIDEO) {
-                    text.append("\n\n")
-                        .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_USE_VEDIT_FOR_COMPRESSION,
-                                new Object[]{
-                                        EditVideoQualityState.MAX_COMPRESSION_RATE + percentageEscape,
-                                        MemoryUtils.humanReadableByteCount(
-                                                queueItem.getSize() * (100 - EditVideoQualityState.MAX_COMPRESSION_RATE) / 100)
-                                }, locale));
-            }
         }
 
         Set<String> warns = new LinkedHashSet<>();

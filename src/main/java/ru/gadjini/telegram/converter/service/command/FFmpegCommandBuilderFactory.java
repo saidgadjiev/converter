@@ -139,6 +139,10 @@ public class FFmpegCommandBuilderFactory {
         };
     }
 
+    public FFmpegCommandBuilderChain videoCompression() {
+        return new FFmpegVideoCompressionCommandBuilder();
+    }
+
     public FFmpegCommandBuilderChain simpleVideoStreamsConversion() {
         FFmpegCommandBuilderChain videoConversion = videoConversion();
         FFmpegCommandBuilderChain subtitlesConversion = subtitlesConversion();

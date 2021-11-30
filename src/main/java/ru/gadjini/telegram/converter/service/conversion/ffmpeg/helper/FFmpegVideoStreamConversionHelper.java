@@ -64,10 +64,7 @@ public class FFmpegVideoStreamConversionHelper {
                 commandBuilder.videoCodec(outCodecIndex, videoStream.getTargetCodecName())
                         .filterVideo(outCodecIndex, videoStream.getTargetScale());
             } else {
-                if (!videoStream.isDontCopy()
-                        && (videoStream.getTargetBitrate() == null || Objects.equals(videoStream.getBitRate(), videoStream.getTargetBitrate()))
-                        && !conversionContext.isUseStaticVideoFilter()
-                        && isCopyableVideoCodecs(baseCommand, conversionContext.output(), videoStream.getInput(), videoStreamMapIndex)) {
+                if (isCopyableStream(videoStream, conversionContext, baseCommand, videoStreamMapIndex)) {
                     commandBuilder.copyVideo(outCodecIndex);
                     copied = true;
                 } else {
@@ -83,7 +80,7 @@ public class FFmpegVideoStreamConversionHelper {
                     }
                 }
             }
-            if (!copied) {
+            if (!copied && !conversionContext.isUseCrf()) {
                 if (videoStream.getTargetBitrate() != null) {
                     commandBuilder.keepVideoBitRate(outCodecIndex, videoStream.getTargetBitrate());
                 } else {
@@ -92,6 +89,15 @@ public class FFmpegVideoStreamConversionHelper {
             }
             ++outCodecIndex;
         }
+    }
+
+    private boolean isCopyableStream(FFprobeDevice.FFProbeStream videoStream, FFmpegConversionContext conversionContext,
+                                     FFmpegCommand baseCommand, int videoStreamMapIndex) throws InterruptedException {
+        return !videoStream.isDontCopy()
+                && (videoStream.getTargetBitrate() == null || Objects.equals(videoStream.getBitRate(), videoStream.getTargetBitrate()))
+                && videoStream.getTargetScale() == null
+                && !conversionContext.isUseStaticVideoFilter()
+                && isCopyableVideoCodecs(baseCommand, conversionContext.output(), videoStream.getInput(), videoStreamMapIndex);
     }
 
     private boolean isCopyableVideoCodecs(FFmpegCommand baseCommand, SmartTempFile out,
