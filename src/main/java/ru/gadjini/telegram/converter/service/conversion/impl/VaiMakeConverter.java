@@ -19,7 +19,6 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,11 +99,11 @@ public class VaiMakeConverter extends BaseAny2AnyConverter {
                 conversionQueueItem.getFirstFileId(), TAG, OUTPUT_FORMAT.getExt());
 
         try {
-            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath(), FormatCategory.AUDIO);
+            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAllStreams(downloadedAudio.getAbsolutePath());
             audioStreams.forEach(f -> f.setInput(1));
             List<FFprobeDevice.FFProbeStream> streams = new ArrayList<>();
             streams.addAll(audioStreams);
-            streams.addAll(fFprobeDevice.getAllStreamsWithoutBitrate(downloadedImage.getAbsolutePath()));
+            streams.addAll(fFprobeDevice.getAllStreams(downloadedImage.getAbsolutePath()));
             FFmpegConversionContext conversionContext = FFmpegConversionContext.from(downloadedImage, result, OUTPUT_FORMAT, streams)
                     .input(downloadedAudio);
             contextPreparer.prepare(conversionContext);

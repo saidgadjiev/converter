@@ -77,7 +77,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         GarbageFileCollection finallyGarbageFileCollection = tempFileGarbageCollector.getNewCollection();
 
         try {
-            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
+            List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
             Integer bitrate = audioStreams.iterator().next().getBitRate();
 
             SmartTempFile audio = makeWatermarkPartVolumeLower(watermark, fileQueueItem, bitrate, finallyGarbageFileCollection);

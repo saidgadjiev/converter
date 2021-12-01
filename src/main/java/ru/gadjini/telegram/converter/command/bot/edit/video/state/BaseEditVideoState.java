@@ -49,8 +49,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 new Object[]{convertState.getFirstFormat().getName(),
                         MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
                         editVideoState.getCurrentVideoResolution() + "p",
-                        getEstimatedSize(convertState.getFirstFile().getFileSize(), QualityCalculator.getQuality(editVideoState)),
-                        getCompressionRateMessage(editVideoState.getSettings().getCompressBy(), locale),
+                        editVideoState.getSettings().getCompressBy(),
                         getResolutionMessage(convertState.getSettings().getResolution(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
@@ -96,12 +95,6 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution + "p";
     }
 
-    private String getCompressionRateMessage(String quality, Locale locale) {
-        return EditVideoResolutionState.AUTO.equals(quality) || Integer.parseInt(quality) <= EditVideoQualityState.MIN_QUALITY ?
-                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale)
-                : quality + "%";
-    }
-
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {
         return EditVideoAudioBitrateState.AUTO.equals(audioBitrate) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale)
@@ -111,10 +104,6 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     private String getAudioMonoStereoMessage(String monoStereo, Locale locale) {
         return EditVideoAudioChannelLayoutState.AUTO.equals(monoStereo) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUTO, locale) : monoStereo;
-    }
-
-    final String getEstimatedSize(long fileSize, int quality) {
-        return MemoryUtils.humanReadableByteCount(fileSize * quality / EditVideoQualityState.MAX_QUALITY);
     }
 
     private String getAudioCodecMessage(String audioCodec, Locale locale) {
@@ -137,7 +126,7 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 ? inlineKeyboardService.getVideoEditAudioMonoStereoKeyboard(convertState.getSettings().getAudioChannelLayout(),
                 EditVideoAudioChannelLayoutState.AVAILABLE_AUDIO_MONO_STEREO, new Locale(convertState.getUserLanguage()))
                 : inlineKeyboardService.getVideoEditQualityKeyboard(editVideoState.getSettings().getCompressBy(),
-                EditVideoQualityState.AVAILABLE_QUALITIES, new Locale(convertState.getUserLanguage()));
+                EditVideoQualityState.AVAILABLE_CRF, new Locale(convertState.getUserLanguage()));
     }
 
     final void sendVideoHasNoAudioAnswer(CallbackQuery callbackQuery, Locale locale) {

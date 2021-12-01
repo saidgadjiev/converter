@@ -129,15 +129,15 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getVideoEditQualityKeyboard(String currentCompressionRate, List<Integer> crfs, Locale locale) {
+    public InlineKeyboardMarkup getVideoEditQualityKeyboard(String currentCompressionRate, List<String> crfs, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
         inlineKeyboardMarkup.getKeyboard()
                 .add(List.of(buttonFactory.compressionRateButton(currentCompressionRate, EditVideoQualityState.AUTO, locale)));
-        List<List<Integer>> lists = Lists.partition(crfs, 3);
-        for (List<Integer> list : lists) {
+        List<List<String>> lists = Lists.partition(crfs, 3);
+        for (List<String> list : lists) {
             List<InlineKeyboardButton> buttons = new ArrayList<>();
-            for (Integer crf : list) {
-                buttons.add(buttonFactory.compressionRateButton(currentCompressionRate, String.valueOf(crf), locale));
+            for (String crf : list) {
+                buttons.add(buttonFactory.compressionRateButton(currentCompressionRate, crf, locale));
             }
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }

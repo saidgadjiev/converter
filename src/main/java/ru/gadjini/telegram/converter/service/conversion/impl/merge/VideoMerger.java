@@ -58,7 +58,7 @@ public class VideoMerger extends BaseAny2AnyConverter {
             SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), TAG,
                     targetFormat.getExt());
             try {
-                List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreamsWithoutBitrate(filesToConcatenate.get(0).getAbsolutePath());
+                List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(filesToConcatenate.get(0).getAbsolutePath());
                 FFmpegCommand commandBuilder = new FFmpegCommand().hideBanner().quite()
                         .f(FFmpegCommand.CONCAT).safe("0").input(filesList.getAbsolutePath())
                         .mapVideo().copyVideo();

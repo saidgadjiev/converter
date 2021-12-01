@@ -147,16 +147,10 @@ public class VideoEditor extends BaseAny2AnyConverter {
         state.setDownloadedFilePath(file.getAbsolutePath());
 
         try {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
             state.setCurrentVideoResolution(whd.getHeight());
-            state.setCurrentOverallBitrate(videoStreamConversionHelper.getOverallBitrate(allStreams));
-            state.setCurrentAudioBitrate(allStreams.stream().filter(s -> s.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE))
-                    .map(FFprobeDevice.FFProbeStream::getBitRate).collect(Collectors.toList()));
-
-            FFprobeDevice.FFProbeStream firstVideoStream = allStreams.get(videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
-            state.setCurrentVideoBitrate(firstVideoStream.getBitRate());
-            state.getSettings().setVideoBitrate(state.getCurrentVideoBitrate());
+            state.setHasAudio(allStreams.stream().anyMatch(s -> s.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)));
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }
@@ -173,7 +167,7 @@ public class VideoEditor extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
             FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getFirstFileFormat(), allStreams)
                     .putExtra(FFmpegConversionContext.SETTINGS_STATE, settingsState);

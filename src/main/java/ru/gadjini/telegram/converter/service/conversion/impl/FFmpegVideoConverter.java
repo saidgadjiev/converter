@@ -21,7 +21,6 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -121,7 +120,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
     public ConversionResult doConvert(SmartTempFile file, SmartTempFile result,
                                       ConversionQueueItem fileQueueItem, Format targetFormat,
                                       boolean withProgress) throws InterruptedException {
-        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
 
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, targetFormat, allStreams);
         conversionContextPreparer.prepare(conversionContext);

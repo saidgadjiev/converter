@@ -20,7 +20,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -102,7 +101,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         }
 
         try {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(in.getAbsolutePath());
             FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, allStreams)
                     .putExtra(FFmpegConversionContext.AUDIO_BITRATE, Integer.parseInt(bitrate))
                     .putExtra(FFmpegConversionContext.FREQUENCY, frequency);

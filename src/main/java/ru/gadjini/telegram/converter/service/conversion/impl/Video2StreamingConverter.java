@@ -89,7 +89,7 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 TAG, fileQueueItem.getFirstFileFormat().getExt());
 
         try {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreamsWithoutBitrate(file.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
             if (fFmpegVideoHelper.isVideoStreamsValidForTelegramVideo(allStreams)
                     && videoAudioConversionHelper.isAudioStreamsValidForTelegramVideo(allStreams)) {
                 Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);

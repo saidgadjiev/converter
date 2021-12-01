@@ -3,14 +3,12 @@ package ru.gadjini.telegram.converter.command.bot.edit.video.state;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
-import ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.AudioBitrateByResolutionSearcher;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -21,30 +19,14 @@ import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class EditVideoQualityState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
-    public static final String DEFAULT_QUALITY = "30";
-
-    public static final int MAX_COMPRESSION_RATE = 90;
-
-    static final Integer MAX_QUALITY = 100;
-
-    static final int MIN_QUALITY = 0;
-
-    private static final List<Integer> AUDIO_BITRATE = List.of(
-            128 * 1024,
-            64 * 1024,
-            32 * 1024,
-            16 * 1024,
-            8 * 1024
-    );
-
-    static final List<Integer> AVAILABLE_QUALITIES = List.of(10, 20, 30, 40, 50, 60, 70, 80, 90);
+    public static final List<String> AVAILABLE_CRF = List.of("13", "15", "18",
+            "20", "23", "26", "28", "30", "32", "34", "36", "40");
 
     private MessageService messageService;
 
@@ -80,7 +62,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
                         .text(buildSettingsMessage(currentState))
                         .messageId(callbackQuery.getMessage().getMessageId())
                         .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(currentState.getSettings().getCompressBy(),
-                                AVAILABLE_QUALITIES, new Locale(currentState.getUserLanguage())))
+                                AVAILABLE_CRF, new Locale(currentState.getUserLanguage())))
                         .build()
         );
 
@@ -90,17 +72,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
     @Override
     public void callbackUpdate(EditVideoCommand editVideoCommand, CallbackQuery callbackQuery,
                                RequestParams requestParams, EditVideoState currentState) {
-        if (requestParams.contains(ConverterArg.CRF_MODE.getKey())) {
-            messageService.editKeyboard(
-                    callbackQuery.getMessage().getReplyMarkup(),
-                    EditMessageReplyMarkup.builder()
-                            .chatId(String.valueOf(callbackQuery.getFrom().getId()))
-                            .messageId(callbackQuery.getMessage().getMessageId())
-                            .replyMarkup(inlineKeyboardService.getVideoEditQualityKeyboard(currentState.getSettings().getCompressBy(),
-                                    AVAILABLE_QUALITIES, new Locale(currentState.getUserLanguage())))
-                            .build()
-            );
-        } else if (requestParams.contains(ConverterArg.GO_BACK.getKey())) {
+        if (requestParams.contains(ConverterArg.GO_BACK.getKey())) {
             currentState.setStateName(welcomeState.getName());
             welcomeState.goBack(editVideoCommand, callbackQuery, currentState);
             commandStateService.setState(callbackQuery.getFrom().getId(), editVideoCommand.getCommandIdentifier(), currentState);
@@ -108,16 +80,10 @@ public class EditVideoQualityState extends BaseEditVideoState {
             String crf = requestParams.getString(ConverterArg.CRF.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
-            boolean showAlert = true;
-            if (isValid(crf)) {
-                setQuality(callbackQuery, crf, currentState);
-                if (AUTO.equals(crf)) {
-                    answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
-                            locale);
-                    showAlert = false;
-                } else {
-                    answerCallbackQuery = getCompressionRateSelectedMessage(currentState, locale);
-                }
+            if (AVAILABLE_CRF.contains(crf)) {
+                setCrf(callbackQuery, crf);
+                answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
+                        locale);
             } else {
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CHOOSE_VIDEO_CRF,
                         locale);
@@ -126,7 +92,6 @@ public class EditVideoQualityState extends BaseEditVideoState {
                     AnswerCallbackQuery.builder()
                             .callbackQueryId(callbackQuery.getId())
                             .text(answerCallbackQuery)
-                            .showAlert(showAlert)
                             .build()
             );
         }
@@ -137,84 +102,16 @@ public class EditVideoQualityState extends BaseEditVideoState {
         return EditVideoSettingsStateName.CRF;
     }
 
-    private void setQuality(CallbackQuery callbackQuery, String compressionRate, EditVideoState convertState) {
+    private void setCrf(CallbackQuery callbackQuery, String crf) {
         long chatId = callbackQuery.getFrom().getId();
+        EditVideoState convertState = commandStateService.getState(chatId,
+                ConverterCommandNames.EDIT_VIDEO, true, EditVideoState.class);
 
-        if (compressionRate.equals(AUTO)) {
-            convertState.getSettings().setVideoBitrate(convertState.getCurrentVideoBitrate());
-            convertState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
-            convertState.getSettings().setResolution(EditVideoResolutionState.AUTO);
-        } else {
-            int quality = MAX_QUALITY - Integer.parseInt(compressionRate);
-            int targetOverallBitrate = convertState.getCurrentOverallBitrate() * quality / MAX_QUALITY;
-            int targetAudioBitrate = convertState.hasAudio()
-                    ? AudioBitrateByResolutionSearcher
-                    .getAudioBitrate(convertState.getSettings().getResolutionOrDefault(convertState.getCurrentVideoResolution()))
-                    : 0;
-
-            AtomicInteger videoBitrate = new AtomicInteger();
-            AtomicInteger audioBitrate = new AtomicInteger();
-            VideoAudioBitrateCalculator.calculateVideoAudioBitrate(convertState.getCurrentOverallBitrate(),
-                    convertState.getCurrentVideoBitrate(), targetOverallBitrate, targetAudioBitrate, convertState.getCurrentAudioBitrate(),
-                    videoBitrate, audioBitrate, AUDIO_BITRATE);
-            if (convertState.hasAudio()) {
-                convertState.getSettings().setAudioBitrate(String.valueOf(audioBitrate.get()));
-            }
-            convertState.getSettings().setVideoBitrate(videoBitrate.get());
-
-            int appropriateResolutionForVideoBitrate = findAppropriateResolutionForVideoBitrate(
-                    convertState.getCurrentVideoResolution(),
-                    convertState.getSettings().getVideoBitrate());
-            convertState.getSettings().setResolution(String.valueOf(appropriateResolutionForVideoBitrate));
-        }
-
-        String oldQuality = convertState.getSettings().getCompressBy();
-        convertState.getSettings().setCompressBy(compressionRate);
-        if (!Objects.equals(oldQuality, convertState.getSettings().getCompressBy())) {
+        String oldCrf = convertState.getSettings().getCompressBy();
+        convertState.getSettings().setCompressBy(crf);
+        if (!Objects.equals(crf, oldCrf)) {
             updateSettingsMessage(callbackQuery, chatId, convertState);
         }
         commandStateService.setState(chatId, ConverterCommandNames.EDIT_VIDEO, convertState);
-    }
-
-    private int findAppropriateResolutionForVideoBitrate(int currentResolution, int videoBitrate) {
-        List<Integer> availableResolutions = AvailableVideoResolutionsProvider
-                .getPermittedVideoResolutions(currentResolution, EditVideoResolutionState.AVAILABLE_RESOLUTIONS);
-        int distance = Math.abs(videoBitrate - EditVideoResolutionState.VIDEO_BITRATE_BY_RESOLUTION.get(availableResolutions.get(0)));
-        int idx = 0;
-        for (int c = 1; c < availableResolutions.size(); c++) {
-            int cdistance = Math.abs(videoBitrate - EditVideoResolutionState.VIDEO_BITRATE_BY_RESOLUTION.get(availableResolutions.get(c)));
-            if (cdistance < distance) {
-                idx = c;
-                distance = cdistance;
-            }
-        }
-
-        return availableResolutions.get(idx);
-    }
-
-    private boolean isValid(String crf) {
-        if (crf.equals(AUTO)) {
-            return true;
-        }
-        try {
-            return AVAILABLE_QUALITIES.contains(Integer.parseInt(crf));
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    private String getCompressionRateSelectedMessage(EditVideoState currentState, Locale locale) {
-        return currentState.hasAudio() ? localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSION_RATE_SELECTED,
-                new Object[]{
-                        currentState.getSettings().getAudioBitrateInKBytes() + "k",
-                        currentState.getSettings().getResolution() + "p",
-                        getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
-                },
-                locale) : localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSION_RATE_SELECTED_NO_AUDIO,
-                new Object[]{
-                        currentState.getSettings().getResolution() + "p",
-                        getEstimatedSize(currentState.getFirstFile().getFileSize(), QualityCalculator.getQuality(currentState))
-                },
-                locale);
     }
 }

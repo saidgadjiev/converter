@@ -20,7 +20,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.List;
 import java.util.Map;
@@ -83,7 +82,7 @@ public class AudioBassBooster extends BaseAudioConverter {
             ));
         }
 
-        List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath(), FormatCategory.AUDIO);
+        List<FFprobeDevice.FFProbeStream> audioStreams = fFprobeDevice.getAudioStreams(in.getAbsolutePath());
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(in, out, targetFormat, audioStreams)
                 .putExtra(FFmpegConversionContext.BASS_BOOST, bassBoost);
 

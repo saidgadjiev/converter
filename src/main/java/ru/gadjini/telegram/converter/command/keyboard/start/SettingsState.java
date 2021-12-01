@@ -3,8 +3,6 @@ package ru.gadjini.telegram.converter.command.keyboard.start;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Period;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
-import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.utils.BitrateUtils;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -34,8 +32,6 @@ public class SettingsState {
 
     private String audioBitrate;
 
-    private int videoBitrate;
-
     private String compressBy;
 
     private String audioChannelLayout;
@@ -60,10 +56,6 @@ public class SettingsState {
 
     public String getResolution() {
         return resolution;
-    }
-
-    public int getResolutionOrDefault(int defaultResolution) {
-        return EditVideoResolutionState.AUTO.equals(resolution) ? defaultResolution : Integer.parseInt(resolution);
     }
 
     public void setResolution(String resolution) {
@@ -174,20 +166,8 @@ public class SettingsState {
         this.bassBoost = bassBoost;
     }
 
-    public int getVideoBitrate() {
-        return videoBitrate;
-    }
-
-    public void setVideoBitrate(int videoBitrate) {
-        this.videoBitrate = videoBitrate;
-    }
-
     public String getCompressBy() {
         return compressBy;
-    }
-
-    public int getParsedCompressBy() {
-        return EditVideoQualityState.AUTO.equals(compressBy) ? 0 : Integer.parseInt(compressBy);
     }
 
     public void setCompressBy(String compressBy) {

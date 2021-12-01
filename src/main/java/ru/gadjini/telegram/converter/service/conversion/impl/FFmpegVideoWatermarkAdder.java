@@ -130,7 +130,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             VideoWatermark watermark = videoWatermarkService.getWatermark(fileQueueItem.getUserId());
             validateWatermarkFile(fileQueueItem, watermark);
 
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath(), FormatCategory.VIDEO);
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             FFmpegConversionContext conversionContext = FFmpegConversionContext.from(video, result,
                     fileQueueItem.getFirstFileFormat(), allStreams)
                     .putExtra(FFmpegConversionContext.VIDEO_WATERMARK, watermark)
@@ -162,7 +162,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         if (watermark.getWatermarkType() == VideoWatermarkType.VIDEO) {
             SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
 
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreamsWithoutBitrate(watermarkFile.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(watermarkFile.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(watermarkFile.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
             if (whd.getDuration() == null || whd.getDuration() > 300) {
                 throw new UserException(localisationService.getMessage(

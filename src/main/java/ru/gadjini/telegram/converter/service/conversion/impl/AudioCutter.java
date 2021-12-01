@@ -87,7 +87,7 @@ public class AudioCutter extends BaseAudioConverter {
         validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(),
                 durationInSeconds, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
 
-        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath(), FormatCategory.AUDIO);
+        List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
 
         Period cutEndPoint = settingsState.getCutEndPoint();
         Period cutStartPoint = settingsState.getCutStartPoint();

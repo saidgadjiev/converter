@@ -8,11 +8,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
-import ru.gadjini.telegram.converter.service.conversion.bitrate.BitrateCalculator;
-import ru.gadjini.telegram.converter.service.conversion.bitrate.BitrateCalculatorContext;
 import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,38 +26,20 @@ public class FFprobeDevice {
 
     private FFmpegWdhService fFmpegWdhService;
 
-    private List<BitrateCalculator> bitrateCalculators;
-
     @Autowired
     public FFprobeDevice(ProcessExecutor processExecutor, Jackson jsonMapper,
-                         FFmpegWdhService fFmpegWdhService,
-                         List<BitrateCalculator> bitrateCalculators) {
+                         FFmpegWdhService fFmpegWdhService) {
         this.processExecutor = processExecutor;
         this.jsonMapper = jsonMapper;
         this.fFmpegWdhService = fFmpegWdhService;
-        this.bitrateCalculators = bitrateCalculators;
     }
 
     public List<FFProbeStream> getAudioStreams(String in) throws InterruptedException {
-        return getAudioStreams(in, null, true);
-    }
-
-    public List<FFProbeStream> getAudioStreams(String in, FormatCategory targetFormatCategory) throws InterruptedException {
-        return getAudioStreams(in, targetFormatCategory, false);
-    }
-
-    public List<FFProbeStream> getAudioStreams(String in, FormatCategory targetFormatCategory, boolean noBitrate) throws InterruptedException {
         String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.AUDIO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        List<FFProbeStream> streams = jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
+        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
         });
-
-        if (!noBitrate) {
-            setBitrateAndSizesForStreams(in, targetFormatCategory, streams);
-        }
-
-        return streams;
     }
 
     public List<FFProbeStream> getSubtitleStreams(String in) throws InterruptedException {
@@ -79,15 +58,7 @@ public class FFprobeDevice {
         });
     }
 
-    public List<FFProbeStream> getAllStreamsWithoutBitrate(String in) throws InterruptedException {
-        return getAllStreams(in, null, true);
-    }
-
-    public List<FFProbeStream> getAllStreams(String in, FormatCategory targetFormatCategory) throws InterruptedException {
-        return getAllStreams(in, targetFormatCategory, false);
-    }
-
-    public List<FFProbeStream> getAllStreams(String in, FormatCategory targetFormatCategory, boolean noBitrate) throws InterruptedException {
+    public List<FFProbeStream> getAllStreams(String in) throws InterruptedException {
         String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, null));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
@@ -95,9 +66,6 @@ public class FFprobeDevice {
 
         for (FFProbeStream stream : fFprobeResult.getStreams()) {
             stream.setFormat(fFprobeResult.getFormat());
-        }
-        if (!noBitrate) {
-            setBitrateAndSizesForStreams(in, targetFormatCategory, fFprobeResult.getStreams());
         }
 
         return fFprobeResult.getStreams();
@@ -137,44 +105,6 @@ public class FFprobeDevice {
         command.add(in);
 
         return command.toArray(String[]::new);
-    }
-
-    private void setBitrateAndSizesForStreams(String in, FormatCategory targetFormatCategory, List<FFProbeStream> streams) throws InterruptedException {
-        setIndexes(streams);
-
-        BitrateCalculatorContext bitrateCalculatorContext = new BitrateCalculatorContext()
-                .setIn(in)
-                .setTargetFormatCategory(targetFormatCategory)
-                .setStreams(streams);
-        for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
-            bitrateCalculator.prepareContext(bitrateCalculatorContext);
-        }
-        for (BitrateCalculator bitrateCalculator : bitrateCalculators) {
-            for (FFProbeStream stream : streams) {
-                if (stream.getBitRate() != null) {
-                    continue;
-                }
-                Integer bitrate = bitrateCalculator.calculateBitrate(stream, bitrateCalculatorContext);
-                stream.setBitRate(bitrate);
-            }
-        }
-    }
-
-    private void setIndexes(List<FFProbeStream> streams) {
-        StreamIndexGenerator streamIndexGenerator = new StreamIndexGenerator();
-        for (FFProbeStream stream : streams) {
-            switch (stream.getCodecType()) {
-                case FFProbeStream.AUDIO_CODEC_TYPE:
-                    stream.setIndex(streamIndexGenerator.nextAudioStreamIndex());
-                    break;
-                case FFProbeStream.VIDEO_CODEC_TYPE:
-                    stream.setIndex(streamIndexGenerator.nextVideoStreamIndex());
-                    break;
-                case FFProbeStream.SUBTITLE_CODEC_TYPE:
-                    stream.setIndex(streamIndexGenerator.nextTextStreamIndex());
-                    break;
-            }
-        }
     }
 
     public static class WHD {
@@ -236,7 +166,7 @@ public class FFprobeDevice {
             this.streams = streams;
         }
 
-        public FFProbeStream getFirstStream() {
+        FFProbeStream getFirstStream() {
             if (streams == null || streams.isEmpty()) {
                 return null;
             }
@@ -306,8 +236,6 @@ public class FFprobeDevice {
 
         private int input = 0;
 
-        private Long streamSize;
-
         private FFprobeFormat format;
 
         @JsonIgnore
@@ -340,18 +268,6 @@ public class FFprobeDevice {
 
         public void setTags(Map<String, Object> tags) {
             this.tags = tags;
-        }
-
-        public void setCodecType(String codecType) {
-            this.codecType = codecType;
-        }
-
-        public void setStreamSize(Long streamSize) {
-            this.streamSize = streamSize;
-        }
-
-        public Long getStreamSize() {
-            return streamSize;
         }
 
         public String getCodecName() {
@@ -461,7 +377,6 @@ public class FFprobeDevice {
                     ", height=" + height +
                     ", bitRate=" + bitRate +
                     ", input=" + input +
-                    ", streamSize=" + streamSize +
                     ", format=" + format +
                     '}';
         }

@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.command.bot.edit.video.state;
 import ru.gadjini.telegram.converter.command.keyboard.start.ConvertState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 
@@ -13,11 +12,7 @@ public class EditVideoState {
 
     private int currentVideoResolution;
 
-    private int currentOverallBitrate;
-
-    private int currentVideoBitrate;
-
-    private List<Integer> currentAudioBitrate;
+    private boolean hasAudio;
 
     private String downloadedFilePath;
 
@@ -79,30 +74,6 @@ public class EditVideoState {
         return state.getFirstFile();
     }
 
-    public Format getFirstFormat() {
-        return state.getFirstFormat();
-    }
-
-    public void clearMedia() {
-        state.clearMedia();
-    }
-
-    public boolean isTextAppendedMessageSent() {
-        return state.isTextAppendedMessageSent();
-    }
-
-    public void setTextAppendedMessageSent(boolean textAppendedMessageSent) {
-        state.setTextAppendedMessageSent(textAppendedMessageSent);
-    }
-
-    public Format getMultiMediaFormat() {
-        return state.getMultiMediaFormat();
-    }
-
-    public void setMultiMediaFormat(Format multiMediaFormat) {
-        state.setMultiMediaFormat(multiMediaFormat);
-    }
-
     public void setSettings(SettingsState settings) {
         state.setSettings(settings);
     }
@@ -119,14 +90,6 @@ public class EditVideoState {
         this.currentVideoResolution = currentVideoResolution;
     }
 
-    public int getCurrentOverallBitrate() {
-        return currentOverallBitrate;
-    }
-
-    public void setCurrentOverallBitrate(int currentOverallBitrate) {
-        this.currentOverallBitrate = currentOverallBitrate;
-    }
-
     public String getDownloadedFilePath() {
         return downloadedFilePath;
     }
@@ -135,31 +98,11 @@ public class EditVideoState {
         this.downloadedFilePath = downloadedFilePath;
     }
 
-    public int getAudioStreamsCount() {
-        return currentAudioBitrate.size();
-    }
-
-    public int getCurrentAudioOverallBitrate() {
-        return currentAudioBitrate.stream().reduce(0, Integer::sum);
-    }
-
-    public List<Integer> getCurrentAudioBitrate() {
-        return currentAudioBitrate;
-    }
-
-    public void setCurrentAudioBitrate(List<Integer> currentAudioBitrate) {
-        this.currentAudioBitrate = currentAudioBitrate;
-    }
-
-    public int getCurrentVideoBitrate() {
-        return currentVideoBitrate;
-    }
-
-    public void setCurrentVideoBitrate(int currentVideoBitrate) {
-        this.currentVideoBitrate = currentVideoBitrate;
-    }
-
     public boolean hasAudio() {
-        return currentAudioBitrate.size() > 0;
+        return hasAudio;
+    }
+
+    public void setHasAudio(boolean hasAudio) {
+        this.hasAudio = hasAudio;
     }
 }

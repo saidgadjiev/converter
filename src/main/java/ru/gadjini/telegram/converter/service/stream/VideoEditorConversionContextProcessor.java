@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioCodecState;
+import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -15,8 +16,6 @@ public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionC
         SettingsState settingsState = conversionContext.getExtra(FFmpegConversionContext.SETTINGS_STATE);
         for (FFprobeDevice.FFProbeStream stream : conversionContext.streams()) {
             if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)) {
-                stream.setTargetBitrate(settingsState.getVideoBitrate());
-
                 String height = settingsState.getResolution().replace("p", "");
                 String scale = EditVideoResolutionState.AUTO.equals(settingsState.getResolution()) ? null
                         : "scale=-2:" + (NumberUtils.isDigits(height) ? height : "ceil(ih" + height + "/2)*2");
@@ -31,6 +30,9 @@ public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionC
                     stream.setTargetCodecName(settingsState.getAudioCodec());
                 }
             }
+        }
+        if (!EditVideoQualityState.AUTO.equals(settingsState.getCompressBy())) {
+            conversionContext.setUseCrf(true);
         }
 
         super.prepare(conversionContext);

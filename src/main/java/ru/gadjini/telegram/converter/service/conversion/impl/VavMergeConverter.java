@@ -127,7 +127,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 conversionQueueItem.getFirstFileId(), TAG, targetFormat.getExt());
 
         try {
-            List<FFprobeDevice.FFProbeStream> streams = fFprobeDevice.getAllStreams(video.getAbsolutePath(), FormatCategory.VIDEO);
+            List<FFprobeDevice.FFProbeStream> streams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
             streams.forEach(s -> s.setInput(0));
 
             SettingsState settingsState = jackson.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
@@ -136,7 +136,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
 
                 for (int index = 0; index < audios.size(); index++) {
                     SmartTempFile audio = audios.get(index);
-                    List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(audio.getAbsolutePath(), FormatCategory.AUDIO);
+                    List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(audio.getAbsolutePath());
                     for (FFprobeDevice.FFProbeStream stream : allStreams) {
                         stream.setInput(index + 1);
                     }
@@ -152,7 +152,7 @@ public class VavMergeConverter extends BaseAny2AnyConverter {
                 List<FFprobeDevice.FFProbeStream> subtitlesStreams = new ArrayList<>();
 
                 for (SmartTempFile subtitle : subtitles) {
-                    List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(subtitle.getAbsolutePath(), FormatCategory.SUBTITLES);
+                    List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(subtitle.getAbsolutePath());
                     for (FFprobeDevice.FFProbeStream stream : allStreams) {
                         stream.setInput(subtitlesInput);
                     }
