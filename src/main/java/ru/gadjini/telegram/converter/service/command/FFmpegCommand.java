@@ -652,24 +652,13 @@ public class FFmpegCommand {
     }
 
     public FFmpegCommand keepVideoBitRate(int index, Integer videoBitRate) {
-        return keepVideoBitRate(videoBitRate, index, 100);
-    }
-
-    public FFmpegCommand keepVideoBitRate(Integer videoBitRate, int index, int quality) {
         if (videoBitRate == null) {
             return this;
         }
 
         videoBitRate = BitrateUtils.toKBytes(videoBitRate);
-        videoBitRate = videoBitRate * quality / 100;
 
         bv(index, videoBitRate + "k");
-        options.add("-maxrate");
-        options.add(videoBitRate + "k");
-        options.add("-minrate");
-        options.add(videoBitRate + "k");
-        options.add("-bufsize");
-        options.add(videoBitRate + "k");
 
         return this;
     }

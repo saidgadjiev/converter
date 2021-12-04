@@ -27,6 +27,15 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
+    public static final Map<Integer, Integer> VIDEO_BITRATE_BY_RESOLUTION = Map.of(
+            1080, 3872 * 1024,
+            720, 2436 * 1024,
+            480, 1136 * 1024,
+            360, 636 * 1024,
+            240, 368 * 1024,
+            144, 218 * 1024
+    );
+
     private static final Map<Integer, Integer> AUDIO_BITRATE_BY_RESOLUTION = Map.of(
             1080, 128 * 1024,
             720, 64 * 1024,

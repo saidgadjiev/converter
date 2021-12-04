@@ -98,8 +98,8 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, Format.JPG.getExt());
         try {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
+            List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(file.getAbsolutePath());
+            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(videoStreams));
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
@@ -110,7 +110,7 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
             Period sp = getStartPoint(srcWhd, settingsState);
             String startPoint = PERIOD_FORMATTER.print(sp.normalizedStandard());
 
-            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, Format.JPG, allStreams)
+            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, Format.JPG, videoStreams)
                     .putExtra(FFmpegConversionContext.CUT_START_POINT, startPoint);
             takeScreenshot(conversionContext);
             if (result.length() == 0 && sp.toStandardSeconds().getSeconds() > 0) {

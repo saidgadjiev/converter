@@ -130,7 +130,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             VideoWatermark watermark = videoWatermarkService.getWatermark(fileQueueItem.getUserId());
             validateWatermarkFile(fileQueueItem, watermark);
 
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(video.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getStreams(video.getAbsolutePath(), FormatCategory.VIDEO);
             FFmpegConversionContext conversionContext = FFmpegConversionContext.from(video, result,
                     fileQueueItem.getFirstFileFormat(), allStreams)
                     .putExtra(FFmpegConversionContext.VIDEO_WATERMARK, watermark)
@@ -162,8 +162,8 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
         if (watermark.getWatermarkType() == VideoWatermarkType.VIDEO) {
             SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
 
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(watermarkFile.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(watermarkFile.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
+            List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(watermarkFile.getAbsolutePath());
+            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(watermarkFile.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(videoStreams));
             if (whd.getDuration() == null || whd.getDuration() > 300) {
                 throw new UserException(localisationService.getMessage(
                         ConverterMessagesProperties.MESSAGE_VIDEO_2_GIF_MAX_LENGTH, new Object[]{

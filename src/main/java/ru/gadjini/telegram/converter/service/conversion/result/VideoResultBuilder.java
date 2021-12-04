@@ -47,7 +47,7 @@ public class VideoResultBuilder {
 
         caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource(), caption);
         if (targetFormat.canBeSentAsVideo()) {
-            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAllStreams(result.getAbsolutePath());
+            List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getVideoStreams(result.getAbsolutePath());
             FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
 
             return new VideoResult(fileName, result, targetFormat, BaseAny2AnyConverter.downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
