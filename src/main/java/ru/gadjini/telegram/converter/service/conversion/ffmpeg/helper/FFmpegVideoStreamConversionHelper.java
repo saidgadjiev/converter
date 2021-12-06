@@ -163,6 +163,10 @@ public class FFmpegVideoStreamConversionHelper {
         return videoStreamDetector.getFirstVideoStreamIndex(allStreams);
     }
 
+    public FFprobeDevice.FFProbeStream getFirstVideoStream(List<FFprobeDevice.FFProbeStream> allStreams) {
+        return videoStreamDetector.getFirstVideoStream(allStreams);
+    }
+
     private void addScaleFilterForH264(FFmpegCommand commandBuilder, FFprobeDevice.FFProbeStream stream,
                                        int codecIndex, String scale) {
         if (StringUtils.isNotBlank(scale)

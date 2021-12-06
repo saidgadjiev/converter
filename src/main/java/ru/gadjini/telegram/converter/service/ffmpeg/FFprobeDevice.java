@@ -423,6 +423,15 @@ public class FFprobeDevice {
             this.dontCopy = dontCopy;
         }
 
+        public WHD getWhd() {
+            WHD whd = new WHD();
+            whd.setHeight(height);
+            whd.setWidth(width);
+            whd.setDuration(getDuration());
+
+            return whd;
+        }
+
         @Override
         public String toString() {
             return "FFProbeStream{" +

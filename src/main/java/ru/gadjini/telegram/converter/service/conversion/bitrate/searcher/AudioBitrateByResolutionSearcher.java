@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.conversion.bitrate.searcher;
 
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
+import ru.gadjini.telegram.converter.utils.BitrateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +10,12 @@ import java.util.Map;
 public class AudioBitrateByResolutionSearcher {
 
     public static final Map<Integer, Integer> AUDIO_BITRATE_BY_RESOLUTION = Map.of(
-            1080, 128 * 1024,
-            720, 64 * 1024,
-            480, 64 * 1024,
-            360, 64 * 1024,
-            240, 32 * 1024,
-            144, 32 * 1024
+            1080, BitrateUtils.toBytes(128),
+            720, BitrateUtils.toBytes(128),
+            480, BitrateUtils.toBytes(96),
+            360, BitrateUtils.toBytes(96),
+            240, BitrateUtils.toBytes(64),
+            144, BitrateUtils.toBytes(32)
     );
 
     private AudioBitrateByResolutionSearcher() {

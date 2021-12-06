@@ -101,7 +101,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
 
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD srcWhd = fFmpegVideoHelper.getFirstVideoStream(allStreams).getWhd();
             validate(fileQueueItem, srcWhd);
 
             int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());

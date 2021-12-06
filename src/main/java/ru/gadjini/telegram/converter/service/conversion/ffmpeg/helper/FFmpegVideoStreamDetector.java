@@ -42,4 +42,10 @@ public class FFmpegVideoStreamDetector {
 
         return 0;
     }
+
+    public FFprobeDevice.FFProbeStream getFirstVideoStream(List<FFprobeDevice.FFProbeStream> allStreams) {
+        int firstVideoStream = getFirstVideoStreamIndex(allStreams);
+
+        return allStreams.get(firstVideoStream);
+    }
 }

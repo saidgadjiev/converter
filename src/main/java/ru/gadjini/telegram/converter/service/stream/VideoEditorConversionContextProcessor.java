@@ -16,10 +16,11 @@ public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionC
         SettingsState settingsState = conversionContext.getExtra(FFmpegConversionContext.SETTINGS_STATE);
         for (FFprobeDevice.FFProbeStream stream : conversionContext.streams()) {
             if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)) {
-                String height = settingsState.getResolution().replace("p", "");
-                String scale = EditVideoResolutionState.AUTO.equals(settingsState.getResolution()) ? null
-                        : "scale=-2:" + (NumberUtils.isDigits(height) ? height : "ceil(ih" + height + "/2)*2");
-                stream.setTargetScale(scale);
+                if (!EditVideoResolutionState.AUTO.equals(settingsState.getResolution())) {
+                    String height = settingsState.getResolution().replace("p", "");
+                    String scale = "scale=-2:" + (NumberUtils.isDigits(height) ? height : "ceil(ih" + height + "/2)*2");
+                    stream.setTargetScale(scale);
+                }
             } else if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {
                 if (!StringUtils.isBlank(settingsState.getAudioBitrate())
                         && !EditVideoAudioBitrateState.AUTO.equals(settingsState.getAudioBitrate())) {

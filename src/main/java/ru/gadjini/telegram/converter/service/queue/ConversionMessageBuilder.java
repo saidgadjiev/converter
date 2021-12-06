@@ -61,20 +61,17 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                 new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
     }
 
-    public String getVideoCompressionInfoMessage(long sourceSize, long resultSize, Locale locale) {
-        return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSED_SIZE,
-                new Object[]{MemoryUtils.humanReadableByteCount(sourceSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
+    public String getVideoCompressionInfoMessage(long sourceSize, long resultSize,
+                                                 int sourceHeight, int targetHeight, Locale locale) {
+        return localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_COMPRESSION_CAPTION, locale) + "\n\n"
+                + getVideoEditedInfoMessage(sourceSize, resultSize, sourceHeight, targetHeight, locale);
     }
 
     public String getVideoEditedInfoMessage(long sourceFileSize, long resultSize,
-                                            Integer sourceHeight, Integer targetHeight, Locale locale) {
-        if (sourceHeight == null || targetHeight == null) {
-            return null;
-        }
-
+                                            int sourceHeight, int targetHeight, Locale locale) {
         return localisationService.getMessage(ConverterMessagesProperties.VIDEO_EDITING_RESOLUTION_CHANGED,
                 new Object[]{sourceHeight + "p", targetHeight + "p"}, locale) + "\n\n"
-                + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_EDIT_RESULT_SIZE,
+                + localisationService.getMessage(ConverterMessagesProperties.MESSAGE_COMPRESSED_SIZE,
                 new Object[]{MemoryUtils.humanReadableByteCount(sourceFileSize), MemoryUtils.humanReadableByteCount(resultSize)}, locale);
     }
 

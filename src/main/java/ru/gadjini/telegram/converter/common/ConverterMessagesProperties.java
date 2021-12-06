@@ -159,8 +159,6 @@ public class ConverterMessagesProperties {
 
     public static final String VAVMERGE_COMMAND_DESCRIPTION = "vavmerge.command.description";
 
-    public static final String MESSAGE_CHOOSE_VIDEO_EDIT_SETTINGS = "message.choose.video.edit.settings";
-
     public static final String MESSAGE_CHOOSE_VIDEO_CRF = "message.choose.video.crf";
 
     public static final String MESSAGE_CHOOSE_VIDEO_AUDIO_CODEC = "message.choose.video.audio.codec";
@@ -401,10 +399,6 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_RESOLUTION_SELECTED_NO_AUDIO = "message.resolution.selected.no.audio";
 
-    public static final String MESSAGE_COMPRESSION_RATE_SELECTED = "message.compression.rate.selected";
-
-    public static final String MESSAGE_COMPRESSION_RATE_SELECTED_NO_AUDIO = "message.compression.rate.selected.no.audio";
-    
     public static final String MESSAGE_RESOLUTION_CANT_BE_INCREASED = "message.resolution.cant.be.increased";
 
     public static final String VEDIT_AUDIO_CODEC_COMMAND_NAME = "vedit.audio.codec.command.name";
@@ -415,13 +409,9 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_DONT_CHANGE = "message.dont.change";
 
-    public static final String MESSAGE_DONT_COMPRESS = "message.dont.compress";
-
     public static final String MESSAGE_AUTO = "message.auto";
 
     public static final String MESSAGE_CHOOSE_EDIT_SETTINGS = "message.choose.edit.settings";
-
-    public static final String MESSAGE_VIDEO_EDIT_RESULT_SIZE = "message.video.edit.result.size";
 
     public static final String MESSAGE_ONLY_MEDIA_FROM_LINK_CAN_BE_UPLOADED = "message.only.media.from.link.can.be.uploaded";
 
@@ -471,8 +461,6 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_TRIAL_USER_ZERO_SIZE_LIMIT = "message.trial.user.zero.size.limit";
 
-    public static final String MESSAGE_BY_PERCENTAGE = "by.percentage.command.name";
-
     public static final String MESSAGE_VEDIT_CHOOSE_COMPRESSION_RATE = "message.vedit.choose.compression.rate";
 
     public static final String MESSAGE_VEDIT_CHOOSE_RESOLUTION = "message.vedit.choose.resolution";
@@ -483,11 +471,5 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_VEDIT_CHOOSE_AUDIO_CHANNEL_LAYOUT = "message.vedit.choose.audio.channel.layout";
 
-    public static final String MESSAGE_COMPRESS_BY = "message.compress.by";
-
-    public static final String MESSAGE_ESTIMATED_SIZE_AFTER_COMPRESSION = "message.estimated.size.after.compression";
-
     public static final String MESSAGE_INVALID_START_POINT = "message.invalid.start.point";
-
-    public static final String MESSAGE_USE_VEDIT_FOR_COMPRESSION = "message.use.vedit.for.compression";
 }

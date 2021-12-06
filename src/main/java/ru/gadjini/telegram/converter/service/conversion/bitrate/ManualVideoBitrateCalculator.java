@@ -8,7 +8,6 @@ import ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.AudioBi
 import ru.gadjini.telegram.converter.service.conversion.bitrate.searcher.BitrateGuesser;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegImageStreamDetector;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamDetector;
-import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegWdhService;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
@@ -23,25 +22,20 @@ public class ManualVideoBitrateCalculator implements BitrateCalculator {
 
     private List<OverallBitrateCalculator> overallBitrateCalculators;
 
-    private FFmpegWdhService fFmpegWdhService;
-
     private FFmpegVideoStreamDetector videoStreamDetector;
 
     @Autowired
     public ManualVideoBitrateCalculator(FFmpegImageStreamDetector imageStreamDetector,
-                                        List<OverallBitrateCalculator> overallBitrateCalculators,
-                                        FFmpegWdhService fFmpegWdhService, FFmpegVideoStreamDetector videoStreamDetector) {
+                                        List<OverallBitrateCalculator> overallBitrateCalculators, FFmpegVideoStreamDetector videoStreamDetector) {
         this.imageStreamDetector = imageStreamDetector;
         this.overallBitrateCalculators = overallBitrateCalculators;
-        this.fFmpegWdhService = fFmpegWdhService;
         this.videoStreamDetector = videoStreamDetector;
     }
 
     @Override
     public void prepareContext(BitrateCalculatorContext bitrateCalculatorContext) throws InterruptedException {
         if (bitrateCalculatorContext.getTargetFormatCategory() == FormatCategory.VIDEO) {
-            FFprobeDevice.WHD whd = fFmpegWdhService.getWHD(bitrateCalculatorContext.getIn(),
-                    videoStreamDetector.getFirstVideoStreamIndex(bitrateCalculatorContext.getStreams()));
+            FFprobeDevice.WHD whd = videoStreamDetector.getFirstVideoStream(bitrateCalculatorContext.getStreams()).getWhd();
             bitrateCalculatorContext.setWhd(whd);
 
             Integer overallBitrate = getOverallBitrate(bitrateCalculatorContext);
@@ -100,7 +94,7 @@ public class ManualVideoBitrateCalculator implements BitrateCalculator {
         AtomicInteger audioBitrateResult = new AtomicInteger();
         AtomicInteger imageVideoBitrateResult = new AtomicInteger();
 
-        int startAudioBitrate =  AudioBitrateByResolutionSearcher.getAudioBitrate(bitrateCalculatorContext.getWhd().getHeight());
+        int startAudioBitrate = AudioBitrateByResolutionSearcher.getAudioBitrate(bitrateCalculatorContext.getWhd().getHeight());
         BitrateGuesser.guessVideoFileBitrate(overallBitrate, startAudioBitrate, videoStreamsCount, audioStreamsCount, imageVideoStreamsCount,
                 videoBitrateResult, audioBitrateResult, imageVideoBitrateResult);
 

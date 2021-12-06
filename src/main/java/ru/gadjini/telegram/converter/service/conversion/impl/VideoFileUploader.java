@@ -8,6 +8,7 @@ import ru.gadjini.telegram.converter.service.caption.CaptionGenerator;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamDetector;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -33,11 +34,14 @@ public class VideoFileUploader extends BaseAny2AnyConverter {
 
     private CaptionGenerator captionGenerator;
 
+    private FFmpegVideoStreamDetector videoStreamDetector;
+
     @Autowired
-    public VideoFileUploader(FFprobeDevice fFprobeDevice, CaptionGenerator captionGenerator) {
+    public VideoFileUploader(FFprobeDevice fFprobeDevice, CaptionGenerator captionGenerator, FFmpegVideoStreamDetector videoStreamDetector) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.captionGenerator = captionGenerator;
+        this.videoStreamDetector = videoStreamDetector;
     }
 
     @Override
@@ -52,7 +56,8 @@ public class VideoFileUploader extends BaseAny2AnyConverter {
 
             String caption = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
             if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+                List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(result.getAbsolutePath());
+                FFprobeDevice.WHD whd = videoStreamDetector.getFirstVideoStream(videoStreams).getWhd();
 
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem),
                         whd.getWidth(), whd.getHeight(),

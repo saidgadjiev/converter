@@ -12,7 +12,7 @@ public class EditVideoState {
 
     private int currentVideoResolution;
 
-    private boolean hasAudio;
+    private List<Integer> currentAudioBitrate;
 
     private String downloadedFilePath;
 
@@ -99,10 +99,14 @@ public class EditVideoState {
     }
 
     public boolean hasAudio() {
-        return hasAudio;
+        return currentAudioBitrate.size() > 0;
     }
 
-    public void setHasAudio(boolean hasAudio) {
-        this.hasAudio = hasAudio;
+    public void setCurrentAudioBitrate(List<Integer> currentAudioBitrate) {
+        this.currentAudioBitrate = currentAudioBitrate;
+    }
+
+    public List<Integer> getCurrentAudioBitrate() {
+        return currentAudioBitrate;
     }
 }

@@ -49,8 +49,8 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
                 new Object[]{convertState.getFirstFormat().getName(),
                         MemoryUtils.humanReadableByteCount(convertState.getFirstFile().getFileSize()),
                         editVideoState.getCurrentVideoResolution() + "p",
-                        editVideoState.getSettings().getCompressBy(),
                         getResolutionMessage(convertState.getSettings().getResolution(), locale),
+                        getQualityMessage(editVideoState.getSettings().getCompressBy(), locale),
                         getAudioCodecMessage(convertState.getSettings().getAudioCodec(), locale),
                         getAudioBitrateMessage(convertState.getSettings().getAudioBitrate(), locale),
                         getAudioMonoStereoMessage(convertState.getSettings().getAudioChannelLayout(), locale)},
@@ -93,6 +93,12 @@ public abstract class BaseEditVideoState implements EditVideoSettingsState {
     private String getResolutionMessage(String resolution, Locale locale) {
         return EditVideoResolutionState.AUTO.equals(resolution) ?
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : resolution + "p";
+    }
+
+
+    private String getQualityMessage(String crf, Locale locale) {
+        return EditVideoResolutionState.AUTO.equals(crf) ?
+                localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale) : crf;
     }
 
     private String getAudioBitrateMessage(String audioBitrate, Locale locale) {

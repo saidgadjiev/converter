@@ -79,7 +79,7 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
             commandBuilder.hideBanner().quite().input(in.getAbsolutePath());
 
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getStreams(in.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(in.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD whd = videoStreamConversionHelper.getFirstVideoStream(allStreams).getWhd();
 
             long gifHeight = whd.getHeight() == null ? maxHeight : Math.min(whd.getHeight(), maxHeight);
 
@@ -114,7 +114,7 @@ public class Video2GifConverter extends BaseAny2AnyConverter {
                     .input(in.getAbsolutePath());
 
             List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(in.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(in.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(videoStreams));
+            FFprobeDevice.WHD whd = videoStreamConversionHelper.getFirstVideoStream(videoStreams).getWhd();
             commandBuilder.mapVideo(videoStreamConversionHelper.getFirstVideoStreamIndex(videoStreams));
 
             String scaleFilter = null;

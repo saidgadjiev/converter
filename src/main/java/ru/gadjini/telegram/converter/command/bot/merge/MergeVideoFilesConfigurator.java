@@ -53,6 +53,6 @@ public class MergeVideoFilesConfigurator implements MergeFilesConfigurator {
 
     @Override
     public int getMaxFiles() {
-        return 2;
+        return 3;
     }
 }

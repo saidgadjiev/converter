@@ -99,7 +99,7 @@ public class VideoScreenshotTaker extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, Format.JPG.getExt());
         try {
             List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(videoStreams));
+            FFprobeDevice.WHD srcWhd = fFmpegVideoHelper.getFirstVideoStream(videoStreams).getWhd();
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());

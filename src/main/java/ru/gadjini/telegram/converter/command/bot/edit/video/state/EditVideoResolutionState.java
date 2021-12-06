@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.command.bot.edit.video.EditVideoCommand;
 import ru.gadjini.telegram.converter.common.ConverterCommandNames;
 import ru.gadjini.telegram.converter.common.ConverterMessagesProperties;
 import ru.gadjini.telegram.converter.request.ConverterArg;
+import ru.gadjini.telegram.converter.service.conversion.bitrate.AudioCompressionHelper;
 import ru.gadjini.telegram.converter.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -34,15 +35,6 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             360, 636 * 1024,
             240, 368 * 1024,
             144, 218 * 1024
-    );
-
-    private static final Map<Integer, Integer> AUDIO_BITRATE_BY_RESOLUTION = Map.of(
-            1080, 128 * 1024,
-            720, 64 * 1024,
-            480, 64 * 1024,
-            360, 64 * 1024,
-            240, 32 * 1024,
-            144, 32 * 1024
     );
 
     static final List<Integer> AVAILABLE_RESOLUTIONS = List.of(1080, 720, 480, 360, 240, 144);
@@ -155,9 +147,10 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             editVideoState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
         } else if (editVideoState.hasAudio()) {
             int res = Integer.parseInt(resolution);
-            int audioBitrate = AUDIO_BITRATE_BY_RESOLUTION.get(res);
+            int audioBitrate = AudioCompressionHelper.getAudioBitrateForCompression(res, editVideoState.getCurrentAudioBitrate());
 
             editVideoState.getSettings().setAudioBitrate(String.valueOf(audioBitrate));
+            editVideoState.getSettings().setCompressBy("26");
         }
     }
 

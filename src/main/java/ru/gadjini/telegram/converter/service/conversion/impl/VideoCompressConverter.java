@@ -50,8 +50,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         put(filter(FormatCategory.VIDEO), List.of(COMPRESS));
     }};
 
-    public static final int DEFAULT_QUALITY = 70;
-
     private final FFmpegCommandBuilderChain commandBuilderChain;
 
     private FFmpegDevice fFmpegDevice;
@@ -117,8 +115,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             FFmpegCommand command = new FFmpegCommand();
             commandBuilderChain.prepareCommand(command, conversionContext);
 
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
-                    videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD whd = videoStreamConversionHelper.getFirstVideoStream(allStreams).getWhd();
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, whd.getDuration(), locale);
 
@@ -132,7 +129,12 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
             }
 
+            FFprobeDevice.WHD srcWhd = videoStreamConversionHelper.getFirstVideoStream(allStreams).getWhd();
+            List<FFprobeDevice.FFProbeStream> resultStreams = fFprobeDevice.getVideoStreams(result.getAbsolutePath());
+            FFprobeDevice.WHD targetWhd = videoStreamConversionHelper.getFirstVideoStream(resultStreams).getWhd();
+
             String compessionInfo = messageBuilder.getVideoCompressionInfoMessage(fileQueueItem.getSize(), result.length(),
+                    srcWhd.getHeight(), targetWhd.getHeight(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
 
             return videoResultBuilder.build(fileQueueItem, fileQueueItem.getFirstFileFormat(), compessionInfo, result);

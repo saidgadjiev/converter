@@ -271,12 +271,9 @@ public class ButtonFactory {
     }
 
     public InlineKeyboardButton compressionRateButton(String currentCompressionRate, String crf, Locale locale) {
-        String crfName;
+        String crfName = crf;
         if (EditVideoResolutionState.AUTO.equals(crf)) {
-            crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_COMPRESS, locale);
-        } else {
-            crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_BY_PERCENTAGE,
-                    new Object[]{crf}, locale);
+            crfName = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DONT_CHANGE, locale);
         }
         String btnName = Objects.equals(currentCompressionRate, crf)
                 ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + crfName

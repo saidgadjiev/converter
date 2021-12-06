@@ -148,9 +148,11 @@ public class VideoEditor extends BaseAny2AnyConverter {
 
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD whd = videoStreamConversionHelper.getFirstVideoStream(allStreams).getWhd();
             state.setCurrentVideoResolution(whd.getHeight());
-            state.setHasAudio(allStreams.stream().anyMatch(s -> s.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)));
+            state.setCurrentAudioBitrate(allStreams.stream()
+                    .filter(f -> f.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE))
+                    .map(FFprobeDevice.FFProbeStream::getBitRate).collect(Collectors.toList()));
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }
@@ -176,15 +178,14 @@ public class VideoEditor extends BaseAny2AnyConverter {
             FFmpegCommand command = new FFmpegCommand();
             commandBuilderChain.prepareCommand(command, conversionContext);
 
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(),
-                    videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD srcWhd = videoStreamConversionHelper.getFirstVideoStream(allStreams).getWhd();
             FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory
                     .createCallback(fileQueueItem, srcWhd.getDuration(),
                             userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             fFmpegDevice.execute(command.toCmd(), callback);
 
-            FFprobeDevice.WHD targetWhd = fFprobeDevice.getWHD(result.getAbsolutePath(),
-                    videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+            List<FFprobeDevice.FFProbeStream> resultVideoStreams = fFprobeDevice.getVideoStreams(result.getAbsolutePath());
+            FFprobeDevice.WHD targetWhd = videoStreamConversionHelper.getFirstVideoStream(resultVideoStreams).getWhd();
             String resolutionChangedInfo = messageBuilder.getVideoEditedInfoMessage(fileQueueItem.getSize(),
                     result.length(), srcWhd.getHeight(),
                     targetWhd.getHeight(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));

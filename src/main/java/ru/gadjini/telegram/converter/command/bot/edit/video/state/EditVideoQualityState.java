@@ -80,7 +80,7 @@ public class EditVideoQualityState extends BaseEditVideoState {
             String crf = requestParams.getString(ConverterArg.CRF.getKey());
             Locale locale = new Locale(currentState.getUserLanguage());
             String answerCallbackQuery;
-            if (AVAILABLE_CRF.contains(crf)) {
+            if (isValid(crf)) {
                 setCrf(callbackQuery, crf);
                 answerCallbackQuery = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SELECTED,
                         locale);
@@ -100,6 +100,17 @@ public class EditVideoQualityState extends BaseEditVideoState {
     @Override
     public EditVideoSettingsStateName getName() {
         return EditVideoSettingsStateName.CRF;
+    }
+
+    private boolean isValid(String crf) {
+        if (crf.equals(AUTO)) {
+            return true;
+        }
+        try {
+            return AVAILABLE_CRF.contains(crf);
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     private void setCrf(CallbackQuery callbackQuery, String crf) {

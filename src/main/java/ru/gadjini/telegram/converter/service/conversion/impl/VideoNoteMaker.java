@@ -63,8 +63,7 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(),
-                    fFmpegVideoHelper.getFirstVideoStreamIndex(videoStreams));
+            FFprobeDevice.WHD whd = fFmpegVideoHelper.getFirstVideoStream(videoStreams).getWhd();
 
             if (!Objects.equals(whd.getHeight(), whd.getWidth())) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION,

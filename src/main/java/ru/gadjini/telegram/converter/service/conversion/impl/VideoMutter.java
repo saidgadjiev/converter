@@ -97,7 +97,7 @@ public class VideoMutter extends BaseAny2AnyConverter {
             FFmpegCommand command = new FFmpegCommand();
             commandBuilderChain.prepareCommand(command, conversionContext);
 
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD whd = fFmpegVideoHelper.getFirstVideoStream(allStreams).getWhd();
             FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem,
                     whd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             fFmpegDevice.execute(command.toCmd(), callback);

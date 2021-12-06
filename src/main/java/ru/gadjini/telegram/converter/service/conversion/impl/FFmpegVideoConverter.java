@@ -129,7 +129,7 @@ public class FFmpegVideoConverter extends BaseAny2AnyConverter {
         FFmpegCommand command = new FFmpegCommand();
         commandBuilderChain.prepareCommand(command, conversionContext);
 
-        FFprobeDevice.WHD sourceWdh = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamConversionHelper.getFirstVideoStreamIndex(allStreams));
+        FFprobeDevice.WHD sourceWdh = videoStreamConversionHelper.getFirstVideoStream(allStreams).getWhd();
         FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = withProgress ? callbackHandlerFactory.createCallback(fileQueueItem,
                 sourceWdh.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId())) : null;
         fFmpegDevice.execute(command.toCmd(), callback);

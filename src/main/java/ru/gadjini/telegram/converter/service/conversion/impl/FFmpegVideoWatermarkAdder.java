@@ -141,7 +141,7 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             FFmpegCommand command = new FFmpegCommand();
             commandBuilderChain.prepareCommand(command, conversionContext);
 
-            FFprobeDevice.WHD wdh = fFprobeDevice.getWHD(video.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(allStreams));
+            FFprobeDevice.WHD wdh = fFmpegVideoHelper.getFirstVideoStream(allStreams).getWhd();
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, wdh.getDuration(),
                     userService.getLocaleOrDefault(fileQueueItem.getUserId()));
             fFmpegDevice.execute(command.toCmd(), callback);
@@ -163,11 +163,11 @@ public class FFmpegVideoWatermarkAdder extends BaseAny2AnyConverter {
             SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getImage().getFileId());
 
             List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(watermarkFile.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(watermarkFile.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(videoStreams));
-            if (whd.getDuration() == null || whd.getDuration() > 300) {
+            Long duration = fFmpegVideoHelper.getFirstVideoStream(videoStreams).getDuration();
+            if (duration == null || duration > 300) {
                 throw new UserException(localisationService.getMessage(
                         ConverterMessagesProperties.MESSAGE_VIDEO_2_GIF_MAX_LENGTH, new Object[]{
-                                whd.getDuration()
+                                duration
                         }, userService.getLocaleOrDefault(queueItem.getUserId())
                 ));
             }

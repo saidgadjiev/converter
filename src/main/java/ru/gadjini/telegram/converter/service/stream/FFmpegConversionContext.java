@@ -40,6 +40,8 @@ public class FFmpegConversionContext {
 
     public static final String SUBTITLE_STREAMS_COUNT = "scn";
 
+    public static final String TARGET_RESOLUTION = "trs";
+
     private List<FFprobeDevice.FFProbeStream> streams;
 
     private Format outputFormat;

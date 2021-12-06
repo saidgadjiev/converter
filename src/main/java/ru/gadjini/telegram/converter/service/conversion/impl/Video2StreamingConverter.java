@@ -95,7 +95,9 @@ public class Video2StreamingConverter extends BaseAny2AnyConverter {
                 Files.move(file.toPath(), result.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), fileQueueItem.getFirstFileFormat().getExt());
-                FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+                List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(result.getAbsolutePath());
+
+                FFprobeDevice.WHD whd = fFmpegVideoHelper.getFirstVideoStream(videoStreams).getWhd();
                 String generate = captionGenerator.generate(fileQueueItem.getUserId(), fileQueueItem.getFirstFile().getSource());
                 return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
                         whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming(), generate);

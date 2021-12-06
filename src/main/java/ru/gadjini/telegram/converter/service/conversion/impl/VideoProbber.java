@@ -55,7 +55,7 @@ public class VideoProbber extends BaseAny2AnyConverter {
 
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFprobeDevice.getWHD(file.getAbsolutePath(), videoStreamDetector.getFirstVideoStreamIndex(allStreams), true);
+            FFprobeDevice.WHD whd = videoStreamDetector.getFirstVideoStream(allStreams).getWhd();
 
             String text = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_VIDEO_PROBE_RESULT,
                     new Object[]{fileQueueItem.getFirstFileFormat().getName(),

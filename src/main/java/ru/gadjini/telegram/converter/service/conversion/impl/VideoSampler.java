@@ -89,7 +89,7 @@ public class VideoSampler extends BaseAny2AnyConverter {
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD srcWhd = fFprobeDevice.getWHD(file.getAbsolutePath(), fFmpegVideoHelper.getFirstVideoStreamIndex(videoStreams));
+            FFprobeDevice.WHD srcWhd = fFmpegVideoHelper.getFirstVideoStream(videoStreams).getWhd();
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             Period sp = getStartPoint(srcWhd, settingsState);

@@ -2,6 +2,7 @@ package ru.gadjini.telegram.converter.service.stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamDetector;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 
 @Component
@@ -9,9 +10,12 @@ public class FFmpegConversionContextPreparerChainFactory {
 
     private FFmpegDevice fFmpegDevice;
 
+    private FFmpegVideoStreamDetector videoStreamDetector;
+
     @Autowired
-    public FFmpegConversionContextPreparerChainFactory(FFmpegDevice fFmpegDevice) {
+    public FFmpegConversionContextPreparerChainFactory(FFmpegDevice fFmpegDevice, FFmpegVideoStreamDetector videoStreamDetector) {
         this.fFmpegDevice = fFmpegDevice;
+        this.videoStreamDetector = videoStreamDetector;
     }
 
     public FFmpegConversionContextPreparerChain videoConversionContextPreparer() {
@@ -55,6 +59,10 @@ public class FFmpegConversionContextPreparerChainFactory {
         return new FFmpegExtractAudioContextPreparer(fFmpegDevice);
     }
 
+    public FFmpegConversionContextPreparerChain audioInVideoCompression() {
+        return new FFmpegAudioInVideoCompressionContextPreparer();
+    }
+
     public FFmpegConversionContextPreparerChain subtitlesContextPreparer() {
         return new SubtitlesConversionContextPreparer();
     }
@@ -64,7 +72,7 @@ public class FFmpegConversionContextPreparerChainFactory {
     }
 
     public FFmpegConversionContextPreparerChain videoCompression() {
-        return new FFmpegVideoCompressionContextPreparer();
+        return new FFmpegVideoCompressionContextPreparer(audioInVideoCompression(), videoStreamDetector);
     }
 
     public FFmpegConversionContextPreparerChain audioCompression() {

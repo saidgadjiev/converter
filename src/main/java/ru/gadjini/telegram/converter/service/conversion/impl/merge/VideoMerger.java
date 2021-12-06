@@ -8,6 +8,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.FileResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoResult;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
 import ru.gadjini.telegram.converter.service.conversion.impl.BaseAny2AnyConverter;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
@@ -35,11 +36,14 @@ public class VideoMerger extends BaseAny2AnyConverter {
 
     private FFprobeDevice fFprobeDevice;
 
+    private FFmpegVideoStreamConversionHelper videoStreamConversionHelper;
+
     @Autowired
-    public VideoMerger(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice) {
+    public VideoMerger(FFmpegDevice fFmpegDevice, FFprobeDevice fFprobeDevice, FFmpegVideoStreamConversionHelper videoStreamConversionHelper) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.fFprobeDevice = fFprobeDevice;
+        this.videoStreamConversionHelper = videoStreamConversionHelper;
     }
 
     @Override
@@ -75,7 +79,8 @@ public class VideoMerger extends BaseAny2AnyConverter {
                 String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFirstFileName(), targetFormat.getExt());
 
                 if (fileQueueItem.getFirstFileFormat().canBeSentAsVideo()) {
-                    FFprobeDevice.WHD whd = fFprobeDevice.getWHD(result.getAbsolutePath(), 0);
+                    List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(result.getAbsolutePath());
+                    FFprobeDevice.WHD whd = videoStreamConversionHelper.getFirstVideoStream(videoStreams).getWhd();
                     return new VideoResult(fileName, result, fileQueueItem.getFirstFileFormat(), downloadThumb(fileQueueItem), whd.getWidth(), whd.getHeight(),
                             whd.getDuration(), fileQueueItem.getFirstFileFormat().supportsStreaming());
                 } else {
