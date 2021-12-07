@@ -45,8 +45,13 @@ public class FFprobeDevice {
         String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.AUDIO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
-        });
+        FFprobeResult fFprobeResult = jsonMapper.convertValue(json, FFprobeResult.class);
+
+        for (FFProbeStream stream : fFprobeResult.getStreams()) {
+            stream.setFormat(fFprobeResult.getFormat());
+        }
+
+        return fFprobeResult.getStreams();
     }
 
     public List<FFProbeStream> getSubtitleStreams(String in) throws InterruptedException {
@@ -61,8 +66,13 @@ public class FFprobeDevice {
         String result = processExecutor.executeWithResult(getProbeStreamsCommand(in, FFmpegCommand.VIDEO_STREAM_SPECIFIER));
         JsonNode json = jsonMapper.readValue(result, JsonNode.class);
 
-        return jsonMapper.convertValue(json.get(STREAMS_JSON_ATTR), new TypeReference<>() {
-        });
+        FFprobeResult fFprobeResult = jsonMapper.convertValue(json, FFprobeResult.class);
+
+        for (FFProbeStream stream : fFprobeResult.getStreams()) {
+            stream.setFormat(fFprobeResult.getFormat());
+        }
+
+        return fFprobeResult.getStreams();
     }
 
     public List<FFProbeStream> getStreams(String in) throws InterruptedException {
