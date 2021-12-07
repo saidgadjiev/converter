@@ -28,11 +28,26 @@ public class FFmpegVideoStreamDetector {
         return imageStreamDetector.isImageStream(videoStream);
     }
 
-    public int getFirstVideoStreamIndex(List<FFprobeDevice.FFProbeStream> allStreams) {
+    public int getFirstVideoStreamIndex(List<FFprobeDevice.FFProbeStream> VideoStreams) {
+        List<FFprobeDevice.FFProbeStream> videoStreams = VideoStreams.stream()
+                .filter(s -> FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
+                .collect(Collectors.toList());
+
+        return getFirstVideoStreamIndex0(videoStreams);
+    }
+
+    public FFprobeDevice.FFProbeStream getFirstVideoStream(List<FFprobeDevice.FFProbeStream> allStreams) {
         List<FFprobeDevice.FFProbeStream> videoStreams = allStreams.stream()
                 .filter(s -> FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE.equals(s.getCodecType()))
                 .collect(Collectors.toList());
 
+        int firstVideoStream = getFirstVideoStreamIndex0(videoStreams);
+
+
+        return videoStreams.get(firstVideoStream);
+    }
+
+    private int getFirstVideoStreamIndex0(List<FFprobeDevice.FFProbeStream> videoStreams) {
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.FFProbeStream videoStream = videoStreams.get(videoStreamMapIndex);
             if (!isExtraVideoStream(videoStreams, videoStream)) {
@@ -41,11 +56,5 @@ public class FFmpegVideoStreamDetector {
         }
 
         return 0;
-    }
-
-    public FFprobeDevice.FFProbeStream getFirstVideoStream(List<FFprobeDevice.FFProbeStream> allStreams) {
-        int firstVideoStream = getFirstVideoStreamIndex(allStreams);
-
-        return allStreams.get(firstVideoStream);
     }
 }
