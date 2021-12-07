@@ -82,7 +82,7 @@ public class VideoWatermarkDao {
 
     private VideoWatermark map(ResultSet rs) throws SQLException {
         VideoWatermark videoWatermark = new VideoWatermark();
-        videoWatermark.setUserId(rs.getInt(VideoWatermark.USER_ID));
+        videoWatermark.setUserId(rs.getLong(VideoWatermark.USER_ID));
 
         String p = rs.getString(VideoWatermark.POSITION);
         if (StringUtils.isNotBlank(p)) {

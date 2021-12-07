@@ -51,7 +51,7 @@ public class AudioWatermarkQueueDao {
 
     private AudioWatermark map(ResultSet rs) throws SQLException {
         AudioWatermark audioWatermark = new AudioWatermark();
-        audioWatermark.setUserId(rs.getInt(VideoWatermark.USER_ID));
+        audioWatermark.setUserId(rs.getLong(VideoWatermark.USER_ID));
 
         TgFile file = new TgFile();
         file.setFileId(rs.getString(TgFile.FILE_ID));

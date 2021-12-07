@@ -409,7 +409,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
         fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
         fileQueueItem.setReplyToMessageId(rs.getInt(ConversionQueueItem.REPLY_TO_MESSAGE_ID));
-        fileQueueItem.setUserId(rs.getInt(ConversionQueueItem.USER_ID));
+        fileQueueItem.setUserId(rs.getLong(ConversionQueueItem.USER_ID));
         fileQueueItem.setSuppressUserExceptions(rs.getBoolean(ConversionQueueItem.SUPPRESS_USER_EXCEPTIONS));
         fileQueueItem.setResultFileId(rs.getString(ConversionQueueItem.RESULT_FILE_ID));
         fileQueueItem.setServer(rs.getInt(QueueItem.SERVER));
