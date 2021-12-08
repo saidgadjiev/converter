@@ -124,7 +124,15 @@ tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \
 ./configure && make -j 4 && \
 make install && \
 make distclean && ldconfig
-RUN apt-get install -y mediainfo
+
+RUN apt-get update -y && apt-get install -y mediainfo
+
+RUN mkdir -p /usr/src/mediainfo && \
+  cd /usr/src/mediainfo && \
+  wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb && \
+  wget https://mediaarea.net/download/binary/libmediainfo0/21.09/libmediainfo0v5_21.09-1_amd64.xUbuntu_20.04.deb && \
+  wget https://mediaarea.net/download/binary/mediainfo/21.09/mediainfo_21.09-1_amd64.xUbuntu_20.04.deb && \
+  dpkg -i *deb
 
 RUN rm /usr/src/ImageMagick.tar.bz2
 

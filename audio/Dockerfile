@@ -93,6 +93,15 @@ RUN apt-get update -y
 RUN apt-get install -y sox
 RUN apt-get install -y libsox-fmt-all
 
+RUN apt-get update -y && apt-get install -y mediainfo
+
+RUN mkdir -p /usr/src/mediainfo && \
+  cd /usr/src/mediainfo && \
+  wget https://mediaarea.net/download/binary/libzen0/0.4.39/libzen0v5_0.4.39-1_amd64.xUbuntu_20.04.deb && \
+  wget https://mediaarea.net/download/binary/libmediainfo0/21.09/libmediainfo0v5_21.09-1_amd64.xUbuntu_20.04.deb && \
+  wget https://mediaarea.net/download/binary/mediainfo/21.09/mediainfo_21.09-1_amd64.xUbuntu_20.04.deb && \
+  dpkg -i *deb
+
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /var/tmp/*
 
 USER bot
