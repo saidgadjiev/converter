@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-
     <appender name="TIME_BASED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/converter.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -30,4 +29,8 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
+    <logger name="org.springframework.web.method.HandlerMethod" level="DEBUG">
+        <appender-ref ref="TIME_BASED_FILE" />
+        <appender-ref ref="STDOUT" />
+    </logger>
 </configuration>
