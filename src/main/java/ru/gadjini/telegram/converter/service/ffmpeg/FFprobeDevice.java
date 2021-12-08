@@ -117,6 +117,14 @@ public class FFprobeDevice {
                             List<FFProbeStream> streams) throws InterruptedException {
         setIndexes(streams);
 
+        if (streams.stream().noneMatch(stream -> {
+            return stream.getBitRate() == null
+                    && (stream.getCodecType().equals(FFProbeStream.AUDIO_CODEC_TYPE)
+                    || stream.getCodecType().equals(FFProbeStream.VIDEO_CODEC_TYPE));
+        })) {
+            return;
+        }
+
         BitrateCalculatorContext bitrateCalculatorContext = new BitrateCalculatorContext()
                 .setIn(in)
                 .setTargetFormatCategory(targetFormatCategory)
