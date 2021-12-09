@@ -11,7 +11,7 @@ public class FFmpegTelegramVoiceContextPreparer extends BaseFFmpegConversionCont
         if (conversionContext.outputFormat().getCategory() == FormatCategory.AUDIO
                 && conversionContext.outputFormat().canBeSentAsVoice()) {
             for (FFprobeDevice.FFProbeStream stream : conversionContext.audioStreams()) {
-                stream.setTargetCodecName(FFmpegCommand.LIBOPUS);
+                stream.setTargetCodec(FFmpegCommand.OPUS_CODEC_NAME, FFmpegCommand.LIBOPUS);
             }
         }
 

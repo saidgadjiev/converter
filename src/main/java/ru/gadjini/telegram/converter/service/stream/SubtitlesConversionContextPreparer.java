@@ -18,7 +18,7 @@ public class SubtitlesConversionContextPreparer extends BaseFFmpegConversionCont
             subtitlesCodec = FFmpegCommand.SRT_CODEC;
         }
         for (FFprobeDevice.FFProbeStream stream : conversionContext.subtitleStreams()) {
-            stream.setTargetCodecName(subtitlesCodec);
+            stream.setTargetCodec(subtitlesCodec);
         }
 
         super.prepare(conversionContext);

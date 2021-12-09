@@ -96,14 +96,14 @@ public class FFmpegSubtitlesStreamConversionHelper {
                         .filter(StringUtils::isNotBlank).distinct().count() == 1;
                 if (sameCodec && copySubtitles.values().stream().noneMatch(a -> a)) {
                     subtitleStreams.stream().findFirst().ifPresent(ffProbeStream -> {
-                        commandBuilder.subtitlesCodec(ffProbeStream.getTargetCodecName());
+                        commandBuilder.subtitlesCodec(ffProbeStream.getTargetCodec());
                     });
                 } else {
                     validSubtitles.forEach((integer, entry) -> {
                         if (copySubtitles.get(integer)) {
                             commandBuilder.copySubtitles(integer);
                         } else {
-                            commandBuilder.subtitlesCodec(entry.getValue().getTargetCodecName(), entry.getKey());
+                            commandBuilder.subtitlesCodec(entry.getValue().getTargetCodec(), entry.getKey());
                         }
                     });
                 }

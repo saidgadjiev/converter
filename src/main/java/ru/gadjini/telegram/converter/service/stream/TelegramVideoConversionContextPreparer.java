@@ -11,9 +11,9 @@ public class TelegramVideoConversionContextPreparer extends BaseFFmpegConversion
         if (conversionContext.outputFormat().canBeSentAsVideo()) {
             for (FFprobeDevice.FFProbeStream stream : conversionContext.streams()) {
                 if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.AUDIO_CODEC_TYPE)) {
-                    stream.setTargetCodecName(FFmpegAudioStreamInVideoConversionHelper.TELEGRAM_VIDEO_AUDIO_CODEC);
+                    stream.setTargetCodec(FFmpegAudioStreamInVideoConversionHelper.TELEGRAM_VIDEO_AUDIO_CODEC);
                 } else if (stream.getCodecType().equals(FFprobeDevice.FFProbeStream.VIDEO_CODEC_TYPE)) {
-                    stream.setTargetCodecName(FFmpegCommand.H264_CODEC);
+                    stream.setTargetCodec(FFmpegCommand.H264_CODEC);
                     stream.setTargetScale(FFmpegCommand.EVEN_SCALE);
                 }
             }

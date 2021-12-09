@@ -7,6 +7,7 @@ import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudio
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoQualityState;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.command.keyboard.start.SettingsState;
+import ru.gadjini.telegram.converter.service.conversion.codec.AudioCodecHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 
 public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionContextPreparerChain {
@@ -28,7 +29,7 @@ public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionC
                 }
                 if (!StringUtils.isBlank(settingsState.getAudioCodec())
                         && !EditVideoAudioCodecState.AUTO.equals(settingsState.getAudioCodec())) {
-                    stream.setTargetCodecName(settingsState.getAudioCodec());
+                    stream.setTargetCodec(settingsState.getAudioCodec(), AudioCodecHelper.getCodec(settingsState.getAudioCodec()));
                 }
             }
         }

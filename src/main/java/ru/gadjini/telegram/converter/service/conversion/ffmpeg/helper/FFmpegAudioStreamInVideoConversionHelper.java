@@ -55,7 +55,7 @@ public class FFmpegAudioStreamInVideoConversionHelper {
                     boolean copied = false;
                     if (StringUtils.isNotBlank(audioStream.getTargetCodecName())
                             && !Objects.equals(audioStream.getTargetCodecName(), audioStream.getCodecName())) {
-                        command.audioCodec(audioStreamIndex, audioStream.getTargetCodecName());
+                        command.audioCodec(audioStreamIndex, audioStream.getTargetCodec());
                     } else {
                         if ((audioStream.getTargetBitrate() == null ||
                                 Objects.equals(audioStream.getBitRate(), audioStream.getTargetBitrate()))

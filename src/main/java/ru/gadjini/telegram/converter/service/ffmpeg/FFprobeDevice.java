@@ -320,6 +320,9 @@ public class FFprobeDevice {
         private String targetCodecName;
 
         @JsonIgnore
+        private String targetCodec;
+
+        @JsonIgnore
         private String targetScale;
 
         @JsonIgnore
@@ -417,8 +420,14 @@ public class FFprobeDevice {
             return targetBitrate;
         }
 
-        public void setTargetCodecName(String targetCodecName) {
-            this.targetCodecName = targetCodecName;
+        public void setTargetCodec(String codecDisplayName, String codec) {
+            this.targetCodecName = codecDisplayName;
+            this.targetCodec = codec;
+        }
+
+        public void setTargetCodec(String codec) {
+            this.targetCodecName = codec;
+            this.targetCodec = codec;
         }
 
         public String getTargetCodecName() {
@@ -439,6 +448,10 @@ public class FFprobeDevice {
 
         public void setDontCopy(boolean dontCopy) {
             this.dontCopy = dontCopy;
+        }
+
+        public String getTargetCodec() {
+            return targetCodec;
         }
 
         public WHD getWhd() {
