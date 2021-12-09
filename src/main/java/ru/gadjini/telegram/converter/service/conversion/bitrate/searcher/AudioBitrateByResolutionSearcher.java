@@ -3,7 +3,6 @@ package ru.gadjini.telegram.converter.service.conversion.bitrate.searcher;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoResolutionState;
 import ru.gadjini.telegram.converter.utils.BitrateUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
