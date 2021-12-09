@@ -19,7 +19,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 
 
@@ -28,16 +27,7 @@ public class EditVideoResolutionState extends BaseEditVideoState {
 
     public static final String AUTO = "x";
 
-    public static final Map<Integer, Integer> VIDEO_BITRATE_BY_RESOLUTION = Map.of(
-            1080, 3872 * 1024,
-            720, 2436 * 1024,
-            480, 1136 * 1024,
-            360, 636 * 1024,
-            240, 368 * 1024,
-            144, 218 * 1024
-    );
-
-    static final List<Integer> AVAILABLE_RESOLUTIONS = List.of(1080, 720, 480, 360, 240, 144);
+    public static final List<Integer> AVAILABLE_RESOLUTIONS = List.of(1080, 720, 480, 360, 240, 144);
 
     private MessageService messageService;
 

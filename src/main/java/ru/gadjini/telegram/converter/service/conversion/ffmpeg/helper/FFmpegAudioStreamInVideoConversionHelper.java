@@ -64,6 +64,8 @@ public class FFmpegAudioStreamInVideoConversionHelper {
                                 && isCopyableAudioCodecs(baseCommand, conversionContext.output(), input, audioStreamIndex)) {
                             command.copyAudio(audioStreamIndex);
                             copied = true;
+                        } else if (audioStream.getTargetBitrate() != null) {
+                            command.audioCodec(audioStreamIndex, audioStream.getTargetCodec());
                         }
                     }
 

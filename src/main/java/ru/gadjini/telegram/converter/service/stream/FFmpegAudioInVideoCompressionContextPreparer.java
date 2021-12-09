@@ -1,6 +1,7 @@
 package ru.gadjini.telegram.converter.service.stream;
 
 import ru.gadjini.telegram.converter.service.conversion.bitrate.AudioCompressionHelper;
+import ru.gadjini.telegram.converter.service.conversion.codec.AudioCodecHelper;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class FFmpegAudioInVideoCompressionContextPreparer extends BaseFFmpegConv
 
         for (FFprobeDevice.FFProbeStream stream : conversionContext.audioStreams()) {
             stream.setTargetBitrate(audioBitrateForCompression);
+            stream.setTargetCodec(stream.getCodecName(), AudioCodecHelper.getCodec(stream.getCodecName()));
         }
 
         super.prepare(conversionContext);

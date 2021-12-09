@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class AudioBitrateByResolutionSearcher {
 
-    public static final Map<Integer, Integer> AUDIO_BITRATE_BY_RESOLUTION = Map.of(
+    private static final Map<Integer, Integer> AUDIO_BITRATE_BY_RESOLUTION = Map.of(
             1080, BitrateUtils.toBytes(128),
             720, BitrateUtils.toBytes(128),
             480, BitrateUtils.toBytes(96),
@@ -26,7 +26,7 @@ public class AudioBitrateByResolutionSearcher {
         if (AUDIO_BITRATE_BY_RESOLUTION.containsKey(resolution)) {
             return AUDIO_BITRATE_BY_RESOLUTION.get(resolution);
         }
-        List<Integer> resolutions = new ArrayList<>(EditVideoResolutionState.VIDEO_BITRATE_BY_RESOLUTION.keySet());
+        List<Integer> resolutions = EditVideoResolutionState.AVAILABLE_RESOLUTIONS;
         int distance = Math.abs(resolutions.get(0) - resolution);
         int idx = 0;
         for (int c = 1; c < resolutions.size(); c++) {

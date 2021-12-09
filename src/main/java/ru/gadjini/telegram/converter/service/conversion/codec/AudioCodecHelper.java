@@ -23,6 +23,6 @@ public class AudioCodecHelper {
 
         }
 
-        return null;
+        return codecName;
     }
 }

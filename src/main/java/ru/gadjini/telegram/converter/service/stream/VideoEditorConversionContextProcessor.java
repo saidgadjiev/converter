@@ -30,6 +30,8 @@ public class VideoEditorConversionContextProcessor extends BaseFFmpegConversionC
                 if (!StringUtils.isBlank(settingsState.getAudioCodec())
                         && !EditVideoAudioCodecState.AUTO.equals(settingsState.getAudioCodec())) {
                     stream.setTargetCodec(settingsState.getAudioCodec(), AudioCodecHelper.getCodec(settingsState.getAudioCodec()));
+                } else {
+                    stream.setTargetCodec(stream.getCodecName(), AudioCodecHelper.getCodec(stream.getCodecName()));
                 }
             }
         }

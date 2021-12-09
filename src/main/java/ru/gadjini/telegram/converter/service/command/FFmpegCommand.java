@@ -334,6 +334,9 @@ public class FFmpegCommand {
     }
 
     public FFmpegCommand audioCodec(int index, String codec) {
+        if (StringUtils.isBlank(codec)) {
+            return this;
+        }
         options.add("-c:a:" + index);
         options.add(codec);
 
