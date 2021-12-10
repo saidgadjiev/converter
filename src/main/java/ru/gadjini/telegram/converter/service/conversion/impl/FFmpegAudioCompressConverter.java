@@ -38,7 +38,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     public static final String MP3_FREQUENCY_22 = "22";
 
-    public static final String AUTO_BITRATE = "32";
+    public static final String AUTO_BITRATE = "18";
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, RA, RM, M4A, M4B), List.of(COMPRESS)
@@ -89,7 +89,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem, Format targetFormat) {
         String bitrate = AUTO_BITRATE;
-        String frequency = MP3_FREQUENCY_44;
+        String frequency = MP3_FREQUENCY_22;
         if (conversionQueueItem.getExtra() != null) {
             SettingsState settingsState = json.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
