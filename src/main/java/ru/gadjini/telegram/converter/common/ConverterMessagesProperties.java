@@ -191,13 +191,9 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_COMPRESS_AUDIO_OUTPUT_FORMAT = "message.compress.audio.output.format";
 
-    public static final String MESSAGE_COMPRESS_AUDIO_OUTPUT_FREQUENCY = "message.compress.audio.output.frequency";
-
     public static final String MESSAGE_COMPRESS_AUDIO_BITRATE_UPDATED = "message.compress.audio.bitrate.updated";
 
     public static final String MESSAGE_COMPRESS_AUDIO_FORMAT_UPDATED = "message.compress.audio.format.updated";
-
-    public static final String MESSAGE_COMPRESS_AUDIO_FREQUENCY_UPDATED = "message.compress.audio.frequency.updated";
 
     public static final String CONVERSION_TIMED_OUT = "conversion.timed.out";
 

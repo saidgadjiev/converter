@@ -138,8 +138,7 @@ public class ConversionMessageBuilder implements UpdateQueryStatusCommandMessage
                         .append("\n\n\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_DEFAULT_COMPRESSION_SETTINGS,
                                 new Object[]{FFmpegAudioCompressConverter.AUTO_BITRATE + "k",
-                                        FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT.getName(),
-                                        FFmpegAudioCompressConverter.MP3_FREQUENCY_44
+                                        FFmpegAudioCompressConverter.DEFAULT_AUDIO_COMPRESS_FORMAT.getName()
                                 }, locale))
                         .append("\n")
                         .append(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_AUDIO_COMPRESS_PROMPT_BITRATE, locale));

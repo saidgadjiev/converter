@@ -142,22 +142,6 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
-    public InlineKeyboardButton frequencyFormat(String frequency, String currentFrequency, Locale locale) {
-        String commandName = frequency + "Hz";
-        String btnName = Objects.equals(currentFrequency, frequency)
-                ? localisationService.getMessage(MessagesProperties.RED_CIRCLE_ICON, locale) + commandName
-                : commandName;
-
-        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(btnName);
-        inlineKeyboardButton.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams()
-                        .add(CallbackDelegate.ARG_NAME, ConverterCommandNames.COMPRESS_AUDIO)
-                        .add(ConverterArg.COMPRESSION_FREQUENCY.getKey(), frequency)
-                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return inlineKeyboardButton;
-    }
-
     public InlineKeyboardButton compressionFormatButton(Format currentFormat, Format target, Locale locale) {
         String commandName = localisationService.getMessage(target.getName().toLowerCase() + ".compression.command.description", locale);
         String btnName = Objects.equals(currentFormat, target)

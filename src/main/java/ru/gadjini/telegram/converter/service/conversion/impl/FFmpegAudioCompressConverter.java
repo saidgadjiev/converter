@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.exception.ConvertException;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
+import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
@@ -22,7 +23,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,11 +39,6 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
     public static final String MP3_FREQUENCY_22 = "22";
 
     public static final String AUTO_BITRATE = "32";
-
-    private static final Map<Format, String> DEFAULT_FREQUENCIES = new HashMap<>() {{
-        put(OPUS, null);
-        put(MP3, MP3_FREQUENCY_44);
-    }};
 
     private static final Map<List<Format>, List<Format>> MAP = Map.of(
             List.of(AAC, AMR, AIFF, FLAC, MP3, OGG, WAV, WMA, SPX, OPUS, RA, RM, M4A, M4B), List.of(COMPRESS)
@@ -63,13 +58,16 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
     private LocalisationService localisationService;
 
+    private FFmpegProgressCallbackHandlerFactory fFmpegProgressCallbackHandlerFactory;
+
     @Autowired
     public FFmpegAudioCompressConverter(Jackson jackson, FFmpegDevice fFmpegDevice,
                                         UserService userService,
                                         LocalisationService localisationService,
                                         FFmpegCommandBuilderFactory commandBuilderFactory,
                                         FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory,
-                                        FFprobeDevice fFprobeDevice) {
+                                        FFprobeDevice fFprobeDevice,
+                                        FFmpegProgressCallbackHandlerFactory fFmpegProgressCallbackHandlerFactory) {
         super(MAP);
         this.json = jackson;
         this.fFmpegDevice = fFmpegDevice;
@@ -78,6 +76,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
 
         this.commandBuilder = commandBuilderFactory.quiteInput();
         this.fFprobeDevice = fFprobeDevice;
+        this.fFmpegProgressCallbackHandlerFactory = fFmpegProgressCallbackHandlerFactory;
         commandBuilder.setNext(commandBuilderFactory.audioConversion())
                 .setNext(commandBuilderFactory.audioCompression())
                 .setNext(commandBuilderFactory.audioConversionDefaultOptions())
@@ -87,10 +86,6 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         conversionContextPreparerChain.setNext(contextPreparerChainFactory.telegramVoiceContextPreparer());
     }
 
-    public static String getDefaultFrequency(Format format) {
-        return DEFAULT_FREQUENCIES.get(format);
-    }
-
     @Override
     protected void doConvertAudio(SmartTempFile in, SmartTempFile out, ConversionQueueItem conversionQueueItem, Format targetFormat) {
         String bitrate = AUTO_BITRATE;
@@ -98,7 +93,7 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
         if (conversionQueueItem.getExtra() != null) {
             SettingsState settingsState = json.convertValue(conversionQueueItem.getExtra(), SettingsState.class);
             bitrate = settingsState.getBitrate();
-            frequency = settingsState.getFrequencyOrDefault(getDefaultFrequency(targetFormat));
+            frequency = getFrequency(targetFormat, bitrate);
         }
 
         try {
@@ -111,7 +106,11 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             FFmpegCommand command = new FFmpegCommand();
             commandBuilder.prepareCommand(command, conversionContext);
 
-            fFmpegDevice.execute(command.toCmd());
+            long durationInSeconds = fFprobeDevice.getDurationInSeconds(in.getAbsolutePath());
+            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler progressCallbackHandler =
+                    fFmpegProgressCallbackHandlerFactory.createCallback(conversionQueueItem, durationInSeconds,
+                            userService.getLocaleOrDefault(conversionQueueItem.getUserId()));
+            fFmpegDevice.execute(command.toCmd(), progressCallbackHandler);
         } catch (InterruptedException e) {
             throw new ConvertException(e);
         }
@@ -120,5 +119,17 @@ public class FFmpegAudioCompressConverter extends BaseAudioConverter {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INCOMPRESSIBLE_AUDIO, localeOrDefault))
                     .setReplyToMessageId(conversionQueueItem.getReplyToMessageId());
         }
+    }
+
+    private String getFrequency(Format format, String bitrate) {
+        if (format == MP3) {
+            if (Integer.parseInt(bitrate) < 32) {
+                return MP3_FREQUENCY_22;
+            } else {
+                return MP3_FREQUENCY_44;
+            }
+        }
+
+        return null;
     }
 }

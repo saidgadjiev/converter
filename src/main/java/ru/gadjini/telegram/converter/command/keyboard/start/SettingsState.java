@@ -1,6 +1,5 @@
 package ru.gadjini.telegram.converter.command.keyboard.start;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Period;
 import ru.gadjini.telegram.converter.command.bot.edit.video.state.EditVideoAudioBitrateState;
 import ru.gadjini.telegram.converter.utils.BitrateUtils;
@@ -13,8 +12,6 @@ public class SettingsState {
     private String bitrate;
 
     private String resolution;
-
-    private String frequency;
 
     private Format format;
 
@@ -72,18 +69,6 @@ public class SettingsState {
 
     public void setFormat(Format format) {
         this.format = format;
-    }
-
-    public String getFrequency() {
-        return frequency;
-    }
-
-    public String getFrequencyOrDefault(String defaultFrequency) {
-        return StringUtils.isBlank(frequency) ? defaultFrequency : frequency;
-    }
-
-    public void setFrequency(String frequency) {
-        this.frequency = frequency;
     }
 
     public Period getCutStartPoint() {

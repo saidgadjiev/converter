@@ -17,6 +17,6 @@ public class FFmpegAudioCompressionCommandBuilder extends BaseFFmpegCommandBuild
     }
 
     private String normalizeFrequency(String frequency) {
-        return MP3_FREQUENCY_44.equals(frequency) ? "44100" : "22050";
+        return MP3_FREQUENCY_44.equals(frequency) ? "48000" : "22050";
     }
 }

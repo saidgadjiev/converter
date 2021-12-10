@@ -7,7 +7,6 @@ public enum ConverterArg {
     RESOLUTION("i"),
     EDIT_VIDEO("l"),
     COMPRESSION_FORMAT("k"),
-    COMPRESSION_FREQUENCY("v"),
     LANGUAGE("kv"),
     GO_BACK("gb"),
     VAV_MERGE_AUDIO_MODE("va"),
