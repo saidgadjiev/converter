@@ -20,7 +20,8 @@ public class AudioCodecHelper {
                 return FFmpegCommand.LIBOPUS;
             case "vorbis":
                 return FFmpegCommand.LIBVORBIS;
-
+            case "wmapro":
+                return "wmav2";
         }
 
         return codecName;

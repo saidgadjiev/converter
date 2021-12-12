@@ -84,42 +84,14 @@ PKG_CONFIG_PATH="/home/bot/ffmpeg_build/lib/pkgconfig" \
   --pkg-config-flags="--static" \
   --extra-cflags="-I/home/bot/ffmpeg_build/include" \
   --extra-ldflags="-L/home/bot/ffmpeg_build/lib" \
-  --extra-libs="-lpthread -lm" \
   --bindir="/home/bot/ffmpeg" \
-  --enable-pthreads \
-  --enable-libopencore-amrnb \
-  --enable-libopencore-amrwb \
-  --enable-libspeex \
-  --enable-version3 \
-  --enable-gpl \
-  --enable-libass \
-  --enable-libbluray \
-  --enable-libfdk-aac \
-  --enable-libfreetype \
-  --enable-libmp3lame \
-  --enable-libopenjpeg \
-  --enable-libopus \
-  --enable-libtheora \
-  --enable-libshine \
-  --enable-libsnappy \
-  --enable-libsoxr \
-  --enable-libvorbis \
-  --enable-libwebp \
-  --enable-libxml2 \
-  --enable-lzma \
-  --enable-zlib \
-  --enable-gmp \
-  --enable-libmfx \
-  --enable-libvidstab \
-  --enable-libtwolame \
-  --enable-libvpx \
-  --enable-libx264 \
-  --enable-fontconfig \
-  --enable-iconv \
-  --enable-bzlib \
-  --enable-libaom \
-  --enable-libx265 \
-  --enable-nonfree && \
+  --disable-ffplay \
+  --enable-encoders \
+  --enable-muxers \
+  --enable-demuxers \
+  --enable-filters \
+  --disable-devices \
+  --enable-decoders && \
 make -j 4 && make install
 
 ENV PATH="/home/bot/ffmpeg/:${PATH}"
@@ -128,6 +100,7 @@ RUN echo 'calibre-5'
 RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin install_dir=/home/bot isolated=y
 ENV PATH="/home/bot/calibre/:${PATH}"
 
+RUN apt-get update -y
 RUN apt-get install -y img2pdf
 RUN apt-get install -y djvulibre-bin
 RUN apt-get install -y libxss1
