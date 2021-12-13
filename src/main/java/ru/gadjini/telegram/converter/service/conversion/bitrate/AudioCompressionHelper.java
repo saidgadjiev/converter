@@ -11,9 +11,12 @@ public class AudioCompressionHelper {
 
     private AudioCompressionHelper() { }
 
-    public static int getAudioBitrateForCompression(int resolution, List<Integer> currentAudioBitrate) {
+    public static Integer getAudioBitrateForCompression(int resolution, List<Integer> currentAudioBitrate) {
         int overallAudioBitrate = currentAudioBitrate.stream()
                 .filter(Objects::nonNull).reduce(0, Integer::sum);
+        if (overallAudioBitrate == 0) {
+            return null;
+        }
         int currentAverageAudioBitrate = overallAudioBitrate / currentAudioBitrate.size() - 2000;
         int audioBitrateForCompression = AudioBitrateByResolutionSearcher.getAudioBitrate(resolution);
 

@@ -26,10 +26,15 @@ public class FFmpegWdhService {
         this.jsonMapper = jsonMapper;
     }
 
-    public long getDurationInSeconds(String in) throws InterruptedException {
+    public Long getDurationInSeconds(String in) throws InterruptedException {
         String duration = processExecutor.executeWithResult(getDurationCommand(in));
 
-        return Math.round(Double.parseDouble(duration));
+        try {
+            return Math.round(Double.parseDouble(duration));
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     private String[] getDurationCommand(String in) {

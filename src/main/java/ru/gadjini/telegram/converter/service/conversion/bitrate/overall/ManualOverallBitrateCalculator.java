@@ -14,6 +14,10 @@ public class ManualOverallBitrateCalculator implements OverallBitrateCalculator 
     public Integer calculate(BitrateCalculatorContext bitrateCalculatorContext) {
         long fileSize = new File(bitrateCalculatorContext.getIn()).length();
 
+        if (bitrateCalculatorContext.getWhd().getDuration() == null) {
+            return null;
+        }
+
         return calculateBitRate(fileSize, bitrateCalculatorContext.getWhd().getDuration());
     }
 

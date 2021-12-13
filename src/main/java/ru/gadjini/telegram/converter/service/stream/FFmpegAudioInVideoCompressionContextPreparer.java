@@ -17,11 +17,13 @@ public class FFmpegAudioInVideoCompressionContextPreparer extends BaseFFmpegConv
             return;
         }
         int targetResolution = conversionContext.getExtra(FFmpegConversionContext.TARGET_RESOLUTION);
-        int audioBitrateForCompression = AudioCompressionHelper.getAudioBitrateForCompression(targetResolution, currentAudioBitrate);
+        Integer audioBitrateForCompression = AudioCompressionHelper.getAudioBitrateForCompression(targetResolution, currentAudioBitrate);
 
-        for (FFprobeDevice.FFProbeStream stream : conversionContext.audioStreams()) {
-            stream.setTargetBitrate(audioBitrateForCompression);
-            stream.setTargetCodec(stream.getCodecName(), AudioCodecHelper.getCodec(stream.getCodecName()));
+        if (audioBitrateForCompression != null) {
+            for (FFprobeDevice.FFProbeStream stream : conversionContext.audioStreams()) {
+                stream.setTargetBitrate(audioBitrateForCompression);
+                stream.setTargetCodec(stream.getCodecName(), AudioCodecHelper.getCodec(stream.getCodecName()));
+            }
         }
 
         super.prepare(conversionContext);

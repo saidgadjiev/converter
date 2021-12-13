@@ -48,6 +48,9 @@ public class ManualVideoBitrateCalculator implements BitrateCalculator {
         if (bitrateCalculatorContext.getTargetFormatCategory() != FormatCategory.VIDEO) {
             return null;
         }
+        if (bitrateCalculatorContext.getOverallBitrate() == null) {
+            return null;
+        }
         if (!bitrateCalculatorContext.isVideoManualBitrateCalculated()) {
             calculateManualBitrate(bitrateCalculatorContext);
             bitrateCalculatorContext.setVideoManualBitrateCalculated(true);
@@ -118,6 +121,6 @@ public class ManualVideoBitrateCalculator implements BitrateCalculator {
             }
         }
 
-        throw new IllegalArgumentException("Bitrate can't be calculated for " + calculatorContext.getIn());
+        return null;
     }
 }

@@ -1,5 +1,6 @@
 package ru.gadjini.telegram.converter.command.bot.edit.video.state;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -137,9 +138,11 @@ public class EditVideoResolutionState extends BaseEditVideoState {
             editVideoState.getSettings().setAudioBitrate(EditVideoAudioBitrateState.AUTO);
         } else if (editVideoState.hasAudio()) {
             int res = Integer.parseInt(resolution);
-            int audioBitrate = AudioCompressionHelper.getAudioBitrateForCompression(res, editVideoState.getCurrentAudioBitrate());
+            Integer audioBitrate = AudioCompressionHelper.getAudioBitrateForCompression(res, editVideoState.getCurrentAudioBitrate());
 
-            editVideoState.getSettings().setAudioBitrate(String.valueOf(audioBitrate));
+            if (audioBitrate != null) {
+                editVideoState.getSettings().setAudioBitrate(String.valueOf(audioBitrate));
+            }
             editVideoState.getSettings().setCompressBy("26");
         }
     }
@@ -167,12 +170,14 @@ public class EditVideoResolutionState extends BaseEditVideoState {
     }
 
     private String getResolutionSelectedMessage(EditVideoState currentState, Locale locale) {
-        return currentState.hasAudio() ? localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
+        return currentState.hasAudio() || StringUtils.isBlank(currentState.getSettings().getAudioBitrate())
+                ? localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED,
                 new Object[]{
                         currentState.getSettings().getCompressBy(),
                         currentState.getSettings().getAudioBitrateInKBytes() + "k",
                 },
-                locale) :
+                locale)
+                :
                 localisationService.getMessage(ConverterMessagesProperties.MESSAGE_RESOLUTION_SELECTED_NO_AUDIO,
                         new Object[]{
                                 currentState.getSettings().getCompressBy()

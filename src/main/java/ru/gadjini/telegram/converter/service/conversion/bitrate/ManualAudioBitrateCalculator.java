@@ -30,7 +30,7 @@ public class ManualAudioBitrateCalculator implements BitrateCalculator {
     @Override
     public void prepareContext(BitrateCalculatorContext bitrateCalculatorContext) throws InterruptedException {
         if (bitrateCalculatorContext.getTargetFormatCategory() == FormatCategory.AUDIO) {
-            long durationInSeconds = fFmpegWdhService.getDurationInSeconds(bitrateCalculatorContext.getIn());
+            Long durationInSeconds = fFmpegWdhService.getDurationInSeconds(bitrateCalculatorContext.getIn());
             FFprobeDevice.WHD whd = new FFprobeDevice.WHD();
             whd.setDuration(durationInSeconds);
             bitrateCalculatorContext.setWhd(whd);
@@ -43,6 +43,9 @@ public class ManualAudioBitrateCalculator implements BitrateCalculator {
     @Override
     public Integer calculateBitrate(FFprobeDevice.FFProbeStream stream, BitrateCalculatorContext bitrateCalculatorContext) {
         if (bitrateCalculatorContext.getTargetFormatCategory() != FormatCategory.AUDIO) {
+            return null;
+        }
+        if (bitrateCalculatorContext.getOverallBitrate() == null) {
             return null;
         }
         if (!bitrateCalculatorContext.isAudioManualBitrateCalculated()) {
@@ -87,6 +90,6 @@ public class ManualAudioBitrateCalculator implements BitrateCalculator {
             }
         }
 
-        throw new IllegalArgumentException("Bitrate can't be calculated for " + calculatorContext.getIn());
+        return null;
     }
 }
