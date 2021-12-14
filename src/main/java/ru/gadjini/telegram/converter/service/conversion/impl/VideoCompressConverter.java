@@ -13,6 +13,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.StreamsChecker;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler;
 import ru.gadjini.telegram.converter.service.conversion.result.VideoResultBuilder;
@@ -70,13 +71,16 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
 
     private VideoResultBuilder videoResultBuilder;
 
+    private StreamsChecker streamsChecker;
+
     @Autowired
     public VideoCompressConverter(FFmpegDevice fFmpegDevice, LocalisationService localisationService, UserService userService,
                                   FFprobeDevice fFprobeDevice, ConversionMessageBuilder messageBuilder,
                                   FFmpegVideoStreamConversionHelper videoStreamConversionHelper,
                                   FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
                                   FFmpegConversionContextPreparerChainFactory contextPreparerFactory,
-                                  FFmpegCommandBuilderFactory commandBuilderFactory, VideoResultBuilder videoResultBuilder) {
+                                  FFmpegCommandBuilderFactory commandBuilderFactory,
+                                  VideoResultBuilder videoResultBuilder, StreamsChecker streamsChecker) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -87,6 +91,7 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         this.callbackHandlerFactory = callbackHandlerFactory;
         this.conversionContextPreparer = contextPreparerFactory.videoConversionContextPreparer();
         this.videoResultBuilder = videoResultBuilder;
+        this.streamsChecker = streamsChecker;
 
         conversionContextPreparer.setNext(contextPreparerFactory.videoCompression());
 
@@ -109,6 +114,9 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(), fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
+
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            streamsChecker.checkVideoStreamsExistence(allStreams, locale);
             FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, fileQueueItem.getFirstFileFormat(), allStreams);
             conversionContextPreparer.prepare(conversionContext);
 
@@ -116,7 +124,6 @@ public class VideoCompressConverter extends BaseAny2AnyConverter {
             commandBuilderChain.prepareCommand(command, conversionContext);
 
             FFprobeDevice.WHD whd = videoStreamConversionHelper.getFirstVideoStream(allStreams).getWhd();
-            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, whd.getDuration(), locale);
 
             fFmpegDevice.execute(command.toCmd(), callback);
