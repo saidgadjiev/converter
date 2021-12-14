@@ -28,23 +28,32 @@ public class FFmpegAudioStreamConversionHelper {
         this.fFmpegDevice = fFmpegDevice;
     }
 
-    public void addCopyableCoverArtOptions(SmartTempFile in, FFmpegCommand commandBuilder) throws InterruptedException {
-        if (hasCopyableCoverArt(in, commandBuilder)) {
-            commandBuilder.mapVideo(COVER_INDEX).copyVideo(COVER_INDEX);
+    public void addCoverArtOptions(SmartTempFile in, SmartTempFile out, FFmpegCommand commandBuilder) throws InterruptedException {
+        List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(in.getAbsolutePath());
+        if (!CollectionUtils.isEmpty(videoStreams)) {
+            if (isCopyableCoverArt(out, commandBuilder)) {
+                commandBuilder.mapVideo(COVER_INDEX).copyVideo(COVER_INDEX);
+            } else if (isConvertableCoverArt(out, commandBuilder)) {
+                commandBuilder.mapVideo(COVER_INDEX);
+            }
         }
     }
 
-    private boolean hasCopyableCoverArt(SmartTempFile in, FFmpegCommand commandBuilder) throws InterruptedException {
-        List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(in.getAbsolutePath());
-        if (!CollectionUtils.isEmpty(videoStreams)) {
-            commandBuilder = new FFmpegCommand(commandBuilder)
-                    .mapVideo(COVER_INDEX)
-                    .copyVideo(COVER_INDEX);
+    private boolean isCopyableCoverArt(SmartTempFile out, FFmpegCommand commandBuilder) throws InterruptedException {
+        commandBuilder = new FFmpegCommand(commandBuilder)
+                .mapVideo(COVER_INDEX)
+                .copyVideo(COVER_INDEX)
+                .out(out.getAbsolutePath());
 
-            return fFmpegDevice.isExecutable(commandBuilder.toCmd());
-        }
+        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
+    }
 
-        return false;
+    private boolean isConvertableCoverArt(SmartTempFile out, FFmpegCommand commandBuilder) throws InterruptedException {
+        commandBuilder = new FFmpegCommand(commandBuilder)
+                .mapVideo(COVER_INDEX)
+                .out(out.getAbsolutePath());
+
+        return fFmpegDevice.isExecutable(commandBuilder.toCmd());
     }
 
     public void copyOrConvertAudioCodecs(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
