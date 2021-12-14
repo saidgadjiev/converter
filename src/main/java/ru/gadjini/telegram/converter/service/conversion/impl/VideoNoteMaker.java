@@ -114,12 +114,4 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
             garbageFileCollection.delete();
         }
     }
-
-    private void tryNonSquareVideoConversion(ConversionQueueItem fileQueueItem) {
-
-    }
-
-    private void trySquareVideoConversion(ConversionQueueItem fileQueueItem) {
-
-    }
 }
