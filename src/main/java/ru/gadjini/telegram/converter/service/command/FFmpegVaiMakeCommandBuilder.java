@@ -16,7 +16,7 @@ public class FFmpegVaiMakeCommandBuilder extends BaseFFmpegCommandBuilderChain {
 
     @Override
     public void prepareCommand(FFmpegCommand command, FFmpegConversionContext conversionContext) throws InterruptedException {
-        long durationInSeconds = fFprobeDevice.getDurationInSeconds(conversionContext.getInputs().get(1).getAbsolutePath());
+        Long durationInSeconds = fFprobeDevice.getDurationInSeconds(conversionContext.getInputs().get(1).getAbsolutePath());
         command.mapVideo(0, 0).videoCodec(FFmpegCommand.H264_CODEC)
                 .vf(FFmpegCommand.EVEN_SCALE);
 

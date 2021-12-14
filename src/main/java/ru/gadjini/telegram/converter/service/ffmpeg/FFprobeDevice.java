@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommand;
@@ -20,6 +22,8 @@ import java.util.Map;
 
 @Service
 public class FFprobeDevice {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FFprobeDevice.class);
 
     private static final String STREAMS_JSON_ATTR = "streams";
 
@@ -107,10 +111,16 @@ public class FFprobeDevice {
         return fFmpegWdhService.getWHD(in, index, throwEx);
     }
 
-    public long getDurationInSeconds(String in) throws InterruptedException {
+    public Long getDurationInSeconds(String in) throws InterruptedException {
         String duration = processExecutor.executeWithResult(getDurationCommand(in));
 
-        return Math.round(Double.parseDouble(duration));
+        try {
+            return Math.round(Double.parseDouble(duration));
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+
+        return null;
     }
 
     private void setBitrate(String in, FormatCategory targetFormatCategory,

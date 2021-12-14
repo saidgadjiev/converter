@@ -175,7 +175,7 @@ public class AudioWatermarkAdder extends BaseAudioConverter {
         SmartTempFile in = queueItem.getDownloadedFileOrThrow(queueItem.getFirstFileId());
 
         SmartTempFile watermarkFile = queueItem.getDownloadedFileOrThrow(watermark.getAudio().getFileId());
-        long watermarkDuration = fFprobeDevice.getDurationInSeconds(watermarkFile.getAbsolutePath());
+        Long watermarkDuration = fFprobeDevice.getDurationInSeconds(watermarkFile.getAbsolutePath());
 
         List<File> files = split(in, queueItem, watermarkDuration, garbageFileCollection);
         SmartTempFile volumeDecreased = decreaseVolume(files.get(1), queueItem, bitrate, garbageFileCollection);

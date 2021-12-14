@@ -81,11 +81,15 @@ public class AudioCutter extends BaseAudioConverter {
 
     @Override
     protected void doConvertAudio(SmartTempFile file, SmartTempFile result, ConversionQueueItem fileQueueItem, Format targetFormat) throws InterruptedException {
-        long durationInSeconds = fFprobeDevice.getDurationInSeconds(file.getAbsolutePath());
+        Long durationInSeconds = fFprobeDevice.getDurationInSeconds(file.getAbsolutePath());
 
         SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
         validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(),
                 durationInSeconds, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+
+        if (durationInSeconds != null && settingsState.getCutEndPoint().toStandardDuration().getStandardSeconds() > durationInSeconds) {
+            settingsState.setCutEndPoint(Period.seconds(durationInSeconds.intValue()));
+        }
 
         List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getAudioStreams(file.getAbsolutePath());
 
@@ -111,7 +115,7 @@ public class AudioCutter extends BaseAudioConverter {
         long endSeconds = end.toStandardDuration().getStandardSeconds();
 
         if (startSeconds < 0 || startSeconds > totalLength
-                || endSeconds < 0 || endSeconds > totalLength) {
+                || endSeconds < 0) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CUT_OUT_OF_RANGE,
                     new Object[]{
                             PERIOD_FORMATTER.print(new Period(totalLength * 1000L)),

@@ -228,7 +228,10 @@ public class FFmpegCommand {
         return this;
     }
 
-    public FFmpegCommand t(long seconds) {
+    public FFmpegCommand t(Long seconds) {
+        if (seconds == null) {
+            return this;
+        }
         options.add("-t");
         options.add(String.valueOf(seconds));
 

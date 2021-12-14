@@ -132,6 +132,11 @@ public class VideoCutter extends BaseAny2AnyConverter {
 
             SettingsState settingsState = jackson.convertValue(fileQueueItem.getExtra(), SettingsState.class);
             validateRange(fileQueueItem.getReplyToMessageId(), settingsState.getCutStartPoint(), settingsState.getCutEndPoint(), srcWhd.getDuration(), userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+
+            if (srcWhd.getDuration() != null && settingsState.getCutEndPoint().toStandardDuration().getStandardSeconds() > srcWhd.getDuration()) {
+                settingsState.setCutEndPoint(Period.seconds(srcWhd.getDuration().intValue()));
+            }
+
             doCut(file, result, settingsState.getCutStartPoint(), settingsState.getCutEndPoint(),
                     srcWhd.getDuration(), fileQueueItem, true);
 
@@ -187,7 +192,7 @@ public class VideoCutter extends BaseAny2AnyConverter {
         long endSeconds = end.toStandardDuration().getStandardSeconds();
 
         if (startSeconds < 0 || startSeconds > totalLength
-                || endSeconds < 0 || endSeconds > totalLength) {
+                || endSeconds < 0) {
             throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_CUT_OUT_OF_RANGE,
                     new Object[]{
                             PERIOD_FORMATTER.print(new Period(totalLength * 1000L).normalizedStandard()),
