@@ -17,8 +17,6 @@ import ru.gadjini.telegram.converter.service.conversion.impl.FFmpegAudioFormatsC
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContext;
-import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChain;
-import ru.gadjini.telegram.converter.service.stream.FFmpegConversionContextPreparerChainFactory;
 import ru.gadjini.telegram.converter.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
@@ -43,8 +41,6 @@ public class AudioMerger extends BaseAny2AnyConverter {
 
     private final FFmpegCommandBuilderChain commandBuilderChain;
 
-    private final FFmpegConversionContextPreparerChain preparerChain;
-
     private FFprobeDevice fFprobeDevice;
 
     private FFmpegDevice fFmpegDevice;
@@ -57,7 +53,6 @@ public class AudioMerger extends BaseAny2AnyConverter {
     public AudioMerger(FFprobeDevice fFprobeDevice, FFmpegDevice fFmpegDevice,
                        FFmpegAudioFormatsConverter audioFormatsConverter,
                        FFmpegCommandBuilderFactory commandBuilderFactory,
-                       FFmpegConversionContextPreparerChainFactory preparerChainFactory,
                        FilesListCreator filesListCreator) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
@@ -68,11 +63,9 @@ public class AudioMerger extends BaseAny2AnyConverter {
         this.filesListCreator = filesListCreator;
         commandBuilderChain.setNext(commandBuilderFactory.concat())
                 .setNext(commandBuilderFactory.input())
-                .setNext(commandBuilderFactory.mapAndCopyAudio())
+                .setNext(commandBuilderFactory.audioMerge())
                 .setNext(commandBuilderFactory.audioConversionDefaultOptions())
                 .setNext(commandBuilderFactory.output());
-
-        this.preparerChain = preparerChainFactory.telegramVoiceContextPreparer();
     }
 
     @Override
@@ -93,7 +86,6 @@ public class AudioMerger extends BaseAny2AnyConverter {
                     targetFormat.getExt());
             try {
                 FFmpegConversionContext conversionContext = FFmpegConversionContext.from(filesList, result, targetFormat);
-                preparerChain.prepare(conversionContext);
                 FFmpegCommand command = new FFmpegCommand();
                 commandBuilderChain.prepareCommand(command, conversionContext);
                 fFmpegDevice.execute(command.toCmd());

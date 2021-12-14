@@ -262,8 +262,8 @@ public class FFmpegCommandBuilderFactory {
         return new FFmpegConcatCommandBuilder();
     }
 
-    public FFmpegCommandBuilderChain mapAndCopyAudio() {
-        return new FFmpegMapAndCopyAudioCommandBuilder();
+    public FFmpegCommandBuilderChain audioMerge() {
+        return new FFmpegAudioMergeCommandBuilder();
     }
 
     public FFmpegCommandBuilderChain videoScreenshot() {
