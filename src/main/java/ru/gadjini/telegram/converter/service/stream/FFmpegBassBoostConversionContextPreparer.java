@@ -4,7 +4,7 @@ public class FFmpegBassBoostConversionContextPreparer extends BaseFFmpegConversi
 
     @Override
     public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
-        conversionContext.useStaticVideoFilter();
+        conversionContext.useStaticAudioFilter();
         super.prepare(conversionContext);
     }
 }

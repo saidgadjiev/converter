@@ -125,7 +125,7 @@ public class ConversionQueueDao implements WorkQueueDaoDelegate<ConversionQueueI
 
     public Integer countByUser(long userId) {
         return jdbcTemplate.query(
-                "SELECT COUNT(*) as cnt FROM conversion_queue WHERE user_id = ? AND converter IN(" + inConverters() + ")",
+                "SELECT COUNT(*) as cnt FROM conversion_queue WHERE user_id = ? AND converter IN(" + inConverters() + ") AND completed_at::date = current_date",
                 ps -> ps.setLong(1, userId),
                 rs -> rs.next() ? rs.getInt("cnt") : 0
         );
