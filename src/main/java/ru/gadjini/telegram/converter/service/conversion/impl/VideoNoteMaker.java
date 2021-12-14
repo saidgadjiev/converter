@@ -9,6 +9,7 @@ import ru.gadjini.telegram.converter.exception.CorruptedVideoException;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.api.result.VideoNoteResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.StreamsChecker;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFprobeDevice;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -16,15 +17,13 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileGarbageCollector;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.VIDEO_NOTE;
 
@@ -45,30 +44,56 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
 
     private UserService userService;
 
+    private MakeVideoSquare makeVideoSquare;
+
+    private StreamsChecker streamsChecker;
+
+    private TempFileGarbageCollector tempFileGarbageCollector;
+
     @Autowired
     public VideoNoteMaker(FFprobeDevice fFprobeDevice, FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
-                          LocalisationService localisationService, UserService userService) {
+                          LocalisationService localisationService, UserService userService,
+                          MakeVideoSquare makeVideoSquare, StreamsChecker streamsChecker,
+                          TempFileGarbageCollector tempFileGarbageCollector) {
         super(MAP);
         this.fFprobeDevice = fFprobeDevice;
         this.fFmpegVideoHelper = fFmpegVideoHelper;
         this.localisationService = localisationService;
         this.userService = userService;
+        this.makeVideoSquare = makeVideoSquare;
+        this.streamsChecker = streamsChecker;
+        this.tempFileGarbageCollector = tempFileGarbageCollector;
     }
 
     @Override
     protected ConversionResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileQueueItem.getDownloadedFileOrThrow(fileQueueItem.getFirstFileId());
 
+        TempFileGarbageCollector.GarbageFileCollection garbageFileCollection = tempFileGarbageCollector.getNewCollection();
         SmartTempFile result = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
                 fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
         try {
-            List<FFprobeDevice.FFProbeStream> videoStreams = fFprobeDevice.getVideoStreams(file.getAbsolutePath());
-            FFprobeDevice.WHD whd = fFmpegVideoHelper.getFirstVideoStream(videoStreams).getWhd();
+            List<FFprobeDevice.FFProbeStream> streams = fFprobeDevice.getStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
+
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            streamsChecker.checkVideoStreamsExistence(streams, locale);
+            FFprobeDevice.WHD whd = fFmpegVideoHelper.getFirstVideoStream(streams).getWhd();
 
             if (!Objects.equals(whd.getHeight(), whd.getWidth())) {
-                throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION,
-                        new Object[]{whd.getWidth() + "x" + whd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())))
-                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+                SmartTempFile squareResult = tempFileService().createTempFile(FileTarget.UPLOAD, fileQueueItem.getUserId(),
+                        fileQueueItem.getFirstFileId(), TAG, fileQueueItem.getFirstFileFormat().getExt());
+                garbageFileCollection.addFile(squareResult);
+
+                int size = makeVideoSquare.doMakeSquare(file, squareResult, fileQueueItem, streams);
+                file = squareResult;
+                whd.setWidth(size);
+                whd.setHeight(size);
+
+                if (result.length() > TgConstants.VIDEO_NOTE_MAX_FILE_SIZE) {
+                    throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_CANDIDATE_DIMENSION,
+                            new Object[]{whd.getWidth() + "x" + whd.getHeight()}, userService.getLocaleOrDefault(fileQueueItem.getUserId())))
+                            .setReplyToMessageId(fileQueueItem.getReplyToMessageId());
+                }
             }
             if (whd.getDuration() > TgConstants.VIDEO_NOTE_MAX_LENGTH) {
                 throw new UserException(localisationService.getMessage(ConverterMessagesProperties.MESSAGE_INVALID_VIDEO_NOTE_LENGTH,
@@ -85,6 +110,16 @@ public class VideoNoteMaker extends BaseAny2AnyConverter {
         } catch (Throwable e) {
             tempFileService().delete(result);
             throw new ConvertException(e);
+        } finally {
+            garbageFileCollection.delete();
         }
+    }
+
+    private void tryNonSquareVideoConversion(ConversionQueueItem fileQueueItem) {
+
+    }
+
+    private void trySquareVideoConversion(ConversionQueueItem fileQueueItem) {
+
     }
 }

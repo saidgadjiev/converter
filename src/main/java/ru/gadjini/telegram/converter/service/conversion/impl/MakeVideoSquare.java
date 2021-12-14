@@ -109,17 +109,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             FFprobeDevice.WHD srcWhd = fFmpegVideoHelper.getFirstVideoStream(allStreams).getWhd();
             validate(fileQueueItem, srcWhd);
 
-            int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
-            FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, TARGET_FORMAT, allStreams)
-                    .putExtra(FFmpegConversionContext.SQUARE_SIZE, size);
-            conversionContextPreparer.prepare(conversionContext);
-
-            FFmpegCommand command = new FFmpegCommand();
-            commandBuilderChain.prepareCommand(command, conversionContext);
-
-            FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
-                    userService.getLocaleOrDefault(fileQueueItem.getUserId()));
-            fFmpegDevice.execute(command.toCmd(), callback);
+            int size = doMakeSquare(file, result, fileQueueItem, allStreams);
 
             String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SQUARE_CAPTION,
                     new Object[]{size + "x" + size}, locale);
@@ -132,6 +122,24 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             tempFileService().delete(result);
             throw new ConvertException(e);
         }
+    }
+
+    public int doMakeSquare(SmartTempFile file, SmartTempFile result,
+                            ConversionQueueItem fileQueueItem, List<FFprobeDevice.FFProbeStream> allStreams) throws InterruptedException {
+        FFprobeDevice.WHD srcWhd = fFmpegVideoHelper.getFirstVideoStream(allStreams).getWhd();
+        int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
+        FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, TARGET_FORMAT, allStreams)
+                .putExtra(FFmpegConversionContext.SQUARE_SIZE, size);
+        conversionContextPreparer.prepare(conversionContext);
+
+        FFmpegCommand command = new FFmpegCommand();
+        commandBuilderChain.prepareCommand(command, conversionContext);
+
+        FFmpegProgressCallbackHandlerFactory.FFmpegProgressCallbackHandler callback = callbackHandlerFactory.createCallback(fileQueueItem, srcWhd.getDuration(),
+                userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+        fFmpegDevice.execute(command.toCmd(), callback);
+
+        return size;
     }
 
     private void validate(ConversionQueueItem fileQueueItem, FFprobeDevice.WHD srcWhd) {
