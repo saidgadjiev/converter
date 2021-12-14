@@ -127,7 +127,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
     public int doMakeSquare(SmartTempFile file, SmartTempFile result,
                             ConversionQueueItem fileQueueItem, List<FFprobeDevice.FFProbeStream> allStreams) throws InterruptedException {
         FFprobeDevice.WHD srcWhd = fFmpegVideoHelper.getFirstVideoStream(allStreams).getWhd();
-        int size = Math.max(srcWhd.getHeight(), srcWhd.getWidth());
+        int size = Math.min(srcWhd.getHeight(), srcWhd.getWidth());
         FFmpegConversionContext conversionContext = FFmpegConversionContext.from(file, result, TARGET_FORMAT, allStreams)
                 .putExtra(FFmpegConversionContext.SQUARE_SIZE, size);
         conversionContextPreparer.prepare(conversionContext);
