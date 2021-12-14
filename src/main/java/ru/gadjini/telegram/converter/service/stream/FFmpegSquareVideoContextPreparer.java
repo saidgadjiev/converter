@@ -7,7 +7,8 @@ public class FFmpegSquareVideoContextPreparer extends BaseFFmpegConversionContex
     @Override
     public void prepare(FFmpegConversionContext conversionContext) throws InterruptedException {
         int size = conversionContext.getExtra(FFmpegConversionContext.SQUARE_SIZE);
-        String scale = "crop=" + size + ":" + size;
+        String crop = "(" + size + "/2)*2";
+        String scale = "crop=" + crop + ":" + crop;
 
         for (FFprobeDevice.FFProbeStream stream : conversionContext.videoStreams()) {
             stream.setTargetScale(scale);
