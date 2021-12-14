@@ -199,6 +199,8 @@ public class ConverterMessagesProperties {
 
     public static final String MESSAGE_CORRUPTED_VIDEO = "message.corrupted.video";
 
+    public static final String MESSAGE_NO_VIDEO_STREAMS = "message.no.video.streams";
+
     public static final String MESSAGE_VAIMAKE_WELCOME = "message.vaimake.welcome";
 
     public static final String MESSAGE_VAIMAKE_AWAITING_IMAGE = "message.vaimake.awaiting.image";

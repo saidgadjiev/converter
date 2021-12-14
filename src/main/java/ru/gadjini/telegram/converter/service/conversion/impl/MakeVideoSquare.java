@@ -11,6 +11,7 @@ import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderChain;
 import ru.gadjini.telegram.converter.service.command.FFmpegCommandBuilderFactory;
 import ru.gadjini.telegram.converter.service.conversion.api.result.ConversionResult;
 import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.FFmpegVideoStreamConversionHelper;
+import ru.gadjini.telegram.converter.service.conversion.ffmpeg.helper.StreamsChecker;
 import ru.gadjini.telegram.converter.service.conversion.progress.FFmpegProgressCallbackHandlerFactory;
 import ru.gadjini.telegram.converter.service.conversion.result.VideoResultBuilder;
 import ru.gadjini.telegram.converter.service.ffmpeg.FFmpegDevice;
@@ -26,10 +27,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static ru.gadjini.telegram.smart.bot.commons.service.format.Format.SQUARE;
 
@@ -62,13 +60,16 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
     private VideoResultBuilder videoResultBuilder;
 
+    private StreamsChecker streamsChecker;
+
     @Autowired
     public MakeVideoSquare(FFmpegDevice fFmpegDevice, LocalisationService localisationService,
                            UserService userService, FFprobeDevice fFprobeDevice,
                            FFmpegVideoStreamConversionHelper fFmpegVideoHelper,
                            FFmpegProgressCallbackHandlerFactory callbackHandlerFactory,
                            FFmpegConversionContextPreparerChainFactory contextPreparerChainFactory,
-                           FFmpegCommandBuilderFactory commandBuilderChainFactory, VideoResultBuilder videoResultBuilder) {
+                           FFmpegCommandBuilderFactory commandBuilderChainFactory,
+                           VideoResultBuilder videoResultBuilder, StreamsChecker streamsChecker) {
         super(MAP);
         this.fFmpegDevice = fFmpegDevice;
         this.localisationService = localisationService;
@@ -79,6 +80,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
 
         this.videoResultBuilder = videoResultBuilder;
         this.commandBuilderChain = commandBuilderChainFactory.quiteInput();
+        this.streamsChecker = streamsChecker;
         commandBuilderChain.setNext(commandBuilderChainFactory.simpleVideoStreamsConversionWithWebmQuality())
                 .setNext(commandBuilderChainFactory.fastVideoConversionAndDefaultOptions())
                 .setNext(commandBuilderChainFactory.output());
@@ -101,6 +103,9 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
         try {
             List<FFprobeDevice.FFProbeStream> allStreams = fFprobeDevice.getStreams(file.getAbsolutePath(), FormatCategory.VIDEO);
 
+            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+            streamsChecker.checkVideoStreamsExistence(allStreams, locale);
+
             FFprobeDevice.WHD srcWhd = fFmpegVideoHelper.getFirstVideoStream(allStreams).getWhd();
             validate(fileQueueItem, srcWhd);
 
@@ -117,7 +122,7 @@ public class MakeVideoSquare extends BaseAny2AnyConverter {
             fFmpegDevice.execute(command.toCmd(), callback);
 
             String caption = localisationService.getMessage(ConverterMessagesProperties.MESSAGE_SQUARE_CAPTION,
-                    new Object[]{size + "x" + size}, userService.getLocaleOrDefault(fileQueueItem.getUserId()));
+                    new Object[]{size + "x" + size}, locale);
 
             return videoResultBuilder.build(fileQueueItem, fileQueueItem.getFirstFileFormat(), caption, result);
         } catch (UserException | CorruptedVideoException e) {

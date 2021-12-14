@@ -43,11 +43,13 @@ public class FFmpegVideoStreamDetector {
 
         int firstVideoStream = getFirstVideoStreamIndex0(videoStreams);
 
-
-        return videoStreams.get(firstVideoStream);
+        return firstVideoStream == -1 ? null : videoStreams.get(firstVideoStream);
     }
 
     private int getFirstVideoStreamIndex0(List<FFprobeDevice.FFProbeStream> videoStreams) {
+        if (videoStreams.isEmpty()) {
+            return -1;
+        }
         for (int videoStreamMapIndex = 0; videoStreamMapIndex < videoStreams.size(); ++videoStreamMapIndex) {
             FFprobeDevice.FFProbeStream videoStream = videoStreams.get(videoStreamMapIndex);
             if (!isExtraVideoStream(videoStreams, videoStream)) {
