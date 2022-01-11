@@ -43,13 +43,12 @@ public class BotConfiguration {
     @Bean
     public BotFilter botFilter(UpdateFilter updateFilter, UserSynchronizedFilter userSynchronizedFilter,
                                StartCommandFilter startCommandFilter, TechWorkFilter techWorkFilter,
-                               LastActivityFilter activityFilter,
-                               ChannelSubscriptionFilter subscriptionFilter, UpdatesHandlerFilter updatesHandlerFilter,
+                               LastActivityFilter activityFilter, UpdatesHandlerFilter updatesHandlerFilter,
                                PaidSubscriptionFilter paidSubscriptionFilter, DistributionFilter distributionFilter,
                                TrialSubscriptionConversionLimitsFilter trialSubscriptionConversionLimitsFilter,
                                SubscriptionProperties subscriptionProperties) {
         BotFilter botFilter = updateFilter.setNext(userSynchronizedFilter)
-                .setNext(startCommandFilter).setNext(subscriptionFilter).setNext(activityFilter)
+                .setNext(startCommandFilter).setNext(activityFilter)
                 .setNext(distributionFilter)
                 .setNext(techWorkFilter).setNext(paidSubscriptionFilter);
 
