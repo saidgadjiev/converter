@@ -21,7 +21,6 @@ import ru.gadjini.telegram.converter.service.keyboard.ConverterReplyKeyboardServ
 import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.filter.*;
-import ru.gadjini.telegram.smart.bot.commons.filter.subscription.ChannelSubscriptionFilter;
 import ru.gadjini.telegram.smart.bot.commons.filter.subscription.PaidSubscriptionFilter;
 import ru.gadjini.telegram.smart.bot.commons.property.SubscriptionProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
